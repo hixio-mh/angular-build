@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "noImplicitReturns": true,
+    "removeComments": false,
+    "pretty": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    //"sourceRoot": "",
+    //"inlineSourceMap": true,
+    "declaration": true,
+    "skipDefaultLibCheck": true,
+    "lib": [ "es2015" ],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "exclude": [
+    "bin",
+    "node_modules",
+    "typings",
+    "Scripts/typings",
+    "dist"
+  ],
+  "atom": { "rewriteTsconfig": false }
+}
