@@ -1,7 +1,7 @@
 # @bizappframework/angular-build
 
 #### What is this repo?
-Webpack 2 configuration for Angular 2 app based on [angular-cli](https://github.com/angular/angular-cli), [AngularClass's angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter) and [aspnetcore-angular2-universal](https://github.com/MarkPieszak/aspnetcore-angular2-universal).  
+Webpack configuration for Angular 2/4 apps based on [angular-cli](https://github.com/angular/angular-cli), [AngularClass's angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter) and [aspnetcore-angular2-universal](https://github.com/MarkPieszak/aspnetcore-angular2-universal).  
 This configuration is utilized for:
 - Server-side rendering (see [Angular Universal](https://github.com/angular/universal))  
 - HMR - Hot Module Reloading/Replacement (see [Angular Universal](https://github.com/angular/universal))  

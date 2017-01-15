@@ -240,3 +240,18 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+# npm
+npm-debug.log*
+
+# Typings file.
+typings/
+
+# Misc
+tmp/
+obj/
+bin/
+
+# Mac OSX Finder files.
+**/.DS_Store
+.DS_Store
