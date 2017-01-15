@@ -8,7 +8,7 @@ This configuration is utilized for:
 - Development builds (JIT/AoT)  
 - Production builds (JIT/AoT)  
 - Optimizing webpack build times and improving caching with DLL bundles
-- Favicons generation  
+- Favicons generation with using [realfavicongenerator](http://realfavicongenerator.net/)  
 
 ## How to Install
 ```<language>
