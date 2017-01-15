@@ -7,7 +7,8 @@ This configuration is utilized for:
 - HMR - Hot Module Reloading/Replacement (see [Angular Universal](https://github.com/angular/universal))  
 - Development builds (JIT/AoT)  
 - Production builds (JIT/AoT)  
-- Optimizing webpack build times and improving caching with DLL bundles  
+- Optimizing webpack build times and improving caching with DLL bundles
+- Favicons generation  
 
 ## How to Install
 ```<language>
