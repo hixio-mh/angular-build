@@ -33,7 +33,9 @@
   "scripts": {
     "build": "tsc",
     "prepublish": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "change-remote:vsts": "git remote rm origin && git remote add origin https://bizappframework.visualstudio.com/_git/angular-build && git remote -v",
+    "change-remote:github": "git remote rm origin && git remote add origin https://github.com/BizAppFramework/angular-build.git && git remote -v"
   },
   "dependencies": {
     "@angular/compiler-cli": "^2.4.3",
