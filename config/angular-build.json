@@ -1,58 +1,63 @@
 {
   "apps": [
     {
+      // App source root directory.
       "root": "src",
-      "outDir": "wwwroot",
+      // Build/bundle output directory.
+      "outDir": "dist",
+      // The public Url address of the output files.
       "publicPath": "/",
-      "main": "main.ts", // main.browser.ts, bootstrap-main.ts
-      "test": "test.ts",
+      // App main bootstrap file.
+      "main": "main.ts",
+      // Typescript configuration file.
       "tsconfig": "tsconfig.json",
-      "environments": {
-        "source": "environments/environment.ts",
-        "dev": "environments/environment.ts",
-        "prod": "environments/environment.prod.ts"
-      },
+      // Assets to be copied to output directory, it can be used glob pattern e.g. ["assets/**/*"].
+      "assets": [],
+      // Global styles to be bundled, it can be .css, .scss/.sass, .less, .stylus - e.g. ["styles.scss"].
+      "styles": [],
+      // Script files to be added to the global scope e.g ["../node_modules/jquery/dist/jquery.js", "../node_modules/tether/dist/js/tether.js", "../node_modules/bootstrap/dist/js/bootstrap.js"].
+      "scripts": [],
+      // To automatically load module with alias key e.g { "$": "jquery"}.
+      "provide": {},
 
-      // Copy assets to output dir
-      // string[] or [{from: string; to: string; context: string; dot: boolean;}]
-      "assets": [ "assets/**/*" ],
-
-      "styles": [ "styles.css" ],
-      //"scripts": [ ],
-      //"provide": {
-      //  "$": "jquery"
-      //},
-
-      // Injection
-      //"index": "index.html",
-      "indexOutFileName": "../Views/Shared/_BundledScripts.cshtml",
-      "htmlInjectOptions": {
-        "iconsInjectOutFileName": "../Views/Shared/_FavIcons.cshtml",
-        "stylesInjectOutFileName": "../Views/Shared/_BundledStyles.cshtml",
-
-        "customScriptAttributes": { "asp-append-version": true },
-        "customLinkAttributes": { "asp-append-version": true }
-      },
-
-      // json config object {} | json config file (.json) | source picture (.png)
+      // An index source template file e.g. "index.html".
+      "index": "",
+      // The file to write the Html to. e.g. "../Views/Shared/_BundledScripts.cshtml"
+      "indexOutFileName": "",
+      // Favicon configuration file.
       "icon": "favicon-config.json",
+      // Html injection options
+      "htmlInjectOptions": {
+        // Separate output file name for generated favicon tags. e.g "../Views/Shared/_FavIcons.cshtml"
+        "iconsInjectOutFileName": "",
+        // Separate output file name for style links. e.g. "../Views/Shared/_BundledStyles.cshtml"
+        "stylesInjectOutFileName": "",
+        // Custom attributes for script tags. e.g. { "asp-append-version": true }
+        "customScriptAttributes": {},
+        // Custom attributes for link tags. e.g. { "asp-append-version": true }
+        "customLinkAttributes": {}
+      },
 
-      "referenceDllOnDevelopment": false,
+      // Generate dll bundles for development builds.
+      "referenceDllOnDevelopment": true,
+      // Generate dll bundles for production builds.
       "referenceDllOnProduction": false,
+      // If true, it automatically run command as specified in tryBuildDllCommand when dll [vendor]-manifest.json file is not found.
       "tryBuildDll": true,
+      // The tryBuildDll command.
       "tryBuildDllCommand": "npm",
+      // The tryBuildDll command arguments.
       "tryBuildDllCommandArgs": [ "run", "build:dll" ],
-      //"dllEntryChunkName": "vendor",
+      // The entries for dll bundle.
       "dlls": [
         {
           "entry": "polyfills.ts"
         },
         {
           "entry": "vendors.ts"
-          //"targets": ["web"], // string[], node, web
-          //"env": "dev" // dev || prod
         }
       ],
+      // If true, dll polyfill entries are imported to main entry.
       "importPolyfillsToMain": true
     }
   ]

@@ -1,61 +1,44 @@
 # @bizappframework/angular-build
 
 #### What is this repo?
-Webpack configuration for Angular 2/4 apps based on [angular-cli](https://github.com/angular/angular-cli), [AngularClass's angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter) and [aspnetcore-angular2-universal](https://github.com/MarkPieszak/aspnetcore-angular2-universal).  
+Webpack configuration for Angular 2/4 apps based on [angular-cli](https://github.com/angular/angular-cli), [AngularClass's angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter) and [Angular Universal](https://github.com/angular/universal).  
 This configuration is utilized for:
 - Server-side rendering (see [Angular Universal](https://github.com/angular/universal))  
 - HMR - Hot Module Reloading/Replacement (see [Angular Universal](https://github.com/angular/universal))  
-- Development builds (JIT/AoT)  
-- Production builds (JIT/AoT)  
-- Optimizing webpack build times and improving caching with DLL bundles
-- Favicons generation with using [realfavicongenerator](http://realfavicongenerator.net/)  
+- Development builds (JIT/[AoT](https://angular.io/docs/ts/latest/cookbook/aot-compiler.html))  
+- Production builds (JIT/[AoT](https://angular.io/docs/ts/latest/cookbook/aot-compiler.html))  
+- Optimizing webpack build times with DLL bundles (see [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin))
+- Online or offline favicons generation - integration with [realfavicongenerator](http://realfavicongenerator.net) and [haydenbleasel favicons](https://github.com/haydenbleasel/favicons)
+- Easy configuration with [angular-build.json](https://github.com/BizAppFramework/angular-build/blob/master/config/angular-build.json) or [angular-cli.json](https://github.com/angular/angular-cli)   
 
 ## How to Install
 ```<language>
-npm install --save-dev @bizappframework/angular-build  ts-node cross-env
-```
-## How to use
-- Add a new **angular-build.json** file to your project root directory and configure your app build. The following example is minimal configuration.
-```<language>
-{
-  "apps": [
-    {
-      "root": "src", // Replace with your app source directory.
-      "outDir": "wwwroot/dist", // Bundle output directory.
-      "publicPath": "/dist/", // Webpack dev middleware, if enabled, handles requests for this URL prefix
-      "main": "main.ts", // Replace with your angular main bootstrap file.
-      "index": "index.html", // Replace with your index template file.
-      "tsconfig": "tsconfig.json" // Replace with yourtsconfig.json relative to app src "root".
+// Angular dependencies
+npm install --save @angular/core @angular/compiler reflect-metadata rxjs zone.js
 
-    }
-  ]
-}
-```
+// Other dependencies
+npm install --save-dev  typescript ts-node cross-env rimraf 
 
-- Add a new **webpack.config.ts** file to your project root directory and add the following code.
-```<language>
-import {getWebpackConfigs} from '@bizappframework/angular-build';
-const configs = getWebpackConfigs(__dirname);
-module.exports = configs;
+// main package
+npm install --save-dev @bizappframework/angular-build
 ```  
 
-
-- (Optional) add npm scripts to **package.json** file.
+## Init configurations
 ```<language>
-{
-  "scripts": {
-    "tsc:webpack.config.ts": "tsc webpack.config.ts -t es6 -m commonjs --moduleResolution node --watch --pretty --sourceMap",
-    "build:dll": "cross-env NODE_ENV=development webpack --profile --colors --bail",
-    "build:dev": "cross-env NODE_ENV=development webpack --profile --colors --bail",
-    "build:prod": "cross-env NODE_ENV=production webpack  --profile --colors --bail",
-    "build:aot": "cross-env NODE_ENV=production webpack --profile --colors --bail",
-    "build": "npm run build:dev",
-    "cross-env": "cross-env"
-  }
-}
+angular-build init --prompt
 ```  
 
-- (Optional) compile **webpack.config.ts**, run the following command.
+## Builds
 ```<language>
-npm run-script tsc:webpack.config.ts
-```
+// For dll bundle only
+npm run build:dll
+
+// For debug/development build
+npm run build:dev
+
+// For production JIT build
+npm run build:prod
+
+// For production AoT build
+npm run build:aot
+```  
