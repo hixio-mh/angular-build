@@ -241,9 +241,6 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 
-# npm
-npm-debug.log*
-
 # Typings file.
 typings/
 
@@ -255,3 +252,11 @@ bin/Microsoft.NodejsTools.WebRole.dll
 # Mac OSX Finder files.
 **/.DS_Store
 .DS_Store
+
+#IDE
+*.sin
+*.njsproj
+*.jsproj
+*.xproj
+.vscode/
+.idea

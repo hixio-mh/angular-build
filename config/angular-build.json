@@ -1,0 +1,59 @@
+{
+  "apps": [
+    {
+      "root": "src",
+      "outDir": "wwwroot",
+      "publicPath": "/",
+      "main": "main.ts", // main.browser.ts, bootstrap-main.ts
+      "test": "test.ts",
+      "tsconfig": "tsconfig.json",
+      "environments": {
+        "source": "environments/environment.ts",
+        "dev": "environments/environment.ts",
+        "prod": "environments/environment.prod.ts"
+      },
+
+      // Copy assets to output dir
+      // string[] or [{from: string; to: string; context: string; dot: boolean;}]
+      "assets": [ "assets/**/*" ],
+
+      "styles": [ "styles.css" ],
+      //"scripts": [ ],
+      //"provide": {
+      //  "$": "jquery"
+      //},
+
+      // Injection
+      //"index": "index.html",
+      "indexOutFileName": "../Views/Shared/_BundledScripts.cshtml",
+      "htmlInjectOptions": {
+        "iconsInjectOutFileName": "../Views/Shared/_FavIcons.cshtml",
+        "stylesInjectOutFileName": "../Views/Shared/_BundledStyles.cshtml",
+
+        "customScriptAttributes": { "asp-append-version": true },
+        "customLinkAttributes": { "asp-append-version": true }
+      },
+
+      // json config object {} | json config file (.json) | source picture (.png)
+      "icon": "favicon-config.json",
+
+      "referenceDllOnDevelopment": false,
+      "referenceDllOnProduction": false,
+      "tryBuildDll": true,
+      "tryBuildDllCommand": "npm",
+      "tryBuildDllCommandArgs": [ "run", "build:dll" ],
+      //"dllEntryChunkName": "vendor",
+      "dlls": [
+        {
+          "entry": "polyfills.ts"
+        },
+        {
+          "entry": "vendors.ts"
+          //"targets": ["web"], // string[], node, web
+          //"env": "dev" // dev || prod
+        }
+      ],
+      "importPolyfillsToMain": true
+    }
+  ]
+}

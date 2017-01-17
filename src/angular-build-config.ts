@@ -27,6 +27,11 @@ import { AngularAppConfig, AngularBuildOptions } from './models';
 import { readJsonSync, isDevelopmentBuild, isDllBuildFromNpmEvent, isAoTBuildFromNpmEvent } from './utils';
 import { getWebpackCommonConfig } from './webpack-build-common';
 
+const defaultAppConfig = {
+    root: 'src',
+    outDir: 'wwwroot'
+};
+
 export function getWebpackAngularConfigs(projectRoot: string, configPath?: string, buildOptions?: AngularBuildOptions) {
   projectRoot = projectRoot || process.cwd();
 

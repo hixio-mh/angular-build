@@ -25,7 +25,8 @@
     "node_modules",
     "typings",
     "Scripts/typings",
-    "dist"
+    "dist",
+    "config"
   ],
   "atom": { "rewriteTsconfig": false }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "0.4.25",
+  "version": "0.4.28",
   "description": "Webpack configuration for Angular 2/4 apps.",
   "keywords": [
     "bizappframework",
@@ -13,6 +13,7 @@
   "author": "Octalhouse",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "bin": "bin/angular-build",
   "files": [
     "dist",
     "src"
@@ -32,10 +33,7 @@
   "homepage": "https://github.com/bizappframework/angular-build",
   "scripts": {
     "build": "tsc",
-    "prepublish": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "change-remote:vsts": "git remote rm origin && git remote add origin https://bizappframework.visualstudio.com/_git/angular-build && git remote -v",
-    "change-remote:github": "git remote rm origin && git remote add origin https://github.com/BizAppFramework/angular-build.git && git remote -v"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@angular/compiler-cli": "^2.4.3",
@@ -102,6 +100,7 @@
     "reflect-metadata": "^0.1.9",
     "rxjs": "^5.0.3",
     "typescript": "^2.1.5",
+    "yargs": "^6.6.0",
     "zone.js": "^0.7.4"
   },
   "peerDependencies": {

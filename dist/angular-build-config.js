@@ -20,6 +20,10 @@ const TsConfigPathsPlugin = require('awesome-typescript-loader').TsConfigPathsPl
 const webpackMerge = require('webpack-merge');
 const utils_1 = require("./utils");
 const webpack_build_common_1 = require("./webpack-build-common");
+const defaultAppConfig = {
+    root: 'src',
+    outDir: 'wwwroot'
+};
 function getWebpackAngularConfigs(projectRoot, configPath, buildOptions) {
     projectRoot = projectRoot || process.cwd();
     let configFileExists = false;
