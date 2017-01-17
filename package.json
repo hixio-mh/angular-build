@@ -13,7 +13,9 @@
   "author": "Octalhouse",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+
   "bin": "bin/angular-build",
+ 
   "files": [
     "dist",
     "src"

@@ -4,7 +4,7 @@
       "root": "src",
       "outDir": "wwwroot",
       "publicPath": "/",
-      "main": "main.ts", // main.browser.ts, bootstrap-main.ts
+      "main": "main.ts", // main.browser.ts
       "test": "test.ts",
       "tsconfig": "tsconfig.json",
       "environments": {
