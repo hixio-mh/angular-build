@@ -243,7 +243,7 @@ function initCore(projectRoot, opts) {
 			});
 		})
 		.then((cfg) => {
-			return readJsonAsync(require.resolve('../config/tsconfig.json')).then(tsConfig => {
+			return readJsonAsync(require.resolve('../config/tsconfig-json')).then(tsConfig => {
 				cfg.tsConfig = tsConfig;
 				return cfg;
 			});

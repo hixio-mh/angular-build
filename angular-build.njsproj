@@ -50,7 +50,7 @@
     <Content Include="cli\angular-build.js" />
     <Content Include="config\angular-build.json" />
     <Content Include="config\favicon-config.json" />
-    <Content Include="config\tsconfig.json" />
+    <Content Include="config\tsconfig-json" />
     <Content Include="config\webpack-config-js" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
