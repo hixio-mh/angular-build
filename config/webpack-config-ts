@@ -1,0 +1,4 @@
+﻿//require('ts-node').register({ /* options */  });
+import { getWebpackAngularConfigs } from '@bizappframework/angular-build';
+const configs = getWebpackAngularConfigs(__dirname);
+module.exports = configs;

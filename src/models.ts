@@ -12,7 +12,7 @@
   indexOutFileName?: string;
   htmlInjectOptions?: HtmlInjectOptions;
 
-  icon?: string | {
+  faviconConfig?: string | {
     masterPicture: any;
   };
 

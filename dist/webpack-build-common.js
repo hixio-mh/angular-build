@@ -424,7 +424,7 @@ function getWebpackCommonConfig(projectRoot, appConfig, buildOptions) {
     }
     // Icons, inject
     //
-    let shouldGenerateIcons = typeof appConfig.icon !== 'undefined' && appConfig.icon !== null;
+    let shouldGenerateIcons = typeof appConfig.faviconConfig !== 'undefined' && appConfig.faviconConfig !== null;
     if (shouldGenerateIcons && buildOptions.dll && !buildOptions.generateIconssOnDllBuild) {
         shouldGenerateIcons = false;
     }
@@ -437,19 +437,14 @@ function getWebpackCommonConfig(projectRoot, appConfig, buildOptions) {
     }
     if (shouldGenerateIcons) {
         let iconConfig = null;
-        if (typeof appConfig.icon === 'object') {
-            iconConfig = appConfig.icon;
+        if (typeof appConfig.faviconConfig === 'object') {
+            iconConfig = appConfig.faviconConfig;
         }
-        else if (typeof appConfig.icon === 'string' && appConfig.icon.match(/\.json$/i)) {
-            iconConfig = utils_1.readJsonSync(path.resolve(appRoot, appConfig.icon));
-        }
-        else if (typeof appConfig.icon === 'string' && appConfig.icon.match(/\.[a-zA-Z]{3,4}$/i)) {
-            iconConfig = {
-                masterPicture: appConfig.icon
-            };
+        else if (typeof appConfig.faviconConfig === 'string' && appConfig.faviconConfig.match(/\.json$/i)) {
+            iconConfig = utils_1.readJsonSync(path.resolve(appRoot, appConfig.faviconConfig));
         }
         if (!iconConfig || !iconConfig.masterPicture) {
-            throw new Error('Invalid favicon format or configuration.');
+            throw new Error(`Invalid favicon format or configuration. 'masterPicture' is undefined.`);
         }
         iconConfig.masterPicture = path.resolve(appRoot, iconConfig.masterPicture);
         if (!iconConfig.iconsPath) {

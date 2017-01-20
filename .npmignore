@@ -247,7 +247,7 @@ typings/
 # Misc
 tmp/
 obj/
-bin/Microsoft.NodejsTools.WebRole.dll
+bin/
 
 # Mac OSX Finder files.
 **/.DS_Store

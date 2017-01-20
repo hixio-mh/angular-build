@@ -10,7 +10,7 @@ export interface AppConfig {
     index?: string;
     indexOutFileName?: string;
     htmlInjectOptions?: HtmlInjectOptions;
-    icon?: string | {
+    faviconConfig?: string | {
         masterPicture: any;
     };
     publicPath?: string;

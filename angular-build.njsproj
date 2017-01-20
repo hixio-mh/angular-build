@@ -50,6 +50,8 @@
     <Content Include="cli\angular-build.js" />
     <Content Include="config\angular-build.json" />
     <Content Include="config\favicon-config.json" />
+    <Content Include="config\tsconfig.json" />
+    <Content Include="config\webpack-config-js" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
@@ -69,11 +71,11 @@
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="config\environment.prod.ts.bak" />
-    <TypeScriptCompile Include="config\environment.ts.bak" />
-    <TypeScriptCompile Include="config\polyfills.ts.bak" />
-    <TypeScriptCompile Include="config\vendors.ts.bak" />
-    <TypeScriptCompile Include="config\webpack.config.ts.bak" />
+    <TypeScriptCompile Include="config\environment-prod-ts" />
+    <TypeScriptCompile Include="config\environment-ts" />
+    <TypeScriptCompile Include="config\polyfills-ts" />
+    <TypeScriptCompile Include="config\vendors-ts" />
+    <TypeScriptCompile Include="config\webpack-config-ts" />
     <TypeScriptCompile Include="src\angular-build-config.ts" />
     <TypeScriptCompile Include="src\index.ts" />
     <TypeScriptCompile Include="src\models.ts" />
@@ -92,7 +94,7 @@
     <TypeScriptCompile Include="src\webpack-build-common.ts" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="bin\angular-build">
+    <Compile Include="cli\angular-build">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="src\empty.ts" />

@@ -1,5 +1,5 @@
 ﻿{
-  //"masterPicture": "logo.png", 'favicon.svg
+  "masterPicture": null,
   "iconsPath": "icons-[hash]/",
   "design": {
     //"favicons": true,
@@ -103,12 +103,7 @@
     "scalingAlgorithm": "Mitchell",
     "errorOnImageTooSmall": true
   },
-  //"filesLocation": {
-  //  "type": "path",
-  //  "path": ""
-  //},
   "versioning": false,
-
 
   "appName": "@ViewBag.ApplicationName",
   "version": "1.0",
@@ -120,11 +115,8 @@
   "lang": "en-US",
 
   // Plugin settings
-  //"apiKey": "eabf77c98d6bd1eea81fb58be7895c42dafc2b21",
   "online": false,
-  "preferOnline": false,
+  "preferOnline": true,
   "inject": true,
   "applyCustomAttributes": false
-  // override iconsInjectOutFileName, related to outDir
-  //"iconsInjectOutFileName": "../Views/Shared/_FavIcons.cshtml",
 }

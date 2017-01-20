@@ -17,7 +17,7 @@ This configuration is utilized for:
 npm install --save @angular/core @angular/compiler reflect-metadata rxjs zone.js
 
 // Other dependencies
-npm install --save-dev  typescript ts-node cross-env rimraf 
+npm install --save-dev  @angular/compiler-cli @ngtools/webpack typescript ts-node cross-env rimraf 
 
 // main package
 npm install --save-dev @bizappframework/angular-build

@@ -30,14 +30,15 @@
         //  'core-js/es6/promise',
 
         // zone.js
-        'zone.js/dist/zone'
+        'zone.js/dist/zone',
 
         // Typescript emit helpers polyfill
-        // NOTE: Starting Typescript 2.1 this package won't be needed anymore
+        // NOTE: Starting typescript 2.1 this package won't be needed anymore
         //"ts-helpers",
-        //"tslib"
+        // ttypescript >= 2.1
+        'tslib'
 
-        // rxjs
+        // rxjs polyfills
         //"rxjs/Observable",
         //"rxjs/Subscription",
         //"rxjs/Subject",

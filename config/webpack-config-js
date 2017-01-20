@@ -1,5 +1,4 @@
-﻿require('ts-node').register({ /* options */  });
+﻿//require('ts-node').register({ /* options */  });
 import { getWebpackAngularConfigs } from '@bizappframework/angular-build';
 const configs = getWebpackAngularConfigs(__dirname);
-//ReSharper disable once CommonJsExternalModule
 module.exports = configs;
