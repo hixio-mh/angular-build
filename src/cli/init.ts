@@ -25,6 +25,7 @@ export const initCommandModule: yargs.CommandModule = {
             .reset()
             .usage(initCommandUsage)
             .example('ngb init --prompt', 'Create angular-build config files with user prompt option')
+            .help('h')
             .option('p',
             {
                 alias: 'prompt',

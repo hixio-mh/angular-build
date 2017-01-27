@@ -17,6 +17,7 @@ exports.initCommandModule = {
             .reset()
             .usage(initCommandUsage)
             .example('ngb init --prompt', 'Create angular-build config files with user prompt option')
+            .help('h')
             .option('p', {
             alias: 'prompt',
             describe: 'Confirm user by prompting',
