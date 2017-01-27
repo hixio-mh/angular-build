@@ -1,2 +1,2 @@
 ﻿#!/usr/bin/env node
-require('node-alias')('ngb', __dirname);
+require('node-alias')('ngb', __dirname)
