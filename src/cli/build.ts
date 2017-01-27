@@ -157,6 +157,7 @@ export function build(cliOptions: CliOptions) {
             webpackCompiler.watch({}, callback);
         } else {
             webpackCompiler.run(callback);
+            console.log('');
         }
     });
 }
