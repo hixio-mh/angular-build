@@ -40,6 +40,7 @@ export const initCommandModule: yargs.CommandModule = {
             })
             .option('link-cli',
             {
+                alias: ['l', 'linkCli'],
                 describe: 'Link angular-build cli to current project',
                 type: 'boolean'
             })

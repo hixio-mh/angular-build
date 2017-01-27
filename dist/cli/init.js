@@ -28,6 +28,7 @@ exports.initCommandModule = {
             type: 'boolean'
         })
             .option('link-cli', {
+            alias: ['l', 'linkCli'],
             describe: 'Link angular-build cli to current project',
             type: 'boolean'
         })

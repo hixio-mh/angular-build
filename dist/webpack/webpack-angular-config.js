@@ -18,7 +18,7 @@ const webpackMerge = require('webpack-merge');
 const helpers_1 = require("./helpers");
 const webpack_common_config_1 = require("./webpack-common-config");
 function getWebpackAngularConfig(projectRoot, appConfig, buildOptions) {
-    const emptyModulePath = require.resolve('../empty.js');
+    const emptyModulePath = require.resolve('../../empty.js');
     const appRoot = path.resolve(projectRoot, appConfig.root);
     const env = helpers_1.getEnv(buildOptions.debug);
     const entryPoints = {};
@@ -169,7 +169,7 @@ function getWebpackTypescriptConfigPartial(projectRoot, appConfig, buildOptions)
     if (!fs.existsSync(tsConfigPath)) {
         tsConfigPath = null;
     }
-    const aotResourceOverridePath = require.resolve('../resource-override.js');
+    const aotResourceOverridePath = require.resolve('../../resource-override.js');
     // TODO:
     const aotGenDir = path.resolve(projectRoot, appConfig.root, appConfig.aotGenDir || 'ngfactory');
     const useNgToolsWebpack = buildOptions.aot;
