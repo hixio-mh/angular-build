@@ -92,7 +92,7 @@ function askAsync(msg) {
     });
 }
 exports.askAsync = askAsync;
-function spawnAsync(command, commandArgs, showStdOut) {
+function spawnAsync(command, commandArgs, showStdOut, showStdErr) {
     return new Promise((resolve, reject) => {
         //const child = spawn(command, commandArgs, { stdio: 'inherit' });
         const child = spawn(command, commandArgs);
@@ -102,11 +102,11 @@ function spawnAsync(command, commandArgs, showStdOut) {
             }
         });
         child.stderr.on('data', (data) => {
-            console.log("\nHERE: stderr\n");
-            console.log(`${data}`);
+            if (showStdErr) {
+                console.log(`${data}`);
+            }
         });
         child.on('error', (err) => {
-            console.log("\nHERE: error\n");
             reject(err);
         });
         child.on('close', (code) => {

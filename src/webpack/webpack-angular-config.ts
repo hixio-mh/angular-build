@@ -23,7 +23,7 @@ import { parseDllEntries, getEnv } from './helpers';
 import { getWebpackCommonConfig } from './webpack-common-config';
 
 export function getWebpackAngularConfig(projectRoot: string, appConfig: AngularAppConfig, buildOptions: AngularBuildOptions) {
-    const emptyModulePath = require.resolve('../empty.js');
+    const emptyModulePath = require.resolve('../../empty.js');
     const appRoot = path.resolve(projectRoot, appConfig.root);
     const env = getEnv(buildOptions.debug);
 
@@ -251,7 +251,7 @@ export function getWebpackTypescriptConfigPartial(projectRoot: string, appConfig
     if (!fs.existsSync(tsConfigPath)) {
         tsConfigPath = null;
     }
-    const aotResourceOverridePath = require.resolve('../resource-override.js');
+    const aotResourceOverridePath = require.resolve('../../resource-override.js');
 
     // TODO:
     const aotGenDir = path.resolve(projectRoot, appConfig.root, appConfig.aotGenDir || 'ngfactory');
