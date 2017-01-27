@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2015",
     "module": "commonjs",
     "moduleResolution": "node",
     "noEmitOnError": true,
+    "noImplicitAny": true,
     "noImplicitReturns": true,
+    "noUnusedLocals": true,
     "removeComments": false,
     "pretty": true,
     "sourceMap": true,
     "inlineSources": true,
-    //"sourceRoot": "",
-    //"inlineSourceMap": true,
     "declaration": true,
     "skipDefaultLibCheck": true,
     "lib": [ "es2015" ],
@@ -26,7 +26,8 @@
     "typings",
     "Scripts/typings",
     "dist",
-    "config"
+    "templates"
   ],
+  "compileOnSave": true,
   "atom": { "rewriteTsconfig": false }
 }
