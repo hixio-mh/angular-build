@@ -10,13 +10,14 @@ Usage:
 
 import { CliOptions } from './models';
 import { init, initCommandModule } from './init';
+import { build, buildCommandModule } from './build';
 
 // Main
 // ------------------------------------------------------------
 // ReSharper disable once CommonJsExternalModule
 module.exports = (cliOptions: CliOptions) => {
     // init yargs
-    const yargsInstance = initYargs();
+    const yargsInstance =  initYargs();
     const command = yargsInstance.argv._[0] ? yargsInstance.argv._[0].toLowerCase() : undefined;
     const commandOptions = yargsInstance.argv;
 
@@ -29,7 +30,12 @@ module.exports = (cliOptions: CliOptions) => {
     if (command === 'init') {
         return init(cliOptions)
             .then(() => 0);
-    } else if (commandOptions.version) {
+    } else if (command === 'build') {
+        return build(cliOptions)
+            .then(() => 0);
+    }
+
+    else if (commandOptions.version) {
         console.log(cliVersion);
         return Promise.resolve(0);
     } else if (command === 'help' || commandOptions.help) {
@@ -45,6 +51,7 @@ function initYargs() {
     const yargsInstance = yargs
         .usage(cliUsage)
         .example('ngb init', 'Create angular-build config files')
+        .example('ngb build', 'Create dll bundling')
         .example('ngb -h', 'Show help')
         .option('h',
         {
@@ -58,6 +65,9 @@ function initYargs() {
             describe: 'Show version',
             type: 'boolean'
         })
-        .command(initCommandModule);
+        .command(initCommandModule)
+        .command(buildCommandModule);
     return yargsInstance;
 }
+
+

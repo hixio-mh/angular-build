@@ -74,6 +74,7 @@
     <Folder Include="src\webpack\plugins\suppress-entry-chunks-webpack-plugin\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\cli\build.ts" />
     <TypeScriptCompile Include="src\cli\init.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
