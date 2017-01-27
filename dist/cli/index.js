@@ -7,6 +7,7 @@ Usage:
   ngb command [options...]
   ngb [options]`;
 const init_1 = require("./init");
+const build_1 = require("./build");
 // Main
 // ------------------------------------------------------------
 // ReSharper disable once CommonJsExternalModule
@@ -20,6 +21,10 @@ module.exports = (cliOptions) => {
     cliOptions.commandOptions = commandOptions;
     if (command === 'init') {
         return init_1.init(cliOptions)
+            .then(() => 0);
+    }
+    else if (command === 'build') {
+        return build_1.build(cliOptions)
             .then(() => 0);
     }
     else if (commandOptions.version) {
@@ -39,6 +44,7 @@ function initYargs() {
     const yargsInstance = yargs
         .usage(cliUsage)
         .example('ngb init', 'Create angular-build config files')
+        .example('ngb build', 'Create dll bundling')
         .example('ngb -h', 'Show help')
         .option('h', {
         alias: ['help', '?'],
@@ -50,7 +56,8 @@ function initYargs() {
         describe: 'Show version',
         type: 'boolean'
     })
-        .command(init_1.initCommandModule);
+        .command(init_1.initCommandModule)
+        .command(build_1.buildCommandModule);
     return yargsInstance;
 }
 //# sourceMappingURL=index.js.map

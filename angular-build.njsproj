@@ -60,6 +60,7 @@
     <Folder Include="dist\" />
     <Folder Include="src\" />
     <Folder Include="src\cli\" />
+    <Folder Include="src\plugins\" />
     <Folder Include="src\utils\" />
     <Folder Include="src\webpack\" />
     <Folder Include="src\plugins\icon-webpack-plugin\" />
@@ -73,6 +74,7 @@
     <Folder Include="src\webpack\plugins\suppress-entry-chunks-webpack-plugin\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\cli\build.ts" />
     <TypeScriptCompile Include="src\cli\init.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
