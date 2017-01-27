@@ -1,0 +1,96 @@
+﻿#!/usr/bin/env node
+'use strict';
+
+// Provide a title to the process in `ps`
+process.title = 'angular-build';
+
+const resolve = require('resolve');
+const packageJson = require('../package.json');
+const chalk = require('chalk');
+const SemVer = require('semver').SemVer;
+const fs = require('fs');
+const path = require('path');
+
+//global.angularBuildCliIsLocal = true;
+
+function _fromPackageJson(cwd) {
+  cwd = cwd || process.cwd();
+
+  do {
+    const packageJsonPath = path.join(cwd, 'node_modules/angular-build/package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const content = fs.readFileSync(packageJsonPath, 'utf-8');
+      if (content) {
+        const json = JSON.parse(content);
+        if (json['version']) {
+          return new SemVer(json['version']);
+        }
+      }
+    }
+
+    // Check the parent.
+    cwd = path.dirname(cwd);
+  } while (cwd != path.dirname(cwd));
+
+  return null;
+}
+
+function _exit(code) {
+  if (process.platform === 'win32' && process.stdout.bufferSize) {
+    process.stdout.once('drain', function () {
+      process.exit(code);
+    });
+    return;
+  }
+  process.exit(code);
+}
+
+resolve('angular-build', { basedir: process.cwd() }, (error, projectLocalCli) => {
+  let cli = null;
+  let cliIsLocal = false;
+
+  if (error) {
+    cliIsLocal = false;
+
+    // If there is an error, resolve could not find the ng-cli
+    // library from a package.json. Instead, include it from a relative
+    // path to this script file (which is likely a globally installed
+    // npm package). Most common cause for hitting this is `ng new`
+    cli = require('../dist/cli');
+  }else{
+    cliIsLocal = true;
+
+    // This was run from a global, check local version.
+    const globalVersion = new SemVer(packageJson['version']);
+    let localVersion;
+    let shouldWarn = false;
+    try {
+      localVersion = _fromPackageJson();
+      shouldWarn = localVersion && globalVersion.compare(localVersion) < 0;
+    } catch (err) {
+      console.error(err);
+      shouldWarn = true;
+    }
+
+
+    if (shouldWarn) {
+      // eslint-disable no-console
+      console.log(chalk.yellow(`Your global Angular-build cli version (${globalVersion}) is greater than `
+        + `your local version (${localVersion}). The local Angular-build cli version is used.`));
+    }
+
+    cli = require(projectLocalCli);
+  }
+  cli({
+   cliIsLocal: cliIsLocal,
+   inputStream: process.stdin,
+   outputStream: process.stdout
+  })
+    .then(function (result) {
+      _exit(typeof result === 'object' ? result.exitCode : result);
+    })
+    .catch(err => {
+      console.error(chalk.white.bgRed('ERROR:') + ' ' + err);
+      _exit(-1);
+    });
+});
