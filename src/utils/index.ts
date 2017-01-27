@@ -90,7 +90,7 @@ export function askAsync(msg: string) {
     });
 }
 
-export function spawnAsync(command: string, commandArgs: string[], showStdOut?: boolean) {
+export function spawnAsync(command: string, commandArgs: string[], showStdOut?: boolean, showStdErr?: boolean) {
     return new Promise((resolve, reject) => {
         //const child = spawn(command, commandArgs, { stdio: 'inherit' });
         const child = spawn(command, commandArgs);
@@ -100,11 +100,11 @@ export function spawnAsync(command: string, commandArgs: string[], showStdOut?: 
             }
         });
         child.stderr.on('data', (data: any) => {
-            console.log("\nHERE: stderr\n");
-            console.log(`${data}`);
+            if (showStdErr) {
+                console.log(`${data}`);
+            }
         });
         child.on('error', (err: any) => {
-            console.log("\nHERE: error\n");
             reject(err);
         });
         child.on('close', (code: number) => {

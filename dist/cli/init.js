@@ -2,6 +2,7 @@
 const path = require("path");
 const fs = require("fs-extra");
 const resolve = require("resolve");
+const semver = require("semver");
 const chalk = require("chalk");
 const utils_1 = require("../utils");
 const cliVersion = require('../../package.json').version;
@@ -559,7 +560,9 @@ function mergeConfigWithPossibleAsync(cfg) {
                 appConfig.faviconConfig = appConfig.faviconConfig || 'favicon-config.json';
             }
             else {
-                appConfig.faviconConfig = null;
+                if (cfg.faviconConfig) {
+                    cfg.faviconConfig.masterPicture = null;
+                }
             }
         });
     })
@@ -633,8 +636,9 @@ function mergeWithOptions(cfg) {
     const commandOptions = cfg.cliOptions.commandOptions || {};
     const appConfig = cfg.angularBuildConfig.apps[0];
     if (typeof commandOptions.useAngularCliConfigFile !== undefined) {
-        cfg.useAngularCliConfigFile = commandOptions.useAngularCliConfigFile !== false &&
-            commandOptions.useAngularCliConfigFile !== 'no';
+        cfg.useAngularCliConfigFile = commandOptions.useAngularCliConfigFile &&
+            commandOptions.useAngularCliConfigFile !== 'no' &&
+            commandOptions.useAngularCliConfigFile !== 'n';
     }
     else if (cfg.angularCliConfigFileExists) {
         cfg.useAngularCliConfigFile = true;

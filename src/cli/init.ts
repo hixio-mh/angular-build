@@ -1,6 +1,7 @@
 ﻿import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as resolve from 'resolve';
+import * as semver from 'semver';
 
 import * as chalk from 'chalk';
 import * as yargs from 'yargs';
@@ -8,7 +9,8 @@ import * as yargs from 'yargs';
 import { CliOptions } from './models';
 import { AngularBuildConfig, IconPluginOptions } from '../webpack';
 
-import { readJsonAsync, checkFileOrDirectoryExistsAsync, findFileOrDirectoryFromPossibleAsync, getVersionfromPackageJsonAsync, askAsync, spawnAsync } from '../utils';
+import { readJsonAsync, checkFileOrDirectoryExistsAsync, findFileOrDirectoryFromPossibleAsync,
+    getVersionfromPackageJsonAsync, askAsync, spawnAsync } from '../utils';
 
 const cliVersion = require('../../package.json').version;
 const initCommandUsage = `\n${chalk.green(`angular-build ${cliVersion}`)}\n
@@ -698,7 +700,9 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig) {
                         cfg.faviconConfig.masterPicture = foundFavicon;
                         appConfig.faviconConfig = appConfig.faviconConfig || 'favicon-config.json';
                     } else {
-                        appConfig.faviconConfig = null;
+                        if (cfg.faviconConfig) {
+                            cfg.faviconConfig.masterPicture = null;
+                        }
                     }
                 });
         })
@@ -779,8 +783,9 @@ function mergeWithOptions(cfg: InitConfig) {
     const appConfig = cfg.angularBuildConfig.apps[0];
 
     if (typeof commandOptions.useAngularCliConfigFile !== undefined) {
-        cfg.useAngularCliConfigFile = commandOptions.useAngularCliConfigFile !== false &&
-            commandOptions.useAngularCliConfigFile !== 'no';
+        cfg.useAngularCliConfigFile = commandOptions.useAngularCliConfigFile &&
+            commandOptions.useAngularCliConfigFile !== 'no' &&
+            commandOptions.useAngularCliConfigFile !== 'n';
     } else if (cfg.angularCliConfigFileExists) {
         cfg.useAngularCliConfigFile = true;
     }
@@ -1047,6 +1052,7 @@ function checkPackagesToInstall(packagesToCheck: PackageToCheck[], projectRoot: 
             });
         }).then((packageObj: any) => {
             if (packageObj.resolvedPath && packageObj.version) {
+
                 const versionRange = semver.validRange(packageObj.version);
                 return getVersionfromPackageJsonAsync(path.resolve(projectRoot, 'node_modules', packageObj.packageName)).then((localVer: string) => {
                     if (localVer && semver.satisfies(localVer, versionRange)) {
