@@ -1,1 +1,0 @@
-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../src/webpack/index.ts"],"names":[],"mappings":";;;;AACA,+BAA0B;AAC1B,sCAAiC;AACjC,6CAAwC;AACxC,8CAAyC","sourcesContent":["export * from './models';\r\nexport * from './helpers';\r\nexport * from './webpack-config';\r\nexport * from './webpack-common-config';\r\nexport * from './webpack-angular-config';"]}

@@ -1,1 +1,0 @@
-{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../../src/webpack/plugins/icon-webpack-plugin/src/index.ts"],"names":[],"mappings":";;;;AACA,2CAAsC","sourcesContent":["export * from './models';\r\nexport * from './icon-webpack-plugin';\r\n"]}

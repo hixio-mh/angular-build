@@ -1,1 +1,0 @@
-{"version":3,"file":"models.js","sourceRoot":"","sources":["../../src/cli/models.ts"],"names":[],"mappings":"","sourcesContent":["export interface CliOptions {\r\n    cwd?: string;\r\n    command?: string;\r\n    commandOptions?: any;\r\n    cliIsLocal?: boolean;\r\n}"]}
