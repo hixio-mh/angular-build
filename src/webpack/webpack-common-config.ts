@@ -38,6 +38,7 @@ import { IconWebpackPlugin, IconPluginOptions } from './plugins/icon-webpack-plu
 import { SuppressEntryChunksWebpackPlugin } from './plugins/suppress-entry-chunks-webpack-plugin';
 import { CustomizeAssetsHtmlWebpackPlugin } from './plugins/customize-assets-html-webpack-plugin';
 import { TryBundleDllWebpackPlugin } from './plugins/try-bundle-dll-webpack-plugin';
+import { AddFileDepsWebpackPlugin } from './plugins/add-file-deps-webpack-plugin';
 
 import { AppConfig, BuildOptions, GlobalScopedEntry, AssetEntry, DllEntry, ModuleReplacementEntry } from './models';
 import { parseDllEntries, packageChunkSort, isWebpackDevServer, getEnvName as getEnv } from './helpers';
@@ -208,7 +209,6 @@ export function getWebpackDllConfigPartial(projectRoot: string, appConfig: AppCo
             entries.push(e.entry);
         }
     });
-    // TODO: add file deps
 
     const entryPoints: { [key: string]: string[] } = {};
     entryPoints[appConfig.dllOutChunkName] = entries;
@@ -230,6 +230,9 @@ export function getWebpackDllConfigPartial(projectRoot: string, appConfig: AppCo
         //new NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop')))
     ];
 
+    if (dllParsedResult.fileDependencies && dllParsedResult.fileDependencies.length) {
+      plugins.push(new AddFileDepsWebpackPlugin({ fileDependencies: dllParsedResult.fileDependencies}));
+    }
     // Favicons plugins
     if (typeof appConfig.faviconConfig !== 'undefined' &&
       appConfig.faviconConfig !== null &&

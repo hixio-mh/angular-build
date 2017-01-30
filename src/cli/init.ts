@@ -563,7 +563,7 @@ function installToolings(cfg: InitConfig) {
     const depsSaveList = [
         'reflect-metadata', 'rxjs', 'zone.js', 'core-js', 'ts-helpers', 'tslib', '@angular/compiler', '@angular/core'
     ];
-    const devDepsSaveList = ['@angular/compiler-cli', '@ngtools/webpack', 'typescript', 'ts-node'];
+    //const devDepsSaveList = ['@angular/compiler-cli', '@ngtools/webpack', 'typescript', 'ts-node', '@types/node'];
     const angularDeps = [
         '@angular/common', '@angular/forms', '@angular/http', '@angular/platform-browser',
         '@angular/platform-browser-dynamic', '@angular/router'
@@ -579,23 +579,24 @@ function installToolings(cfg: InitConfig) {
             isPreReleased: isPreReleased
         };
     });
-    const depSavePackages = depsSaveList.map(key => {
-        const ver = cfg.cliPackageJsonConfig.peerDependencies[key];
-        const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
-        return {
-            packageName: key,
-            version: ver,
-            isPreReleased: isPreReleased
-        };
+    const depSavePackages = Object.keys(cfg.cliPackageJsonConfig.peerDependencies).filter((key: string) => depsSaveList.indexOf(key) > -1).map((key: string) => {
+      const ver = cfg.cliPackageJsonConfig.peerDependencies[key];
+      const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
+      return {
+        packageName: key,
+        version: ver,
+        isPreReleased: isPreReleased
+      };
     });
-    const devDepSavePackages = devDepsSaveList.map(key => {
-        const ver = cfg.cliPackageJsonConfig.peerDependencies[key];
-        const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
-        return {
-            packageName: key,
-            version: ver,
-            isPreReleased: isPreReleased
-        };
+  const devDepSavePackages = Object.keys(cfg.cliPackageJsonConfig.peerDependencies)
+    .filter((key: string) => depsSaveList.indexOf(key) === -1).map((key: string) => {
+      const ver = cfg.cliPackageJsonConfig.peerDependencies[key];
+      const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
+      return {
+        packageName: key,
+        version: ver,
+        isPreReleased: isPreReleased
+      };
     });
 
     return checkPackagesToInstall(depSavePackages, projectRoot)

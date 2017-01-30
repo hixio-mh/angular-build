@@ -140,7 +140,7 @@ export class IconWebpackPlugin {
         this.optionInitialized = true;
     }
 
-    apply(compiler: any) {
+    apply(compiler: any) : void {
 
         this.context = compiler.context || compiler.options.context;
         this.initOptions(this.context);

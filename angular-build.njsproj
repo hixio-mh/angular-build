@@ -71,6 +71,7 @@
     <Folder Include="src\webpack\plugins\customize-assets-html-webpack-plugin\" />
     <Folder Include="src\webpack\plugins\icon-webpack-plugin\" />
     <Folder Include="src\webpack\plugins\icon-webpack-plugin\src\" />
+    <Folder Include="src\webpack\plugins\add-file-deps-webpack-plugin\" />
     <Folder Include="src\webpack\plugins\try-bundle-dll-webpack-plugin\" />
     <Folder Include="src\webpack\plugins\suppress-entry-chunks-webpack-plugin\" />
   </ItemGroup>
@@ -86,6 +87,9 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\webpack\index.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\webpack\plugins\add-file-deps-webpack-plugin\index.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\webpack\plugins\customize-assets-html-webpack-plugin\index.ts" />
