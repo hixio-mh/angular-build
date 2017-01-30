@@ -104,7 +104,7 @@
         }
       },
       // To skip this app config when getWebpackConfigs() function call, type: boolean
-      "skip": false
+      "skip": null
     }
   ]
 }
