@@ -3,7 +3,7 @@ import * as chalk from 'chalk';
 import * as path from 'path';
 
 const webpack = require('webpack');
-import { getWebpackAngularConfig } from '../webpack';
+import { getWebpackConfigs } from '../webpack';
 
 import { CliOptions } from './models';
 
@@ -20,7 +20,7 @@ command: 'build',
                 .reset()
                 .usage(buildCommandUsage)
                 .example('angular-build build --configFileName', 'use angular-build config files with user defined name')
-
+                .help('h')
                 .option('config-file-name',
                 {
                     describe: 'Config file name for cli, default: angular-build.json',
@@ -125,16 +125,18 @@ function getWebpackStatsConfig(verbose = false) {
 
 export function build(cliOptions: CliOptions) {
     return new Promise((resolve, reject) => {
+        
         if (cliOptions.commandOptions.project) {
             cliOptions.cwd = path.isAbsolute(cliOptions.commandOptions.project) ? cliOptions.commandOptions.project : path.join(cliOptions.cwd, cliOptions.commandOptions.project);
         }
+        
         var statsConfig = getWebpackStatsConfig(cliOptions.commandOptions.verbose);
-        const config = getWebpackAngularConfig(cliOptions.cwd, cliOptions.commandOptions.configFileName, cliOptions.commandOptions);
+        const config = getWebpackConfigs(cliOptions.cwd, cliOptions.commandOptions);
         //const config = Object.assign(config1, { cache: false });
 
         let webpackCompiler = webpack(config);
         const callback = (err:any, stats:any) => {
-            webpackCompiler.purgeInputFileSystem();
+           
             if (err) {
                 return reject(err);
             }
@@ -157,7 +159,6 @@ export function build(cliOptions: CliOptions) {
             webpackCompiler.watch({}, callback);
         } else {
             webpackCompiler.run(callback);
-            console.log('');
         }
     });
 }

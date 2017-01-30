@@ -33,9 +33,7 @@ module.exports = (cliOptions: CliOptions) => {
     } else if (command === 'build') {
         return build(cliOptions)
             .then(() => 0);
-    }
-
-    else if (commandOptions.version) {
+    } else if (commandOptions.version) {
         console.log(cliVersion);
         return Promise.resolve(0);
     } else if (command === 'help' || commandOptions.help) {

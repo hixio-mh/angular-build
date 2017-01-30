@@ -15,6 +15,7 @@ exports.buildCommandModule = {
             .reset()
             .usage(buildCommandUsage)
             .example('angular-build build --configFileName', 'use angular-build config files with user defined name')
+            .help('h')
             .option('config-file-name', {
             describe: 'Config file name for cli, default: angular-build.json',
             type: 'string',
@@ -107,11 +108,10 @@ function build(cliOptions) {
             cliOptions.cwd = path.isAbsolute(cliOptions.commandOptions.project) ? cliOptions.commandOptions.project : path.join(cliOptions.cwd, cliOptions.commandOptions.project);
         }
         var statsConfig = getWebpackStatsConfig(cliOptions.commandOptions.verbose);
-        const config = webpack_1.getWebpackAngularConfig(cliOptions.cwd, cliOptions.commandOptions.configFileName, cliOptions.commandOptions);
+        const config = webpack_1.getWebpackConfigs(cliOptions.cwd, cliOptions.commandOptions);
         //const config = Object.assign(config1, { cache: false });
         let webpackCompiler = webpack(config);
         const callback = (err, stats) => {
-            webpackCompiler.purgeInputFileSystem();
             if (err) {
                 return reject(err);
             }
