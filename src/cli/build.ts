@@ -66,35 +66,6 @@ export const buildCommandModule: yargs.CommandModule = {
     handler: null
 };
 
-const webpackOutputOptions = {
-    colors: true,
-    hash: true,
-    timings: true,
-    chunks: true,
-    chunkModules: false,
-    children: false, // listing all children is very noisy in AOT and hides warnings/errors
-    modules: false,
-    reasons: false,
-    warnings: true,
-    assets: false, // listing all assets is very noisy when using assets directories
-    version: false
-};
-
-const verboseWebpackOutputOptions = {
-    children: true,
-    assets: true,
-    version: true,
-    reasons: true,
-    chunkModules: false // TODO: set to true when console to file output is fixed
-};
-
-function getWebpackStatsConfig(verbose = false) {
-    return verbose
-        ? Object.assign(webpackOutputOptions, verboseWebpackOutputOptions)
-        : webpackOutputOptions;
-}
-
-
 export function build(cliOptions: CliOptions) {
     return new Promise((resolve, reject) => {
 
@@ -102,17 +73,14 @@ export function build(cliOptions: CliOptions) {
             cliOptions.cwd = path.isAbsolute(cliOptions.commandOptions.project) ? cliOptions.commandOptions.project : path.join(cliOptions.cwd, cliOptions.commandOptions.project);
         }
 
-        var statsConfig = getWebpackStatsConfig(cliOptions.commandOptions.verbose);
-        const config = getWebpackConfigs(cliOptions.cwd, cliOptions.commandOptions);
+        const config = getWebpackConfigs(cliOptions.cwd,null, cliOptions.commandOptions);
+        //console.log(JSON.stringify(config,null,4));
         let webpackCompiler = webpack(config);
         const callback = (err: any, stats: any) => {
-
             if (err) {
                 return reject(err);
             }
-
-            console.log(stats.toString(statsConfig));
-
+            console.log(stats.toString(config[0].stats));
             if (cliOptions.commandOptions.watch) {
                 return;
             }
@@ -120,7 +88,6 @@ export function build(cliOptions: CliOptions) {
             if (stats.hasErrors()) {
                 reject();
             } else {
-
                 resolve();
             }
         };
