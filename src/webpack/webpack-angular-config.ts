@@ -116,7 +116,7 @@ export function getWebpackAngularConfig(projectRoot: string, appConfig: AngularA
                     tslint: {
                         emitErrors: true,
                         failOnHint: true,
-                        resourcePath: 'src'
+                        resourcePath: appRoot
                     },
 
                     /**
@@ -262,14 +262,14 @@ export function getWebpackTypescriptConfigPartial(projectRoot: string, appConfig
             {
                 test: /\.ts$/,
                 use: [
-                    {
-                        // TODO:
-                        loader: '@angularclass/hmr-loader',
-                        options: {
-                            pretty: !buildOptions.production,
-                            prod: buildOptions.production
-                        }
-                    },
+                    //{
+                    //    // TODO:
+                    //    loader: '@angularclass/hmr-loader',
+                    //    options: {
+                    //        pretty: !buildOptions.production,
+                    //        prod: buildOptions.production
+                    //    }
+                    //},
                     {
                         // MAKE SURE TO CHAIN VANILLA JS CODE, I.E. TS COMPILATION OUTPUT.
                         loader: 'ng-router-loader',
