@@ -131,7 +131,6 @@ function build(cliOptions) {
         }
         else {
             webpackCompiler.run(callback);
-            console.log('');
         }
     });
 }

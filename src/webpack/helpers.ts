@@ -1,22 +1,38 @@
 ﻿import * as path from 'path';
 import * as fs from 'fs';
 
-import { readJsonSync } from '../utils';
 import { DllEntry } from './models';
 
-export * from '../utils';
+// Dlls
+// TODO: move to loader
 
-export function parseDllEntries(baseDir: string, dlls: (string | DllEntry)[], target: string, env: string): DllEntry[] {
+interface DllSingleEntryParsedResult {
+    entry: string[];
+    fileDependency?: string;
+}
+
+export interface DllEntryParsedResult {
+    entries: DllEntry[];
+    fileDependencies?: string[];
+}
+
+export function parseDllEntries(baseDir: string, dlls: string | (string | DllEntry)[], isProd: boolean): DllEntryParsedResult {
     if (!dlls || !dlls.length) {
-        return [];
+        return null;
     }
 
-    const envShort = env;
-    const envLong = env === 'prod' ? 'production' : 'development';
+    const envLong = getEnvName(isProd, true);
 
-    const parsedDllEntries: DllEntry[] = [];
+    let normalizedDlls: (string | DllEntry)[];
+    if (Array.isArray(dlls)) {
+        normalizedDlls = dlls;
+    } else {
+        normalizedDlls = [dlls];
+    }
 
-    dlls.map((e: string | DllEntry) => {
+    const dllEntries: DllEntry[] = [];
+    const fileDependencies: string[] = [];
+    normalizedDlls.map((e: string | DllEntry) => {
         if (typeof e === 'string') {
             return {
                 entry: e
@@ -26,86 +42,72 @@ export function parseDllEntries(baseDir: string, dlls: (string | DllEntry)[], ta
     }).filter((e: DllEntry) =>
         e &&
         e.entry &&
-        e.entry.length &&
-        // targets
-        (!e.targets || e.targets.length === 0 || e.targets.indexOf(target) > -1) &&
-        // env
-        (!e.env || e.env === envShort || e.env === envLong))
+        e.entry.length)
         .forEach((e: DllEntry) => {
-            const entry = parseDllEntryValues(baseDir, e.entry, envLong);
-            parsedDllEntries.push({
-                entry: entry,
-                targets: e.targets,
-                env: e.env,
-                importToMain: e.importToMain
+            const entries = Array.isArray(e.entry) ? e.entry : [e.entry];
+            entries.forEach((entryStr: string) => {
+                const parsedEntry = parseDllEntryValue(baseDir, entryStr, envLong);
+                if (parsedEntry.fileDependency) {
+                    fileDependencies.push(parsedEntry.fileDependency);
+                }
+                dllEntries.push(Object.assign(e, { entry: parsedEntry.entry }));
             });
-
         });
-    return parsedDllEntries;
+    return {
+        entries: dllEntries,
+        fileDependencies: fileDependencies
+    };
 }
 
-export function parseDllEntryValues(baseDir: string, entryValue: any, env: string): string[] {
-    const dllList: string[] = [];
-
-    if (Array.isArray(entryValue)) {
-        entryValue.forEach((value) => {
-            const list = parseDllEntryValue(baseDir, value, env);
-            dllList.push(...list);
-        });
-    } else if (typeof entryValue === 'string' && entryValue.length) {
-        let list = parseDllEntryValue(baseDir, entryValue, env);
-        dllList.push(...list);
-    }
-    return dllList;
-}
-
-function parseDllEntryValue(baseDir: string, entryValue: string, env: string): string[] {
+function parseDllEntryValue(baseDir: string, entryValue: string, env: string): DllSingleEntryParsedResult {
     const dllPath = path.resolve(baseDir, entryValue);
-    if (fs.existsSync(dllPath)) {
-        if (dllPath.match(/\.json$/)) {
-            const dataArray = readJsonSync(dllPath);
-            if (Array.isArray(dataArray)) {
-                return dataArray;
-            } else {
-                throw new Error(`Invalid 'entry' value in dllEntry, file: ${dllPath}.`);
-            }
-        }
-        if (dllPath.match(/\.(js|ts)$/)) {
-            try {
-                const data = require(dllPath);
-
-                if (data && data.default && typeof data.default === 'function') {
-                    //return data.default(env);
-                    const dataArray = data.default(env);
-                    if (Array.isArray(dataArray)) {
-                        return dataArray;
-                    } else {
-                        throw new Error(`Invalid 'entry' value in dllEntry, file: ${dllPath}.`);
-                    }
-                }
-                if (data && typeof data === 'function') {
-                    const dataArray = data(env);
-                    if (Array.isArray(dataArray)) {
-                        return dataArray;
-                    } else {
-                        throw new Error(`Invalid 'entry' value in dllEntry, file: ${dllPath}.`);
-                    }
-                }
-
-                if (Array.isArray(data)) {
-                    return data;
+    if (fs.existsSync(dllPath) && fs.statSync(dllPath).isFile()) {
+        if (dllPath.match(/\.(js|ts)$/i)) {
+            const data = require(dllPath);
+            if (data && data.default && typeof data.default === 'function') {
+                const dataArray = data.default(env);
+                if (Array.isArray(dataArray)) {
+                    return {
+                        entry: dataArray,
+                        fileDependency: dllPath
+                    };
                 } else {
-                    return [entryValue];
+                    throw new Error(`Invalid value in dlls, file: ${dllPath}.`);
                 }
-            } catch (ex) {
-                return [entryValue];
+            }
+            if (data && typeof data === 'function') {
+                const dataArray = data(env);
+                if (Array.isArray(dataArray)) {
+                    return {
+                        entry: dataArray,
+                        fileDependency: dllPath
+                    };
+                } else {
+                    throw new Error(`Invalid value in dlls, file: ${dllPath}.`);
+                }
+            }
+            if (Array.isArray(data)) {
+                return {
+                    entry: data,
+                    fileDependency: dllPath
+                };
+            } else {
+                // For
+                // import 'core-js' etc..
+                return {
+                    entry: [entryValue]
+                };
             }
         }
 
     } else {
-        return [entryValue];
+        // For
+        // import 'core-js' etc..
+        return {
+            entry: [entryValue]
+        };
     }
-    throw new Error(`Invalid 'entry' value in dllEntry.`);
+    throw new Error(`Invalid value in dlls.`);
 }
 
 // Ref: https://github.com/angular/angular-cli
@@ -141,8 +143,8 @@ export function hasProdArg(): boolean {
                 process.env.NODE_ENV.toLowerCase() === 'production'));
 }
 
-export function getEnv(debug: boolean, longName?: boolean): string {
-    return longName ? debug ? 'development' : 'production' : debug ? 'dev' : 'prod';
+export function getEnvName(isProd: boolean, longName?: boolean): string {
+    return longName ? isProd ? 'production' : 'development' : isProd ? 'prod' : 'dev';
 }
 
 export function isDllBuildFromNpmEvent(eventName?: string): boolean {
@@ -154,9 +156,8 @@ export function isDllBuildFromNpmEvent(eventName?: string): boolean {
     if (eventName) {
         return lcEvent.includes(eventName);
     } else {
-        return lcEvent.includes('build:dll') ||
-            lcEvent.includes('dll:build') ||
-            lcEvent.includes(':dll') ||
+        return lcEvent.includes(':dll') ||
+            lcEvent.includes('-dll') ||
             lcEvent === 'dll';
     }
 }
@@ -170,9 +171,8 @@ export function isAoTBuildFromNpmEvent(eventName?: string): boolean {
     if (eventName) {
         return lcEvent.includes(eventName);
     } else {
-        return lcEvent.includes('build:aot') ||
-            lcEvent.includes('aot:build') ||
-            lcEvent.includes(':aot') ||
+        return lcEvent.includes(':aot') ||
+            lcEvent.includes('-aot') ||
             lcEvent === 'aot';
     }
 }

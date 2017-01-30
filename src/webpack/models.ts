@@ -1,76 +1,47 @@
 ﻿export { IconDesign, IconOptions, IconPluginOptions } from './plugins/icon-webpack-plugin';
 
 export interface AppConfig {
-    // angular-cli compatible
-    root?: string;
-    outDir?: string;
-    assets?: any[];
-    styles?: (string | GlobalScopedEntry)[];
-    scripts?: (string | GlobalScopedEntry)[];
-    environments?: any;
-    test?: string;
-
-    tsconfig?: string;
-
-    index?: string;
-
-    // custom properties
-    indexOutFileName?: string;
-    htmlInjectOptions?: HtmlInjectOptions;
-    faviconConfig?: string;
-
-    publicPath?: string;
-
     name?: string;
     extends?: string,
     target?: string;
-    enabled?: boolean;
-
-    appendOutputHashOnDevelopment?: boolean;
-    appendOutputHashOnProduction?: boolean;
-    compressAssetsOnProduction?: boolean;
-
-    provide: { [key: string]: string };
-
-    // dll
-    skipOnDllsBundle?: boolean;
-    referenceDllsOnDevelopment?: boolean;
-    referenceDllsOnProduction?: boolean;
-    tryBundleDlls?: boolean;
-    dllOutChunkName?: string;
-    dlls?: (DllEntry | string)[];
-
-    productionReplacementModules?: ProductionReplacementEntry[];
-}
-
-export interface AngularAppConfig extends AppConfig {
+    root?: string;
+    outDir?: string;
     main?: string;
-    mainAot?: string;
-    aotGenDir?: string;
-    // AoT
-    // ReSharper disable once InconsistentNaming
-    i18nFile?: string;
-    // ReSharper disable once InconsistentNaming
-    i18nFormat?: string;
-    locale?: string;
+    assets?: string | (string | AssetEntry)[];
+    styles?: string | (string | GlobalScopedEntry)[];
+    scripts?: string | (string | GlobalScopedEntry)[];
+    provide: { [key: string]: string };
+    tsconfig?: string;
+    publicPath?: string;
+    index?: string;
+    htmlInjectOptions?: HtmlInjectOptions;
+    faviconConfig?: string;
+    dlls?: (DllEntry | string)[];
+    dllOutChunkName?: string;
+    referenceDll?: boolean;
+    moduleReplacements?: ModuleReplacementEntry[];
+    environments?: { [key: string]: string };
+
+    // Environment specifics
+    appendVersionHash?: boolean;
+    sourceMap?: boolean;
+    compressAssets?: boolean;
+    skipCopyAssets?: boolean;
+    skipGenerateIcons?: boolean;
+    buildTargetOverrides: { [name: string]: { [key: string]: any } };
+    skip?: boolean;
 }
 
-export interface HtmlInjectOptions {
-    stylesInjectOutFileName?: string;
-    iconsInjectOutFileName?: string;
+export type AssetEntry = {
+    from: string | {
+        glob: string;
+        dot?: boolean;
+    };
+    to?: string;
+    context?: string;
+};
 
-    customScriptAttributes?: { [key: string]: any };
-    customLinkAttributes: { [key: string]: any };
-}
-
-export interface DllEntry {
-    entry: string[] | string;
-    targets?: string[];
-    env?: string;
-    importToMain?: boolean;
-}
-
-export interface GlobalScopedEntry {
+export type GlobalScopedEntry = {
     input: string;
     output?: string;
     lazy?: boolean;
@@ -78,27 +49,50 @@ export interface GlobalScopedEntry {
     entry?: string;
 }
 
-export interface ProductionReplacementEntry {
+export type DllEntry = {
+    entry: string | string[];
+    importToMain?: boolean;
+}
+
+export type ModuleReplacementEntry = {
     resourceRegExp: string;
     newResource: string;
 }
 
+export interface HtmlInjectOptions {
+    indexOutFileName?: string;
+    stylesOutFileName?: string;
+    iconsOutFileName?: string;
+    customTagAttributes?: {
+        tagName: string;
+        attribute: { [key: string]: string | boolean };
+    }[];
+}
+
+export interface AngularAppConfig extends AppConfig {
+    test?: string;
+    aotGenDir?: string;
+    i18nFile?: string;
+    i18nFormat?: string;
+    locale?: string;
+}
+
 export interface BuildOptions {
+    /**
+     * Show progress.
+     */
     progress?: boolean;
-    debug?: boolean;
+    verbose?: boolean;
+    performanceHint?: boolean;
+
+    // production, prod
+    production?: boolean;
+    // dll
     dll?: boolean;
-
-    performanceHints?: boolean;
-
-    copyAssetsOnDllBuild?: boolean;
-    generateIconsOnDllBuild?: boolean;
-    sourceMapOnProduction?: boolean;
-
-    //saveWebpackStatsOnDevelopment?: boolean;
-    //saveWebpackStatsOnProduction?: boolean;
 }
 
 export interface AngularBuildOptions extends BuildOptions {
+    // aot
     aot?: boolean;
 }
 

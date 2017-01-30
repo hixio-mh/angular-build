@@ -18,8 +18,10 @@
     assetTagsFilterFunc?: (tag: any) => boolean;
 
     // attributes
-    customScriptAttributes?: { [key: string]: string };
-    customLinkAttributes?: { [key: string]: string };
+    customAttributes?: {
+        tagName: string;
+        attribute: { [key: string]: string | boolean };
+    }[];
 
     removeStartingSlash?: boolean;
 }
@@ -197,7 +199,7 @@ export class CustomizeAssetsHtmlWebpackPlugin {
 
                         // *** Order is import
                         // add attributes
-                        const updateAttributesFn = (tags: any[], targetTagName: string, attributes: { [key: string]: string }) =>
+                        const updateAttributesFn = (tags: any[], targetTagName: string, attributes: { [key: string]: string | boolean }) =>
                             tags.map((tag: any) => {
                                 if (tag.tagName === targetTagName) {
                                     Object.keys(attributes).forEach((key: string) => {
@@ -219,13 +221,29 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                                 return tag;
                             });
 
-                        if (this.options && this.options.customLinkAttributes) {
-                            htmlPluginArgs.head = updateAttributesFn(htmlPluginArgs.head, 'link', this.options.customLinkAttributes);
-                            htmlPluginArgs.body = updateAttributesFn(htmlPluginArgs.body, 'link', this.options.customLinkAttributes);
-                        }
-                        if (this.options && this.options.customScriptAttributes) {
-                            htmlPluginArgs.head = updateAttributesFn(htmlPluginArgs.head, 'script', this.options.customScriptAttributes);
-                            htmlPluginArgs.body = updateAttributesFn(htmlPluginArgs.body, 'script', this.options.customScriptAttributes);
+                        if (this.options && this.options.customAttributes) {
+                            const customLinkAttributes = this.options.customAttributes
+                                .filter(c => c.tagName === 'link').map(c => c.attribute)
+                                .reduce((prev: { [key: string]: string | boolean }, next: { [key: string]: string | boolean }) => {
+                                    return Object.assign(prev, next);
+                                });
+                            const customScriptAttributes = this.options.customAttributes
+                                .filter(c => c.tagName === 'script').map(c => c.attribute)
+                                .reduce((prev: { [key: string]: string | boolean }, next: { [key: string]: string | boolean }) => {
+                                    return Object.assign(prev, next);
+                                });
+                            if (customLinkAttributes) {
+                                htmlPluginArgs
+                                    .head =
+                                    updateAttributesFn(htmlPluginArgs.head, 'link', customLinkAttributes);
+                                htmlPluginArgs
+                                    .body =
+                                    updateAttributesFn(htmlPluginArgs.body, 'link', customLinkAttributes);
+                            }
+                            if (customScriptAttributes) {
+                                htmlPluginArgs.head = updateAttributesFn(htmlPluginArgs.head, 'script', customScriptAttributes);
+                                htmlPluginArgs.body = updateAttributesFn(htmlPluginArgs.body, 'script', customScriptAttributes);
+                            }
                         }
 
                         // *** Order is import

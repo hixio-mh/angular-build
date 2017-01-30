@@ -179,13 +179,29 @@ class CustomizeAssetsHtmlWebpackPlugin {
                     }
                     return tag;
                 });
-                if (this.options && this.options.customLinkAttributes) {
-                    htmlPluginArgs.head = updateAttributesFn(htmlPluginArgs.head, 'link', this.options.customLinkAttributes);
-                    htmlPluginArgs.body = updateAttributesFn(htmlPluginArgs.body, 'link', this.options.customLinkAttributes);
-                }
-                if (this.options && this.options.customScriptAttributes) {
-                    htmlPluginArgs.head = updateAttributesFn(htmlPluginArgs.head, 'script', this.options.customScriptAttributes);
-                    htmlPluginArgs.body = updateAttributesFn(htmlPluginArgs.body, 'script', this.options.customScriptAttributes);
+                if (this.options && this.options.customAttributes) {
+                    const customLinkAttributes = this.options.customAttributes
+                        .filter(c => c.tagName === 'link').map(c => c.attribute)
+                        .reduce((prev, next) => {
+                        return Object.assign(prev, next);
+                    });
+                    const customScriptAttributes = this.options.customAttributes
+                        .filter(c => c.tagName === 'script').map(c => c.attribute)
+                        .reduce((prev, next) => {
+                        return Object.assign(prev, next);
+                    });
+                    if (customLinkAttributes) {
+                        htmlPluginArgs
+                            .head =
+                            updateAttributesFn(htmlPluginArgs.head, 'link', customLinkAttributes);
+                        htmlPluginArgs
+                            .body =
+                            updateAttributesFn(htmlPluginArgs.body, 'link', customLinkAttributes);
+                    }
+                    if (customScriptAttributes) {
+                        htmlPluginArgs.head = updateAttributesFn(htmlPluginArgs.head, 'script', customScriptAttributes);
+                        htmlPluginArgs.body = updateAttributesFn(htmlPluginArgs.body, 'script', customScriptAttributes);
+                    }
                 }
                 // *** Order is import
                 // remove starting slash

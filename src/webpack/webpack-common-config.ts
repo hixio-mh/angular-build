@@ -39,17 +39,12 @@ import { SuppressEntryChunksWebpackPlugin } from './plugins/suppress-entry-chunk
 import { CustomizeAssetsHtmlWebpackPlugin } from './plugins/customize-assets-html-webpack-plugin';
 import { TryBundleDllWebpackPlugin } from './plugins/try-bundle-dll-webpack-plugin';
 
-import { AppConfig, BuildOptions, GlobalScopedEntry, ProductionReplacementEntry } from './models';
-import { readJsonSync, parseDllEntries, packageChunkSort, isWebpackDevServer, getEnv } from './helpers';
+import { AppConfig, BuildOptions, GlobalScopedEntry, AssetEntry, DllEntry, ModuleReplacementEntry } from './models';
+import { parseDllEntries, packageChunkSort, isWebpackDevServer, getEnvName as getEnv } from './helpers';
+import { readJsonSync } from '../utils';
 
 export function getWebpackCommonConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
-    if (buildOptions.dll) {
-        return getWebpackDllConfig(projectRoot, appConfig, buildOptions);
-    } else {
-        const ebpackSharedConfig = getWebpackSharedConfigPartial(projectRoot, appConfig, buildOptions);
-        return webpackMerge(ebpackSharedConfig,
-            getWebpackNonDllConfigPartial(projectRoot, appConfig, buildOptions));
-    }
+    return buildOptions.dll ? getWebpackDllConfig(projectRoot, appConfig, buildOptions) : getWebpackNonDllConfig(projectRoot, appConfig, buildOptions);
 }
 
 export function getWebpackDllConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
@@ -58,21 +53,15 @@ export function getWebpackDllConfig(projectRoot: string, appConfig: AppConfig, b
         getWebpackDllConfigPartial(projectRoot, appConfig, buildOptions));
 }
 
+export function getWebpackNonDllConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
+    const ebpackSharedConfig = getWebpackSharedConfigPartial(projectRoot, appConfig, buildOptions);
+    return webpackMerge(ebpackSharedConfig,
+        getWebpackNonDllConfigPartial(projectRoot, appConfig, buildOptions));
+}
+
 // Partials
 export function getWebpackSharedConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
     const appRoot = path.resolve(projectRoot, appConfig.root);
-    // Set defaults
-    appConfig.scripts = appConfig.scripts || ([] as string[]);
-    appConfig.styles = appConfig.styles || ([] as string[]);
-    appConfig.dllOutChunkName = appConfig.dllOutChunkName || 'vendor';
-    if (appConfig.publicPath || appConfig.publicPath === '') {
-        appConfig.publicPath = /\/$/.test(appConfig.publicPath) ? appConfig.publicPath : appConfig.publicPath + '/';
-    }
-    appConfig.target = appConfig.target || 'web';
-
-    const sourceMap = buildOptions.debug || (!buildOptions.debug && buildOptions.sourceMapOnProduction);
-    const appendHash = (buildOptions.debug && appConfig.appendOutputHashOnDevelopment) ||
-        (!buildOptions.debug && appConfig.appendOutputHashOnProduction);
 
     const commonPlugins: any[] = [];
 
@@ -93,22 +82,14 @@ export function getWebpackSharedConfigPartial(projectRoot: string, appConfig: Ap
 
     // Copy assets
     //
-    let shouldCopyAssets = typeof appConfig.assets !== 'undefined' && Array.isArray(appConfig.assets);
-    if (shouldCopyAssets && buildOptions.dll && !buildOptions.copyAssetsOnDllBuild) {
-        shouldCopyAssets = false;
-    }
-    if (shouldCopyAssets && !buildOptions.dll && buildOptions.copyAssetsOnDllBuild && ((buildOptions.debug && appConfig.referenceDllsOnDevelopment) ||
-        (!buildOptions.debug && appConfig.referenceDllsOnProduction))) {
-        shouldCopyAssets = false;
-    }
-    if (shouldCopyAssets) {
-        commonPlugins.push(getCopyAssetPlugin(appRoot, appConfig.assets));
-    }
+  if (typeof appConfig.assets !== 'undefined' && appConfig.assets.length && appConfig.skipCopyAssets !== false) {
+    commonPlugins.push(getCopyAssetPlugin(appRoot, appConfig.assets));
+  }
 
-    // Production plugins
+  // Production plugins
     //
 
-    if (buildOptions.debug === false) {
+    if (buildOptions.production) {
         const prodPlugins = [
             new WebpackMd5Hash(),
             new LoaderOptionsPlugin({ debug: false, minimize: true }),
@@ -122,12 +103,11 @@ export function getWebpackSharedConfigPartial(projectRoot: string, appConfig: Ap
                     screw_ie8: true
                 },
                 comments: false,
-                sourceMap: sourceMap
+                sourceMap: appConfig.sourceMap
             })
         ];
 
-        if (appConfig.compressAssetsOnProduction) {
-
+        if (appConfig.compressAssets) {
             prodPlugins.push(new CompressionPlugin({
                 asset: '[path].gz[query]',
                 algorithm: 'gzip',
@@ -138,8 +118,8 @@ export function getWebpackSharedConfigPartial(projectRoot: string, appConfig: Ap
         }
 
         // Production replacement modules
-        if (!buildOptions.dll && appConfig.productionReplacementModules && appConfig.productionReplacementModules.length) {
-            appConfig.productionReplacementModules.forEach((entry: ProductionReplacementEntry) => {
+        if (appConfig.moduleReplacements && appConfig.moduleReplacements.length) {
+            appConfig.moduleReplacements.forEach((entry: ModuleReplacementEntry) => {
                 prodPlugins.push(new NormalModuleReplacementPlugin(
                     new RegExp(entry.resourceRegExp, 'i'),
                     entry.newResource
@@ -151,18 +131,18 @@ export function getWebpackSharedConfigPartial(projectRoot: string, appConfig: Ap
 
     const webpackSharedConfig = {
         target: appConfig.target === 'node' ? 'node' : 'web',
-        devtool: buildOptions.debug ? 'source-map' : false,
+        devtool: buildOptions.production ? false : 'source-map',
         context: projectRoot,
         output: {
             path: path.resolve(projectRoot, appConfig.outDir),
             publicPath: appConfig.publicPath,
-            filename: appendHash
+            filename: appConfig.appendVersionHash
                 ? '[name].[chunkhash].js'
                 : '[name].js',
-            sourceMapFilename: appendHash
+            sourceMapFilename: appConfig.appendVersionHash
                 ? '[name].[chunkhash].map'
                 : '[name].map',
-            chunkFilename: appendHash
+            chunkFilename: appConfig.appendVersionHash
                 ? '[id].[chunkhash].js'
                 : '[id].js',
             // For dll only
@@ -173,7 +153,7 @@ export function getWebpackSharedConfigPartial(projectRoot: string, appConfig: Ap
         plugins: commonPlugins,
         // >= version 2.2
         performance: {
-            hints: buildOptions.performanceHints ? 'warning' : false, // boolean | "error" | "warning"
+            hints: buildOptions.performanceHint ? 'warning' : false, // boolean | "error" | "warning"
             maxAssetSize: 320000, // int (in bytes),
             maxEntrypointSize: 400000, // int (in bytes)
             assetFilter(assetFilename: string) {
@@ -193,21 +173,22 @@ export function getWebpackSharedConfigPartial(projectRoot: string, appConfig: Ap
             setImmediate: false
         },
         stats: {
+            //modules: true,
             colors: true,
             hash: true,
             timings: true,
             errors: true,
             errorDetails: true,
             warnings: true,
+            assets: true, //buildOptions.debug,
+            version: true, //buildOptions.debug,
 
             publicPath: false,
-            chunkModules: false, // TODO: set to true when console to file output is fixed
 
-            reasons: buildOptions.debug,
-            children: buildOptions.debug,
-            assets: buildOptions.debug,
-            version: buildOptions.debug,
-            chunks: buildOptions.debug // make sure 'chunks' is false or it will add 5-10 seconds to your build and incremental build time, due to excessive output.
+            chunkModules: false, // TODO: set to true when console to file output is fixed
+            reasons: buildOptions.verbose,
+            children: buildOptions.verbose,
+            chunks: buildOptions.verbose // make sure 'chunks' is false or it will add 5-10 seconds to your build and incremental build time, due to excessive output.
         }
     };
 
@@ -215,20 +196,19 @@ export function getWebpackSharedConfigPartial(projectRoot: string, appConfig: Ap
 }
 
 export function getWebpackDllConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
-    appConfig.dllOutChunkName = appConfig.dllOutChunkName || 'vendor';
     const appRoot = path.resolve(projectRoot, appConfig.root);
-    const debug = buildOptions.debug;
-    const env = getEnv(debug);
+
     // Entry
     const entries: string[] = [];
-    const dllEntries = parseDllEntries(appRoot, appConfig.dlls, appConfig.target, env);
-    dllEntries.forEach(de => {
-        if (Array.isArray(de.entry)) {
-            entries.push(...de.entry);
+    const dllParsedResult = parseDllEntries(appRoot, appConfig.dlls, buildOptions.production);
+    dllParsedResult.entries.forEach((e: DllEntry) => {
+        if (Array.isArray(e.entry)) {
+            entries.push(...e.entry);
         } else {
-            entries.push(de.entry);
+            entries.push(e.entry);
         }
     });
+    // TODO: add file deps
 
     const entryPoints: { [key: string]: string[] } = {};
     entryPoints[appConfig.dllOutChunkName] = entries;
@@ -251,11 +231,10 @@ export function getWebpackDllConfigPartial(projectRoot: string, appConfig: AppCo
     ];
 
     // Favicons plugins
-    const shouldGenerateIcons = typeof appConfig.faviconConfig !== 'undefined' &&
-        appConfig.faviconConfig !== null &&
-        buildOptions.generateIconsOnDllBuild;
-    if (shouldGenerateIcons) {
-        const faviconPlugins = getFaviconPlugins(projectRoot, appConfig, debug, false);
+    if (typeof appConfig.faviconConfig !== 'undefined' &&
+      appConfig.faviconConfig !== null &&
+      appConfig.skipGenerateIcons !== false) {
+        const faviconPlugins = getFaviconPlugins(projectRoot, appConfig, buildOptions.production, false);
         if (faviconPlugins.length) {
             plugins.push(...faviconPlugins);
 
@@ -290,13 +269,12 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
     let lazyChunks: string[] = [];
 
     // Try bundle dlls
-    if (((buildOptions.debug && appConfig.referenceDllsOnDevelopment) ||
-        (!buildOptions.debug && appConfig.referenceDllsOnProduction)) &&
-        appConfig.tryBundleDlls) {
+    if (appConfig.referenceDll) {
+        // TODO: to review
         const dllManifestFile = path.resolve(projectRoot, appConfig.outDir, `${appConfig.dllOutChunkName || 'vendor'}-manifest.json`);
         const webpackDllConfig = getWebpackDllConfig(projectRoot, appConfig, buildOptions);
         extraPlugins.push(new TryBundleDllWebpackPlugin({
-            debug: buildOptions.debug,
+            debug: !buildOptions.production,
             manifestFile: dllManifestFile,
             webpackDllConfig: webpackDllConfig
         }));
@@ -306,10 +284,8 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
     const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
     const appRoot = path.resolve(projectRoot, appConfig.root);
 
-    const debug = buildOptions.debug;
-    const sourceMap = buildOptions.debug || (!buildOptions.debug && buildOptions.sourceMapOnProduction);
-    const env = getEnv(debug);
-    const envLong = getEnv(debug, true);
+    const env = getEnv(buildOptions.production);
+    const envLong = getEnv(buildOptions.production, true);
     const metadata = {
         'ENV': JSON.stringify(envLong),
         'process.env': {
@@ -317,8 +293,6 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
             NODE_ENV: JSON.stringify(process.env.NODE_ENV)
         }
     };
-
-    appConfig.dllOutChunkName = appConfig.dllOutChunkName || 'vendor';
 
     // Global scripts
     //
@@ -442,8 +416,7 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
     // Plugins
     const plugins: any = [
         new ExtractTextPlugin({
-            filename: ((debug && appConfig.appendOutputHashOnDevelopment) ||
-                (!debug && appConfig.appendOutputHashOnProduction))
+            filename: appConfig.appendVersionHash
                 ? '[name].[chunkhash].css'
                 : '[name].css',
             disable: false,
@@ -452,16 +425,16 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
         new LoaderOptionsPlugin({
             test: /\.(css|scss|sass|less|styl)$/,
             options: {
-                postcss: debug
+                postcss: !buildOptions.production
                     ? [autoprefixer()]
                     : [
                         autoprefixer(),
                         postcssDiscardComments
                     ],
-                cssLoader: { sourceMap: debug ? true : sourceMap },
-                sassLoader: { sourceMap: debug ? true : sourceMap },
-                lessLoader: { sourceMap: debug ? true : sourceMap },
-                stylusLoader: { sourceMap: debug ? true : sourceMap },
+                cssLoader: { sourceMap: appConfig.sourceMap },
+                sassLoader: { sourceMap: appConfig.sourceMap },
+                lessLoader: { sourceMap: appConfig.sourceMap },
+                stylusLoader: { sourceMap: appConfig.sourceMap},
                 // context needed as a workaround https://github.com/jtangelder/sass-loader/issues/285
                 context: projectRoot
             }
@@ -497,62 +470,53 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
         ));
     }
 
-    // htmlAttributes
-    //
-    let customTagAttributes: any = null;
-    if (appConfig.htmlInjectOptions && (appConfig.htmlInjectOptions.customScriptAttributes || appConfig.htmlInjectOptions.customLinkAttributes)) {
-        customTagAttributes = {
-            scriptAttributes: appConfig.htmlInjectOptions.customScriptAttributes,
-            linkAttributes: appConfig.htmlInjectOptions.customLinkAttributes
-        };
-    }
-
     // Styles Inject
-    const separateStylesOut = appConfig.htmlInjectOptions && appConfig.htmlInjectOptions.stylesInjectOutFileName && entryPoints['styles'];
+    const separateStylesOut = appConfig.htmlInjectOptions.stylesOutFileName && entryPoints['styles'];
     const stylesHtmlWebpackPluginId = separateStylesOut ? 'StylesHtmlWebpackPlugin' : null;
     if (separateStylesOut) {
         plugins.push(new HtmlWebpackPlugin({
             templateContent: ' ',
-            filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInjectOptions.stylesInjectOutFileName),
+            filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInjectOptions.stylesOutFileName),
             title: '',
             chunks: ['styles'],
-            customAttributes: customTagAttributes,
+            customAttributes: appConfig.htmlInjectOptions.customTagAttributes,
             inject: true,
             id: stylesHtmlWebpackPluginId
         }));
 
         // custom link attributes
-        if (customTagAttributes) {
+        if (appConfig.htmlInjectOptions.customTagAttributes && appConfig.htmlInjectOptions.customTagAttributes.find(c => c.tagName === 'link')) {
+            const customLinkAttributes = appConfig.htmlInjectOptions.customTagAttributes
+                .filter(c => c.tagName === 'link');
             plugins.push(new CustomizeAssetsHtmlWebpackPlugin({
                 targetHtmlWebpackPluginId: stylesHtmlWebpackPluginId,
-                customLinkAttributes: customTagAttributes.linkAttributes
+                customAttributes: customLinkAttributes
             }));
         }
 
         // move head assets to body
-        if (customTagAttributes) {
-            plugins.push(new CustomizeAssetsHtmlWebpackPlugin({
-                targetHtmlWebpackPluginId: stylesHtmlWebpackPluginId,
-                moveHeadAssetsToBody: true
-            }));
-        }
+        plugins.push(new CustomizeAssetsHtmlWebpackPlugin({
+            targetHtmlWebpackPluginId: stylesHtmlWebpackPluginId,
+            moveHeadAssetsToBody: true
+        }));
     }
 
     // Favicons inject
-    let shouldGenerateIcons = typeof appConfig.faviconConfig !== 'undefined' &&
-        appConfig.faviconConfig !== null &&
-        !(buildOptions.generateIconsOnDllBuild &&
-            ((buildOptions.debug && appConfig.referenceDllsOnDevelopment) ||
-                (!buildOptions.debug && appConfig.referenceDllsOnProduction)));
-    if (shouldGenerateIcons) {
-        const faviconPlugins = getFaviconPlugins(projectRoot, appConfig, debug, false, stylesHtmlWebpackPluginId);
-        if (faviconPlugins.length) {
-            plugins.push(...faviconPlugins);
-        }
+  if (typeof appConfig.faviconConfig !== 'undefined' &&
+    appConfig.faviconConfig !== null &&
+    appConfig.skipGenerateIcons !== false) {
+    const faviconPlugins = getFaviconPlugins(projectRoot,
+      appConfig,
+      buildOptions.production,
+      false,
+      stylesHtmlWebpackPluginId);
+    if (faviconPlugins.length) {
+      plugins.push(...faviconPlugins);
     }
+  }
 
-    // Default inject
-    if (appConfig.index || appConfig.indexOutFileName) {
+  // Default inject
+    if (appConfig.index || appConfig.htmlInjectOptions.indexOutFileName) {
         const defaultHtmlWebpackPluginId = 'DefaultHtmlWebpackPlugin';
         const excludeChunks = lazyChunks;
         if (separateStylesOut) {
@@ -562,13 +526,13 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
         if (appConfig.index && appConfig.index.trim()) {
             plugins.push(new HtmlWebpackPlugin({
                 template: path.resolve(appRoot, appConfig.index),
-                filename: path.resolve(projectRoot, appConfig.outDir, appConfig.indexOutFileName || appConfig.index),
+                filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInjectOptions.indexOutFileName || appConfig.index),
                 chunksSortMode: packageChunkSort(['inline', 'styles', 'scripts', appConfig.dllOutChunkName, 'main']),
                 excludeChunks: excludeChunks,
                 title: '',
                 isDevServer: isWebpackDevServer(),
                 metadata: metadata,
-                customAttributes: customTagAttributes,
+                customAttributes: appConfig.htmlInjectOptions.customTagAttributes,
                 id: defaultHtmlWebpackPluginId
                 //hot:
                 //hash: false,
@@ -582,17 +546,17 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
         } else {
             plugins.push(new HtmlWebpackPlugin({
                 templateContent: ' ',
-                filename: path.resolve(projectRoot, appConfig.outDir, appConfig.indexOutFileName || appConfig.index),
+                filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInjectOptions.indexOutFileName || appConfig.index),
                 chunksSortMode: packageChunkSort(['inline', 'styles', 'scripts', appConfig.dllOutChunkName, 'main']),
                 excludeChunks: excludeChunks,
                 title: '',
-                customAttributes: customTagAttributes,
+                customAttributes: appConfig.htmlInjectOptions.customTagAttributes,
                 id: defaultHtmlWebpackPluginId,
                 inject: true
             }));
 
             // move head assets to body
-            if (customTagAttributes) {
+            if (appConfig.htmlInjectOptions.customTagAttributes) {
                 plugins.push(new CustomizeAssetsHtmlWebpackPlugin({
                     targetHtmlWebpackPluginId: defaultHtmlWebpackPluginId,
                     moveHeadAssetsToBody: true
@@ -601,24 +565,27 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
         }
 
         // add dll entry - vendor.js
-        if ((debug && appConfig.referenceDllsOnDevelopment) ||
-            (!debug && appConfig.referenceDllsOnProduction)) {
+        if (appConfig.referenceDll) {
             const dllRefScript = `${appConfig.dllOutChunkName}.js`;
+            let customScriptAttributes : any[] = [];
+            if (appConfig.htmlInjectOptions.customTagAttributes) {
+                customScriptAttributes = appConfig.htmlInjectOptions.customTagAttributes
+                    .filter(c => c.tagName === 'script');
+            }
             plugins.push(new CustomizeAssetsHtmlWebpackPlugin({
                 targetHtmlWebpackPluginId: defaultHtmlWebpackPluginId,
                 scriptSrcToBodyAssets: [dllRefScript],
-                customScriptAttributes: customTagAttributes ? customTagAttributes.scriptAttributes : [],
+                customAttributes: customScriptAttributes,
                 addPublicPath: true
             }));
         }
 
         // ** Order is import
         // custom script/link attributes
-        if (customTagAttributes) {
+        if (appConfig.htmlInjectOptions.customTagAttributes) {
             plugins.push(new CustomizeAssetsHtmlWebpackPlugin({
                 targetHtmlWebpackPluginId: defaultHtmlWebpackPluginId,
-                customScriptAttributes: customTagAttributes.scriptAttributes,
-                customLinkAttributes: customTagAttributes.linkAttributes
+                customAttributes: appConfig.htmlInjectOptions.customTagAttributes
             }));
         }
     }
@@ -630,7 +597,7 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
 
     // DllReferencePlugin, CommonsChunkPlugin
     //
-    if ((debug && appConfig.referenceDllsOnDevelopment) || (!debug && appConfig.referenceDllsOnProduction)) {
+    if (appConfig.referenceDll) {
         if (appConfig.target === 'node') {
             plugins.push(
                 new DllReferencePlugin({
@@ -685,18 +652,11 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
 
 
 // Private methods
-function getFaviconPlugins(projectRoot: string, appConfig: AppConfig, debug: boolean, emitStats: boolean, targetHtmlWebpackPluginId?: string) {
+function getFaviconPlugins(projectRoot: string, appConfig: AppConfig, isProduction: boolean, emitStats: boolean, targetHtmlWebpackPluginId?: string) {
     const appRoot = path.resolve(projectRoot, appConfig.root);
 
     const plugins: any[] = [];
     let iconConfig: IconPluginOptions = null;
-    let customTagAttributes: any = null;
-    if (appConfig.htmlInjectOptions && (appConfig.htmlInjectOptions.customScriptAttributes || appConfig.htmlInjectOptions.customLinkAttributes)) {
-        customTagAttributes = {
-            scriptAttributes: appConfig.htmlInjectOptions.customScriptAttributes,
-            linkAttributes: appConfig.htmlInjectOptions.customLinkAttributes
-        };
-    }
 
     if (typeof appConfig.faviconConfig === 'string' && appConfig.faviconConfig.match(/\.json$/i)) {
         iconConfig = readJsonSync(path.resolve(appRoot, appConfig.faviconConfig));
@@ -708,14 +668,12 @@ function getFaviconPlugins(projectRoot: string, appConfig: AppConfig, debug: boo
 
     iconConfig.masterPicture = path.resolve(appRoot, iconConfig.masterPicture);
     if (!iconConfig.iconsPath) {
-        iconConfig.iconsPath = ((debug && appConfig.appendOutputHashOnDevelopment) ||
-            (!debug && appConfig.appendOutputHashOnProduction))
+        iconConfig.iconsPath = appConfig.appendVersionHash
             ? 'icons-[hash]/'
             : 'icons/';
     }
     if (!iconConfig.statsFilename) {
-        iconConfig.statsFilename = ((debug && appConfig.appendOutputHashOnDevelopment) ||
-            (!debug && appConfig.appendOutputHashOnProduction))
+        iconConfig.statsFilename = appConfig.appendVersionHash
             ? 'iconstats-[hash].json'
             : 'iconstats.json';
     }
@@ -724,16 +682,16 @@ function getFaviconPlugins(projectRoot: string, appConfig: AppConfig, debug: boo
     }
 
     let iconsInjectOutFileName: string = null;
-    if (appConfig.htmlInjectOptions && appConfig.htmlInjectOptions.iconsInjectOutFileName) {
-        iconsInjectOutFileName = appConfig.htmlInjectOptions.iconsInjectOutFileName;
+    if (appConfig.htmlInjectOptions && appConfig.htmlInjectOptions.iconsOutFileName) {
+        iconsInjectOutFileName = appConfig.htmlInjectOptions.iconsOutFileName;
     }
 
-    let iconHtmlSeparateOut = iconsInjectOutFileName !== null &&
-        ((iconsInjectOutFileName !== appConfig.indexOutFileName) ||
-            (iconsInjectOutFileName !== appConfig.index));
+    const iconHtmlSeparateOut = iconsInjectOutFileName !== null &&
+    ((iconsInjectOutFileName !== appConfig.htmlInjectOptions.indexOutFileName) ||
+        (iconsInjectOutFileName !== appConfig.index));
 
     if (typeof iconConfig.inject === 'undefined') {
-        if (appConfig.index || appConfig.indexOutFileName || iconHtmlSeparateOut) {
+        if (appConfig.index || appConfig.htmlInjectOptions.indexOutFileName || iconHtmlSeparateOut) {
             iconConfig.inject = true;
         } else {
             iconConfig.inject = true;
@@ -754,7 +712,7 @@ function getFaviconPlugins(projectRoot: string, appConfig: AppConfig, debug: boo
             filename: path.resolve(projectRoot, appConfig.outDir, iconsInjectOutFileName),
             chunks: [],
             title: '',
-            customAttributes: customTagAttributes,
+            customAttributes: appConfig.htmlInjectOptions.customTagAttributes,
             inject: true,
             id: iconsHtmlWebpackPluginId
         }));
@@ -770,41 +728,61 @@ function getFaviconPlugins(projectRoot: string, appConfig: AppConfig, debug: boo
     return plugins;
 }
 
-function getCopyAssetPlugin(baseDir: string, assetEntries: any[]) {
-    const assets = assetEntries.map((asset: any) => {
-        if (typeof asset === 'string') {
-            // convert dir patterns to globs
-            if (asset.lastIndexOf('*') === -1 && fs.existsSync(path.resolve(baseDir, asset)) && fs.statSync(path.resolve(baseDir, asset)).isDirectory()) {
-                asset += '/**/*';
-            }
-
-            return {
-                from: {
-                    glob: asset,
-                    dot: true
-                },
-                context: baseDir
-            };
-        } else if (typeof asset === 'object' && asset.from) {
-            if (!asset.context) {
-                asset.context = baseDir;
-            }
-            if (typeof asset.from === 'string') {
-                let fromGlob = asset.from;
-                if (asset.from.lastIndexOf('*') === -1 && fs.statSync(path.resolve(baseDir, asset.from)).isDirectory()) {
-                    fromGlob += '/**/*';
-                }
-
-                asset.from = {
-                    glob: fromGlob,
-                    dot: true
-                };
-            }
-            return asset;
-        } else {
-            throw new Error(`Invalid 'assets' value in appConfig.`);
+function getCopyAssetPlugin(baseDir: string, assetEntry: string | (string | AssetEntry)[]) {
+    let assets: AssetEntry[] = [];
+    const prepareFormGlob = (p: string) => {
+        if (!p) {
+            return '';
         }
-    });
+
+        if (p.lastIndexOf('*') === -1 && !path.isAbsolute(p) &&
+            fs.existsSync(path.resolve(baseDir, p)) &&
+            fs.statSync(path.resolve(baseDir, p)).isDirectory()) {
+            if (p.lastIndexOf('/') > -1) {
+                p = p.substring(0, p.length - 1);
+            }
+            p += '/**/*';
+        }
+        return p;
+    };
+
+    if (Array.isArray(assetEntry)) {
+        assets = assetEntry.map((asset: string | AssetEntry) => {
+            if (typeof asset === 'string') {
+                const fromGlob = prepareFormGlob(asset);
+                return {
+                    from: {
+                        glob: fromGlob,
+                        dot: true
+                    },
+                    context: baseDir
+                };
+            } else if (typeof asset === 'object' && asset.from) {
+                if (!asset.context) {
+                    asset.context = baseDir;
+                }
+                if (typeof asset.from === 'string') {
+                    const fromGlob = prepareFormGlob(asset.from);
+                    asset.from = {
+                        glob: fromGlob,
+                        dot: true
+                    };
+                }
+                return asset;
+            } else {
+                throw new Error(`Invalid 'assets' value in appConfig.`);
+            }
+        });
+    } else if(typeof assetEntry === 'string'){
+        const fromGlob = prepareFormGlob(assetEntry);
+        assets = [{
+            from: {
+                glob: fromGlob,
+                dot: true
+            },
+            context: baseDir
+        }];
+    }
 
     const plugin = new CopyWebpackPlugin(assets,
         {
@@ -813,6 +791,7 @@ function getCopyAssetPlugin(baseDir: string, assetEntries: any[]) {
         });
     return plugin;
 }
+
 // create array of css loaders
 // Ref: https://github.com/angular/angular-cli
 function makeCssLoaders(stylePaths: string[] = []) {
@@ -847,14 +826,16 @@ function makeCssLoaders(stylePaths: string[] = []) {
 // convert all extra entries into the object representation, fill in defaults
 // Ref: https://github.com/angular/angular-cli
 function parseGlobalScopedEntry(
-    extraEntries: (string | GlobalScopedEntry)[],
+    extraEntries: string | (string | GlobalScopedEntry)[],
     appRoot: string,
     defaultEntry: string
 ): GlobalScopedEntry[] {
     if (!extraEntries || !extraEntries.length) {
         return [];
     }
-    return extraEntries
+    const arrayEntries = Array.isArray(extraEntries) ? extraEntries : [extraEntries];
+
+    return arrayEntries
         .map((extraEntry: string | GlobalScopedEntry) =>
             typeof extraEntry === 'string' ? { input: extraEntry } : extraEntry)
         .map((extraEntry: GlobalScopedEntry) => {

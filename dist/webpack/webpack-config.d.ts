@@ -1,3 +1,3 @@
-import { AngularAppConfig, AngularBuildOptions } from './models';
-export declare function getWebpackConfigs(projectRoot: string, buildOptions?: AngularBuildOptions): any;
-export declare function getWebpackConfig(projectRoot: string, appConfig: AngularAppConfig, buildOptions?: AngularBuildOptions): any;
+import { AngularAppConfig, AngularBuildOptions, AngularBuildConfig } from './models';
+export declare function getWebpackConfigs(projectRoot: string, angularBuildConfig?: AngularBuildConfig, buildOptions?: AngularBuildOptions): any[];
+export declare function getWebpackConfig(projectRoot: string, appConfig: AngularAppConfig, buildOptions?: AngularBuildOptions, skipMerge?: boolean): any;

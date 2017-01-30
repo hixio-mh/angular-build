@@ -10,12 +10,12 @@ export declare class CustomizeAssetsHtmlPluginOptions {
     scriptSrcToBodyAssets?: string[];
     addPublicPath?: boolean;
     assetTagsFilterFunc?: (tag: any) => boolean;
-    customScriptAttributes?: {
-        [key: string]: string;
-    };
-    customLinkAttributes?: {
-        [key: string]: string;
-    };
+    customAttributes?: {
+        tagName: string;
+        attribute: {
+            [key: string]: string | boolean;
+        };
+    }[];
     removeStartingSlash?: boolean;
 }
 export declare class CustomizeAssetsHtmlWebpackPlugin {

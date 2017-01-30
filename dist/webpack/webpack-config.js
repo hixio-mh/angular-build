@@ -2,32 +2,39 @@
 const path = require("path");
 const fs = require("fs");
 const helpers_1 = require("./helpers");
+const utils_1 = require("../utils");
 const webpack_angular_config_1 = require("./webpack-angular-config");
-function getWebpackConfigs(projectRoot, buildOptions) {
+const allowOverrideKeys = [
+    'root', 'outDir', 'main', 'entry', 'assets', 'styles', 'scripts', 'tsconfig', 'index', 'publicPath',
+    'htmlInjectOptions', 'faviconConfig', 'provide', 'referenceDll', 'moduleReplacements', 'enabled', 'appendOutputHash', 'compressAssets', 'copyAssets', 'generateIcons', 'sourceMap'
+];
+function getWebpackConfigs(projectRoot, angularBuildConfig, buildOptions) {
     projectRoot = projectRoot || process.cwd();
-    let configFileExists = false;
-    let configPath = 'angular-build.json';
-    if (!fs.existsSync(path.resolve(projectRoot, configPath))) {
-        const tmpConfigPath = 'angular-cli.json';
-        if (fs.existsSync(path.resolve(projectRoot, tmpConfigPath))) {
-            configPath = tmpConfigPath;
+    if (!angularBuildConfig) {
+        let configFileExists = false;
+        let configPath = 'angular-build.json';
+        if (!fs.existsSync(path.resolve(projectRoot, configPath))) {
+            const tmpConfigPath = 'angular-cli.json';
+            if (fs.existsSync(path.resolve(projectRoot, tmpConfigPath))) {
+                configPath = tmpConfigPath;
+                configFileExists = true;
+            }
+        }
+        else {
             configFileExists = true;
         }
+        if (!configFileExists) {
+            throw new Error(`'angular-build.json' or 'angular-cli.json' file could not be found in ${projectRoot}.`);
+        }
+        angularBuildConfig = utils_1.readJsonSync(path.resolve(projectRoot, configPath));
     }
-    else {
-        configFileExists = true;
-    }
-    if (!configFileExists) {
-        throw new Error(`'angular-build.json' or 'angular-cli.json' file could not be found in ${projectRoot}.`);
-    }
-    const appsConfig = helpers_1.readJsonSync(path.resolve(projectRoot, configPath));
-    buildOptions = buildOptions || {};
-    buildOptions.dll = typeof buildOptions.dll === 'undefined' ? helpers_1.isDllBuildFromNpmEvent() : buildOptions.dll;
+    // Merge buildOptions
+    buildOptions = mergeBuildOptions(buildOptions);
     // Extends
-    const appConfigs = appsConfig.apps.map((app) => {
+    const appConfigs = angularBuildConfig.apps.map((app) => {
         let cloneApp = Object.assign({}, app);
         if (cloneApp.extends) {
-            const baseApps = appsConfig.apps.filter((a) => a.name === cloneApp.extends);
+            const baseApps = angularBuildConfig.apps.filter((a) => a.name === cloneApp.extends);
             if (baseApps && baseApps.length > 0) {
                 const cloneBaseApp = Object.assign({}, baseApps[0]);
                 cloneApp = Object.assign({}, cloneBaseApp, cloneApp);
@@ -35,22 +42,27 @@ function getWebpackConfigs(projectRoot, buildOptions) {
         }
         return cloneApp;
     });
-    const configs = appConfigs.filter((appConfig) => appConfig.enabled !== false &&
-        (!buildOptions.dll || (buildOptions.dll && appConfig.dlls && appConfig.dlls.length && !appConfig.skipOnDllsBundle)))
-        .map((appConfig) => {
-        return getWebpackConfig(projectRoot, appConfig, buildOptions);
+    appConfigs.forEach((appConfig) => {
+        // Build target overrides
+        mergeAppConfigWithBuildTargetOverrides(appConfig, buildOptions);
+        // merge wit defaults
+        mergeAppConfigWithDefaults(appConfig, buildOptions);
     });
-    return configs;
+    const webpackConfigs = appConfigs.filter((appConfig) => appConfig.skip === false)
+        .map((appConfig) => {
+        return getWebpackConfig(projectRoot, appConfig, buildOptions, true);
+    });
+    return webpackConfigs;
 }
 exports.getWebpackConfigs = getWebpackConfigs;
-function getWebpackConfig(projectRoot, appConfig, buildOptions) {
-    projectRoot = projectRoot || process.cwd();
-    const defaultBuildOptions = {
-        debug: !helpers_1.hasProdArg(),
-        dll: helpers_1.isDllBuildFromNpmEvent(),
-        aot: helpers_1.isAoTBuildFromNpmEvent()
-    };
-    buildOptions = Object.assign(defaultBuildOptions, buildOptions || {});
+function getWebpackConfig(projectRoot, appConfig, buildOptions, skipMerge) {
+    if (!skipMerge) {
+        projectRoot = projectRoot || process.cwd();
+        buildOptions = mergeBuildOptions(buildOptions);
+        mergeAppConfigWithBuildTargetOverrides(appConfig, buildOptions);
+        mergeAppConfigWithDefaults(appConfig, buildOptions);
+    }
+    buildOptions = buildOptions || {};
     if (!appConfig) {
         throw new Error(`'appConfig' is required.`);
     }
@@ -61,10 +73,10 @@ function getWebpackConfig(projectRoot, appConfig, buildOptions) {
         !appConfig.main &&
         (!appConfig.styles || !appConfig.styles.length) &&
         (!appConfig.scripts || !appConfig.scripts.length)) {
-        throw new Error(`No entry. Set entry in 'appConfig.main'.`);
+        throw new Error(`No entry. Please set entry in appConfig.`);
     }
     if (buildOptions.dll && (!appConfig.dlls || !appConfig.dlls.length)) {
-        throw new Error(`No dll entry. Set dll entries in 'appConfig.dlls'.`);
+        throw new Error(`No dll entry. Please set dll entries in appConfig.`);
     }
     // Set defaults
     appConfig.root = appConfig.root || projectRoot;
@@ -72,4 +84,100 @@ function getWebpackConfig(projectRoot, appConfig, buildOptions) {
     return webpack_angular_config_1.getWebpackAngularConfig(projectRoot, appConfig, buildOptions);
 }
 exports.getWebpackConfig = getWebpackConfig;
+function mergeBuildOptions(buildOptions) {
+    const defaultBuildOptions = {
+        production: helpers_1.hasProdArg(),
+        dll: helpers_1.isDllBuildFromNpmEvent(),
+        aot: helpers_1.isAoTBuildFromNpmEvent()
+    };
+    return Object.assign(defaultBuildOptions, buildOptions || {});
+}
+function overrideAppConfig(appConfig, newConfig) {
+    if (!newConfig) {
+        return;
+    }
+    for (let k in newConfig) {
+        if (newConfig.hasOwnProperty(k) && allowOverrideKeys.indexOf(k) > -1) {
+            appConfig[k] = newConfig[k];
+        }
+    }
+}
+function mergeAppConfigWithBuildTargetOverrides(appConfig, buildOptions) {
+    if (!appConfig || !appConfig.buildTargetOverrides) {
+        return;
+    }
+    Object.keys(appConfig.buildTargetOverrides).forEach((buildTargetKey) => {
+        switch (buildTargetKey.toLowerCase()) {
+            case 'prod':
+            case 'production':
+                if (buildOptions.production) {
+                    const newConfig = appConfig.buildTargetOverrides[buildTargetKey];
+                    overrideAppConfig(appConfig, newConfig);
+                }
+                break;
+            case 'dev':
+            case 'development':
+                if (!buildOptions.production) {
+                    const newConfig = appConfig.buildTargetOverrides[buildTargetKey];
+                    overrideAppConfig(appConfig, newConfig);
+                }
+                break;
+            case 'dll':
+                if (!buildOptions.dll) {
+                    const newConfig = appConfig.buildTargetOverrides[buildTargetKey];
+                    overrideAppConfig(appConfig, newConfig);
+                }
+                break;
+            case 'aot':
+                if (!buildOptions.dll) {
+                    const newConfig = appConfig.buildTargetOverrides[buildTargetKey];
+                    overrideAppConfig(appConfig, newConfig);
+                }
+                break;
+            default:
+                break;
+        }
+    });
+}
+function mergeAppConfigWithDefaults(appConfig, buildOptions) {
+    if (!appConfig) {
+        return;
+    }
+    appConfig.scripts = appConfig.scripts || [];
+    appConfig.styles = appConfig.styles || [];
+    appConfig.dllOutChunkName = appConfig.dllOutChunkName || 'vendor';
+    if (appConfig.publicPath || appConfig.publicPath === '') {
+        appConfig.publicPath = /\/$/.test(appConfig.publicPath) ? appConfig.publicPath : appConfig.publicPath + '/';
+    }
+    appConfig.htmlInjectOptions = appConfig.htmlInjectOptions || {};
+    appConfig.target = appConfig.target || 'web';
+    if (typeof appConfig.referenceDll === 'undefined' || appConfig.referenceDll === null) {
+        appConfig.referenceDll = !buildOptions.production && !buildOptions.aot && appConfig.dlls && appConfig.dlls.length > 0;
+    }
+    if (typeof appConfig.skipCopyAssets === 'undefined' || appConfig.skipCopyAssets === null) {
+        appConfig.skipCopyAssets = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
+    }
+    if (typeof appConfig.skipGenerateIcons === 'undefined' || appConfig.skipGenerateIcons === null) {
+        appConfig.skipGenerateIcons = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
+    }
+    if (typeof appConfig.sourceMap === 'undefined' || appConfig.sourceMap === null) {
+        appConfig.sourceMap = !buildOptions.production;
+    }
+    if (typeof appConfig.compressAssets === 'undefined' || appConfig.compressAssets === null) {
+        appConfig.compressAssets = buildOptions.production;
+    }
+    if (typeof appConfig.appendVersionHash === 'undefined' || appConfig.appendVersionHash === null) {
+        // is asp.net
+        appConfig.appendVersionHash = buildOptions.production;
+        if (appConfig.htmlInjectOptions &&
+            appConfig.htmlInjectOptions.customTagAttributes &&
+            // ReSharper disable once CoercedEqualsUsing
+            appConfig.htmlInjectOptions.customTagAttributes
+                .find(c => (c.tagName === 'link' || c.tagName === 'script') &&
+                c.attribute &&
+                c.attribute['asp-append-version'] == true)) {
+            appConfig.appendVersionHash = false;
+        }
+    }
+}
 //# sourceMappingURL=webpack-config.js.map

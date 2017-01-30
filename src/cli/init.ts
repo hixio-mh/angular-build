@@ -18,160 +18,207 @@ Usage:
   ngb init [options...]`;
 
 export const initCommandModule: yargs.CommandModule = {
-    command: 'init',
-    describe: 'Create angular-build config files',
-    builder: (yargv: yargs.Argv) => {
-        return yargv
-            .reset()
-            .usage(initCommandUsage)
-            .example('ngb init --prompt', 'Create angular-build config files with user prompt option')
-            .help('h')
-            .option('p',
-            {
-                alias: 'prompt',
-                describe: 'Confirm user by prompting',
-                type: 'boolean'
-                //default: false
-            })
-            .option('f',
-            {
-                alias: 'force',
-                describe: 'it will use only defaults and not prompt you for any options',
-                type: 'boolean'
-            })
-            .option('link-cli',
-            {
-                alias: ['l', 'linkCli'],
-                describe: 'Link angular-build cli to current project',
-                type: 'boolean'
-            })
-            .option('skip-install-tooling',
-            {
-                describe: 'Skip install tooling',
-                type: 'boolean'
-            })
-            .option('use-angular-cli-config-file',
-            {
-                describe: 'Use angular-cli.json as a build config file'
-                //type: 'boolean',
-                //default: false
-            })
-            .option('webpack-config-file-name',
-            {
-                describe: 'Webpack config file name',
-                type: 'string'
-            })
-            .option('favicon-naster-picture',
-            {
-                describe: 'favicon master picture file name',
-                type: 'string'
-            })
-            .option('override-angular-build-config-file',
-            {
-                describe: 'Override angular-build.json file',
-                type: 'boolean',
-                default: false
-            })
-            .option('override-webpack-config-file',
-            {
-                describe: 'Override webpack config file',
-                type: 'boolean',
-                default: false
-            })
-            .option('root',
-            {
-                describe: 'Client app root directory',
-                type: 'string'
-            })
-            .option('out-dir',
-            {
-                describe: 'Build/bundle output directory',
-                type: 'string'
-            })
-            .option('public-path',
-            {
-                describe: 'Public Url address of the output files',
-                type: 'string'
-            })
-            .option('main',
-            {
-                describe: 'App main bootstrap file',
-                type: 'string'
-            })
-            .option('tsconfig',
-            {
-                describe: 'Typescript configuration file',
-                type: 'string'
-            })
-            .option('assets',
-            {
-                describe: 'Assets to be copied to output directory',
-                type: 'array'
-            })
-            .option('styles',
-            {
-                describe: 'Global styles (.css/.scss/.less/.stylus) to be bundled',
-                type: 'array'
-            })
-            .option('scripts',
-            {
-                describe: 'Script files to be added to the global scope',
-                type: 'array'
-            })
-            .option('provide',
-            {
-                describe: 'To automatically load module with alias key'
-            })
-            .option('index',
-            {
-                describe: 'Html index source template file',
-                type: 'string'
-            })
-            .option('index-out-file-name',
-            {
-                describe: 'The file to write the Html to',
-                type: 'string'
-            })
-            .option('favicon-config',
-            {
-                describe: 'Favicon configuration file',
-                type: 'string'
-            })
-            .option('html-inject-options',
-            {
-                describe: 'Html injection options'
-            })
-            .option('reference-dlls-on-development',
-            {
-                describe: 'Generate dll bundles for development builds',
-                type: 'boolean'
-                //default: true
-            })
-            .option('reference-dlls-on-production',
-            {
-                describe: 'Generate dll bundles for production builds',
-                type: 'boolean'
-                //default: false
-            })
-            .option('try-bundle-dlls',
-            {
-                describe:
-                'To automatically bundle dlls',
-                type: 'boolean'
-                //default: false
-            })
-            .option('dlls',
-            {
-                describe: 'The entries for dll bundle',
-                type: 'array'
-            })
-            .option('environments',
-            {
-                describe:
-                'TheEnvironment files to be used with build args (--environment=dev or --environment=prod)'
-            });
-    },
-    handler: null
+  command: 'init',
+  describe: 'Create angular-build config files',
+  builder: (yargv: yargs.Argv) => {
+    return yargv
+      .reset()
+      .usage(initCommandUsage)
+      .example('ngb init --prompt', 'Create angular-build config files with user prompt option')
+      .help('h')
+      .option('p',
+      {
+        alias: 'prompt',
+        describe: 'Confirm user by prompting',
+        type: 'boolean',
+        default: false
+      })
+      .option('f',
+      {
+        alias: 'force',
+        describe: 'It will use only defaults and not prompt you for any options',
+        type: 'boolean',
+        default: false
+      })
+      .option('link-cli',
+      {
+        alias: ['l', 'linkCli'],
+        describe: 'Link angular-build cli to current project',
+        type: 'boolean',
+        default: false
+      })
+      .option('skip-install-tooling',
+      {
+        describe: 'Skip install tooling',
+        type: 'boolean',
+        default: false
+      })
+      .option('use-angular-cli-config-file',
+      {
+        describe: 'Use angular-cli.json as a build config file',
+        type: 'boolean',
+        default: undefined
+      })
+      .option('webpack-config-file-name',
+      {
+        describe: 'Webpack config file name',
+        type: 'string'
+      })
+      .option('favicon-naster-picture',
+      {
+        describe: 'favicon master picture file name',
+        type: 'string'
+      })
+      .option('override-angular-build-config-file',
+      {
+        describe: 'Override angular-build.json file',
+        type: 'boolean',
+        default: false
+      })
+      .option('override-webpack-config-file',
+      {
+        describe: 'Override webpack config file',
+        type: 'boolean',
+        default: false
+      })
+      // AngularAppConfig
+      .option('name',
+      {
+        describe: 'Name for app config',
+        type: 'string'
+      })
+      .option('target',
+      {
+        describe: 'Tells the build system which environment the application is targeting',
+        type: 'string'
+      })
+      .option('root',
+      {
+        describe: 'Client app root directory',
+        type: 'string'
+      })
+      .option('out-dir',
+      {
+        describe: 'Bbundle output directory',
+        type: 'string'
+      })
+      .option('main',
+      {
+        describe: 'App main bootstrap file',
+        type: 'string'
+      })
+      .option('assets',
+      {
+        describe: 'Assets to be copied to output directory',
+        type: 'array'
+      })
+      .option('styles',
+      {
+        describe: 'Global styles (.css/.scss/.less/.stylus) to be bundled',
+        type: 'array'
+      })
+      .option('scripts',
+      {
+        describe: 'Script files to be added to the global scope',
+        type: 'array'
+      })
+      .option('provide',
+      {
+        describe: 'To automatically load module with alias key'
+      })
+      .option('tsconfig',
+      {
+        describe: 'Typescript configuration file',
+        type: 'string'
+      })
+      .option('public-path',
+      {
+        describe: 'Public Url address of the output files',
+        type: 'string'
+      })
+      .option('index',
+      {
+        describe: 'Html index source template file',
+        type: 'string'
+      })
+      .option('html-inject-options',
+      {
+        describe: 'Html injection options'
+      })
+      .option('favicon-config',
+      {
+        describe: 'Favicon configuration file',
+        type: 'string'
+      })
+      .option('dlls',
+      {
+        describe: 'The entries for dll bundle',
+        type: 'array'
+      })
+      .option('dllOutChunkName',
+      {
+        describe: 'Output name for dll bundle',
+        type: 'string'
+      })
+      .option('reference-dll',
+      {
+        describe: 'To reference dll',
+        type: 'boolean',
+        default: undefined
+      })
+      .option('module-replacements',
+      {
+        describe: 'Replace resources that matches resourceRegExp with newResource',
+        type: 'array'
+      })
+      .option('append-version-hash',
+      {
+        describe: 'Append version hash to ouput bundled files',
+        type: 'boolean',
+        default: undefined
+      })
+      .option('source-map',
+      {
+        describe: 'Generate source',
+        type: 'boolean',
+        default: undefined
+      })
+      .option('compress-assets',
+      {
+        describe: 'Compress assets',
+        type: 'boolean',
+        default: undefined
+      })
+      .option('skip-copy-assets',
+      {
+        describe: 'Skip copying assets',
+        type: 'boolean',
+        default: undefined
+      })
+      .option('skip-generate-icons',
+      {
+        describe: 'Skip generating favicons',
+        type: 'boolean',
+        default: undefined
+      })
+      .option('environments',
+      {
+        describe:
+          'An optin to select environment file to be used with build target - dev or prod'
+      })
+      .option('buildTargetOverrides',
+      {
+        describe:
+        'To override properties based on build targets'
+      })
+      .option('skip',
+      {
+        describe: 'To skip this app config when getWebpackConfigs() function call',
+        type: 'boolean',
+        default: false
+      });
+  },
+  handler: null
 };
 
 export interface PackageToCheck {
@@ -603,7 +650,7 @@ function installToolings(cfg: InitConfig) {
 function mergeConfigAsync(cfg: InitConfig) {
     return mergeConfigWithPossibleAsync(cfg)
         .then(() => mergeConfigWithAngularCliAsync(cfg))
-        .then(() => mergeWithOptions(cfg))
+        .then(() => mergeWithCommandOptions(cfg))
         .then(() => cfg.cliOptions.commandOptions && (cfg.cliOptions.commandOptions.prompt && !cfg.cliOptions.commandOptions.force) ? mergeConfigWithPrompt(cfg) : Promise.resolve(true));
 }
 
@@ -646,8 +693,16 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig) {
                 'styles.scss',
                 false)
                 .then((foundStyle: string) => {
-                    if (foundStyle && appConfig.styles.indexOf(foundStyle) === -1) {
-                        appConfig.styles.push(foundStyle);
+                    if (foundStyle) {
+                        if (Array.isArray(appConfig.styles)) {
+                            if (appConfig.styles.indexOf(foundStyle) === -1) {
+                                appConfig.styles.push(foundStyle);
+                            }
+                        } else {
+                            if (!appConfig.styles) {
+                                appConfig.styles = [foundStyle];
+                            }
+                        }
                     }
                 });
         })
@@ -658,8 +713,16 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig) {
                 'asset',
                 true)
                 .then((foundAsset: string) => {
-                    if (foundAsset && appConfig.assets.indexOf(foundAsset) === -1) {
-                        appConfig.assets.push('assets/**/*');
+                    if (foundAsset) {
+                        if (Array.isArray(appConfig.assets)) {
+                            if (appConfig.assets.indexOf(foundAsset) === -1 && appConfig.assets.indexOf('assets/**/*') === -1) {
+                                appConfig.assets.push('assets/**/*');
+                            }
+                        } else {
+                            if (!appConfig.styles) {
+                                appConfig.assets = ['assets/**/*'];
+                            }
+                        }
                     }
                 });
         })
@@ -669,9 +732,17 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig) {
                 ['robots.txt'],
                 'robots.txt',
                 false)
-                .then(foundAsset => {
-                    if (foundAsset && appConfig.assets.indexOf(foundAsset) === -1) {
-                        appConfig.assets.push(foundAsset);
+                .then((foundAsset:string) => {
+                    if (foundAsset) {
+                        if (Array.isArray(appConfig.assets)) {
+                            if (appConfig.assets.indexOf(foundAsset) === -1) {
+                                appConfig.assets.push(foundAsset);
+                            }
+                        } else {
+                            if (!appConfig.styles) {
+                                appConfig.assets = [foundAsset];
+                            }
+                        }
                     }
                 });
         })
@@ -681,9 +752,17 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig) {
                 ['humans.txt'],
                 'humans.txt',
                 false)
-                .then(foundAsset => {
-                    if (foundAsset && appConfig.assets.indexOf(foundAsset) === -1) {
-                        appConfig.assets.push(foundAsset);
+                .then((foundAsset:string) => {
+                    if (foundAsset) {
+                        if (Array.isArray(appConfig.assets)) {
+                            if (appConfig.assets.indexOf(foundAsset) === -1) {
+                                appConfig.assets.push(foundAsset);
+                            }
+                        } else {
+                            if (!appConfig.styles) {
+                                appConfig.assets = [foundAsset];
+                            }
+                        }
                     }
                 });
         })
@@ -729,11 +808,16 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig) {
                 .then(aspNet => {
                     if (aspNet) {
                         appConfig.index = null;
-                        appConfig.indexOutFileName = '../Views/Shared/_BundledScripts.cshtml';
-                        appConfig.htmlInjectOptions.iconsInjectOutFileName = '../Views/Shared/_FavIcons.cshtml';
-                        appConfig.htmlInjectOptions.stylesInjectOutFileName = '../Views/Shared/_BundledStyles.cshtml';
-                        appConfig.htmlInjectOptions.customScriptAttributes = { "asp-append-version": true };
-                        appConfig.htmlInjectOptions.customLinkAttributes = { "asp-append-version": true };
+                        appConfig.htmlInjectOptions = appConfig.htmlInjectOptions || {};
+                        appConfig.htmlInjectOptions.indexOutFileName = '../Views/Shared/_BundledScripts.cshtml';
+                        appConfig.htmlInjectOptions.iconsOutFileName = '../Views/Shared/_FavIcons.cshtml';
+                        appConfig.htmlInjectOptions.stylesOutFileName = '../Views/Shared/_BundledStyles.cshtml';
+                        appConfig.htmlInjectOptions
+                            .customTagAttributes = [
+                            { tagName: 'link', attribute: { "asp-append-version": true } },
+                            { tagName: 'script', attribute: { "asp-append-version": true } }
+                            ];
+
                     }
                 });
         });
@@ -780,11 +864,11 @@ function mergeConfigWithAngularCliAsync(cfg: InitConfig) {
     });
 }
 
-function mergeWithOptions(cfg: InitConfig) {
+function mergeWithCommandOptions(cfg: InitConfig) {
     const commandOptions = cfg.cliOptions.commandOptions || {};
     const appConfig = cfg.angularBuildConfig.apps[0];
 
-    if (typeof commandOptions.useAngularCliConfigFile !== undefined) {
+    if (commandOptions.useAngularCliConfigFile !== null && typeof commandOptions.useAngularCliConfigFile !== 'undefined') {
         cfg.useAngularCliConfigFile = commandOptions.useAngularCliConfigFile &&
             commandOptions.useAngularCliConfigFile !== 'no' &&
             commandOptions.useAngularCliConfigFile !== 'n';
@@ -800,70 +884,16 @@ function mergeWithOptions(cfg: InitConfig) {
         cfg.faviconConfig.masterPicture = commandOptions.faviconMasterPicture;
         appConfig.faviconConfig = appConfig.faviconConfig || 'favicon-config.json';
     }
-
     cfg.overrideAngularBuildConfigFile = commandOptions.overrideAngularBuildConfigFile ||
         cfg.overrideAngularBuildConfigFile;
     cfg.overrideWebpackConfigFile = commandOptions.overrideWebpackConfigFile || cfg.overrideWebpackConfigFile;
 
-    appConfig.root = commandOptions.root || appConfig.root;
-    appConfig.outDir = commandOptions.outDir || appConfig.outDir;
-    appConfig.publicPath = commandOptions.publicPath || appConfig.publicPath;
-    appConfig.main = commandOptions.main || appConfig.main;
-    appConfig.test = commandOptions.test || appConfig.test;
-    appConfig.tsconfig = commandOptions.tsconfig || appConfig.tsconfig;
-    appConfig.index = commandOptions.index || appConfig.index;
-    appConfig.indexOutFileName = commandOptions.indexOutFileName || appConfig.indexOutFileName;
-    appConfig.faviconConfig = commandOptions.faviconConfig || appConfig.faviconConfig;
-    if (typeof commandOptions.referenceDllOnDevelopment !== 'undefined') {
-        // ReSharper disable once CoercedEqualsUsing
-        appConfig.referenceDllsOnDevelopment = commandOptions.referenceDllOnDevelopment == true;
+  Object.keys(commandOptions).forEach((key: string) => {
+    if (typeof commandOptions[key] !== 'undefined' && Object.keys(appConfig).indexOf(key) > -1 && key !== 'extends') {
+      const obj = appConfig as any;
+      obj[key] = commandOptions[key];
     }
-    if (typeof commandOptions.referenceDllOnProduction !== 'undefined') {
-        // ReSharper disable once CoercedEqualsUsing
-        appConfig.referenceDllsOnProduction = commandOptions.referenceDllOnProduction == true;
-    }
-    if (typeof commandOptions.tryBundleDlls !== 'undefined') {
-        // ReSharper disable once CoercedEqualsUsing
-        appConfig.tryBundleDlls = commandOptions.tryBundleDlls == true;
-    }
-
-    if (commandOptions.dlls && commandOptions.dlls.length && Array.isArray(commandOptions.dlls)) {
-        appConfig.dlls = commandOptions.dlls;
-    }
-
-    if (commandOptions.styles && commandOptions.styles.length && Array.isArray(commandOptions.styles)) {
-        commandOptions.styles.forEach((style:string) => {
-            style = style.trim();
-            if (appConfig.styles.indexOf(style) === -1) {
-                appConfig.styles.push(style);
-            }
-        });
-    }
-    if (commandOptions.scripts && commandOptions.scripts.length && Array.isArray(commandOptions.scripts)) {
-        commandOptions.scripts.forEach((script: string) => {
-            script = script.trim();
-            if (appConfig.scripts.indexOf(script) === -1) {
-                appConfig.scripts.push(script);
-            }
-        });
-    }
-    if (commandOptions.assets && commandOptions.assets.length && Array.isArray(commandOptions.assets)) {
-        commandOptions.assets.forEach((asset: string) => {
-            asset = asset.trim();
-            if (appConfig.assets.indexOf(asset) === -1) {
-                appConfig.assets.push(asset);
-            }
-        });
-    }
-    if (commandOptions.provide && typeof commandOptions.provide === 'object') {
-        appConfig.provide = commandOptions.provide;
-    }
-    if (commandOptions.htmlInjectOptions && typeof commandOptions.htmlInjectOptions === 'object') {
-        appConfig.htmlInjectOptions = Object.assign({}, appConfig.htmlInjectOptions, commandOptions.htmlInjectOptions);
-    }
-    if (commandOptions.environments && typeof commandOptions.environments === 'object') {
-        appConfig.environments = Object.assign({}, appConfig.environments, commandOptions.environments);
-    }
+  });
     return cfg;
 }
 
@@ -994,16 +1024,23 @@ function mergeConfigWithPrompt(cfg: InitConfig) {
             if (cfg.cliOptions.commandOptions.styles && cfg.cliOptions.commandOptions.styles.length && Array.isArray(cfg.cliOptions.commandOptions.styles)) {
                 return Promise.resolve(null);
             }
-            return askAsync(`Enter css/scss/less/stylus global style files (${appConfig.styles.join(', ')}): `)
+            return askAsync(`Enter global css/scss/less/stylus style files (${appConfig.styles ? Array.isArray(appConfig.styles) ? appConfig.styles.join(', '): appConfig.styles: ''}): `)
                 .then((answer: string) => {
                     if (answer && answer.trim().length) {
                         answer = answer.trim();
                         const answerArray = answer.split(',');
                         answerArray.forEach(style => {
                             style = style.trim();
-                            if (appConfig.styles.indexOf(style) === -1) {
-                                appConfig.styles.push(style);
+                            if (Array.isArray(appConfig.styles)) {
+                                if (appConfig.styles.indexOf(style) === -1) {
+                                    appConfig.styles.push(style);
+                                }
+                            } else {
+                                if (appConfig.styles.indexOf(style) === -1) {
+                                    appConfig.styles = [style];
+                                }
                             }
+
                         });
                     }
                 });

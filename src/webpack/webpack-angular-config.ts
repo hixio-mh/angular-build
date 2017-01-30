@@ -19,37 +19,14 @@ const webpackMerge = require('webpack-merge');
 // ReSharper restore CommonJsExternalModule
 
 import { AngularAppConfig, AngularBuildOptions } from './models';
-import { parseDllEntries, getEnv } from './helpers';
+import { parseDllEntries } from './helpers';
 import { getWebpackCommonConfig } from './webpack-common-config';
 
 export function getWebpackAngularConfig(projectRoot: string, appConfig: AngularAppConfig, buildOptions: AngularBuildOptions) {
     const emptyModulePath = require.resolve('../../empty.js');
     const appRoot = path.resolve(projectRoot, appConfig.root);
-    const env = getEnv(buildOptions.debug);
 
-    const entryPoints: { [key: string]: string[] } = {};
     const plugins: any = [];
-
-    const mainEntry = buildOptions.aot && appConfig.mainAot ? appConfig.mainAot : appConfig.main;
-
-    if (mainEntry) {
-        const appMain = path.resolve(projectRoot, appConfig.root, mainEntry);
-        const dllEntries = parseDllEntries(appRoot, appConfig.dlls, appConfig.target, env);
-
-        if (dllEntries && dllEntries.find(e => e.importToMain)) {
-            const entries: string[] = [];
-            dllEntries.filter(e => e.importToMain).forEach(de => {
-                if (Array.isArray(de.entry)) {
-                    entries.push(...de.entry);
-                } else {
-                    entries.push(de.entry);
-                }
-            });
-            entryPoints['main'] = entries.concat([appMain]);
-        } else {
-            entryPoints['main'] = [appMain];
-        }
-    }
 
     // Fix angular 2 plugins
     //
@@ -88,7 +65,7 @@ export function getWebpackAngularConfig(projectRoot: string, appConfig: AngularA
 
     // Production replacement plugins
     //
-    if (buildOptions.aot || !buildOptions.debug) {
+    if (buildOptions.aot || buildOptions.production) {
         const prodPlugins = [
             new NormalModuleReplacementPlugin(
                 /zone\.js(\\|\/)dist(\\|\/)long-stack-trace-zone/,
@@ -215,29 +192,40 @@ export function getWebpackAngularConfig(projectRoot: string, appConfig: AngularA
 
     }
 
-    //if (buildOptions.aot && appConfig.mainAoT && commonConfig.entry && commonConfig.entry['main']) {
-    //    const appAoTMain = path.resolve(projectRoot, appConfig.root, appConfig.mainAoT);
-    //    commonConfig.entry['main'] = [appAoTMain];
-    //}
-
-    let baseConfig = {};
     const webpackCommonConfig = getWebpackCommonConfig(projectRoot, appConfig, buildOptions);
-    if (!buildOptions.dll) {
-        const webpackTsConfigPartial = getWebpackTypescriptConfigPartial(projectRoot, appConfig, buildOptions);
-        baseConfig = webpackMerge(webpackCommonConfig, webpackTsConfigPartial);
+    if (buildOptions.dll) {
+        return webpackMerge(webpackCommonConfig, {
+            plugins: plugins
+        });
     } else {
-        baseConfig = webpackCommonConfig;
+        const entryPoints: { [key: string]: string[] } = {};
+        if (appConfig.main) {
+            const appMain = path.resolve(projectRoot, appConfig.root, appConfig.main);
+            const dllParsedResult = parseDllEntries(appRoot, appConfig.dlls, buildOptions.production);
+
+            if (dllParsedResult && dllParsedResult.entries && dllParsedResult.entries.find(e => e.importToMain)) {
+                const entries: string[] = [];
+                dllParsedResult.entries.filter(e => e.importToMain).forEach(e => {
+                    if (Array.isArray(e.entry)) {
+                        entries.push(...e.entry);
+                    } else {
+                        entries.push(e.entry);
+                    }
+                });
+                entryPoints['main'] = entries.concat([appMain]);
+                // TODO: add file deps
+            } else {
+                entryPoints['main'] = [appMain];
+            }
+        }
+
+        const webpackTsConfigPartial = getWebpackTypescriptConfigPartial(projectRoot, appConfig, buildOptions);
+        const baseConfig = webpackMerge(webpackCommonConfig, webpackTsConfigPartial);
+        return webpackMerge(baseConfig, {
+            entry: entryPoints,
+            plugins: plugins
+        });
     }
-
-    const angularWebpackConfig = webpackMerge(baseConfig, {
-        resolve: {
-            extensions: buildOptions.dll ? ['.js'] : ['.ts', '.js', '.json']
-        },
-        entry: entryPoints,
-        plugins: plugins
-    });
-
-    return angularWebpackConfig;
 }
 
 export function getWebpackTypescriptConfigPartial(projectRoot: string, appConfig: AngularAppConfig, buildOptions: AngularBuildOptions) {
@@ -278,8 +266,8 @@ export function getWebpackTypescriptConfigPartial(projectRoot: string, appConfig
                         // TODO:
                         loader: '@angularclass/hmr-loader',
                         options: {
-                            pretty: buildOptions.debug,
-                            prod: !buildOptions.debug
+                            pretty: !buildOptions.production,
+                            prod: buildOptions.production
                         }
                     },
                     {

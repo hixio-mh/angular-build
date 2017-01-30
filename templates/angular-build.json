@@ -1,59 +1,110 @@
 {
   "apps": [
     {
-      // App source root directory.
+      // Name for app config, type: string
+      "name": "client-app",
+      // To inherit app config from other one using 'name' property value, type: string
+      "extends": null,
+      // Tells the build system which environment the application is targeting,
+      // type: string, allowed values: async - node | electron | electron - renderer | node | node - webkit | web | webworker
+      // See: https://webpack.js.org/configuration/target/#target
+      "target": "web",
+      // Client app root directory, type: string
       "root": "src",
-      // Build/bundle output directory.
+      // Bundle output directory, type: string
       "outDir": "dist",
-      // The public Url address of the output files.
-      "publicPath": "/",
-      // App main bootstrap file.
+      // App main bootstrap file, type: string
       "main": null,
-      // Typescript configuration file.
-      "tsconfig": "tsconfig.json",
-      // Assets to be copied to output directory, it can be used glob pattern e.g. ["assets/**/*"].
+      // Assets to be copied to output directory, it can be used glob pattern, type: string | string[] | AssetEntry[], e.g. ["assets/**/*"].
       "assets": [],
-      // Global styles to be bundled, it can be .css, .scss/.sass, .less, .stylus - e.g. ["styles.scss"].
+      // Global styles to be bundled, it can be .css, .scss/.sass, .less, .stylus, type: string | string[] | GlobalScopedEntry[], e.g. ["styles.scss"].
       "styles": [],
-      // Script files to be added to the global scope e.g ["../node_modules/jquery/dist/jquery.js", "../node_modules/tether/dist/js/tether.js", "../node_modules/bootstrap/dist/js/bootstrap.js"].
+      // Script files to be added to the global scope, type: string | string[] | GlobalScopedEntry[], e.g ["../node_modules/jquery/dist/jquery.js", "../node_modules/tether/dist/js/tether.js", "../node_modules/bootstrap/dist/js/bootstrap.js"].
       "scripts": [],
-      // To automatically load module with alias key e.g { "$": "jquery"}.
+      // To automatically load module with alias key, type: { [key: string]: string }, e.g { "$": "jquery"}.
       "provide": {},
-
-      // An index source template file e.g. "index.html".
+      // Typescript configuration file, type: string
+      "tsconfig": "tsconfig.json",
+      // The public Url address of the output files, type: string
+      "publicPath": "/",
+      // An index source template file, type: string, e.g. "index.html"
       "index": null,
-      // The file to write the Html to. e.g. "../Views/Shared/_BundledScripts.cshtml"
-      "indexOutFileName": null,
-      // Favicon configuration file.
-      "faviconConfig": "favicon-config.json",
-      // Html injection options
+      // Html injection options, type: HtmlInjectOptions
       "htmlInjectOptions": {
-        // Separate output file name for generated favicon tags. e.g "../Views/Shared/_FavIcons.cshtml"
-        "iconsInjectOutFileName": null,
-        // Separate output file name for style links. e.g. "../Views/Shared/_BundledStyles.cshtml"
+        // The file to write the Html to, type: string, e.g. "../Views/Shared/_BundledScripts.cshtml"
+        "indexOutFileName": null,
+        // Separate output file name for style links, type: string, e.g. "../Views/Shared/_BundledStyles.cshtml"
         "stylesInjectOutFileName": null,
-        // Custom attributes for script tags. e.g. { "asp-append-version": true }
-        "customScriptAttributes": {},
-        // Custom attributes for link tags. e.g. { "asp-append-version": true }
-        "customLinkAttributes": {}
+        // Separate output file name for generated favicon tags, type: string, e.g "../Views/Shared/_FavIcons.cshtml"
+        "iconsInjectOutFileName": null,
+        // Custom tag attributes, type: { tagName: string; attribute: { [key: string]: string | boolean }; }[]
+        "customTagAttributes": [
+          {
+            // Targeted tag name, type: string
+            "tagName": "script",
+            // Custom attributes, type: Object, e.g { "asp-append-version": true }
+            "attribute": {}
+          },
+          {
+            // Targeted tag name, type: string
+            "tagName": "link",
+            // Custom attributes, type: Object, e.g { "asp-append-version": true }
+            "attribute": {}
+          }
+        ]
       },
-
-      // Generate dll bundles for development builds.
-      "referenceDllsOnDevelopment": false,
-      // Generate dll bundles for production builds.
-      "referenceDllsOnProduction": false,
-      // If true, it automatically run command as specified in tryBuildDllCommand when dll [vendor]-manifest.json file is not found.
-      "tryBundleDlls": false,
-      // The entries for dll bundle.
+      // Favicon configuration file, type: string
+      "faviconConfig": "favicon-config.json",
+      // The entries for dll bundle, type: DllEntry[] | string[]
       "dlls": [
         {
+          // Entry, type: string | string[]
           "entry": "polyfills.ts",
+          // Import to main, type: boolean
           "importToMain": true
         },
         {
+          // Entry, type: string | string[]
           "entry": "vendors.ts"
         }
-      ]
+      ],
+      // Output name for dll bundle, type: string
+      "dllOutChunkName": "vendor",
+      // To reference dll, type: boolean
+      "referenceDll": null,
+      // Replace resources that matches resourceRegExp with newResource, type: ModuleReplacementEntry[], e.g. [{resourceRegExp: "@angular(\\|\/)compiler", newResource: "empty.js"}]
+      "moduleReplacements": [],
+      // Append version hash to ouput bundled files, type: boolean
+      "appendVersionHash": null,
+      // Generate source, type: boolean
+      "sourceMap": true,
+      // Compress assets, type: boolean
+      "compressAssets": false,
+      // Skip copying assets, type: boolean
+      "skipCopyAssets": null,
+      // Generate favicons, type: boolean
+      "skipGenerateIcons": null,
+      // An optin to select environment file to be used with build target - dev or prod, type: { [key: string]: string }
+      "environments": {
+        "source": "environments/environment.ts",
+        "dev": "environments/environment.ts",
+        "prod": "environments/environment.prod.ts"
+      },
+      // To override properties based on build targets, type: { [name: string]: { [key: string]: any } }
+      "buildTargetOverrides": {
+        "dev": {
+          "referenceDll": true,
+          "skipCopyAssets": true,
+          "skipGenerateIcons": true
+        },
+        "prod": {
+          "moduleReplacements": [],
+          "compressAssets": true,
+          "sourceMap": false
+        }
+      },
+      // To skip this app config when getWebpackConfigs() function call, type: boolean
+      "skip": false
     }
   ]
 }

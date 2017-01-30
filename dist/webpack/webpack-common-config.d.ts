@@ -1,6 +1,7 @@
 import { AppConfig, BuildOptions } from './models';
 export declare function getWebpackCommonConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions): any;
 export declare function getWebpackDllConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions): any;
+export declare function getWebpackNonDllConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions): any;
 export declare function getWebpackSharedConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions): {
     target: string;
     devtool: string | boolean;
@@ -38,12 +39,12 @@ export declare function getWebpackSharedConfigPartial(projectRoot: string, appCo
         errors: boolean;
         errorDetails: boolean;
         warnings: boolean;
+        assets: boolean;
+        version: boolean;
         publicPath: boolean;
         chunkModules: boolean;
         reasons: boolean;
         children: boolean;
-        assets: boolean;
-        version: boolean;
         chunks: boolean;
     };
 };

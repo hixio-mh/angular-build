@@ -45,6 +45,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include=".editorconfig" />
+    <Content Include=".gitignore" />
     <Content Include=".npmignore" />
     <Content Include="bin\angular-build" />
     <Content Include="bin\ngb" />
@@ -61,10 +62,10 @@
     <Folder Include="src\" />
     <Folder Include="src\cli\" />
     <Folder Include="src\plugins\" />
-    <Folder Include="src\utils\" />
-    <Folder Include="src\webpack\" />
     <Folder Include="src\plugins\icon-webpack-plugin\" />
     <Folder Include="src\plugins\icon-webpack-plugin\src\" />
+    <Folder Include="src\utils\" />
+    <Folder Include="src\webpack\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
     <Folder Include="src\webpack\plugins\" />
     <Folder Include="src\webpack\plugins\customize-assets-html-webpack-plugin\" />
@@ -105,7 +106,6 @@
     <TypeScriptCompile Include="src\index.ts" />
     <TypeScriptCompile Include="src\webpack\models.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-generator.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-loader.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-webpack-plugin.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\models.ts" />
