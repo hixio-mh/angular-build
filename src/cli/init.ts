@@ -523,7 +523,7 @@ function initCore(cliOptions: CliOptions) {
         .then((cfg: InitConfig) => {
             const appConfig = cfg.angularBuildConfig.apps[0];
             const packageScripts = {
-                "build:dll": 'cross-env NODE_ENV=development webpack --profile --colors --bail',
+                "build:dll": 'cross-env NODE_ENV=development webpack --hide-modules --profile --colors --bail',
                 "prebuilt:dll": 'npm run clean:dist ',
                 "build:dev": 'cross-env NODE_ENV=development webpack --profile --colors --bail',
                 "build:prod": 'cross-env NODE_ENV=production webpack --profile --colors --bail',
