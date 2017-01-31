@@ -30,6 +30,12 @@ export interface AppConfig {
     skipGenerateIcons?: boolean;
     buildTargetOverrides: { [name: string]: { [key: string]: any } };
     skip?: boolean;
+
+    test?: string;
+    aotGenDir?: string;
+    i18nFile?: string;
+    i18nFormat?: string;
+    locale?: string;
 }
 
 export type AssetEntry = {
@@ -69,18 +75,9 @@ export interface HtmlInjectOptions {
     }[];
 }
 
-export interface AngularAppConfig extends AppConfig {
-    test?: string;
-    aotGenDir?: string;
-    i18nFile?: string;
-    i18nFormat?: string;
-    locale?: string;
-}
 
 export interface BuildOptions {
-    /**
-     * Show progress.
-     */
+    angularBuildConfigFile?: string;
     progress?: boolean;
     verbose?: boolean;
     performanceHint?: boolean;
@@ -89,13 +86,9 @@ export interface BuildOptions {
     production?: boolean;
     // dll
     dll?: boolean;
-}
-
-export interface AngularBuildOptions extends BuildOptions {
-    // aot
     aot?: boolean;
 }
 
 export interface AngularBuildConfig {
-    apps?: AngularAppConfig[];
+    apps?: AppConfig[];
 }

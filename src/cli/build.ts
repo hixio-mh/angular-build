@@ -49,19 +49,24 @@ export const buildCommandModule: yargs.CommandModule = {
                 type: 'boolean',
                 default: undefined
             })
-            .option('project', {
-                describe: 'Desire project root folder path, example path include space: use double quotes "C:\\example build\\project" ',
+            .option('project',
+            {
+                describe:
+                    'Desire project root folder path, example path include space: use double quotes "C:\\example build\\project" ',
                 type: 'string'
             })
-            .option("verbose", {
+            .option("verbose",
+            {
                 describe: 'Output everythings',
                 type: 'boolean',
                 default: undefined
             })
-            .option("watch", {
-                describe: 'After a change the watcher waits that time (in milliseconds-Default: 300) for more changes.Default: false',
+            .option("watch",
+            {
+                describe:
+                    'After a change the watcher waits that time (in milliseconds-Default: 300) for more changes.Default: false',
                 type: 'boolean'
-            })
+            });
     },
     handler: null
 };

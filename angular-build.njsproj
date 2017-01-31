@@ -61,9 +61,6 @@
     <Folder Include="dist\" />
     <Folder Include="src\" />
     <Folder Include="src\cli\" />
-    <Folder Include="src\plugins\" />
-    <Folder Include="src\plugins\icon-webpack-plugin\" />
-    <Folder Include="src\plugins\icon-webpack-plugin\src\" />
     <Folder Include="src\utils\" />
     <Folder Include="src\webpack\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
@@ -72,6 +69,7 @@
     <Folder Include="src\webpack\plugins\icon-webpack-plugin\" />
     <Folder Include="src\webpack\plugins\icon-webpack-plugin\src\" />
     <Folder Include="src\webpack\plugins\add-file-deps-webpack-plugin\" />
+    <Folder Include="src\webpack\plugins\dll-loader\" />
     <Folder Include="src\webpack\plugins\try-bundle-dll-webpack-plugin\" />
     <Folder Include="src\webpack\plugins\suppress-entry-chunks-webpack-plugin\" />
   </ItemGroup>
@@ -93,6 +91,9 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\webpack\plugins\customize-assets-html-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\webpack\plugins\dll-loader\index.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\webpack\plugins\icon-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\webpack\plugins\icon-webpack-plugin\src\icon-generator.ts" />
     <TypeScriptCompile Include="src\webpack\plugins\icon-webpack-plugin\src\icon-loader.ts" />
@@ -106,11 +107,9 @@
     <TypeScriptCompile Include="src\webpack\plugins\try-bundle-dll-webpack-plugin\index.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack\webpack-angular-config.ts" />
     <TypeScriptCompile Include="src\index.ts" />
     <TypeScriptCompile Include="src\webpack\models.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-loader.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-webpack-plugin.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\models.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\utils.ts" />

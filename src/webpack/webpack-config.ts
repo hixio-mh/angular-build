@@ -1,34 +1,31 @@
 ﻿import * as path from 'path';
 import * as fs from 'fs';
 
-import { AngularAppConfig, AngularBuildOptions, AngularBuildConfig } from './models';
+import { AppConfig, BuildOptions, AngularBuildConfig } from './models';
 import { hasProdArg, isDllBuildFromNpmEvent, isAoTBuildFromNpmEvent } from './helpers';
 import { readJsonSync } from '../utils';
 
-import { getWebpackAngularConfig } from './webpack-angular-config';
+import { getWebpackCommonConfig } from './webpack-common-config';
 
 const allowOverrideKeys = [
     'root', 'outDir', 'main', 'entry', 'assets', 'styles', 'scripts', 'tsconfig', 'index', 'publicPath',
     'htmlInjectOptions', 'faviconConfig', 'provide', 'referenceDll', 'moduleReplacements', 'enabled', 'appendOutputHash', 'compressAssets', 'copyAssets', 'generateIcons', 'sourceMap'
 ];
 
-export function getWebpackConfigs(projectRoot: string, angularBuildConfig?: AngularBuildConfig, buildOptions?: AngularBuildOptions) {
+export function getWebpackConfigs(projectRoot: string, angularBuildConfig?: AngularBuildConfig, buildOptions?: BuildOptions) {
     projectRoot = projectRoot || process.cwd();
 
+    let configPath : string = null;
     if (!angularBuildConfig) {
-        let configFileExists = false;
-        let configPath = 'angular-build.json';
-        if (!fs.existsSync(path.resolve(projectRoot, configPath))) {
-            const tmpConfigPath = 'angular-cli.json';
-            if (fs.existsSync(path.resolve(projectRoot, tmpConfigPath))) {
-                configPath = tmpConfigPath;
-                configFileExists = true;
+      configPath = path.resolve(projectRoot, 'angular-build.json');
+        if (!fs.existsSync(configPath)) {
+          configPath = path.resolve(projectRoot, 'angular-cli.json');
+          if (!fs.existsSync(configPath)) {
+            configPath = null;
             }
-        } else {
-            configFileExists = true;
         }
 
-        if (!configFileExists) {
+        if (!configPath) {
             throw new Error(`'angular-build.json' or 'angular-cli.json' file could not be found in ${projectRoot}.`);
         }
         angularBuildConfig = readJsonSync(path.resolve(projectRoot, configPath));
@@ -36,12 +33,13 @@ export function getWebpackConfigs(projectRoot: string, angularBuildConfig?: Angu
 
     // Merge buildOptions
     buildOptions = mergeBuildOptions(buildOptions);
+    buildOptions.angularBuildConfigFile = configPath;
 
     // Extends
-    const appConfigs = angularBuildConfig.apps.map((app: AngularAppConfig) => {
+    const appConfigs = angularBuildConfig.apps.map((app: AppConfig) => {
         let cloneApp = Object.assign({}, app);
         if (cloneApp.extends) {
-            const baseApps = angularBuildConfig.apps.filter((a: AngularAppConfig) => a.name === cloneApp.extends);
+            const baseApps = angularBuildConfig.apps.filter((a: AppConfig) => a.name === cloneApp.extends);
             if (baseApps && baseApps.length > 0) {
                 const cloneBaseApp = Object.assign({}, baseApps[0]);
                 cloneApp = Object.assign({}, cloneBaseApp, cloneApp);
@@ -50,21 +48,21 @@ export function getWebpackConfigs(projectRoot: string, angularBuildConfig?: Angu
         return cloneApp;
     });
 
-    appConfigs.forEach((appConfig: AngularAppConfig) => {
+    appConfigs.forEach((appConfig: AppConfig) => {
         // Build target overrides
         mergeAppConfigWithBuildTargetOverrides(appConfig, buildOptions);
         // merge wit defaults
         mergeAppConfigWithDefaults(appConfig, buildOptions);
     });
 
-    const webpackConfigs = appConfigs.filter((appConfig: AngularAppConfig) => appConfig.skip === false)
-        .map((appConfig: AngularAppConfig) => {
+    const webpackConfigs = appConfigs.filter((appConfig: AppConfig) => appConfig.skip === false)
+        .map((appConfig: AppConfig) => {
             return getWebpackConfig(projectRoot, appConfig, buildOptions, true);
         });
     return webpackConfigs;
 }
 
-export function getWebpackConfig(projectRoot: string, appConfig: AngularAppConfig, buildOptions?: AngularBuildOptions, skipMerge?: boolean) {
+export function getWebpackConfig(projectRoot: string, appConfig: AppConfig, buildOptions?: BuildOptions, skipMerge?: boolean) {
     if (!skipMerge) {
         projectRoot = projectRoot || process.cwd();
         buildOptions = mergeBuildOptions(buildOptions);
@@ -94,14 +92,15 @@ export function getWebpackConfig(projectRoot: string, appConfig: AngularAppConfi
     appConfig.root = appConfig.root || projectRoot;
     appConfig.outDir = appConfig.outDir || appConfig.root;
 
-    return getWebpackAngularConfig(projectRoot, appConfig, buildOptions);
+    return getWebpackCommonConfig(projectRoot, appConfig, buildOptions);
 }
 
-function mergeBuildOptions(buildOptions: AngularBuildOptions): AngularBuildOptions {
-    const defaultBuildOptions: AngularBuildOptions = {
+function mergeBuildOptions(buildOptions: BuildOptions): BuildOptions {
+    const defaultBuildOptions: BuildOptions = {
         production: hasProdArg(),
         dll: isDllBuildFromNpmEvent(),
-        aot: isAoTBuildFromNpmEvent()
+        aot: isAoTBuildFromNpmEvent(),
+        verbose: false
     };
     return Object.assign(defaultBuildOptions, buildOptions || {});
 }
@@ -118,7 +117,7 @@ function overrideAppConfig(appConfig: any, newConfig: any) {
     }
 }
 
-function mergeAppConfigWithBuildTargetOverrides(appConfig: AngularAppConfig, buildOptions: AngularBuildOptions) {
+function mergeAppConfigWithBuildTargetOverrides(appConfig: AppConfig, buildOptions: BuildOptions) {
     if (!appConfig || !appConfig.buildTargetOverrides) {
         return;
     }
@@ -156,7 +155,7 @@ function mergeAppConfigWithBuildTargetOverrides(appConfig: AngularAppConfig, bui
     });
 }
 
-function mergeAppConfigWithDefaults(appConfig: AngularAppConfig, buildOptions: AngularBuildOptions) {
+function mergeAppConfigWithDefaults(appConfig: AppConfig, buildOptions: BuildOptions) {
     if (!appConfig) {
         return;
     }

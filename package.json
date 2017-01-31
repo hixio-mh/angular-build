@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Webpack configuration for Angular 2/4 apps.",
   "keywords": [
     "bizappframework",
@@ -53,6 +53,7 @@
     "css": "^2.2.1",
     "css-loader": "^0.26.1",
     "denodeify": "^1.2.1",
+    "eval-loader": "0.0.1",
     "extract-text-webpack-plugin": "^2.0.0-rc.2",
     "favicons": "^4.8.3",
     "file-loader": "^0.10.0",
@@ -74,6 +75,7 @@
     "postcss-discard-comments": "^2.0.4",
     "postcss-loader": "^1.2.2",
     "raw-loader": "^0.5.1",
+    "require-like": "^0.1.2",
     "resolve": "^1.2.0",
     "rfg-api": "^0.3.0",
     "sass-loader": "^4.1.1",

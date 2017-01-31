@@ -10,9 +10,10 @@ import * as fs from 'fs';
 // ReSharper disable InconsistentNaming
 // Webpack built-in plugins
 const CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
+const ContextReplacementPlugin = require('webpack/lib/ContextReplacementPlugin');
 const DefinePlugin = require('webpack/lib/DefinePlugin');
 const DllPlugin = require('webpack/lib/DllPlugin');
-const DllReferencePlugin = require('webpack/lib/DllReferencePlugin');
+//const DllReferencePlugin = require('webpack/lib/DllReferencePlugin');
 const IgnorePlugin = require('webpack/lib/IgnorePlugin');
 const LoaderOptionsPlugin = require('webpack/lib/LoaderOptionsPlugin');
 const NormalModuleReplacementPlugin = require('webpack/lib/NormalModuleReplacementPlugin');
@@ -30,6 +31,16 @@ const WebpackMd5Hash = require('webpack-md5-hash');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpackMerge = require('webpack-merge');
 //var StatsPlugin = require('stats-webpack-plugin');
+
+// Typescript plugins
+// ReSharper disable CommonJsExternalModule
+//import { AotPlugin } from '@ngtools/webpack';
+const AotPlugin = require('@ngtools/webpack').AotPlugin;
+const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
+const TsConfigPathsPlugin = require('awesome-typescript-loader').TsConfigPathsPlugin;
+const NgcWebpackPlugin = require('ngc-webpack').NgcWebpackPlugin;
+// ReSharper restore CommonJsExternalModule
+
 // ReSharper restore InconsistentNaming
 
 // Internal plugins
@@ -38,7 +49,8 @@ import { IconWebpackPlugin, IconPluginOptions } from './plugins/icon-webpack-plu
 import { SuppressEntryChunksWebpackPlugin } from './plugins/suppress-entry-chunks-webpack-plugin';
 import { CustomizeAssetsHtmlWebpackPlugin } from './plugins/customize-assets-html-webpack-plugin';
 import { TryBundleDllWebpackPlugin } from './plugins/try-bundle-dll-webpack-plugin';
-import { AddFileDepsWebpackPlugin } from './plugins/add-file-deps-webpack-plugin';
+//import { AddFileDepsWebpackPlugin } from './plugins/add-file-deps-webpack-plugin';
+
 
 import { AppConfig, BuildOptions, GlobalScopedEntry, AssetEntry, DllEntry, ModuleReplacementEntry } from './models';
 import { parseDllEntries, packageChunkSort, isWebpackDevServer, getEnvName as getEnv } from './helpers';
@@ -50,14 +62,18 @@ export function getWebpackCommonConfig(projectRoot: string, appConfig: AppConfig
 
 export function getWebpackDllConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
     const webpackSharedConfig = getWebpackSharedConfigPartial(projectRoot, appConfig, buildOptions);
-    return webpackMerge(webpackSharedConfig,
+    const webpackDllConfig = webpackMerge(webpackSharedConfig,
         getWebpackDllConfigPartial(projectRoot, appConfig, buildOptions));
+    return webpackMerge(webpackDllConfig,
+        getWebpackAngularConfigPartial(projectRoot, appConfig, buildOptions));
 }
 
 export function getWebpackNonDllConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
     const ebpackSharedConfig = getWebpackSharedConfigPartial(projectRoot, appConfig, buildOptions);
-    return webpackMerge(ebpackSharedConfig,
+    const webpackNonDllConfig = webpackMerge(ebpackSharedConfig,
         getWebpackNonDllConfigPartial(projectRoot, appConfig, buildOptions));
+    return webpackMerge(webpackNonDllConfig,
+        getWebpackAngularConfigPartial(projectRoot, appConfig, buildOptions));
 }
 
 // Partials
@@ -184,9 +200,9 @@ export function getWebpackSharedConfigPartial(projectRoot: string, appConfig: Ap
             assets: true, //buildOptions.debug,
             version: true, //buildOptions.debug,
 
-            publicPath: false,
-
-            chunkModules: false, // TODO: set to true when console to file output is fixed
+            publicPath: buildOptions.verbose,
+            chunkModules: buildOptions.verbose,//buildOptions.verbose, // TODO: set to true when console to file output is fixed
+            modules: buildOptions.verbose,
             reasons: buildOptions.verbose,
             children: buildOptions.verbose,
             chunks: buildOptions.verbose // make sure 'chunks' is false or it will add 5-10 seconds to your build and incremental build time, due to excessive output.
@@ -197,72 +213,71 @@ export function getWebpackSharedConfigPartial(projectRoot: string, appConfig: Ap
 }
 
 export function getWebpackDllConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
-    const appRoot = path.resolve(projectRoot, appConfig.root);
-
-    // Entry
-    const entries: string[] = [];
-    const dllParsedResult = parseDllEntries(appRoot, appConfig.dlls, buildOptions.production);
-    dllParsedResult.entries.forEach((e: DllEntry) => {
-        if (Array.isArray(e.entry)) {
-            entries.push(...e.entry);
-        } else {
-            entries.push(e.entry);
-        }
-    });
-
-    const entryPoints: { [key: string]: string[] } = {};
-    entryPoints[appConfig.dllOutChunkName] = entries;
+  const appRoot = path.resolve(projectRoot, appConfig.root);
+  const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
 
     // Rules
-    const rules: any[] = [];
+  const rules: any[] = [];
 
-    // Plugins
-    const plugins = [
-        new DllPlugin({
-            path: path.resolve(projectRoot, appConfig.outDir, `[name]-manifest.json`),
-            name: '[name]_[chunkhash]' //'[name]_lib' || [name]_[chunkhash]' || '[name]_[hash]'
-        }),
-
-        // Workaround for https://github.com/stefanpenner/es6-promise/issues/100
-        new IgnorePlugin(/^vertx$/)
-
-        // Workaround for https://github.com/andris9/encoding/issues/16
-        //new NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop')))
-    ];
-
-    if (dllParsedResult.fileDependencies && dllParsedResult.fileDependencies.length) {
-      plugins.push(new AddFileDepsWebpackPlugin({ fileDependencies: dllParsedResult.fileDependencies}));
+  // Entry
+  const entries: string[] = [];
+  const dllParsedResult = parseDllEntries(appRoot, appConfig.dlls);
+  dllParsedResult.entries.forEach((e: DllEntry) => {
+    if (Array.isArray(e.entry)) {
+      entries.push(...e.entry);
+    } else {
+      entries.push(e.entry);
     }
-    // Favicons plugins
-    if (typeof appConfig.faviconConfig !== 'undefined' &&
-      appConfig.faviconConfig !== null &&
-      appConfig.skipGenerateIcons !== false) {
-        const faviconPlugins = getFaviconPlugins(projectRoot, appConfig, buildOptions.production, false);
-        if (faviconPlugins.length) {
-            plugins.push(...faviconPlugins);
+  });
+  const entryPoints: { [key: string]: string[] } = {};
+  entryPoints[appConfig.dllOutChunkName] = entries;
 
-            // remove starting slash
-            plugins.push(new CustomizeAssetsHtmlWebpackPlugin({
-                removeStartingSlash: true
-            }));
-        }
+  // Plugins
+  const plugins = [
+    new DllPlugin({
+      path: path.resolve(projectRoot, appConfig.outDir, `[name]-manifest.json`),
+      name: '[name]_[chunkhash]' //'[name]_lib' || [name]_[chunkhash]' || '[name]_[hash]'
+    }),
+
+    // Workaround for https://github.com/stefanpenner/es6-promise/issues/100
+    new IgnorePlugin(/^vertx$/)
+
+    // Workaround for https://github.com/andris9/encoding/issues/16
+    //new NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop')))
+  ];
+
+  // Favicons plugins
+  if (typeof appConfig.faviconConfig !== 'undefined' &&
+    appConfig.faviconConfig !== null &&
+    appConfig.skipGenerateIcons !== false) {
+    const faviconPlugins = getFaviconPlugins(projectRoot, appConfig, buildOptions.production, false);
+    if (faviconPlugins.length) {
+      plugins.push(...faviconPlugins);
+
+      // remove starting slash
+      plugins.push(new CustomizeAssetsHtmlWebpackPlugin({
+        removeStartingSlash: true
+      }));
     }
+  }
 
-    const webpackDllConfig = {
-        resolve: {
-            extensions: ['.js']
-        },
-        entry: entryPoints,
-        output: {
-            libraryTarget: appConfig.target === 'node' ? 'commonjs2' : 'var'
-        },
-        module: {
-            rules: rules
-        },
-        plugins: plugins
-    };
 
-    return webpackDllConfig;
+  const webpackDllConfig = {
+    resolve: {
+      extensions: ['.js'],
+      modules: [appRoot, nodeModulesPath]
+    },
+    entry: entryPoints,
+    output: {
+      libraryTarget: appConfig.target === 'node' ? 'commonjs2' : 'var'
+    },
+    module: {
+      rules: rules
+    },
+    plugins: plugins
+  };
+
+  return webpackDllConfig;
 }
 
 export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
@@ -273,11 +288,14 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
 
     // Try bundle dlls
     if (appConfig.referenceDll) {
-        // TODO: to review
-        const dllManifestFile = path.resolve(projectRoot, appConfig.outDir, `${appConfig.dllOutChunkName || 'vendor'}-manifest.json`);
-        const webpackDllConfig = getWebpackDllConfig(projectRoot, appConfig, buildOptions);
-        extraPlugins.push(new TryBundleDllWebpackPlugin({
-            debug: !buildOptions.production,
+      const dllManifestFile = path.resolve(projectRoot, appConfig.outDir, `${appConfig.dllOutChunkName || 'vendor'}-manifest.json`);
+      const cloneAppConfig = Object.assign({}, appConfig);
+      const cloneBuildOptions = Object.assign({}, buildOptions);
+      cloneBuildOptions.dll = true;
+      const webpackDllConfig = getWebpackDllConfig(projectRoot, cloneAppConfig, cloneBuildOptions);
+      extraPlugins.push(new TryBundleDllWebpackPlugin({
+            context: projectRoot,
+            debug: !cloneBuildOptions.production,
             manifestFile: dllManifestFile,
             webpackDllConfig: webpackDllConfig
         }));
@@ -601,23 +619,23 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
     // DllReferencePlugin, CommonsChunkPlugin
     //
     if (appConfig.referenceDll) {
-        if (appConfig.target === 'node') {
-            plugins.push(
-                new DllReferencePlugin({
-                    context: projectRoot, // or '.'
-                    sourceType: 'commonjs2',
-                    manifest: require(path.resolve(projectRoot, appConfig.outDir, `${appConfig.dllOutChunkName}-manifest.json`)),
-                    name: `./${appConfig.dllOutChunkName}`
-                })
-            );
-        } else {
-            plugins.push(
-                new DllReferencePlugin({
-                    context: projectRoot, //'.',
-                    manifest: require(path.resolve(projectRoot, appConfig.outDir, `${appConfig.dllOutChunkName}-manifest.json`))
-                })
-            );
-        }
+        //if (appConfig.target === 'node') {
+        //    plugins.push(
+        //        new DllReferencePlugin({
+        //            context: projectRoot, // or '.'
+        //            sourceType: 'commonjs2',
+        //            manifest: require(path.resolve(projectRoot, appConfig.outDir, `${appConfig.dllOutChunkName}-manifest.json`)),
+        //            name: `./${appConfig.dllOutChunkName}`
+        //        })
+        //    );
+        //} else {
+        //    plugins.push(
+        //        new DllReferencePlugin({
+        //            context: projectRoot, //'.',
+        //            manifest: require(path.resolve(projectRoot, appConfig.outDir, `${appConfig.dllOutChunkName}-manifest.json`))
+        //        })
+        //    );
+        //}
 
         plugins.push(new CommonsChunkPlugin({
             minChunks: Infinity,
@@ -653,6 +671,363 @@ export function getWebpackNonDllConfigPartial(projectRoot: string, appConfig: Ap
     return webpackNonDllConfig;
 }
 
+export function getWebpackTypescriptConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
+    const rules: any[] = [];
+    const plugins: any[] = [];
+
+    let tsConfigPath = path.resolve(projectRoot, appConfig.root, appConfig.tsconfig || 'tsconfig.json');
+    if (!fs.existsSync(tsConfigPath)) {
+        tsConfigPath = path.resolve(projectRoot, 'tsconfig.json');
+    }
+    if (!fs.existsSync(tsConfigPath)) {
+        tsConfigPath = null;
+    }
+    const aotResourceOverridePath = require.resolve('../../resource-override.js');
+
+    // TODO:
+    const aotGenDir = path.resolve(projectRoot, appConfig.root, appConfig.aotGenDir || 'ngfactory');
+    const useNgToolsWebpack = buildOptions.aot;
+
+    const tsLoaderExcludes = [/\.(spec|e2e|e2e-spec)\.ts$/];
+    // TODO:
+    const ngToolsWebpackLoader = require.resolve('@ngtools/webpack');
+    if (useNgToolsWebpack) {
+        const tsRules = [
+            {
+                test: /\.ts$/,
+                loader: ngToolsWebpackLoader,
+                exclude: tsLoaderExcludes
+            }
+        ];
+        rules.push(...tsRules);
+    } else {
+        const tsRules = [
+            {
+                test: /\.ts$/,
+                use: [
+                    //{
+                    //    // TODO:
+                    //    loader: '@angularclass/hmr-loader',
+                    //    options: {
+                    //        pretty: !buildOptions.production,
+                    //        prod: buildOptions.production
+                    //    }
+                    //},
+                    {
+                        // MAKE SURE TO CHAIN VANILLA JS CODE, I.E. TS COMPILATION OUTPUT.
+                        loader: 'ng-router-loader',
+                        options: {
+                            loader: 'async-import',
+                            genDir: aotGenDir,
+                            aot: buildOptions.aot
+                        }
+                    },
+                    {
+                        loader: 'awesome-typescript-loader',
+                        options: {
+                            instance: `at-${appConfig.name || 'app'}-loader`,
+                            configFileName: tsConfigPath
+                        }
+                    },
+                    {
+                        loader: 'string-replace-loader',
+                        options: {
+                            search: 'moduleId:\s*module.id\s*[,]?',
+                            replace: '',
+                            flags: 'g'
+                        }
+                    },
+                    {
+                        loader: 'angular2-template-loader'
+                    }
+                ],
+                //include: [appRoot]
+                exclude: tsLoaderExcludes
+            }
+        ];
+        rules.push(...tsRules);
+    }
+
+    if (useNgToolsWebpack) {
+        let excludes = ['**/*.spec.ts'];
+        if (appConfig.test) {
+            excludes.push(path.join(projectRoot, appConfig.root, appConfig.test));
+        };
+
+        if (buildOptions.aot) {
+            const aotPlugin = new AotPlugin({
+                // TODO:
+                genDir: aotGenDir,
+                tsConfigPath: tsConfigPath,
+                mainPath: path.join(projectRoot, appConfig.root, appConfig.main),
+                i18nFile: appConfig.i18nFile,
+                i18nFormat: appConfig.i18nFormat,
+                locale: appConfig.locale,
+                exclude: excludes
+            });
+            plugins.push(aotPlugin);
+        } else {
+            const nonAoTPlugin = new AotPlugin({
+                tsConfigPath: tsConfigPath,
+                mainPath: path.join(projectRoot, appConfig.root, appConfig.main),
+                exclude: excludes,
+                skipCodeGeneration: true
+            });
+            plugins.push(nonAoTPlugin);
+        }
+    } else {
+        const tsPlugins = [
+            new CheckerPlugin()
+        ];
+        if (buildOptions.aot) {
+            const aotPlugin = new NgcWebpackPlugin({
+                disabled: !buildOptions.aot,
+                tsConfig: tsConfigPath,
+                resourceOverride: aotResourceOverridePath
+            });
+            tsPlugins.push(aotPlugin);
+        }
+        plugins.push(...tsPlugins);
+    }
+
+    //const alias = {};
+    //if (fs.existsSync(tsConfigPath)) {
+    //    const tsConfigContent = readJsonSync(tsConfigPath);
+    //    const compilerOptions = tsConfigContent.compilerOptions || {};
+    //    const tsPaths = compilerOptions.paths || {};
+    //    for (let prop in tsPaths) {
+    //        if (tsPaths.hasOwnProperty(prop)) {
+    //            alias[prop] = path.resolve(projectRoot, tsPaths[prop][0]);
+    //        }
+    //    }
+    //}
+
+
+    const tsWebpackConfig = {
+        resolve: {
+            extensions: ['.ts', '.js', '.json'],
+            // alias: alias,
+            // Or
+            plugins: [
+                // TODO: to review
+                new TsConfigPathsPlugin({
+                    configFileName: tsConfigPath
+                })
+            ]
+        },
+        module: {
+            rules: rules
+        },
+        plugins: plugins
+    };
+
+    return tsWebpackConfig;
+}
+
+export function getWebpackAngularConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
+    const emptyModulePath = require.resolve('../../empty.js');
+    const appRoot = path.resolve(projectRoot, appConfig.root);
+
+    const plugins: any = [];
+
+    // Fix angular 2 plugins
+    //
+    // TODO: to review for aot
+    const angular2FixPlugins = [
+
+        // see:  https://github.com/angular/angular/issues/11580
+        new ContextReplacementPlugin(
+            // The (\\|\/) piece accounts for path separators in *nix and Windows
+            /angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
+            appRoot
+        ),
+
+        new NormalModuleReplacementPlugin(
+            /facade(\\|\/)async/,
+            path.resolve(projectRoot, 'node_modules/@angular/core/src/facade/async.js')
+        ),
+        new NormalModuleReplacementPlugin(
+            /facade(\\|\/)collection/,
+            path.resolve(projectRoot, 'node_modules/@angular/core/src/facade/collection.js')
+        ),
+        new NormalModuleReplacementPlugin(
+            /facade(\\|\/)errors/,
+            path.resolve(projectRoot, 'node_modules/@angular/core/src/facade/errors.js')
+        ),
+        new NormalModuleReplacementPlugin(
+            /facade(\\|\/)lang/,
+            path.resolve(projectRoot, 'node_modules/@angular/core/src/facade/lang.js')
+        ),
+        new NormalModuleReplacementPlugin(
+            /facade(\\|\/)math/,
+            path.resolve(projectRoot, 'node_modules/@angular/core/src/facade/math.js')
+        )
+    ];
+    plugins.push(...angular2FixPlugins);
+
+    // Production replacement plugins
+    //
+    if (buildOptions.aot || buildOptions.production) {
+        const prodPlugins = [
+            new NormalModuleReplacementPlugin(
+                /zone\.js(\\|\/)dist(\\|\/)long-stack-trace-zone/,
+                emptyModulePath
+            ),
+
+            // AoT
+            // problem with platformUniversalDynamic on the server/client
+            new NormalModuleReplacementPlugin(
+                /@angular(\\|\/)compiler/,
+                emptyModulePath
+            ),
+
+            // AoT
+            // new NormalModuleReplacementPlugin(
+            //   /@angular(\\|\/)upgrade/,
+            //    emptyModulePath
+            // ),
+            // new NormalModuleReplacementPlugin(
+            //   /@angular(\\|\/)platform-browser-dynamic/,
+            //    emptyModulePath
+            // ),
+            // new NormalModuleReplacementPlugin(
+            //   /dom(\\|\/)debug(\\|\/)ng_probe/,
+            //    emptyModulePath
+            // ),
+            // new NormalModuleReplacementPlugin(
+            //   /dom(\\|\/)debug(\\|\/)by/,
+            //    emptyModulePath
+            // ),
+            // new NormalModuleReplacementPlugin(
+            //   /src(\\|\/)debug(\\|\/)debug_node/,
+            //    emptyModulePath
+            // ),
+            // new NormalModuleReplacementPlugin(
+            //   /src(\\|\/)debug(\\|\/)debug_renderer/,
+            //    emptyModulePath
+            // ),
+
+            new LoaderOptionsPlugin({
+                options: {
+                    /**
+                    * Static analysis linter for TypeScript advanced options configuration
+                    * Description: An extensible linter for the TypeScript language.
+                    *
+                    * See: https://github.com/wbuchwalter/tslint-loader
+                    */
+                    tslint: {
+                        emitErrors: true,
+                        failOnHint: true,
+                        resourcePath: appRoot
+                    },
+
+                    /**
+                     * Html loader advanced options
+                     *
+                     * See: https://github.com/webpack/html-loader#advanced-options
+                     */
+                    // TODO: Need to workaround Angular 2's html syntax => #id [bind] (event) *ngFor
+                    htmlLoader: {
+                        minimize: true,
+                        removeAttributeQuotes: false,
+                        caseSensitive: true,
+                        customAttrSurround: [
+                            [/#/, /(?:)/],
+                            [/\*/, /(?:)/],
+                            [/\[?\(?/, /(?:)/]
+                        ],
+                        customAttrAssign: [/\)?\]?=/]
+                    }
+
+                }
+            })
+
+        ];
+
+        if (buildOptions.aot) {
+            const aotProdPlugins: any[] = [
+                // AoT
+                // problem with platformUniversalDynamic on the server/client
+                //new IgnorePlugin(/@angular(\\|\/)compiler/),
+                // Or
+                //new NormalModuleReplacementPlugin(
+                //    /@angular(\\|\/)compiler/,
+                //    emptyModulePath
+                //)
+
+                // AoT
+                // new NormalModuleReplacementPlugin(
+                //   /@angular(\\|\/)upgrade/,
+                //    emptyModulePath
+                // ),
+                // new NormalModuleReplacementPlugin(
+                //   /@angular(\\|\/)platform-browser-dynamic/,
+                //    emptyModulePath
+                // ),
+                // new NormalModuleReplacementPlugin(
+                //   /dom(\\|\/)debug(\\|\/)ng_probe/,
+                //    emptyModulePath
+                // ),
+                // new NormalModuleReplacementPlugin(
+                //   /dom(\\|\/)debug(\\|\/)by/,
+                //    emptyModulePath
+                // ),
+                // new NormalModuleReplacementPlugin(
+                //   /src(\\|\/)debug(\\|\/)debug_node/,
+                //    emptyModulePath
+                // ),
+                // new NormalModuleReplacementPlugin(
+                //   /src(\\|\/)debug(\\|\/)debug_renderer/,
+                //    emptyModulePath
+                // ),
+            ];
+            prodPlugins.push(...aotProdPlugins);
+        }
+
+        //if (typeof buildOptions.replaceHmrOnProduction === 'undefined' || buildOptions.replaceHmrOnProduction) {
+        //  prodPlugins.push(new NormalModuleReplacementPlugin(
+        //    /angular2-hmr/,
+        //    emptyModulePath
+        //  ));
+        //}
+        plugins.push(...prodPlugins);
+
+    }
+
+    if (buildOptions.dll) {
+        return {
+            plugins: plugins
+        };
+    } else {
+        const entryPoints: { [key: string]: string[] } = {};
+        if (appConfig.main) {
+            const appMain = path.resolve(projectRoot, appConfig.root, appConfig.main);
+            const dllParsedResult = parseDllEntries(appRoot, appConfig.dlls);
+
+            // TODO: to review
+            if (dllParsedResult && dllParsedResult.entries && dllParsedResult.entries.find(e => e.importToMain)) {
+                const entries: string[] = [];
+                dllParsedResult.entries.filter(e => e.importToMain).forEach(e => {
+                    if (Array.isArray(e.entry)) {
+                        entries.push(...e.entry);
+                    } else {
+                        entries.push(e.entry);
+                    }
+                });
+                entryPoints['main'] = entries.concat([appMain]);
+                // TODO: add file deps
+            } else {
+                entryPoints['main'] = [appMain];
+            }
+        }
+
+        const webpackTsConfigPartial = getWebpackTypescriptConfigPartial(projectRoot, appConfig, buildOptions);
+        return webpackMerge(webpackTsConfigPartial, {
+            entry: entryPoints,
+            plugins: plugins
+        });
+    }
+}
 
 // Private methods
 function getFaviconPlugins(projectRoot: string, appConfig: AppConfig, isProduction: boolean, emitStats: boolean, targetHtmlWebpackPluginId?: string) {

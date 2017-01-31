@@ -1,6 +1,8 @@
 ﻿import * as fs from 'fs';
 // ReSharper disable once CommonJsExternalModule
 const webpack = require('webpack');
+// ReSharper disable once InconsistentNaming
+const DllReferencePlugin = require('webpack/lib/DllReferencePlugin');
 
 const webpackOutputOptions = {
     colors: true,
@@ -34,6 +36,8 @@ function getWebpackStatsConfig(verbose = false) {
 export interface TryBundleDllPluginOptions {
     manifestFile: string;
     webpackDllConfig: any;
+    context?: string;
+    chunkName?: string;
     debug?: boolean;
 }
 
@@ -43,6 +47,31 @@ export class TryBundleDllWebpackPlugin {
     }
 
     apply(compiler: any) {
+        const target = compiler.options.target;
+        const context = this.options.context || compiler.options.context;
+        const chunkName = this.options.chunkName || 'vendor';
+        const plugins: any[] = [];
+
+        if (target === 'node') {
+            plugins.push(
+                new DllReferencePlugin({
+                    context: context,
+                    sourceType: 'commonjs2',
+                    manifest: this.options.manifestFile,
+                    name: `./${chunkName}`
+                })
+            );
+        } else {
+            plugins.push(
+                new DllReferencePlugin({
+                    context: context,
+                    manifest: this.options.manifestFile
+                })
+            );
+        }
+        plugins.forEach(p => p.apply(compiler));
+        compiler.options.plugins.push(...plugins);
+
         compiler.plugin('run', (c: any, next: any) => this.tryDll(next));
         compiler.plugin('watch-run', (c: any, next: any) => this.tryDll(next));
     }
@@ -93,14 +122,13 @@ export class TryBundleDllWebpackPlugin {
     }
 
     private checkManifestFile() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             return fs.stat(this.options.manifestFile, (err, stats) => {
                 if (err) {
-                    return reject(err);
+                    return resolve(false);
                 }
                 return resolve(stats.isFile());
             });
         });
     }
-
 }
