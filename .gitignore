@@ -241,18 +241,20 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 
-# npm
-npm-debug.log*
-
-# Typings file.
-typings/
-
 # Custom
-tmp/
-obj/
-bin/Microsoft.NodejsTools.WebRole.dll
-dist/
+# --------------------------------------------------
+# node_modules
+**/node_modules/
 
-# Mac OSX Finder files.
-**/.DS_Store
-.DS_Store
+# npm
+**/npm-debug.log*
+
+# User-specific files
+
+
+**/tmp/
+**/obj/
+
+test/**/bin/
+
+src/dist/

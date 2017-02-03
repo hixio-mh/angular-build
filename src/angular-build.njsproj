@@ -44,16 +44,11 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include=".editorconfig" />
-    <Content Include=".gitignore" />
     <Content Include=".npmignore" />
     <Content Include="bin\angular-build" />
     <Content Include="bin\ngb" />
-    <Content Include="CHANGELOG.md" />
     <Content Include="src\cli\index.ts" />
-    <Content Include="LICENSE" />
     <Content Include="package.json" />
-    <Content Include="README.md" />
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>

@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+      "target": "es5",
+    "module": "es2015",
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "removeComments": false,
+    "pretty": true,
+    "sourceMap": true,
+    "baseUrl": "",
+    "mapRoot": "./",
+    "noEmit": true,
+    "noEmitHelpers": true,
+    "importHelpers": true,
+    "skipDefaultLibCheck": true,
+    "lib": [ "es2015", "dom" ],
+    "typeRoots": [
+      "../node_modules/@types"
+    ],
+    "paths": {
+      "app": [ "./app" ],
+      "app-core": [ "./app/core" ]
+    },
+    "angularCompilerOptions": {
+      "genDir": "./aot-compiled",
+      "skipMetadataEmit": true
+    }
+  }}

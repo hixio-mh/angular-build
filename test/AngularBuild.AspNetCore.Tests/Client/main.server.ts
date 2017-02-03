@@ -1,0 +1,44 @@
+// TODO:
+import './__2.1.1.workaround.ts';
+import 'angular2-universal-polyfills/node';
+import 'zone.js';
+
+// OTE: Starting Typescript 2.1 this package won't be needed anymore
+//import 'ts-helpers';
+
+import { createServerRenderer, RenderResult } from 'aspnet-prerendering';
+import { enableProdMode } from '@angular/core';
+import { platformNodeDynamic } from 'angular2-universal';
+
+// Grab the (Node) server-specific NgModule
+import { AppServerModule } from './app/app.server.module';
+
+enableProdMode();
+
+const platform = platformNodeDynamic();
+
+// declare var Zone: any;
+
+export default createServerRenderer(params => {
+  return new Promise<RenderResult>((resolve, reject) => {
+    const requestZone = Zone.current.fork({
+      name: 'angular-universal request',
+      properties: {
+        baseUrl: '/',
+        requestUrl: params.url,
+        originUrl: params.origin,
+        preboot: false,
+        document: '<app></app>'
+      },
+      onHandleError: (parentZone, currentZone, targetZone, error) => {
+        // If any error occurs while rendering the module, reject the whole operation
+        reject(error);
+        return true;
+      }
+    });
+
+    return requestZone.run<Promise<string>>(() => platform.serializeModule(AppServerModule)).then(html => {
+      resolve({ html: html });
+    }, reject);
+  });
+});
