@@ -26,7 +26,8 @@
     "typings",
     "Scripts/typings",
     "dist",
-    "configs"
+    "configs",
+    "test-app"
   ],
   "compileOnSave": true,
   "atom": { "rewriteTsconfig": false }

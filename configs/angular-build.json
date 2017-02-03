@@ -1,10 +1,5 @@
 {
-  "$schema": "schema.json#",
-
-  "apps": [
-    {
-
-      "target": "web",
+  "apps": [   {
       "root": "src",
       "outDir": "dist",
       "assets": [],
@@ -22,18 +17,13 @@
           "entry": "vendors.ts"
         }
       ],
-      "moduleReplacements": [],
       "environments": {
         "source": "environments/environment.ts",
         "dev": "environments/environment.ts",
         "prod": "environments/environment.prod.ts"
       },
       "buildTargetOverrides": {
-        "dev": {
-          "referenceDll": true,
-          "skipCopyAssets": true,
-          "skipGenerateIcons": true
-        },
+        "dev": { },
         "prod": {
           "moduleReplacements": [],
           "compressAssets": true,

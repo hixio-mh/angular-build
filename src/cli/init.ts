@@ -100,6 +100,12 @@ export function getInitCommandModule(): yargs.CommandModule {
                     type: 'boolean',
                     default: false
                 })
+                .option('install-loaders-only',
+                {
+                    describe: 'Install loaders only. Default true when -l option provided.',
+                    type: 'boolean',
+                    default: undefined
+                })
                 .option('use-angular-cli-config-file',
                 {
                     describe: 'Use angular-cli.json as a build config file',
@@ -416,6 +422,7 @@ function initCore(cliOptions: CliOptions) {
                 "prebuilt:dll": 'npm run clean:dist ',
                 "build:dev": 'cross-env NODE_ENV=development webpack --profile --colors --bail',
                 "build:prod": 'cross-env NODE_ENV=production webpack --profile --colors --bail',
+                "build:aot:prod": 'cross-env NODE_ENV=production webpack --profile --colors --bail',
                 "build": 'npm run build:dev',
                 "clean:dist": `npm run rimraf -- ${appConfig.outDir}`
             };
@@ -439,8 +446,13 @@ function initCore(cliOptions: CliOptions) {
 //
 function installToolings(cfg: InitConfig) {
     const projectRoot = cfg.cliOptions.cwd;
+    if (typeof cfg.cliOptions.commandOptions.installLoadersOnly === 'undefined') {
+        cfg.cliOptions.commandOptions.installLoadersOnly = cfg.cliOptions.commandOptions.linkCli;
+    }
+    const installLoadersOnly: boolean = cfg.cliOptions.commandOptions.installLoadersOnly;
 
     const preReleasedPackageNames = [
+        'ajv',
         'extract-text-webpack-plugin',
         'webpack-dev-server',
         'webpack'
@@ -459,7 +471,7 @@ function installToolings(cfg: InitConfig) {
     ];
 
 
-    const depPackages = Object.keys(cfg.cliPackageJsonConfig.dependencies).map((key: string) => {
+    const depPackages = Object.keys(cfg.cliPackageJsonConfig.dependencies).filter((key: string) => !installLoadersOnly || (installLoadersOnly && key.match(/loader$/))).map((key: string) => {
         const ver = cfg.cliPackageJsonConfig.dependencies[key];
         const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
         return {
