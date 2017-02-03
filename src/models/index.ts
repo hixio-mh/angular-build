@@ -125,7 +125,7 @@ export interface AppConfigBase {
 
 /**
  * The app config.
- * @additionalProperties true
+  * @additionalProperties false
  */
 export interface AppConfig extends AppConfigBase {
     /**
@@ -243,8 +243,7 @@ export type StylePreprocessorOptions = {
 
 /**
  * Angular build config schema.
- * @additionalProperties true
- * @schema.title Hello
+  * @additionalProperties true
  */
 export interface AngularBuildConfig {
     /**
@@ -252,10 +251,14 @@ export interface AngularBuildConfig {
       * @minItems 1
      */
     apps: AppConfig[];
+    /**
+     * Build options
+     */
+    buildOptions?: BuildOptions;
 }
 
 /**
- * Build options for angular build.
+ * Build options.
  * @additionalProperties false
  */
 export interface BuildOptions {

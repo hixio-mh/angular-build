@@ -1,5 +1,4 @@
 ﻿import * as path from 'path';
-import * as fs from 'fs';
 
 // Webpack pligins
 // ReSharper disable InconsistentNaming
@@ -17,7 +16,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 import { CompressionPlugin } from '../plugins/compression-webpack-plugin';
 
 // Models
-import { AppConfig, BuildOptions, GlobalScopedEntry, AssetEntry, ModuleReplacementEntry} from '../models';
+import { AppConfig, BuildOptions, ModuleReplacementEntry} from '../models';
 
 // Helpers
 import { parseCopyAssetEntry } from './helpers';

@@ -3,7 +3,7 @@
     "additionalProperties": true,
     "definitions": {
         "AppConfig": {
-            "additionalProperties": true,
+            "additionalProperties": false,
             "description": "The app config.",
             "properties": {
                 "aotGenDir": {
@@ -717,6 +717,85 @@
                 }
             },
             "type": "object"
+        },
+        "BuildOptions": {
+            "additionalProperties": false,
+            "description": "Build options.",
+            "properties": {
+                "aot": {
+                    "description": "Set true for aot build.",
+                    "type": "boolean"
+                },
+                "app": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "To build only specific app. Use app's name."
+                },
+                "appendOutputHash": {
+                    "description": "Appends version hash to the ouput bundled files.",
+                    "type": "boolean"
+                },
+                "compressAssets": {
+                    "description": "Compress assets.",
+                    "type": "boolean"
+                },
+                "configFilePath": {
+                    "description": "The 'angular-build.json' oar 'angular-cli.json' config file path.",
+                    "type": "string"
+                },
+                "dll": {
+                    "description": "Set true for dll build.",
+                    "type": "boolean"
+                },
+                "extractCss": {
+                    "description": "Extracts css.",
+                    "type": "boolean"
+                },
+                "performanceHint": {
+                    "default": false,
+                    "description": "Show performance hints.",
+                    "type": "boolean"
+                },
+                "production": {
+                    "description": "Set true for production.",
+                    "type": "boolean"
+                },
+                "progress": {
+                    "description": "Shows progress.",
+                    "type": "boolean"
+                },
+                "referenceDll": {
+                    "description": "To reference dlls for all apps.",
+                    "type": "boolean"
+                },
+                "skipCopyAssets": {
+                    "description": "Skips copying assets.",
+                    "type": "boolean"
+                },
+                "skipGenerateIcons": {
+                    "description": "Skips generating icons.",
+                    "type": "boolean"
+                },
+                "sourceMap": {
+                    "description": "Generates sourcemaps.",
+                    "type": "boolean"
+                },
+                "verbose": {
+                    "default": false,
+                    "description": "If true, the console displays detailed diagnostic information.",
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
         }
     },
     "description": "Angular build config schema.",
@@ -728,6 +807,10 @@
             },
             "minItems": 1,
             "type": "array"
+        },
+        "buildOptions": {
+            "$ref": "#/definitions/BuildOptions",
+            "description": "Build options"
         }
     },
     "type": "object"

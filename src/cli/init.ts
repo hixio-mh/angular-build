@@ -23,7 +23,6 @@ const initCommandUsage = `\n${chalk.green(`angular-build ${cliVersion}`)}\n
 Usage:
   ngb init [options...]`;
 
-const angularBuildSchema: any = readJsonAsync(require.resolve(SCHEMA_PATH));
 
 export interface PackageToCheck {
     packageName: string;
@@ -130,7 +129,8 @@ export function getInitCommandModule(): yargs.CommandModule {
                     default: false
                 });
 
-            const appConfigSchema: any = angularBuildSchema.definitions.AppConfig.properties;
+            const schema: any = readJsonAsync(require.resolve(SCHEMA_PATH));
+            const appConfigSchema: any = schema.definitions.AppConfig.properties;
             Object.keys(appConfigSchema).forEach((key: string) => {
                 yargvObj = yargvObj.options(chageDashCase(key),
                 {
@@ -769,7 +769,8 @@ function mergeWithCommandOptions(cfg: InitConfig) {
         cfg.overrideAngularBuildConfigFile;
     cfg.overrideWebpackConfigFile = commandOptions.overrideWebpackConfigFile || cfg.overrideWebpackConfigFile;
 
-    const appConfigSchema: any = angularBuildSchema.definitions.AppConfigBase.properties;
+    const schema: any = readJsonAsync(require.resolve(SCHEMA_PATH));
+    const appConfigSchema: any = schema.definitions.AppConfig.properties;
 
     Object.keys(commandOptions).forEach((key: string) => {
         if (typeof commandOptions[key] !== 'undefined' && key !== 'extends' && appConfigSchema[key]) {

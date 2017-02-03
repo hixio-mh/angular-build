@@ -1,5 +1,4 @@
 ﻿import * as path from 'path';
-import * as fs from 'fs';
 
 // ReSharper disable InconsistentNaming
 const CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
@@ -13,7 +12,7 @@ const webpackMerge = require('webpack-merge');
 // ReSharper restore InconsistentNaming
 
 // Models
-import { AppConfig, BuildOptions, DllEntry, GlobalScopedEntry } from '../models';
+import { AppConfig, BuildOptions} from '../models';
 
 // Helpers
 import { parseDllEntries, getEnvName, packageChunkSort, isWebpackDevServer, lazyChunksFilter, parseGlobalScopedEntry} from './helpers';

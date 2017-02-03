@@ -15,9 +15,6 @@ const webpackMerge = require('webpack-merge');
 // Models
 import { AppConfig, BuildOptions } from '../models';
 
-// Helpers
-import { parseDllEntries } from './helpers';
-
 export function getAngularConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
     const emptyModulePath = require.resolve('../../empty.js');
     const appRoot = path.resolve(projectRoot, appConfig.root);

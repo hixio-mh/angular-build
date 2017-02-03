@@ -1,10 +1,9 @@
 ﻿import * as path from 'path';
-import * as fs from 'fs';
 
 // ReSharper disable once InconsistentNaming
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-import { AppConfig, BuildOptions } from '../models';
+import { AppConfig } from '../models';
 import { IconWebpackPlugin, IconPluginOptions } from '../plugins/icon-webpack-plugin';
 
 import { readJsonSync } from '../utils';

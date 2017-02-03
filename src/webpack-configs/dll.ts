@@ -10,7 +10,7 @@ const webpackMerge = require('webpack-merge');
 // ReSharper restore InconsistentNaming
 
 // Models
-import { AppConfig, BuildOptions, DllEntry } from '../models';
+import { AppConfig, BuildOptions } from '../models';
 import { CustomizeAssetsHtmlWebpackPlugin } from '../plugins/customize-assets-html-webpack-plugin';
 
 // Helpers

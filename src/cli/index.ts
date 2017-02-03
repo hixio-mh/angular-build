@@ -48,7 +48,7 @@ function initYargs() {
     const yargsInstance = yargs
         .usage(cliUsage)
         .example('ngb init', 'Create required config files for angular-build')
-        .example('ngb build', 'Build/bundle the app(s)')
+        .example('ngb build', 'Build/bundle the app(s) using angular-build.json or angular-cli.json file')
         .example('ngb -h', 'Show help')
         .option('h',
         {

@@ -11,7 +11,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 import { SuppressEntryChunksWebpackPlugin } from '../plugins/suppress-entry-chunks-webpack-plugin';
 
-import { AppConfig, BuildOptions, GlobalScopedEntry} from '../models';
+import { AppConfig, BuildOptions} from '../models';
 import { parseGlobalScopedEntry } from './helpers';
 
 // Ref: https://github.com/angular/angular-cli
