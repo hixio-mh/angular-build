@@ -1,14 +1,14 @@
 ﻿export default function (env: string) {
     return [
         // es6 polyfills
+        //
         //'angular2-universal-polyfills',
         //'es6-shim',
         //'es6-promise',
         //'reflect-metadata',
 
-        // Or
-        //  'core-js/es6',
-        // Added parts of es6 which are necessary for your project or your browser support requirements.
+        //'core-js',
+        //
         'core-js/es6/symbol',
         'core-js/es6/object',
         'core-js/es6/function',
@@ -29,14 +29,14 @@
         // see issue https://github.com/AngularClass/angular2-webpack-starter/issues/709
         //  'core-js/es6/promise',
 
+        'core-js/es7/reflect',
+
         // zone.js
         'zone.js/dist/zone',
 
         // Typescript emit helpers polyfill
         // NOTE: Starting typescript 2.1 this package won't be needed anymore
         //"ts-helpers",
-        // ttypescript >= 2.1
-        'tslib'
 
         // rxjs polyfills
         //"rxjs/Observable",

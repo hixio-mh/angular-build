@@ -5,17 +5,20 @@ import * as ts from 'typescript';
 
 //var requireLike = require('require-like');
 
-import { DllEntry } from './models';
+import { DllEntry, GlobalScopedEntry, AssetEntry } from '../models';
 
 // Dlls
-export interface DllEntryParsedResult {
-    entries: DllEntry[];
-    fileDependencies?: string[];
+//
+export type DllTsEntry = {
+    tsPath?: string;
 }
 
-export function parseDllEntries(baseDir: string, dlls: string | (string | DllEntry)[], isProd?: boolean): DllEntryParsedResult {
+
+export function parseDllEntries(baseDir: string, dlls: string | (string | DllEntry)[], isProd?: boolean): (DllEntry & DllTsEntry)[] {
+    const resultEntries : (DllEntry & DllTsEntry)[] = [];
+
     if (!dlls || !dlls.length) {
-        return null;
+        return resultEntries;
     }
     const env = getEnvName(isProd, true);
     let clonedDlls: (string | DllEntry)[];
@@ -28,8 +31,8 @@ export function parseDllEntries(baseDir: string, dlls: string | (string | DllEnt
         clonedDlls = typeof dlls === 'object' ? [Object.assign({entry: null}, dlls)] : [dlls];
     }
 
-    const dllEntries: DllEntry[] = [];
-    const fileDependencies: string[] = [];
+    //const dllEntries: (DllEntry & DllTsEntry)[] = [];
+    //const fileDependencies: string[] = [];
 
     clonedDlls.map((e: string | DllEntry) => {
         if (typeof e === 'string') {
@@ -52,7 +55,11 @@ export function parseDllEntries(baseDir: string, dlls: string | (string | DllEnt
                         const result = ts
                             .transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } });
                         const dataArray = evalDllContent(result.outputText, env, dllPath);
-                        dllEntries.push(Object.assign(e, { entry: dataArray ? dataArray : dllFileName }));
+                        if (dataArray) {
+                            resultEntries.push(Object.assign(e, { entry: dataArray }));
+                        } else {;
+                            resultEntries.push(Object.assign(e, { entry: null, tsPath: dllPath }));
+                        }
                     } else {
                         throw new Error(`Invalid value in dlls.`);
                     }
@@ -61,7 +68,7 @@ export function parseDllEntries(baseDir: string, dlls: string | (string | DllEnt
                     if (fs.existsSync(dllPath) && fs.statSync(dllPath).isFile()) {
                         const source = fs.readFileSync(dllPath).toString();
                         const dataArray = evalDllContent(source, env, dllPath);
-                        dllEntries.push(Object.assign(e, { entry: dataArray ? dataArray : dllFileName }));
+                        resultEntries.push(Object.assign(e, { entry: dataArray ? dataArray : dllFileName }));
                     } else {
                         throw new Error(`Invalid value in dlls.`);
                     }
@@ -70,14 +77,11 @@ export function parseDllEntries(baseDir: string, dlls: string | (string | DllEnt
                     if (fs.existsSync(dllPath) && fs.statSync(dllPath).isFile()) {
                         throw new Error(`Invalid value in dlls.`);
                     }
-                    dllEntries.push(Object.assign(e, { entry: dllFileName }));
+                    resultEntries.push(Object.assign(e, { entry: dllFileName }));
                 }
             });
         });
-    return {
-      entries: dllEntries,
-      fileDependencies: fileDependencies
-    };
+    return resultEntries;
 }
 
 function evalDllContent(content: string, env: string, fileName: string) : string[] {
@@ -126,6 +130,119 @@ function evalDllContent(content: string, env: string, fileName: string) : string
     }
 }
 
+// Assets
+//
+export function parseCopyAssetEntry(baseDir: string, assetEntries: string | (string | AssetEntry)[]) {
+    let assets: AssetEntry[] = [];
+
+    if (!assetEntries || assetEntries.length) {
+        return assets;
+    }
+
+    let clonedEntries: (string | AssetEntry)[];
+    if (Array.isArray(assetEntries)) {
+        clonedEntries = assetEntries.map((entry: any) => {
+            return typeof entry === 'object' ? Object.assign({}, entry) : entry;
+        });
+
+    } else {
+        clonedEntries = typeof assetEntries === 'object'
+            ? [Object.assign({ from: null }, assetEntries)]
+            : [assetEntries];
+    }
+
+    const prepareFormGlobFn = (p: string) => {
+        if (!p) {
+            return '';
+        }
+
+        if (p.lastIndexOf('*') === -1 && !path.isAbsolute(p) &&
+            fs.existsSync(path.resolve(baseDir, p)) &&
+            fs.statSync(path.resolve(baseDir, p)).isDirectory()) {
+            if (p.lastIndexOf('/') > -1) {
+                p = p.substring(0, p.length - 1);
+            }
+            p += '/**/*';
+        }
+        return p;
+    };
+
+    assets = clonedEntries.map((asset: string | AssetEntry) => {
+        if (typeof asset === 'string') {
+            const fromGlob = prepareFormGlobFn(asset);
+            return {
+                from: {
+                    glob: fromGlob,
+                    dot: true
+                },
+                context: baseDir
+            };
+        } else if (typeof asset === 'object' && asset.from) {
+            if (!asset.context) {
+                asset.context = baseDir;
+            }
+            if (typeof asset.from === 'string') {
+                const fromGlob = prepareFormGlobFn(asset.from);
+                asset.from = {
+                    glob: fromGlob,
+                    dot: true
+                };
+            }
+            return asset;
+        } else {
+            throw new Error(`Invalid 'assets' value in appConfig.`);
+        }
+    });
+    return assets;
+}
+
+// Styles/scripts
+// convert all extra entries into the object representation, fill in defaults
+// Ref: https://github.com/angular/angular-cli
+export function parseGlobalScopedEntry(
+    extraEntries: string | (string | GlobalScopedEntry)[],
+    appRoot: string,
+    defaultEntry: string
+): GlobalScopedEntry[] {
+    if (!extraEntries || !extraEntries.length) {
+        return [];
+    }
+    //const arrayEntries = Array.isArray(extraEntries) ? extraEntries : [extraEntries];
+    let clonedEntries: (string | GlobalScopedEntry)[];
+    if (Array.isArray(extraEntries)) {
+        clonedEntries = extraEntries.map((entry: any) => {
+            return typeof entry === 'object' ? Object.assign({}, entry) : entry;
+        });
+
+    } else {
+        clonedEntries = typeof extraEntries === 'object' ? [Object.assign({ input: null }, extraEntries)] : [extraEntries];
+    }
+
+    return clonedEntries
+        .map((extraEntry: string | GlobalScopedEntry) =>
+            typeof extraEntry === 'string' ? { input: extraEntry } : extraEntry)
+        .map((extraEntry: GlobalScopedEntry) => {
+            extraEntry.path = path.resolve(appRoot, extraEntry.input);
+            if (extraEntry.output) {
+                extraEntry.entry = extraEntry.output.replace(/\.(js|css)$/i, '');
+            } else if (extraEntry.lazy) {
+                extraEntry.entry = extraEntry.input.replace(/\.(js|css|scss|sass|less|styl)$/i, '');
+            } else {
+                extraEntry.entry = defaultEntry;
+            }
+            return extraEntry;
+        });
+}
+
+// Filter extra entries out of a arran of extraEntries
+export function lazyChunksFilter(extraEntries: GlobalScopedEntry[]) {
+    return extraEntries
+        .filter(extraEntry => extraEntry.lazy)
+        .map(extraEntry => extraEntry.entry);
+}
+
+// Package sort
+//
 // Ref: https://github.com/angular/angular-cli
 export function packageChunkSort(packages: string[]) {
     return (left: any, right: any) => {
@@ -145,6 +262,7 @@ export function packageChunkSort(packages: string[]) {
     };
 }
 
+// Misc.
 export function isWebpackDevServer(): boolean {
     return process.argv[1] && !!(/webpack-dev-server/.exec(process.argv[1]));
 }

@@ -7,219 +7,23 @@ import * as chalk from 'chalk';
 import * as yargs from 'yargs';
 
 import { CliOptions } from './models';
-import { AngularBuildConfig, IconPluginOptions } from '../webpack';
+import { AngularBuildConfig } from '../models';
+import { IconPluginOptions } from '../plugins/icon-webpack-plugin';
 
-import { readJsonAsync, checkFileOrDirectoryExistsAsync, findFileOrDirectoryFromPossibleAsync,
-    getVersionfromPackageJsonAsync, askAsync, spawnAsync } from '../utils';
+import {
+    readJsonAsync, chageDashCase, mapToYargsType, checkFileOrDirectoryExistsAsync, findFileOrDirectoryFromPossibleAsync,
+    getVersionfromPackageJsonAsync, askAsync, spawnAsync
+} from '../utils';
+
+// ReSharper disable once InconsistentNaming
+const SCHEMA_PATH = '../../configs/schema.json';
 
 const cliVersion = require('../../package.json').version;
 const initCommandUsage = `\n${chalk.green(`angular-build ${cliVersion}`)}\n
 Usage:
   ngb init [options...]`;
 
-export const initCommandModule: yargs.CommandModule = {
-  command: 'init',
-  describe: 'Create angular-build config files',
-  builder: (yargv: yargs.Argv) => {
-    return yargv
-      .reset()
-      .usage(initCommandUsage)
-      .example('ngb init --prompt', 'Create angular-build config files with user prompt option')
-      .help('h')
-      .option('p',
-      {
-        alias: 'prompt',
-        describe: 'Confirm user by prompting',
-        type: 'boolean',
-        default: false
-      })
-      .option('f',
-      {
-        alias: 'force',
-        describe: 'It will use only defaults and not prompt you for any options',
-        type: 'boolean',
-        default: false
-      })
-      .option('link-cli',
-      {
-        alias: ['l', 'linkCli'],
-        describe: 'Link angular-build cli to current project',
-        type: 'boolean',
-        default: false
-      })
-      .option('skip-install-tooling',
-      {
-        describe: 'Skip install tooling',
-        type: 'boolean',
-        default: false
-      })
-      .option('use-angular-cli-config-file',
-      {
-        describe: 'Use angular-cli.json as a build config file',
-        type: 'boolean',
-        default: undefined
-      })
-      .option('webpack-config-file-name',
-      {
-        describe: 'Webpack config file name',
-        type: 'string'
-      })
-      .option('favicon-naster-picture',
-      {
-        describe: 'favicon master picture file name',
-        type: 'string'
-      })
-      .option('override-angular-build-config-file',
-      {
-        describe: 'Override angular-build.json file',
-        type: 'boolean',
-        default: false
-      })
-      .option('override-webpack-config-file',
-      {
-        describe: 'Override webpack config file',
-        type: 'boolean',
-        default: false
-      })
-      // AngularAppConfig
-      .option('name',
-      {
-        describe: 'Name for app config',
-        type: 'string'
-      })
-      .option('target',
-      {
-        describe: 'Tells the build system which environment the application is targeting',
-        type: 'string'
-      })
-      .option('root',
-      {
-        describe: 'Client app root directory',
-        type: 'string'
-      })
-      .option('out-dir',
-      {
-        describe: 'Bbundle output directory',
-        type: 'string'
-      })
-      .option('main',
-      {
-        describe: 'App main bootstrap file',
-        type: 'string'
-      })
-      .option('assets',
-      {
-        describe: 'Assets to be copied to output directory',
-        type: 'array'
-      })
-      .option('styles',
-      {
-        describe: 'Global styles (.css/.scss/.less/.stylus) to be bundled',
-        type: 'array'
-      })
-      .option('scripts',
-      {
-        describe: 'Script files to be added to the global scope',
-        type: 'array'
-      })
-      .option('provide',
-      {
-        describe: 'To automatically load module with alias key'
-      })
-      .option('tsconfig',
-      {
-        describe: 'Typescript configuration file',
-        type: 'string'
-      })
-      .option('public-path',
-      {
-        describe: 'Public Url address of the output files',
-        type: 'string'
-      })
-      .option('index',
-      {
-        describe: 'Html index source template file',
-        type: 'string'
-      })
-      .option('html-inject-options',
-      {
-        describe: 'Html injection options'
-      })
-      .option('favicon-config',
-      {
-        describe: 'Favicon configuration file',
-        type: 'string'
-      })
-      .option('dlls',
-      {
-        describe: 'The entries for dll bundle',
-        type: 'array'
-      })
-      .option('dllOutChunkName',
-      {
-        describe: 'Output name for dll bundle',
-        type: 'string'
-      })
-      .option('reference-dll',
-      {
-        describe: 'To reference dll',
-        type: 'boolean',
-        default: undefined
-      })
-      .option('module-replacements',
-      {
-        describe: 'Replace resources that matches resourceRegExp with newResource',
-        type: 'array'
-      })
-      .option('append-version-hash',
-      {
-        describe: 'Append version hash to ouput bundled files',
-        type: 'boolean',
-        default: undefined
-      })
-      .option('source-map',
-      {
-        describe: 'Generate source',
-        type: 'boolean',
-        default: undefined
-      })
-      .option('compress-assets',
-      {
-        describe: 'Compress assets',
-        type: 'boolean',
-        default: undefined
-      })
-      .option('skip-copy-assets',
-      {
-        describe: 'Skip copying assets',
-        type: 'boolean',
-        default: undefined
-      })
-      .option('skip-generate-icons',
-      {
-        describe: 'Skip generating favicons',
-        type: 'boolean',
-        default: undefined
-      })
-      .option('environments',
-      {
-        describe:
-          'An optin to select environment file to be used with build target - dev or prod'
-      })
-      .option('buildTargetOverrides',
-      {
-        describe:
-        'To override properties based on build targets'
-      })
-      .option('skip',
-      {
-        describe: 'To skip this app config when getWebpackConfigs() function call',
-        type: 'boolean',
-        default: false
-      });
-  },
-  handler: null
-};
+const angularBuildSchema: any = readJsonAsync(require.resolve(SCHEMA_PATH));
 
 export interface PackageToCheck {
     packageName: string;
@@ -257,6 +61,91 @@ export interface InitConfig {
     userPackageConfig?: any;
 
     tsConfig?: any;
+}
+
+export function getInitCommandModule(): yargs.CommandModule {
+
+    const initCommandModule: yargs.CommandModule = {
+        command: 'init',
+        describe: 'Create angular-build config files',
+        builder: (yargv: yargs.Argv) => {
+            let yargvObj = yargv
+                .reset()
+                .usage(initCommandUsage)
+                .example('ngb init --prompt', 'Create angular-build config files with user prompt option')
+                .help('h')
+                .option('p',
+                {
+                    alias: 'prompt',
+                    describe: 'Confirm user by prompting',
+                    type: 'boolean',
+                    default: false
+                })
+                .option('f',
+                {
+                    alias: 'force',
+                    describe: 'It will use only defaults and not prompt you for any options',
+                    type: 'boolean',
+                    default: false
+                })
+                .option('link-cli',
+                {
+                    alias: ['l', 'linkCli'],
+                    describe: 'Link angular-build cli to current project',
+                    type: 'boolean',
+                    default: false
+                })
+                .option('skip-install-tooling',
+                {
+                    describe: 'Skip install tooling',
+                    type: 'boolean',
+                    default: false
+                })
+                .option('use-angular-cli-config-file',
+                {
+                    describe: 'Use angular-cli.json as a build config file',
+                    type: 'boolean',
+                    default: undefined
+                })
+                .option('webpack-config-file-name',
+                {
+                    describe: 'Webpack config file name',
+                    type: 'string'
+                })
+                .option('favicon-naster-picture',
+                {
+                    describe: 'favicon master picture file name',
+                    type: 'string'
+                })
+                .option('override-angular-build-config-file',
+                {
+                    describe: 'Override angular-build.json file',
+                    type: 'boolean',
+                    default: false
+                })
+                .option('override-webpack-config-file',
+                {
+                    describe: 'Override webpack config file',
+                    type: 'boolean',
+                    default: false
+                });
+
+            const appConfigSchema: any = angularBuildSchema.definitions.AppConfig.properties;
+            Object.keys(appConfigSchema).forEach((key: string) => {
+                yargvObj = yargvObj.options(chageDashCase(key),
+                {
+                    describe: appConfigSchema[key].description || key,
+                    type: mapToYargsType(appConfigSchema[key].type),
+                    default: appConfigSchema[key].default
+                });
+            });
+
+            return yargvObj;
+        },
+        handler: null
+    };
+
+    return initCommandModule;
 }
 
 // Command
@@ -312,19 +201,19 @@ function initCore(cliOptions: CliOptions) {
             return installToolings(cfg).then(() => cfg);
         })
         .then((cfg: InitConfig) => {
-            return readJsonAsync(require.resolve('../../templates/angular-build.json')).then(angularBuildConfig => {
+            return readJsonAsync(require.resolve('../../configs/angular-build.json')).then((angularBuildConfig: AngularBuildConfig) => {
                 cfg.angularBuildConfig = angularBuildConfig;
                 return cfg;
             });
         })
         .then((cfg: InitConfig) => {
-            return readJsonAsync(require.resolve('../../templates/tsconfig.json')).then((tsConfig: any) => {
+            return readJsonAsync(require.resolve('../../configs/tsconfig.json')).then((tsConfig: any) => {
                 cfg.tsConfig = tsConfig;
                 return cfg;
             });
         })
         .then((cfg: InitConfig) => {
-            return readJsonAsync(require.resolve('../../templates/favicon-config.json')).then((faviconConfig: IconPluginOptions) => {
+            return readJsonAsync(require.resolve('../../configs/favicon-config.json')).then((faviconConfig: IconPluginOptions) => {
                 cfg.faviconConfig = faviconConfig;
                 return cfg;
             });
@@ -374,13 +263,13 @@ function initCore(cliOptions: CliOptions) {
             } else {
                 return new Promise((resolve, reject) => {
                     if (cfg.webpackConfigFileName && cfg.webpackConfigFileName.match(/\.ts$/i)) {
-                        fs.copy(require.resolve('../../templates/webpack.config.ts'),
+                        fs.copy(require.resolve('../../configs/webpack.config.ts'),
                             path.resolve(projectRoot, cfg.webpackConfigFileName),
                             err => {
                                 err ? reject(err) : resolve(cfg);
                             });
                     } else {
-                        fs.copy(require.resolve('../../templates/webpack.config.js'),
+                        fs.copy(require.resolve('../../configs/webpack.config.js'),
                             path.resolve(projectRoot, cfg.webpackConfigFileName || 'webpack.config.js'),
                             err => {
                                 err ? reject(err) : resolve(cfg);
@@ -444,7 +333,7 @@ function initCore(cliOptions: CliOptions) {
                         return Promise.resolve(cfg);
                     } else {
                         return new Promise((resolve, reject) => {
-                            fs.copy(require.resolve('../../templates/polyfills.ts'),
+                            fs.copy(require.resolve('../../configs/polyfills.ts'),
                                 path.resolve(projectRoot, appConfig.root, 'polyfills.ts'),
                                 err => {
                                     err ? reject(err) : resolve(cfg);
@@ -458,7 +347,7 @@ function initCore(cliOptions: CliOptions) {
                                 return Promise.resolve(cfg);
                             } else {
                                 return new Promise((resolve, reject) => {
-                                    fs.copy(require.resolve('../../templates/vendors.ts'),
+                                    fs.copy(require.resolve('../../configs/vendors.ts'),
                                         path.resolve(projectRoot, appConfig.root, 'vendors.ts'),
                                         err => {
                                             err ? reject(err) : resolve(cfg);
@@ -492,7 +381,7 @@ function initCore(cliOptions: CliOptions) {
                         return Promise.resolve(cfg);
                     } else {
                         return new Promise((resolve, reject) => {
-                            fs.copy(require.resolve('../../templates/environment.ts'),
+                            fs.copy(require.resolve('../../configs/environment.ts'),
                                 path.resolve(projectRoot, appConfig.root, 'environments', 'environment.ts'),
                                 err => {
                                     err ? reject(err) : resolve(cfg);
@@ -509,7 +398,7 @@ function initCore(cliOptions: CliOptions) {
                                 return Promise.resolve(cfg);
                             } else {
                                 return new Promise((resolve, reject) => {
-                                    fs.copy(require.resolve('../../templates/environment.prod.ts'),
+                                    fs.copy(require.resolve('../../configs/environment.prod.ts'),
                                         path.resolve(projectRoot, appConfig.root, 'environments', 'environment.prod.ts'),
                                         err => {
                                             err ? reject(err) : resolve(cfg);
@@ -580,24 +469,24 @@ function installToolings(cfg: InitConfig) {
         };
     });
     const depSavePackages = Object.keys(cfg.cliPackageJsonConfig.peerDependencies).filter((key: string) => depsSaveList.indexOf(key) > -1).map((key: string) => {
-      const ver = cfg.cliPackageJsonConfig.peerDependencies[key];
-      const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
-      return {
-        packageName: key,
-        version: ver,
-        isPreReleased: isPreReleased
-      };
+        const ver = cfg.cliPackageJsonConfig.peerDependencies[key];
+        const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
+        return {
+            packageName: key,
+            version: ver,
+            isPreReleased: isPreReleased
+        };
     });
-  const devDepSavePackages = Object.keys(cfg.cliPackageJsonConfig.peerDependencies)
-    .filter((key: string) => depsSaveList.indexOf(key) === -1).map((key: string) => {
-      const ver = cfg.cliPackageJsonConfig.peerDependencies[key];
-      const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
-      return {
-        packageName: key,
-        version: ver,
-        isPreReleased: isPreReleased
-      };
-    });
+    const devDepSavePackages = Object.keys(cfg.cliPackageJsonConfig.peerDependencies)
+        .filter((key: string) => depsSaveList.indexOf(key) === -1).map((key: string) => {
+            const ver = cfg.cliPackageJsonConfig.peerDependencies[key];
+            const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
+            return {
+                packageName: key,
+                version: ver,
+                isPreReleased: isPreReleased
+            };
+        });
 
     return checkPackagesToInstall(depSavePackages, projectRoot)
         .then((packageNames: string[]) => depPackagesToInstallWithSave.push(...packageNames))
@@ -733,7 +622,7 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig) {
                 ['robots.txt'],
                 'robots.txt',
                 false)
-                .then((foundAsset:string) => {
+                .then((foundAsset: string) => {
                     if (foundAsset) {
                         if (Array.isArray(appConfig.assets)) {
                             if (appConfig.assets.indexOf(foundAsset) === -1) {
@@ -753,7 +642,7 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig) {
                 ['humans.txt'],
                 'humans.txt',
                 false)
-                .then((foundAsset:string) => {
+                .then((foundAsset: string) => {
                     if (foundAsset) {
                         if (Array.isArray(appConfig.assets)) {
                             if (appConfig.assets.indexOf(foundAsset) === -1) {
@@ -815,8 +704,8 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig) {
                         appConfig.htmlInjectOptions.stylesOutFileName = '../Views/Shared/_BundledStyles.cshtml';
                         appConfig.htmlInjectOptions
                             .customTagAttributes = [
-                            { tagName: 'link', attribute: { "asp-append-version": true } },
-                            { tagName: 'script', attribute: { "asp-append-version": true } }
+                                { tagName: 'link', attribute: { "asp-append-version": true } },
+                                { tagName: 'script', attribute: { "asp-append-version": true } }
                             ];
 
                     }
@@ -826,7 +715,7 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig) {
 
 function mergeConfigWithAngularCliAsync(cfg: InitConfig) {
     const projectRoot = cfg.cliOptions.cwd;
-    const appConfig = cfg.angularBuildConfig.apps[0];
+    const appConfig = cfg.angularBuildConfig.apps[0] as any;
     const cliPath = path.resolve(projectRoot, 'angular-cli.json');
 
     return checkFileOrDirectoryExistsAsync(cliPath).then((exists: boolean) => {
@@ -839,24 +728,15 @@ function mergeConfigWithAngularCliAsync(cfg: InitConfig) {
                     cfg.angularCliConfigFileExists = true;
                     cfg.userAngularCliConfig = cliConfig;
                 }
-                appConfig.root = cliAppConfig.root || appConfig.root;
-                appConfig.outDir = cliAppConfig.outDir || appConfig.outDir;
-                appConfig.main = cliAppConfig.main || appConfig.main;
-                appConfig.test = cliAppConfig.test || appConfig.test;
-                appConfig.tsconfig = cliAppConfig.tsconfig || appConfig.tsconfig;
-                appConfig.index = cliAppConfig.index || appConfig.index;
-                if (cliAppConfig.assets && cliAppConfig.assets.length) {
-                    appConfig.assets = cliAppConfig.assets;
-                }
-                if (cliAppConfig.scripts && cliAppConfig.scripts.length) {
-                    appConfig.scripts = cliAppConfig.scripts;
-                }
-                if (cliAppConfig.styles && cliAppConfig.styles.length) {
-                    appConfig.styles = cliAppConfig.styles;
-                }
-                if (cliAppConfig.environments && Object.keys(cliAppConfig.environments).length) {
-                    appConfig.environments = cliAppConfig.environments;
-                }
+
+
+                Object.keys(cliAppConfig).filter((key: string) => typeof cliAppConfig[key] !== 'undefined' && cliAppConfig[key] !== null).forEach((key: string) => {
+                    if (typeof cliAppConfig[key] === 'object') {
+                        appConfig[key] = Object.assign({}, appConfig[key] || {}, cliAppConfig[key]);
+                    } else {
+                        appConfig[key] = cliAppConfig[key];
+                    }
+                });
 
             });
         } else {
@@ -889,12 +769,20 @@ function mergeWithCommandOptions(cfg: InitConfig) {
         cfg.overrideAngularBuildConfigFile;
     cfg.overrideWebpackConfigFile = commandOptions.overrideWebpackConfigFile || cfg.overrideWebpackConfigFile;
 
-  Object.keys(commandOptions).forEach((key: string) => {
-    if (typeof commandOptions[key] !== 'undefined' && Object.keys(appConfig).indexOf(key) > -1 && key !== 'extends') {
-      const obj = appConfig as any;
-      obj[key] = commandOptions[key];
-    }
-  });
+    const appConfigSchema: any = angularBuildSchema.definitions.AppConfigBase.properties;
+
+    Object.keys(commandOptions).forEach((key: string) => {
+        if (typeof commandOptions[key] !== 'undefined' && key !== 'extends' && appConfigSchema[key]) {
+            const obj = appConfig as any;
+            if (appConfigSchema[key].type === 'string') {
+                obj[key] = commandOptions[key].toString();
+            }else if (appConfigSchema[key].type === 'boolean') {
+                obj[key] = commandOptions[key].toString().toLowerCase() === 'true';
+            } else {
+                obj[key] = commandOptions[key];
+            }
+        }
+    });
     return cfg;
 }
 
@@ -1025,7 +913,7 @@ function mergeConfigWithPrompt(cfg: InitConfig) {
             if (cfg.cliOptions.commandOptions.styles && cfg.cliOptions.commandOptions.styles.length && Array.isArray(cfg.cliOptions.commandOptions.styles)) {
                 return Promise.resolve(null);
             }
-            return askAsync(`Enter global css/scss/less/stylus style files (${appConfig.styles ? Array.isArray(appConfig.styles) ? appConfig.styles.join(', '): appConfig.styles: ''}): `)
+            return askAsync(`Enter global css/scss/less/stylus style files (${appConfig.styles ? Array.isArray(appConfig.styles) ? appConfig.styles.join(', ') : appConfig.styles : ''}): `)
                 .then((answer: string) => {
                     if (answer && answer.trim().length) {
                         answer = answer.trim();
@@ -1036,10 +924,8 @@ function mergeConfigWithPrompt(cfg: InitConfig) {
                                 if (appConfig.styles.indexOf(style) === -1) {
                                     appConfig.styles.push(style);
                                 }
-                            } else {
-                                if (appConfig.styles.indexOf(style) === -1) {
-                                    appConfig.styles = [style];
-                                }
+                            } else if (typeof (appConfig.styles as any) === 'string' && (appConfig.styles as any) !== style){
+                                appConfig.styles = [style];
                             }
 
                         });

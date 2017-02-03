@@ -1,0 +1,45 @@
+{
+  "$schema": "schema.json#",
+
+  "apps": [
+    {
+
+      "target": "web",
+      "root": "src",
+      "outDir": "dist",
+      "assets": [],
+      "styles": [],
+      "scripts": [],
+      "tsconfig": "tsconfig.json",
+      "publicPath": "/",
+      "faviconConfig": "favicon-config.json",
+      "dlls": [
+        {
+          "entry": "polyfills.ts",
+          "importToMain": true
+        },
+        {
+          "entry": "vendors.ts"
+        }
+      ],
+      "moduleReplacements": [],
+      "environments": {
+        "source": "environments/environment.ts",
+        "dev": "environments/environment.ts",
+        "prod": "environments/environment.prod.ts"
+      },
+      "buildTargetOverrides": {
+        "dev": {
+          "referenceDll": true,
+          "skipCopyAssets": true,
+          "skipGenerateIcons": true
+        },
+        "prod": {
+          "moduleReplacements": [],
+          "compressAssets": true,
+          "sourceMap": false
+        }
+      }
+    }
+  ]
+}

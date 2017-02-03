@@ -61,17 +61,16 @@
     <Folder Include="dist\" />
     <Folder Include="src\" />
     <Folder Include="src\cli\" />
+    <Folder Include="src\models\" />
+    <Folder Include="src\plugins\" />
     <Folder Include="src\utils\" />
-    <Folder Include="src\webpack\" />
+    <Folder Include="src\webpack-configs\" />
+    <Folder Include="src\plugins\customize-assets-html-webpack-plugin\" />
+    <Folder Include="src\plugins\icon-webpack-plugin\" />
+    <Folder Include="src\plugins\icon-webpack-plugin\src\" />
+    <Folder Include="src\plugins\compression-webpack-plugin\" />
+    <Folder Include="src\plugins\try-bundle-dll-webpack-plugin\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
-    <Folder Include="src\webpack\plugins\" />
-    <Folder Include="src\webpack\plugins\customize-assets-html-webpack-plugin\" />
-    <Folder Include="src\webpack\plugins\icon-webpack-plugin\" />
-    <Folder Include="src\webpack\plugins\icon-webpack-plugin\src\" />
-    <Folder Include="src\webpack\plugins\add-file-deps-webpack-plugin\" />
-    <Folder Include="src\webpack\plugins\dll-loader\" />
-    <Folder Include="src\webpack\plugins\try-bundle-dll-webpack-plugin\" />
-    <Folder Include="src\webpack\plugins\suppress-entry-chunks-webpack-plugin\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="src\cli\build.ts" />
@@ -84,40 +83,52 @@
     <TypeScriptCompile Include="src\utils\index.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack\index.ts">
+    <TypeScriptCompile Include="src\webpack-configs\common.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack\plugins\add-file-deps-webpack-plugin\index.ts">
+    <TypeScriptCompile Include="src\webpack-configs\dll.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack\plugins\customize-assets-html-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\webpack\plugins\dll-loader\index.ts">
+    <TypeScriptCompile Include="src\webpack-configs\favicons.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack\plugins\icon-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\webpack\plugins\icon-webpack-plugin\src\icon-generator.ts" />
-    <TypeScriptCompile Include="src\webpack\plugins\icon-webpack-plugin\src\icon-loader.ts" />
-    <TypeScriptCompile Include="src\webpack\plugins\icon-webpack-plugin\src\icon-webpack-plugin.ts" />
-    <TypeScriptCompile Include="src\webpack\plugins\icon-webpack-plugin\src\index.ts">
+    <TypeScriptCompile Include="src\webpack-configs\index.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack\plugins\icon-webpack-plugin\src\models.ts" />
-    <TypeScriptCompile Include="src\webpack\plugins\icon-webpack-plugin\src\utils.ts" />
-    <TypeScriptCompile Include="src\webpack\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\webpack\plugins\try-bundle-dll-webpack-plugin\index.ts">
+    <TypeScriptCompile Include="src\plugins\compression-webpack-plugin\index.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="src\index.ts" />
-    <TypeScriptCompile Include="src\webpack\models.ts" />
+    <TypeScriptCompile Include="src\plugins\customize-assets-html-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-generator.ts" />
+    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-loader.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-webpack-plugin.ts" />
+    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\index.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\models.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\utils.ts" />
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\try-bundle-dll-webpack-plugin\index.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\index.ts" />
+    <TypeScriptCompile Include="src\models\index.ts" />
+    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\models.ts" />
+    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\utils.ts" />
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\suppress-entry-chunks-webpack-plugin.ts" />
-    <TypeScriptCompile Include="src\webpack\helpers.ts" />
-    <TypeScriptCompile Include="src\webpack\webpack-common-config.ts" />
-    <TypeScriptCompile Include="src\webpack\webpack-config.ts">
+    <TypeScriptCompile Include="src\webpack-configs\helpers.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\non-dll.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\webpack-configs\styles.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\webpack-configs\angular.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\webpack-configs\config.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
   </ItemGroup>

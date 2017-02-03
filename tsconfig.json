@@ -26,7 +26,7 @@
     "typings",
     "Scripts/typings",
     "dist",
-    "templates"
+    "configs"
   ],
   "compileOnSave": true,
   "atom": { "rewriteTsconfig": false }

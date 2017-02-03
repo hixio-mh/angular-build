@@ -1,0 +1,735 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "additionalProperties": true,
+    "definitions": {
+        "AppConfig": {
+            "additionalProperties": true,
+            "description": "The app config.",
+            "properties": {
+                "aotGenDir": {
+                    "type": "string"
+                },
+                "appendOutputHash": {
+                    "description": "Appends version hash to the ouput bundled files.",
+                    "type": "boolean"
+                },
+                "assets": {
+                    "description": "The asset entries to be copied to output directory.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "properties": {
+                                    "context": {
+                                        "description": "A path that determines how to interpret the from path.",
+                                        "type": "string"
+                                    },
+                                    "flatten": {
+                                        "default": false,
+                                        "description": "Removes all directory references and only copies file names.",
+                                        "type": "boolean"
+                                    },
+                                    "force": {
+                                        "default": false,
+                                        "description": "Overwrites files already in compilation.assets (usually added by other plugins).",
+                                        "type": "boolean"
+                                    },
+                                    "from": {
+                                        "anyOf": [
+                                            {
+                                                "properties": {
+                                                    "dot": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "glob": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            {
+                                                "type": "string"
+                                            }
+                                        ],
+                                        "description": "The source file, it can be absolute or relative path or glob pattern."
+                                    },
+                                    "ignore": {
+                                        "description": "Additional globs to ignore for this pattern.",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    "to": {
+                                        "description": "The output root if from is file or dir.",
+                                        "type": "string"
+                                    },
+                                    "toType": {
+                                        "description": "'file' if to has extension or from is file.\n'dir' if from is directory, to has no extension or ends in '/'.",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
+                },
+                "buildTargetOverrides": {
+                    "description": "To override properties based on build targets.",
+                    "properties": {
+                        "aot": {
+                            "$ref": "#/definitions/AppConfigBase"
+                        },
+                        "dev": {
+                            "$ref": "#/definitions/AppConfigBase"
+                        },
+                        "dll": {
+                            "$ref": "#/definitions/AppConfigBase"
+                        },
+                        "prod": {
+                            "$ref": "#/definitions/AppConfigBase"
+                        }
+                    },
+                    "type": "object"
+                },
+                "compressAssets": {
+                    "description": "Compress assets.",
+                    "type": "boolean"
+                },
+                "dllChunkName": {
+                    "default": "vendor",
+                    "description": "The output chunk name for dll bundle.",
+                    "type": "string"
+                },
+                "dlls": {
+                    "description": "The entries for dll bundle.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "properties": {
+                                    "entry": {
+                                        "anyOf": [
+                                            {
+                                                "items": {
+                                                    "type": "string"
+                                                },
+                                                "type": "array"
+                                            },
+                                            {
+                                                "type": "string"
+                                            }
+                                        ]
+                                    },
+                                    "importToMain": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
+                },
+                "environments": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "The optin to select environment file to be used with build target - dev or prod.",
+                    "type": "object"
+                },
+                "extends": {
+                    "description": "Extends the app config from another one. Use the name of another app config.",
+                    "type": "string"
+                },
+                "extractCss": {
+                    "description": "Extracts css.",
+                    "type": "boolean"
+                },
+                "faviconConfig": {
+                    "default": "favicon-config.json",
+                    "description": "The favicon configuration file.",
+                    "type": "string"
+                },
+                "htmlInjectOptions": {
+                    "description": "The html injection options.",
+                    "properties": {
+                        "customTagAttributes": {
+                            "items": {
+                                "properties": {
+                                    "attribute": {
+                                        "additionalProperties": {
+                                            "type": [
+                                                "string",
+                                                "boolean"
+                                            ]
+                                        },
+                                        "type": "object"
+                                    },
+                                    "tagName": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "iconsOutFileName": {
+                            "type": "string"
+                        },
+                        "indexOutFileName": {
+                            "type": "string"
+                        },
+                        "stylesOutFileName": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
+                "i18nFile": {
+                    "description": "i18n file.",
+                    "type": "string"
+                },
+                "i18nFormat": {
+                    "description": "i18n format.",
+                    "type": "string"
+                },
+                "index": {
+                    "description": "The index html template file.",
+                    "type": "string"
+                },
+                "locale": {
+                    "description": "Locale.",
+                    "type": "string"
+                },
+                "main": {
+                    "description": "The entry for app main bootstrap file.",
+                    "type": "string"
+                },
+                "moduleReplacements": {
+                    "description": "Replaces resources that matches resourceRegExp with newResource.",
+                    "items": {
+                        "properties": {
+                            "newResource": {
+                                "type": "string"
+                            },
+                            "resourceRegExp": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "description": "Name for app config.",
+                    "type": "string"
+                },
+                "outDir": {
+                    "description": "The output directory of bundled assets.",
+                    "type": "string"
+                },
+                "polyfills": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "The entries for app polyfills to be imported to the main entry."
+                },
+                "provide": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "To automatically load modules with alias key.",
+                    "type": "object"
+                },
+                "publicPath": {
+                    "description": "The public url address of the output files.",
+                    "type": "string"
+                },
+                "referenceDll": {
+                    "description": "To reference dll.",
+                    "type": "boolean"
+                },
+                "root": {
+                    "description": "The root directory of app.",
+                    "type": "string"
+                },
+                "scripts": {
+                    "description": "Script entries to be added to the global scope.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "properties": {
+                                    "entry": {
+                                        "type": "string"
+                                    },
+                                    "input": {
+                                        "type": "string"
+                                    },
+                                    "lazy": {
+                                        "type": "boolean"
+                                    },
+                                    "output": {
+                                        "type": "string"
+                                    },
+                                    "path": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
+                },
+                "skip": {
+                    "description": "To skip this app config when bundling.",
+                    "type": "boolean"
+                },
+                "skipCopyAssets": {
+                    "description": "Skips copying assets.",
+                    "type": "boolean"
+                },
+                "skipGenerateIcons": {
+                    "description": "Skips generating icons.",
+                    "type": "boolean"
+                },
+                "sourceMap": {
+                    "description": "Generates sourcemaps.",
+                    "type": "boolean"
+                },
+                "stylePreprocessorOptions": {
+                    "description": "Options to pass to style preprocessors",
+                    "properties": {
+                        "includePaths": {
+                            "default": "[]",
+                            "description": "\"Paths to include. Paths will be resolved to project root.\"",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "styles": {
+                    "description": "Global script entries to be included in the build. Supported styles are .css, .scss, .less and .stylus.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "properties": {
+                                    "entry": {
+                                        "type": "string"
+                                    },
+                                    "input": {
+                                        "type": "string"
+                                    },
+                                    "lazy": {
+                                        "type": "boolean"
+                                    },
+                                    "output": {
+                                        "type": "string"
+                                    },
+                                    "path": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
+                },
+                "target": {
+                    "default": "web",
+                    "description": "Tells the build system which environment the application is targeting.",
+                    "enum": [
+                        "async-node",
+                        "electron",
+                        "electron-renderer",
+                        "node",
+                        "node-webkit",
+                        "web",
+                        "webworker"
+                    ],
+                    "type": "string"
+                },
+                "test": {
+                    "type": "string"
+                },
+                "tsconfig": {
+                    "default": "tsconfig.json",
+                    "description": "The typescript configuration file.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "AppConfigBase": {
+            "additionalProperties": false,
+            "properties": {
+                "aotGenDir": {
+                    "type": "string"
+                },
+                "appendOutputHash": {
+                    "description": "Appends version hash to the ouput bundled files.",
+                    "type": "boolean"
+                },
+                "assets": {
+                    "description": "The asset entries to be copied to output directory.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "properties": {
+                                    "context": {
+                                        "description": "A path that determines how to interpret the from path.",
+                                        "type": "string"
+                                    },
+                                    "flatten": {
+                                        "default": false,
+                                        "description": "Removes all directory references and only copies file names.",
+                                        "type": "boolean"
+                                    },
+                                    "force": {
+                                        "default": false,
+                                        "description": "Overwrites files already in compilation.assets (usually added by other plugins).",
+                                        "type": "boolean"
+                                    },
+                                    "from": {
+                                        "anyOf": [
+                                            {
+                                                "properties": {
+                                                    "dot": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "glob": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            {
+                                                "type": "string"
+                                            }
+                                        ],
+                                        "description": "The source file, it can be absolute or relative path or glob pattern."
+                                    },
+                                    "ignore": {
+                                        "description": "Additional globs to ignore for this pattern.",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    "to": {
+                                        "description": "The output root if from is file or dir.",
+                                        "type": "string"
+                                    },
+                                    "toType": {
+                                        "description": "'file' if to has extension or from is file.\n'dir' if from is directory, to has no extension or ends in '/'.",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
+                },
+                "compressAssets": {
+                    "description": "Compress assets.",
+                    "type": "boolean"
+                },
+                "dllChunkName": {
+                    "default": "vendor",
+                    "description": "The output chunk name for dll bundle.",
+                    "type": "string"
+                },
+                "dlls": {
+                    "description": "The entries for dll bundle.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "properties": {
+                                    "entry": {
+                                        "anyOf": [
+                                            {
+                                                "items": {
+                                                    "type": "string"
+                                                },
+                                                "type": "array"
+                                            },
+                                            {
+                                                "type": "string"
+                                            }
+                                        ]
+                                    },
+                                    "importToMain": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
+                },
+                "extractCss": {
+                    "description": "Extracts css.",
+                    "type": "boolean"
+                },
+                "faviconConfig": {
+                    "default": "favicon-config.json",
+                    "description": "The favicon configuration file.",
+                    "type": "string"
+                },
+                "htmlInjectOptions": {
+                    "description": "The html injection options.",
+                    "properties": {
+                        "customTagAttributes": {
+                            "items": {
+                                "properties": {
+                                    "attribute": {
+                                        "additionalProperties": {
+                                            "type": [
+                                                "string",
+                                                "boolean"
+                                            ]
+                                        },
+                                        "type": "object"
+                                    },
+                                    "tagName": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "type": "array"
+                        },
+                        "iconsOutFileName": {
+                            "type": "string"
+                        },
+                        "indexOutFileName": {
+                            "type": "string"
+                        },
+                        "stylesOutFileName": {
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
+                "i18nFile": {
+                    "description": "i18n file.",
+                    "type": "string"
+                },
+                "i18nFormat": {
+                    "description": "i18n format.",
+                    "type": "string"
+                },
+                "index": {
+                    "description": "The index html template file.",
+                    "type": "string"
+                },
+                "locale": {
+                    "description": "Locale.",
+                    "type": "string"
+                },
+                "main": {
+                    "description": "The entry for app main bootstrap file.",
+                    "type": "string"
+                },
+                "moduleReplacements": {
+                    "description": "Replaces resources that matches resourceRegExp with newResource.",
+                    "items": {
+                        "properties": {
+                            "newResource": {
+                                "type": "string"
+                            },
+                            "resourceRegExp": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "type": "array"
+                },
+                "outDir": {
+                    "description": "The output directory of bundled assets.",
+                    "type": "string"
+                },
+                "polyfills": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "The entries for app polyfills to be imported to the main entry."
+                },
+                "provide": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "To automatically load modules with alias key.",
+                    "type": "object"
+                },
+                "publicPath": {
+                    "description": "The public url address of the output files.",
+                    "type": "string"
+                },
+                "referenceDll": {
+                    "description": "To reference dll.",
+                    "type": "boolean"
+                },
+                "root": {
+                    "description": "The root directory of app.",
+                    "type": "string"
+                },
+                "scripts": {
+                    "description": "Script entries to be added to the global scope.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "properties": {
+                                    "entry": {
+                                        "type": "string"
+                                    },
+                                    "input": {
+                                        "type": "string"
+                                    },
+                                    "lazy": {
+                                        "type": "boolean"
+                                    },
+                                    "output": {
+                                        "type": "string"
+                                    },
+                                    "path": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
+                },
+                "skip": {
+                    "description": "To skip this app config when bundling.",
+                    "type": "boolean"
+                },
+                "skipCopyAssets": {
+                    "description": "Skips copying assets.",
+                    "type": "boolean"
+                },
+                "skipGenerateIcons": {
+                    "description": "Skips generating icons.",
+                    "type": "boolean"
+                },
+                "sourceMap": {
+                    "description": "Generates sourcemaps.",
+                    "type": "boolean"
+                },
+                "stylePreprocessorOptions": {
+                    "description": "Options to pass to style preprocessors",
+                    "properties": {
+                        "includePaths": {
+                            "default": "[]",
+                            "description": "\"Paths to include. Paths will be resolved to project root.\"",
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "type": "object"
+                },
+                "styles": {
+                    "description": "Global script entries to be included in the build. Supported styles are .css, .scss, .less and .stylus.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "properties": {
+                                    "entry": {
+                                        "type": "string"
+                                    },
+                                    "input": {
+                                        "type": "string"
+                                    },
+                                    "lazy": {
+                                        "type": "boolean"
+                                    },
+                                    "output": {
+                                        "type": "string"
+                                    },
+                                    "path": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
+                },
+                "test": {
+                    "type": "string"
+                },
+                "tsconfig": {
+                    "default": "tsconfig.json",
+                    "description": "The typescript configuration file.",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        }
+    },
+    "description": "Angular build config schema.",
+    "properties": {
+        "apps": {
+            "description": "Properties of the different applications in this project.",
+            "items": {
+                "$ref": "#/definitions/AppConfig"
+            },
+            "minItems": 1,
+            "type": "array"
+        }
+    },
+    "type": "object"
+}
+

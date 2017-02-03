@@ -9,11 +9,10 @@ Usage:
   ngb [options]`;
 
 import { CliOptions } from './models';
-import { init, initCommandModule } from './init';
-import { build, buildCommandModule } from './build';
+import { init, getInitCommandModule } from './init';
+import { build, getBuildCommandModule } from './build';
 
-// Main
-// ------------------------------------------------------------
+
 // ReSharper disable once CommonJsExternalModule
 module.exports = (cliOptions: CliOptions) => {
     // init yargs
@@ -48,8 +47,8 @@ module.exports = (cliOptions: CliOptions) => {
 function initYargs() {
     const yargsInstance = yargs
         .usage(cliUsage)
-        .example('ngb init', 'Create angular-build config files')
-        .example('ngb build', 'Create dll bundling')
+        .example('ngb init', 'Create required config files for angular-build')
+        .example('ngb build', 'Build/bundle the app(s)')
         .example('ngb -h', 'Show help')
         .option('h',
         {
@@ -63,9 +62,8 @@ function initYargs() {
             describe: 'Show version',
             type: 'boolean'
         })
-        .command(initCommandModule)
-        .command(buildCommandModule);
+        .command(getInitCommandModule())
+        .command(getBuildCommandModule());
     return yargsInstance;
 }
-
 

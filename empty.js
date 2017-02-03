@@ -1,7 +1,7 @@
 ﻿module.exports = {
     NgProbeToken: {},
-    HmrState() { },
-    _createConditionalRootRenderer(rootRenderer, extraTokens, coreTokens) {
+    HmrState: function () { },
+    _createConditionalRootRenderer: function (rootRenderer, extraTokens, coreTokens) {
         return rootRenderer;
     },
     __platform_browser_private__: {}

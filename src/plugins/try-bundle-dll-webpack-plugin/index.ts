@@ -4,34 +4,6 @@ const webpack = require('webpack');
 // ReSharper disable once InconsistentNaming
 const DllReferencePlugin = require('webpack/lib/DllReferencePlugin');
 
-const webpackOutputOptions = {
-    colors: true,
-    hash: true,
-    timings: true,
-    chunks: true,
-    chunkModules: false,
-    children: false, // listing all children is very noisy in AOT and hides warnings/errors
-    modules: false,
-    reasons: false,
-    warnings: true,
-    assets: false, // listing all assets is very noisy when using assets directories
-    version: false
-};
-
-const verboseWebpackOutputOptions = {
-    children: true,
-    assets: true,
-    version: true,
-    reasons: true,
-    chunkModules: false // TODO: set to true when console to file output is fixed
-};
-
-function getWebpackStatsConfig(verbose = false) {
-    return verbose
-        ? Object.assign(webpackOutputOptions, verboseWebpackOutputOptions)
-        : webpackOutputOptions;
-}
-
 
 export interface TryBundleDllPluginOptions {
     manifestFile: string;
@@ -42,11 +14,14 @@ export interface TryBundleDllPluginOptions {
 }
 
 export class TryBundleDllWebpackPlugin {
+    private compiler: any;
 
     constructor(private readonly options: TryBundleDllPluginOptions) {
     }
 
     apply(compiler: any) {
+        this.compiler = compiler;
+
         const target = compiler.options.target;
         const context = this.options.context || compiler.options.context;
         const chunkName = this.options.chunkName || 'vendor';
@@ -72,12 +47,12 @@ export class TryBundleDllWebpackPlugin {
         plugins.forEach(p => p.apply(compiler));
         compiler.options.plugins.push(...plugins);
 
-        compiler.plugin('run', (c: any, next: any) => this.tryDll(next));
-        compiler.plugin('watch-run', (c: any, next: any) => this.tryDll(next));
+        compiler.plugin('run', (c: any, next: any) => this.tryBundleDll(next));
+        compiler.plugin('watch-run', (c: any, next: any) => this.tryBundleDll(next));
     }
 
 
-    tryDll(next: (err?: Error) => any): void {
+    tryBundleDll(next: (err?: Error) => any): void {
         this.checkManifestFile()
             .then((exists: boolean) => {
                 if (exists) {
@@ -85,7 +60,8 @@ export class TryBundleDllWebpackPlugin {
                 } else {
                     const webpackDllConfig = this.options.webpackDllConfig;
                     const webpackCompiler: any = webpack(webpackDllConfig);
-                    const statsConfig = getWebpackStatsConfig(this.options.debug);
+                    //const statsConfig = getWebpackStatsConfig(this.options.debug);
+                    const statsConfig = this.compiler.options.stats || {};
 
                     return new Promise((resolve, reject) => {
                         const callback = (err: any, stats: any) => {

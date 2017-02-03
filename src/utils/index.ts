@@ -5,6 +5,23 @@ import * as semver from 'semver';
 //import { spawn } from 'child_process';
 const spawn = require('cross-spawn');
 
+export type yargType = 'array' | 'boolean' | 'count' | 'number' | 'string';
+export function mapToYargsType (typeStr: string): yargType{
+    switch (typeStr) {
+        case 'array':
+            return 'array';
+        case 'boolean':
+            return 'boolean';
+        case 'number':
+        case 'integer':
+            return 'number';
+        case 'string':
+            return 'string';
+        default:
+            return undefined;
+    }
+}
+
 export function stripComments(content: string): string {
     /**
      * First capturing group matches double quoted string
@@ -134,4 +151,13 @@ export function getVersionfromPackageJsonAsync(baseDir: string) {
         });
     });
 
+}
+
+export function chageDashCase(str: string): string {
+    if (!str) {
+        return str;
+    }
+    return str.replace(/([a-zA-Z])(?=[A-Z])/g, '$1-').toLowerCase();
+    //return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    // 	return this.replace(/([A-Z])/g, function($1){return "-"+$1.toLowerCase();});
 }

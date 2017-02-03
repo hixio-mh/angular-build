@@ -18,7 +18,7 @@
     assetTagsFilterFunc?: (tag: any) => boolean;
 
     // attributes
-    customAttributes?: {
+    customTagAttributes?: {
         tagName: string;
         attribute: { [key: string]: string | boolean };
     }[];
@@ -203,7 +203,7 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                             tags.map((tag: any) => {
                                 if (tag.tagName === targetTagName) {
                                     Object.keys(attributes).forEach((key: string) => {
-                                        tag.attributes[key] = attributes[key];
+                                        tag.attributes[key] = attributes[key].toString();
                                     });
                                 }
                                 return tag;
@@ -221,24 +221,32 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                                 return tag;
                             });
 
-                        if (this.options && this.options.customAttributes) {
-                            const customLinkAttributes = this.options.customAttributes
-                                .filter(c => c.tagName === 'link').map(c => c.attribute)
-                                .reduce((prev: { [key: string]: string | boolean }, next: { [key: string]: string | boolean }) => {
-                                    return Object.assign(prev, next);
-                                });
-                            const customScriptAttributes = this.options.customAttributes
-                                .filter(c => c.tagName === 'script').map(c => c.attribute)
-                                .reduce((prev: { [key: string]: string | boolean }, next: { [key: string]: string | boolean }) => {
-                                    return Object.assign(prev, next);
-                                });
+                        if (this.options && this.options.customTagAttributes) {
+                            let customLinkAttributes: { [key: string]: string | boolean } = null;
+                            const linkAttributes = this.options.customTagAttributes
+                                .filter(c => c.tagName === 'link').map(c => c.attribute);
+                            if (linkAttributes.length) {
+                                customLinkAttributes = linkAttributes
+                                    .reduce((prev: { [key: string]: string | boolean },
+                                        next: { [key: string]: string | boolean }) => {
+                                        return Object.assign(prev, next);
+                                    });
+                            }
+
+                            let customScriptAttributes: { [key: string]: string | boolean } = null;
+                            const scriptAttributes = this.options.customTagAttributes
+                                .filter(c => c.tagName === 'script').map(c => c.attribute);
+                            if (scriptAttributes.length) {
+                                customScriptAttributes = scriptAttributes
+                                    .reduce((prev: { [key: string]: string | boolean },
+                                        next: { [key: string]: string | boolean }) => {
+                                        return Object.assign(prev, next);
+                                    });
+                            }
+
                             if (customLinkAttributes) {
-                                htmlPluginArgs
-                                    .head =
-                                    updateAttributesFn(htmlPluginArgs.head, 'link', customLinkAttributes);
-                                htmlPluginArgs
-                                    .body =
-                                    updateAttributesFn(htmlPluginArgs.body, 'link', customLinkAttributes);
+                                htmlPluginArgs.head = updateAttributesFn(htmlPluginArgs.head, 'link', customLinkAttributes);
+                                htmlPluginArgs.body = updateAttributesFn(htmlPluginArgs.body, 'link', customLinkAttributes);
                             }
                             if (customScriptAttributes) {
                                 htmlPluginArgs.head = updateAttributesFn(htmlPluginArgs.head, 'script', customScriptAttributes);
