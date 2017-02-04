@@ -13,7 +13,7 @@ import { AppCommonModule } from './app.common.module';
 import { AppComponent } from './app.component';
 
 // Universal : XHR Cache
-import { CacheService } from './core';
+import { CacheService, StorageService, ServerStorage } from './core';
 
 export function getRequest() {
   return Zone.current.get('req') || {};
@@ -38,7 +38,10 @@ export function getResponse() {
         { provide: 'isBrowser', useValue: isBrowser },
         { provide: 'isNode', useValue: isNode },
         { provide: 'req', useFactory: getRequest },
-        { provide: 'res', useFactory: getResponse }
+        { provide: 'res', useFactory: getResponse },
+
+        // We're using Dependency Injection here to use a Server/Node specific "Storage" through the empty shell class StorageService
+        { provide: StorageService, useClass: ServerStorage }
 
         // Other providers you want to add that you don't want shared in "Common" but are browser only
     ]

@@ -27,11 +27,9 @@ module.exports = (cliOptions: CliOptions) => {
 
 
     if (command === 'init') {
-        return init(cliOptions)
-            .then(() => 0);
+        return init(cliOptions);
     } else if (command === 'build') {
-        return build(cliOptions)
-            .then(() => 0);
+        return build(cliOptions);
     } else if (commandOptions.version) {
         console.log(cliVersion);
         return Promise.resolve(0);
@@ -44,7 +42,7 @@ module.exports = (cliOptions: CliOptions) => {
     }
 }
 
-function initYargs() {
+function initYargs() : yargs.Argv {
     const yargsInstance = yargs
         .usage(cliUsage)
         .example('ngb init', 'Create required config files for angular-build')

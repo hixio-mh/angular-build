@@ -79,12 +79,17 @@ export function getWebpackConfigs(projectRoot: string, angularBuildConfig?: Angu
         mergeAppConfigWithDefaults(projectRoot, appConfig, buildOptions);
     });
 
+    const filterApps : string[] = [];
+    if (buildOptions.app && Array.isArray(buildOptions.app)) {
+        filterApps.push(...buildOptions.app);
+    } else if (typeof buildOptions.app === 'string') {
+        filterApps.push(buildOptions.app);
+    }
+
     const webpackConfigs = appConfigs
-        .filter((appConfig: AppConfig) => appConfig.skip === false &&
-        (!buildOptions.app ||
-        (buildOptions.app && buildOptions.app.length > 0 && appConfig.name && Array.isArray(buildOptions.app)
-            ? buildOptions.app.indexOf(appConfig.name) > -1
-            : buildOptions.app === appConfig.name)))
+        .filter((appConfig: AppConfig) => !appConfig.skip &&
+        (filterApps.length === 0 ||
+            (filterApps.length > 0 && appConfig.name && filterApps.indexOf(appConfig.name) > -1)))
         .map((appConfig: AppConfig) => {
             return getWebpackConfig(projectRoot, appConfig, buildOptions, true);
         });

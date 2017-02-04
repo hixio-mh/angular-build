@@ -11,11 +11,7 @@
         '@angular/compiler',
 
         // Universal
-        //'angular2-universal'
-        //"@angular/platform-server",
-
-        // Localization
-        //"ng2-translate"
-        //"angular2localization"
+        'angular2-universal',
+        "@angular/platform-server"
     ];
 }

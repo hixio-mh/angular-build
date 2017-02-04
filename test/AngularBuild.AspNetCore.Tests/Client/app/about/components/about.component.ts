@@ -1,12 +1,12 @@
 ﻿//import { Component, Input, ChangeDetectionStrategy, ViewEncapsulation, OnInit, HostBinding } from '@angular/core';
 import { Component, OnInit, HostBinding } from '@angular/core';
-//import { routeAnimation } from '../../core/animations';
+//import { routeAnimation } from '../../shared/animations';
 
 @Component({
   //changeDetection: ChangeDetectionStrategy.Default,
   //encapsulation: ViewEncapsulation.Emulated,
   selector: 'app-about',
-  templateUrl: 'about.component.html',
+  templateUrl: 'about.component.html'
   //animations: [routeAnimation]
 })
 export class AboutComponent implements OnInit {

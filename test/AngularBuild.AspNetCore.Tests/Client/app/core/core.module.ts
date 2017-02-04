@@ -10,8 +10,6 @@ import { LoggerService } from './logging';
 
 import { throwIfAlreadyLoaded } from './module-import-guard';
 
-//import { TitleComponent } from './title/title.component';
-
 @NgModule({
   imports: [
     CommonModule // we use ngFor

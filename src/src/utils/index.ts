@@ -8,8 +8,8 @@ const spawn = require('cross-spawn');
 export type yargType = 'array' | 'boolean' | 'count' | 'number' | 'string';
 export function mapToYargsType (typeStr: string): yargType{
     switch (typeStr) {
-        case 'array':
-            return 'array';
+        //case 'array':
+        //    return 'array';
         case 'boolean':
             return 'boolean';
         case 'number':
@@ -81,7 +81,8 @@ export function checkFileOrDirectoryExistsAsync(filePath: string, isDir?: boolea
 export function findFileOrDirectoryFromPossibleAsync(baseDir: string, possibleNames: string[], preferredName?: string, isDir?: boolean) {
     const tasks = possibleNames.map(name => {
         const pathToFind = path.resolve(baseDir, name);
-        return checkFileOrDirectoryExistsAsync(pathToFind, isDir).then(exists => exists ? name : null);
+        return checkFileOrDirectoryExistsAsync(pathToFind, isDir)
+            .then(exists => exists ? name : null);
     });
 
     return Promise.all(tasks)

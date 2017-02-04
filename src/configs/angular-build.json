@@ -1,12 +1,13 @@
 {
-  "apps": [   {
+  "apps": [
+    {
       "root": "src",
       "outDir": "dist",
+      "main": "",
       "assets": [],
       "styles": [],
       "scripts": [],
       "tsconfig": "tsconfig.json",
-      "publicPath": "/",
       "faviconConfig": "favicon-config.json",
       "dlls": [
         {
@@ -17,13 +18,21 @@
           "entry": "vendors.ts"
         }
       ],
+      "publicPath": "/",
+      "index": "",
+      "htmlInjectOptions": {
+        "indexOutFileName": "",
+        "iconsOutFileName": "",
+        "stylesOutFileName": "",
+        "customTagAttributes": []
+      },
       "environments": {
         "source": "environments/environment.ts",
         "dev": "environments/environment.ts",
         "prod": "environments/environment.prod.ts"
       },
       "buildTargetOverrides": {
-        "dev": { },
+        "dev": {},
         "prod": {
           "moduleReplacements": [],
           "compressAssets": true,

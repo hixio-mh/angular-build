@@ -14,6 +14,7 @@
                     "type": "boolean"
                 },
                 "assets": {
+                    "default": "[]",
                     "description": "The asset entries to be copied to output directory.",
                     "items": {
                         "anyOf": [
@@ -105,6 +106,7 @@
                     "type": "string"
                 },
                 "dlls": {
+                    "default": "[]",
                     "description": "The entries for dll bundle.",
                     "items": {
                         "anyOf": [
@@ -246,6 +248,7 @@
                             "type": "string"
                         }
                     ],
+                    "default": "[]",
                     "description": "The entries for app polyfills to be imported to the main entry."
                 },
                 "provide": {
@@ -268,6 +271,7 @@
                     "type": "string"
                 },
                 "scripts": {
+                    "default": "[]",
                     "description": "Script entries to be added to the global scope.",
                     "items": {
                         "anyOf": [
@@ -329,6 +333,7 @@
                     "type": "object"
                 },
                 "styles": {
+                    "default": "[]",
                     "description": "Global script entries to be included in the build. Supported styles are .css, .scss, .less and .stylus.",
                     "items": {
                         "anyOf": [
@@ -395,6 +400,7 @@
                     "type": "boolean"
                 },
                 "assets": {
+                    "default": "[]",
                     "description": "The asset entries to be copied to output directory.",
                     "items": {
                         "anyOf": [
@@ -468,6 +474,7 @@
                     "type": "string"
                 },
                 "dlls": {
+                    "default": "[]",
                     "description": "The entries for dll bundle.",
                     "items": {
                         "anyOf": [
@@ -594,6 +601,7 @@
                             "type": "string"
                         }
                     ],
+                    "default": "[]",
                     "description": "The entries for app polyfills to be imported to the main entry."
                 },
                 "provide": {
@@ -616,6 +624,7 @@
                     "type": "string"
                 },
                 "scripts": {
+                    "default": "[]",
                     "description": "Script entries to be added to the global scope.",
                     "items": {
                         "anyOf": [
@@ -677,6 +686,7 @@
                     "type": "object"
                 },
                 "styles": {
+                    "default": "[]",
                     "description": "Global script entries to be included in the build. Supported styles are .css, .scss, .less and .stylus.",
                     "items": {
                         "anyOf": [

@@ -16,10 +16,12 @@ export interface AppConfigBase {
     main?: string;
     /**
      * The entries for app polyfills to be imported to the main entry.
+     * @default []
      */
     polyfills?: string | string[];
     /**
      * The entries for dll bundle.
+     * @default []
      */
     dlls?: (string | DllEntry)[];
     /**
@@ -29,14 +31,17 @@ export interface AppConfigBase {
     dllChunkName?: string;
     /**
      * The asset entries to be copied to output directory.
+     * @default []
      */
     assets?: (string | AssetEntry)[];
     /**
      * Global script entries to be included in the build. Supported styles are .css, .scss, .less and .stylus.
+     * @default []
      */
     styles?: (string | GlobalScopedEntry)[];
     /**
      * Script entries to be added to the global scope.
+     * @default []
      */
     scripts?: (string | GlobalScopedEntry)[];
     /**

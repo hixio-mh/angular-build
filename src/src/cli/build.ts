@@ -7,14 +7,12 @@ import { getWebpackConfigs } from '../webpack-configs';
 
 import { CliOptions } from './models';
 
-import {
-    readJsonAsync, chageDashCase, mapToYargsType } from '../utils';
+import {chageDashCase, mapToYargsType } from '../utils';
 
 const cliVersion = require('../../package.json').version;
 
 
-// ReSharper disable once InconsistentNaming
-const SCHEMA_PATH = '../../configs/schema.json';
+const schema: any = require('../../configs/schema.json');
 
 export const buildCommandUsage = `\n${chalk.green(`angular-build ${cliVersion}`)}\n
 Usage:
@@ -41,14 +39,13 @@ export function getBuildCommandModule() {
                     type: 'boolean'
                 });
 
-            const schema: any = readJsonAsync(SCHEMA_PATH);
             const buildOptionsSchema = schema.definitions.BuildOptions.properties;
             Object.keys(buildOptionsSchema).forEach((key: string) => {
                 yargvObj = yargvObj.options(chageDashCase(key),
                     {
                         describe: buildOptionsSchema[key].description || key,
                         type: mapToYargsType(buildOptionsSchema[key].type),
-                        default: buildOptionsSchema[key].default
+                        default: undefined
                     });
             });
 
@@ -59,7 +56,7 @@ export function getBuildCommandModule() {
     return buildCommandModule;
 }
 
-export function build(cliOptions: CliOptions) {
+export function build(cliOptions: CliOptions): Promise<number> {
 
     return new Promise((resolve, reject) => {
         if (cliOptions.commandOptions.project) {
@@ -67,13 +64,13 @@ export function build(cliOptions: CliOptions) {
                 ? cliOptions.commandOptions.project
                 : path.resolve(cliOptions.cwd, cliOptions.commandOptions.project);
         }
-        const buildOptions : any = {};
+        const buildOptions: any = {};
         if (cliOptions.commandOptions && typeof cliOptions.commandOptions === 'object') {
-            const schema: any = readJsonAsync(SCHEMA_PATH);
             const buildOptionsSchema = schema.definitions.BuildOptions.properties;
-            Object.keys(cliOptions.commandOptions).filter((key: string) => buildOptionsSchema[key]).forEach((key: string) => {
-                buildOptions[key] = cliOptions.commandOptions[key];
-            });
+            Object.keys(cliOptions.commandOptions).filter((key: string) => buildOptionsSchema[key])
+                .forEach((key: string) => {
+                    buildOptions[key] = cliOptions.commandOptions[key];
+                });
         }
         const configs = getWebpackConfigs(cliOptions.cwd, null, buildOptions);
         if (!configs || !configs.length) {
@@ -101,5 +98,5 @@ export function build(cliOptions: CliOptions) {
         } else {
             webpackCompiler.run(callback);
         }
-    });
+    }).then(() => 0);
 }

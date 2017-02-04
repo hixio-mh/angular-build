@@ -1,11 +1,15 @@
 ﻿import * as path from 'path';
 import * as fs from 'fs';
 
+import * as webpack from 'webpack';
+
 // ReSharper disable InconsistentNaming
 const DllPlugin = require('webpack/lib/DllPlugin');
-const IgnorePlugin = require('webpack/lib/IgnorePlugin');
+//const IgnorePlugin = require('webpack/lib/IgnorePlugin');
 
-const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
+//const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
+import { CheckerPlugin }  from 'awesome-typescript-loader';
+
 const webpackMerge = require('webpack-merge');
 // ReSharper restore InconsistentNaming
 
@@ -97,7 +101,7 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
         }),
 
         // Workaround for https://github.com/stefanpenner/es6-promise/issues/100
-        new IgnorePlugin(/^vertx$/)
+        new webpack.IgnorePlugin(/^vertx$/)
 
         // Workaround for https://github.com/andris9/encoding/issues/16
         //new NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop')))

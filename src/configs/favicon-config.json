@@ -1,5 +1,5 @@
 ﻿{
-  "masterPicture": null,
+  "masterPicture": "",
   "iconsPath": "icons-[hash]/",
   "design": {
     //"favicons": true,
@@ -74,7 +74,6 @@
       }
     }
 
-
     //"coast": false,
     //"coast": {
     //  "pictureAspect": "backgroundAndMargin",
@@ -104,12 +103,11 @@
     "errorOnImageTooSmall": true
   },
   "versioning": false,
-
-  "appName": "@ViewBag.ApplicationName",
+  "appName": "",
   "version": "1.0",
-  "appDescription": null,
-  "developerName": null,
-  "developerUrl": null,
+  "appDescription": "",
+  "developerName": "",
+  "developerUrl": "",
   "background": "#ffffff",
   "dir": "auto",
   "lang": "en-US",

@@ -1,11 +1,14 @@
 ﻿// caching
 export * from './caching';
 
+// meta
+export * from './meta';
+
 // state
 export * from './state';
 
-// Localization
-//export * from './localization';
+// rx
+export * from './rx';
 
 // module
 export * from './core.module';

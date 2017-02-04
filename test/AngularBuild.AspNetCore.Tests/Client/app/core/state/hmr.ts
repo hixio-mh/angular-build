@@ -1,6 +1,4 @@
-// See - https://github.com/CodeSequence/ngrx-store-hmr/blob/master/lib/index.ts
-
-import {  ApplicationRef, NgModuleRef } from '@angular/core';
+import { ApplicationRef, NgModuleRef } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { createNewHosts, removeNgStyles } from '@angularclass/hmr';
 
