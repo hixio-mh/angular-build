@@ -1,0 +1,76 @@
+{
+  "apps": [
+    {
+      "root": "",
+      "outDir": "",
+      "main": "",
+      "assets": [],
+      "styles": [],
+      "scripts": [],
+      "polyfills": [ "polyfills.browser.ts" ],
+      "dlls": [
+        {
+          "entry": "rxjs.imports.ts",
+          "importToMain": true
+        },
+        {
+          "entry": "../package.json",
+          "excludes": [
+            "angular2-universal-polyfills",
+            "core-js",
+            "es6-promise",
+            "es6-shim",
+            "ie-shim",
+            "reflect-metadata",
+            "rxjs",
+            "tslib",
+            "ts-helpers",
+            "zone.js"
+          ]
+        }
+      ],
+      "tsconfig": "../tsconfig.webpack.json",
+      "faviconConfig": "favicon-config.json",
+      "publicPath": "/",
+      "index": "",
+      "htmlInjectOptions": {
+        "indexOutFileName": "",
+        "iconsOutFileName": "",
+        "stylesOutFileName": "",
+        "customTagAttributes": []
+      },
+      "environments": {
+        "source": "environments/environment.ts",
+        "dev": "environments/environment.ts",
+        "prod": "environments/environment.prod.ts"
+      },
+      //"skipGenerateIcons": true,
+      "buildTargetOverrides": {
+        //"aot": {
+        //  "main": "main.browser.aot.ts",
+        //  "tsconfig": "../tsconfig.webpack.aot.json"
+        //},
+        "dev": {
+          // Default - true
+          "referenceDll": true
+          //"skipGenerateIcons": true
+        },
+        "prod": {
+          // Default - true
+          "compressAssets": true,
+          // Default - false
+          "sourceMap": false,
+          // Default - true
+          "extractCss": true,
+          "moduleReplacements": [
+            {
+              "resourceRegExp": "angular2-hmr",
+              // Path is relative to project root dir, Default - angular-build's empty.js module
+              "newResource": "empty.js"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

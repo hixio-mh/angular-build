@@ -185,7 +185,6 @@ ClientBin/
 *.dbproj.schemaview
 *.pfx
 *.publishsettings
-node_modules/
 orleans.codegen.cs
 
 # RIA/Silverlight projects
@@ -244,17 +243,18 @@ ModelManifest.xml
 # Custom
 # --------------------------------------------------
 # node_modules
+node_modules/
 **/node_modules/
+
+# dist
+dist/**/*
+**/wwwroot/**/*
 
 # npm
 **/npm-debug.log*
 
 # User-specific files
 
-
+# Misc.
 **/tmp/
 **/obj/
-
-test/**/bin/
-
-src/dist/

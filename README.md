@@ -1,44 +1,32 @@
 # @bizappframework/angular-build
 
 #### What is this repo?
-Webpack configuration for Angular 2/4 apps based on [angular-cli](https://github.com/angular/angular-cli), [AngularClass's angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter) and [Angular Universal](https://github.com/angular/universal).  
-This configuration is utilized for:
-- Server-side rendering (see [Angular Universal](https://github.com/angular/universal))  
-- HMR - Hot Module Reloading/Replacement (see [Angular Universal](https://github.com/angular/universal))  
-- Development builds (JIT/[AoT](https://angular.io/docs/ts/latest/cookbook/aot-compiler.html))  
-- Production builds (JIT/[AoT](https://angular.io/docs/ts/latest/cookbook/aot-compiler.html))  
-- Optimizing webpack build times with DLL bundles (see [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin))
-- Online or offline favicons generation - integration with [realfavicongenerator](http://realfavicongenerator.net) and [haydenbleasel favicons](https://github.com/haydenbleasel/favicons)
+Easy and customizable angular build system based on [angular-cli](https://github.com/angular/angular-cli). Build config file is similar to angular-cli.json but includes some customization for:  
+- Webpack config file to project folder in order to integrate with some packages such as [Microsoft ASP.NET Core JavaScript Services](https://github.com/aspnet/JavaScriptServices)    
+- DLL bundling support for optimizing webpack build time, see [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)
+- Online or offline favicons generation - integration with [realfavicongenerator](http://realfavicongenerator.net) and [haydenbleasel/favicons](https://github.com/haydenbleasel/favicons)
+- Customizable html injection support, single or separate output file(s) for bundled result tags (styles, scripts, favicons), and can add custom link and script attribues (such as asp-append-version) to injected result
+- Build target overrides support - e.g. for production build - can disable using dll, for aot build - can use different bootstrap main entry
 - Easy configuration with [angular-build.json](https://github.com/BizAppFramework/angular-build/blob/master/config/angular-build.json) or [angular-cli.json](https://github.com/angular/angular-cli)   
 
-## How to Install
+## Quick Start:
+Make sure you have Node version >= 6.9.1 and npm >= 3.  
+  
+**1. Installation**
 ```<language>
-// Angular dependencies
-npm install --save @angular/core @angular/compiler reflect-metadata rxjs zone.js
-
-// Other dependencies
-npm install --save-dev  @angular/compiler-cli @ngtools/webpack typescript ts-node cross-env rimraf 
-
-// main package
-npm install --save-dev @bizappframework/angular-build
+npm i -g @bizappframework/angular-build
 ```  
 
-## Init configurations
+**2. Download the ASP.Net Core starter repo and run app**  
 ```<language>
-angular-build init --prompt
+# --depth 1 removes all but one .git commit history
+git clone --depth 1 https://github.com/bizappframework/angular-build-aspnet-tests.git
 ```  
-
-## Builds
-```<language>
-// For dll bundle only
-npm run build:dll
-
-// For debug/development build
-npm run build:dev
-
-// For production JIT build
-npm run build:prod
-
-// For production AoT build
-npm run build:aot
-```  
+  
+  ## References:
+  [angular/angular-cli](https://github.com/angular/angular-cli)  
+  [AngularClass/angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter)  
+  [realfavicongenerator.net](https://realfavicongenerator.net/api/non_interactive_api)  
+  [jantimon/favicons-webpack-plugin](https://github.com/jantimon/favicons-webpack-plugin)  
+  [haydenbleasel/favicons](https://github.com/haydenbleasel/favicons)  
+  [MarkPieszak/aspnetcore-angular2-universal](https://github.com/MarkPieszak/aspnetcore-angular2-universal)
