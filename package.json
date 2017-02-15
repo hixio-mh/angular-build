@@ -1,16 +1,18 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "1.0.0",
-  "description": "Build system for Angular 2/4 apps based on angular-cli and webpack.",
+  "version": "1.0.1",
+  "description": "Build system for Angular apps based on angular-cli and webpack.",
   "keywords": [
     "bizappframework",
     "angular-build",
+    "angular",
     "angular2",
     "angular4",
     "build",
     "angular-cli",
     "angular/cli",
-    "webpack"
+    "webpack",
+    "webpack2"
   ],
   "author": "Octalhouse",
   "main": "dist/index.js",
