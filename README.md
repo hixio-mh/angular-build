@@ -38,7 +38,216 @@ ngb build
 Press F5
 ```  
   
+## Ways to build your angular apps  
+You can build your angular app using one of three ways.  
+  
+1. Using **ngb build** / **angular-build build** cli command  
+```<language>
+Usage:
+  ngb build [options...]
 
+Options:
+  -h                     Show help                                     [boolean]
+  --project              The target project location                    [string]
+  --watch                Build/bundle the app(s) with watch mode       [boolean]
+  --aot                  Set true for aot build.                       [boolean]
+  --app                  To build only specific app. Use app's name.
+  --append-output-hash   Appends version hash to the ouput bundled files.
+                                                                       [boolean]
+  --compress-assets      Compress assets.                              [boolean]
+  --config-file-path     The 'angular-build.json' oar 'angular-cli.json' config
+                         file path.                                     [string]
+  --dll                  Set true for dll build.                       [boolean]
+  --extract-css          Extracts css.                                 [boolean]
+  --performance-hint     Show performance hints.                       [boolean]
+  --production           Set true for production.                      [boolean]
+  --progress             Shows progress.                               [boolean]
+  --reference-dll        To reference dlls for all apps.               [boolean]
+  --skip-copy-assets     Skips copying assets.                         [boolean]
+  --skip-generate-icons  Skips generating icons.                       [boolean]
+  --source-map           Generates sourcemaps.                         [boolean]
+  --verbose              If true, the console displays detailed diagnostic
+                         information.                                  [boolean]
+
+Examples:
+
+#For development build:
+ngb build
+
+#For production build:
+ngb build --production
+
+#For production AoT build:
+ngb build --aot
+```  
+  
+2. Using **npm** scripts  
+```<language>
+#For development build:
+npm run build
+
+#For production build:
+npm run build:prod
+
+#For production AoT build:
+npm run build:aot
+```
+  
+   
+3. Using **Microsoft.AspNetCore.SpaServices.Webpack**  
+
+Add the following code to Startup.cs
+```<language>
+public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+{
+    // Other configurations...
+
+    if (env.IsDevelopment())
+    {
+        app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
+        {
+          ConfigFile = "webpack.config.js",
+          HotModuleReplacement = true
+        });
+    }
+    
+    // Other configurations...
+
+```
+  
+## Explains:  
+#### angular-build.json  
+The main configuration file to build your angular apps. Most of app configuration are the same as [angular-cli](https://github.com/angular/angular-cli). The following is an example configuration.  
+```<language>
+{
+  "apps": [
+    {
+      // The root directory of angular app.
+      "root": "Client",
+
+      // The output directory of bundled assets.
+      "outDir": "wwwroot",
+
+      // The entry for app main bootstrap file.
+      "main": "main.browser.ts",
+
+      // The asset entries to be copied to output directory.
+      "assets": [
+        "assets/**/*"
+      ],
+
+      // Global script entries to be included in the build. Supported styles are .css, .scss, .less and .stylus.
+      "styles": [
+        "styles.scss"
+      ],
+
+      // Script entries to be added to the global scope.
+      "scripts": [],
+
+      // The entries for app polyfills to be imported to the main entry.
+      "polyfills": [
+        "polyfills.browser.ts"
+      ],
+
+      // The entries for dll bundle.
+      "dlls": [
+        {
+          "entry": "rxjs.imports.ts",
+          "importToMain": true
+        },
+        {
+          "entry": "../package.json",
+          "excludes": [
+            "core-js",
+            "zone.js"
+          ]
+        }
+      ],
+
+      // The typescript configuration file
+      "tsconfig": "../tsconfig.webpack.json",
+
+      // The favicon configuration file.
+      "faviconConfig": "favicon-config.json",
+
+      // The public url address of the output files.
+      "publicPath": "/",
+
+      // The html injection options.
+      "htmlInjectOptions": {
+        "indexOutFileName": "../Views/Shared/_BundledScripts.cshtml",
+        "iconsOutFileName": "../Views/Shared/_FavIcons.cshtml",
+        "stylesOutFileName": "../Views/Shared/_BundledStyles.cshtml",
+        "customTagAttributes": [
+          {
+            "tagName": "link",
+            "attribute": {
+              "asp-append-version": true
+            }
+          },
+          {
+            "tagName": "script",
+            "attribute": {
+              "asp-append-version": true
+            }
+          }
+        ]
+      },
+
+      // The optin to select environment file to be used with build target - dev or prod.
+      "environments": {
+        "source": "environments/environment.ts",
+        "dev": "environments/environment.ts",
+        "prod": "environments/environment.prod.ts"
+      },
+
+      // Build target overrides
+      "buildTargetOverrides": {
+        // For aot build with ngc. Default is used ngtools/webpack if main entry does not end with *.aot.ts
+        //"aot": {
+        //  "main": "main.browser.aot.ts",
+        //  "tsconfig": "../tsconfig.webpack.aot.json"
+        //},
+
+        "dev": {
+          // Default - true
+          "referenceDll": false
+        },
+
+        "prod": {
+          // Default - true
+          "compressAssets": true,
+          // Default - false
+          "sourceMap": false,
+          // Default - true
+          "extractCss": true,
+          // Module replacement for production build
+          "moduleReplacements": [
+            {
+              "resourceRegExp": "angular2-hmr",
+              // Path is relative to project root dir, Default - angular-build's empty.js module
+              "newResource": "empty.js"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+```  
+  
+The complete typescript model is [here](https://github.com/BizAppFramework/angular-build/blob/master/src/models/index.ts).  
+  
+### webpack.config.js  
+```<language>
+const getWebpackConfigs = require('@bizappframework/angular-build').getWebpackConfigs;
+const configs = getWebpackConfigs(__dirname);
+module.exports = configs;
+```
+
+Pre-configured webpack config models for your angular apps can be get by **getWebpackConfigs** function. The role of this function is to provide webpack config models by parsing **angular-build.json** file.  
+If you use **ngb build** cli command, this file will be skiped.  
+  
 ## References:  
 [angular/angular-cli](https://github.com/angular/angular-cli)  
 [AngularClass/angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter)  

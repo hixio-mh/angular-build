@@ -28,7 +28,7 @@ export function getBuildCommandModule() {
             let yargvObj = yargv
                 .reset()
                 .usage(buildCommandUsage)
-                .example('ngb build', 'Build/bundle the app(s) using angular-build.json file')
+                .example('ngb build', 'Build/bundle the app(s) using angular-build.json file.')
                 .help('h')
                 .option('project',
                 {
@@ -39,7 +39,7 @@ export function getBuildCommandModule() {
                 {
                     describe: 'Build/bundle the app(s) with watch mode',
                     type: 'boolean',
-                    default: false
+                    default: undefined
                 });
 
             const buildOptionsSchema = schema.definitions.BuildOptions.properties;

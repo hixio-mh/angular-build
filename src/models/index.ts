@@ -271,7 +271,7 @@ export interface AngularBuildConfig {
  */
 export interface BuildOptions {
     /**
-     * The 'angular-build.json' oar 'angular-cli.json' config file path.
+     * The 'angular-build.json' config file path.
      */
     configFilePath?: string;
     /**
@@ -309,7 +309,7 @@ export interface BuildOptions {
      */
     referenceDll?: boolean;
     /**
-     * Appends version hash to the ouput bundled files.
+     * Appends version hash to the ouput files.
      */
     appendOutputHash?: boolean;
     /**
