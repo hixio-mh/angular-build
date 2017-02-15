@@ -499,22 +499,50 @@ export function init(cliOptions: CliOptions): Promise<number> {
         })
         // 7. save root tsconfig.json file
         .then(() => {
-            const tsConfigPath = path.resolve(projectRoot, 'tsconfig.json');
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
-            const tsConfigWebpackPath = path.resolve(projectRoot, appConfig.root, appConfig.tsconfig);
-            if (tsConfigPath === tsConfigWebpackPath) {
-                return Promise.resolve();
-            }
-
+            const tsConfigPath = path.resolve(projectRoot, 'tsconfig.json');
             let userTsConfigExists = false;
             return checkFileOrDirectoryExistsAsync(tsConfigPath).then(exists => {
+                let outDir = `${appConfig.outDir}/out-tsc`;
+
+                const excludeList: string[] = cfg.tsConfigMaster.exclude || [];
+                if (excludeList.indexOf(appConfig.outDir) === -1) {
+                    excludeList.push(appConfig.outDir);
+                }
+                if (excludeList.indexOf(`${appConfig.root}/**/*.spec.ts`) === -1) {
+                    excludeList.push(`${appConfig.root}/**/*.spec.ts`);
+                }
+                if (excludeList.indexOf(`${appConfig.root}/**/*.e2e.ts`) === -1) {
+                    excludeList.push(`${appConfig.root}/**/*.e2e.ts`);
+                }
+
                 if (exists) {
                     userTsConfigExists = true;
+                    // Merge
                     return readJsonAsync(tsConfigPath).then((userTsConfig: any) => {
-                        return Object.assign({}, userTsConfig, cfg.tsConfigMaster);
+
+                        if (userTsConfig.compilerOptions && userTsConfig.compilerOptions.outDir) {
+                            outDir = userTsConfig.compilerOptions.outDir;
+                        }
+
+                        if (userTsConfig.exclude && userTsConfig.exclude.length) {
+                            userTsConfig.exclude.forEach((e: string) => {
+                                if (excludeList.indexOf(e) === -1) {
+                                    excludeList.push(e);
+                                }
+                            });
+                        }
+
+                        const mergedConfig: any = Object.assign({}, userTsConfig, cfg.tsConfigMaster);
+                        mergedConfig.compilerOptions.outDir = outDir;
+                        mergedConfig.exclude = excludeList;
+                        return mergedConfig;
                     });
                 } else {
-                    return Promise.resolve(cfg.tsConfigMaster);
+                    const mergedConfig: any = cfg.tsConfigMaster;
+                    mergedConfig.compilerOptions.outDir = outDir;
+                    mergedConfig.exclude = excludeList;
+                    return Promise.resolve(mergedConfig);
                 }
             }).then((tsConfig: any) => {
                 // Create

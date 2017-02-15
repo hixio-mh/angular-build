@@ -22,7 +22,7 @@ interface SystemJS {
 
 interface GlobalEnvironment {
     ENV: string;
-    //HMR: boolean;
+    HMR: boolean;
     SystemJS: SystemJS;
     System: SystemJS;
 }
