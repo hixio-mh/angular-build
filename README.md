@@ -37,10 +37,11 @@ ngb build
 # Run - Press F5
 ```  
   
-  ## References:  
-  [angular/angular-cli](https://github.com/angular/angular-cli)  
-  [AngularClass/angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter)  
-  [realfavicongenerator.net](https://realfavicongenerator.net/api/non_interactive_api)  
-  [jantimon/favicons-webpack-plugin](https://github.com/jantimon/favicons-webpack-plugin)  
-  [haydenbleasel/favicons](https://github.com/haydenbleasel/favicons)  
-  [MarkPieszak/aspnetcore-angular2-universal](https://github.com/MarkPieszak/aspnetcore-angular2-universal)
+
+## References:  
+[angular/angular-cli](https://github.com/angular/angular-cli)  
+[AngularClass/angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter)  
+[realfavicongenerator.net](https://realfavicongenerator.net/api/non_interactive_api)  
+[jantimon/favicons-webpack-plugin](https://github.com/jantimon/favicons-webpack-plugin)  
+[haydenbleasel/favicons](https://github.com/haydenbleasel/favicons)  
+[MarkPieszak/aspnetcore-angular2-universal](https://github.com/MarkPieszak/aspnetcore-angular2-universal)
