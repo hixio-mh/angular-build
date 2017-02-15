@@ -45,6 +45,7 @@
     "css": "^2.2.1",
     "css-loader": "^0.26.1",
     "cssnano": "^3.10.0",
+    "del": "^2.2.2",
     "extract-text-webpack-plugin": "^2.0.0-rc.3",
     "favicons": "^4.8.3",
     "file-loader": "^0.10.0",
@@ -83,14 +84,16 @@
     "webpack-dev-server": "^2.3.0",
     "webpack-hot-middleware": "^2.16.1",
     "webpack-merge": "^2.6.1",
-    "yargs": "^6.6.0"
-  },
-  "devDependencies": {
+    "yargs": "^6.6.0",
+    "optimize-js-plugin": "0.0.4",
+    "rimraf": "^2.5.4",
     "@angular/compiler": "^2.4.7",
     "@angular/compiler-cli": "^2.4.7",
     "@angular/core": "^2.4.7",
     "@angularclass/hmr": "^1.2.2",
-    "@ngtools/webpack": "^1.2.9",
+    "@ngtools/webpack": "^1.2.9"
+  },
+  "devDependencies": {
     "@types/chalk": "^0.4.31",
     "@types/del": "^2.2.32",
     "@types/fs-extra": "0.0.37",
@@ -104,12 +107,10 @@
     "@types/uglify-js": "^2.6.28",
     "@types/webpack": "^2.2.5",
     "@types/yargs": "^6.6.0",
+
     "core-js": "^2.4.1",
     "cross-env": "^3.1.4",
-    "del": "^2.2.2",
     "es6-promise": "^4.0.5",
-    "optimize-js-plugin": "0.0.4",
-    "rimraf": "^2.5.4",
     "rxjs": "^5.1.1",
     "tslib": "^1.5.0",
     "tslint": "^4.4.2",
