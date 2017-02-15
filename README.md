@@ -98,7 +98,7 @@ npm run build:aot
      
 **3.** Using **Microsoft.AspNetCore.SpaServices.Webpack**  
 
-Add the following code to Startup.cs
+Add the following code to Startup.cs. See [angular-build-aspnetcore-starter](https://github.com/mmzliveid/angular-build-aspnetcore-starter) repo.  
 ```<language>
 public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
 {
@@ -119,7 +119,7 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerF
   
 ## Explains:  
 #### angular-build.json  
-The main configuration file to build your angular apps. Most of app configuration are the same as [angular-cli](https://github.com/angular/angular-cli). The following is an example configuration.  
+The main configuration file to build your angular apps. It is similar to or nearly the same as [angular-cli](https://github.com/angular/angular-cli). The following is an example configuration.  
 ```<language>
 {
   "apps": [
