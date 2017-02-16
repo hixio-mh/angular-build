@@ -44,22 +44,43 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include=".editorconfig" />
+    <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
+    <Content Include=".npmignore" />
+    <Content Include="bin\angular-build" />
     <Content Include="bin\Microsoft.NodejsTools.WebRole.dll" />
     <Content Include="bin\ngb" />
-    <Content Include="src\cli\index.ts" />
+    <Content Include="CHANGELOG.md" />
+    <Content Include="LICENSE" />
+    <Content Include="package.json" />
+    <Content Include="README.md" />
+    <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="bin\" />
+    <Folder Include="configs\" />
+    <Folder Include="src\" />
+    <Folder Include="src\cli\" />
     <Folder Include="src\models\" />
     <Folder Include="src\models\" />
+    <Folder Include="src\models\" />
+    <Folder Include="src\plugins\" />
     <Folder Include="src\plugins\" />
     <Folder Include="src\plugins\" />
     <Folder Include="src\plugins\compression-webpack-plugin\" />
+    <Folder Include="src\plugins\compression-webpack-plugin\" />
+    <Folder Include="src\plugins\customize-assets-html-webpack-plugin\" />
     <Folder Include="src\plugins\customize-assets-html-webpack-plugin\" />
     <Folder Include="src\plugins\icon-webpack-plugin\" />
+    <Folder Include="src\plugins\icon-webpack-plugin\" />
+    <Folder Include="src\plugins\icon-webpack-plugin\src\" />
     <Folder Include="src\plugins\icon-webpack-plugin\src\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
+    <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
     <Folder Include="src\plugins\try-bundle-dll-webpack-plugin\" />
+    <Folder Include="src\plugins\try-bundle-dll-webpack-plugin\" />
+    <Folder Include="src\utils\" />
     <Folder Include="src\utils\" />
     <Folder Include="src\utils\" />
     <Folder Include="src\webpack-configs\" />
@@ -70,8 +91,11 @@
     <Folder Include="src\plugins\try-bundle-dll-webpack-plugin\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
     <Folder Include="src\webpack-configs\" />
+    <Folder Include="src\webpack-configs\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\cli\build.ts" />
+    <TypeScriptCompile Include="src\cli\index.ts" />
     <TypeScriptCompile Include="src\cli\init.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -128,6 +152,9 @@
     <TypeScriptCompile Include="src\webpack-configs\config.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="empty.js" />
   </ItemGroup>
   <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
