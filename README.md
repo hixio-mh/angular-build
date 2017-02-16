@@ -18,13 +18,13 @@ npm i -g @bizappframework/angular-build
 ```  
   
 **2. Download/clone starter repo**  
-For ASP.Net Core (>=1.1) repo  
+For ASP.Net Core (1.1) repo  
 [angular-build-aspnetcore-starter](https://github.com/mmzliveid/angular-build-aspnetcore-starter)  
   
 For NodeJS repo  
 [angular-build-nodejs-starter](https://github.com/mmzliveid/angular-build-nodejs-starter)  
   
-**3. Install dependencies, build app and run**  
+**3. Install dependencies, build and run**  
 ```<language>
 # Change to the repo directory
 cd <your-repo>
@@ -41,7 +41,7 @@ ngb build
 # Run your app
 ```  
   
-## Ways to build your angular apps  
+## Ways to build your angular apps:  
 You can build your angular apps using one of the following ways.  
   
 **1.** Using **ngb build** / **angular-build build** cli command   
@@ -96,7 +96,7 @@ npm run build:prod
 npm run build:aot
 ```  
      
-**3.** Using **Microsoft.AspNetCore.SpaServices.Webpack**  
+**3.** Using **WebpackDevMiddleware - ([Microsoft.AspNetCore.SpaServices.Webpack](https://github.com/aspnet/JavaScriptServices))**  
 
 Add the following code to Startup.cs. See [angular-build-aspnetcore-starter](https://github.com/mmzliveid/angular-build-aspnetcore-starter) repo.  
 ```<language>
@@ -117,7 +117,22 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerF
 
 ```  
   
-## Explains:  
+## More about ngb init:  
+```<language>
+# To init required config file for your app
+ngb init
+
+# To ask/prompt
+ngb init -p
+
+# To link angular-build cli with your project
+ngb init -l
+
+# More about init, show help
+ngb init -h
+```  
+  
+## Files:  
 #### angular-build.json  
 The main configuration file to build your angular apps. It is similar to or nearly the same as [angular-cli](https://github.com/angular/angular-cli). The following is an example configuration.  
 ```<language>
@@ -250,6 +265,50 @@ module.exports = configs;
 Pre-configured webpack config models for your angular apps can be get by **getWebpackConfigs** function. The role of this function is to provide webpack config models by parsing **angular-build.json** file.  
 If you use **ngb build** cli command, this file will be skiped.   
   
+### favicon.config.json  
+```<language>
+{
+  // Your API key. No key yet? Register it now.
+  "apiKey": "87d5cd739b05c00416c4a19cd14a8bb5632ea563",
+
+  // Indicate how the master picture (used to generate the various favicon pictures) is transmitted to RealFaviconGenerator.
+  "masterPicture": "favicon.svg",
+
+  // These values reflect the various choices offered when you generate a favicon manually.
+  "design": {
+    "desktopBrowser": {},
+    "androidChrome": {
+      "pictureAspect": "noChange",
+      "assets": {
+        "legacyIcon": false,
+        "lowResolutionIcons": false
+      }
+    },
+    "ios": {
+      "pictureAspect": "backgroundAndMargin",
+      "margin": "0",
+      "assets": {
+        "declareOnlyDefaultIcon": true
+      }
+    }
+  },
+
+  // The background color applied as the background of the icon.
+  "background": "#ffffff",
+
+  // Use online realfavicongenerator.net only.
+  "online": false,
+
+  // If true, first try to generate using realfavicongenerator.net, if failed, use local generator.
+  "preferOnline": true,
+
+  // Apply custom attributes defined in htmlInjectOptions of angular-build.json
+  "applyCustomAttributes": false
+}
+```  
+For more information see  [realfavicongenerator.net](https://realfavicongenerator.net/api/non_interactive_api#.WKUizzt96Uk), ** note use lower camel case instead and replace 'favicon_design' with 'design'.  
+The typescript model is [here](https://github.com/BizAppFramework/angular-build/blob/master/src/plugins/icon-webpack-plugin/src/models.ts)  
+    
 ## References:  
 [angular/angular-cli](https://github.com/angular/angular-cli)  
 [AngularClass/angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter)  

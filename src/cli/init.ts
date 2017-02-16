@@ -33,8 +33,7 @@ export interface PackageToCheck {
 
 export interface PackageJsonConfig {
     dependencies?: { [key: string]: string },
-    devDependencies?: { [key: string]: string },
-    peerDependencies?: { [key: string]: string }
+    devDependencies?: { [key: string]: string }
 }
 
 export interface CommandOptions {
@@ -1019,7 +1018,6 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig): Promise<void> {
 }
 
 function mergeConfigWithAngularCli(cfg: InitConfig): void {
-
     if (cfg.angularBuildConfigFileExists ||
         !cfg.angularCliConfigFileExists ||
         !cfg.userAngularCliConfig ||
@@ -1242,6 +1240,43 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
         'extract-text-webpack-plugin'
     ];
 
+    const peerDeps = [
+        '@types/node',
+        'cross-env',
+        'rimraf',
+        'typescript',
+        'ts-node',
+        'tslib',
+        'tslint',
+        'webpack',
+        'webpack-dev-server',
+        'webpack-hot-middleware'
+    ];
+
+    const loaderDeps = [
+        '@angular/compiler-cli',
+        '@angular/compiler',
+        '@angular/core',
+        '@ngtools/webpack',
+        'less',
+        'node-sass',
+        'stylus'
+    ];
+
+    const angularMinimalDeps = [
+        '@angular/common',
+        '@angular/forms',
+        '@angular/http',
+        '@angular/router',
+        '@angular/platform-browser',
+        '@angular/platform-browser-dynamic',
+        '@angular/platform-server',
+
+        'core-js',
+        'rxjs',
+        'zone.js'
+    ];
+
     const depsSaveFilteredList = [
         'es6-promise',
         'es6-shim',
@@ -1256,20 +1291,7 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
         '@angular/core'
     ];
 
-    const angularMinimalDeps = [
-        '@angular/common',
-        '@angular/forms',
-        '@angular/http',
-        '@angular/router',
-        '@angular/platform-browser',
-        '@angular/platform-browser-dynamic',
-        '@angular/platform-server'
-    ];
-
-    const depPackagesToInstallWithSave: string[] = [];
-    const devDepPackagesToInstallWithSave: string[] = [];
-    const depPackagesToInstall: string[] = [];
-
+    const depsToInstall: string[] = [];
 
     const depPackages: PackageToCheck[] = Object.keys(cfg.cliPackageJsonConfig.dependencies)
         .filter((key: string) => !installLoadersOnly || (installLoadersOnly && key.match(/loader$/)))
@@ -1283,92 +1305,25 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
             };
         });
 
-    const depSavePackages: PackageToCheck[] = Object.keys(cfg.cliPackageJsonConfig.peerDependencies)
-        .filter((key: string) => depsSaveFilteredList.indexOf(key) > -1)
-        .map((key: string) => {
-            const ver = cfg.cliPackageJsonConfig.peerDependencies[key];
-            const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
-            return {
-                packageName: key,
-                version: ver,
-                isPreReleased: isPreReleased
-            };
-        });
 
-    const devDepSavePackages: PackageToCheck[] = Object.keys(cfg.cliPackageJsonConfig.peerDependencies)
-        .filter((key: string) => depsSaveFilteredList.indexOf(key) === -1)
-        .map((key: string) => {
-            const ver = cfg.cliPackageJsonConfig.peerDependencies[key];
-            const isPreReleased = !(preReleasedPackageNames.indexOf(key) === -1);
-            return {
-                packageName: key,
-                version: ver,
-                isPreReleased: isPreReleased
-            };
-        });
-
-    // Universal tooling
-    //if (cfg.commandOptions.installUniversalTooling !== false) {
-    //    const universalDeps: string[] = [
-    //        //'@ngrx/core',
-    //        //'@ngrx/effects',
-    //        //'@ngrx/store',
-    //        //'@ngrx/store-devtools',
-    //        //'angular2-universal',
-    //        //'angular2-universal-polyfills',
-    //        //'angular2-platform-node',
-    //        //'immutable',
-    //        //'typed-immutable-record'
-    //    ];
-
-    //    const universalDevDeps: string[] = [
-
-    //    ];
-
-    //    universalDeps.forEach((pkgName: string) => {
-    //        depSavePackages.push({
-    //            packageName: pkgName
-    //            //version: null,
-    //            //isPreReleased: false
-    //        });
-    //    });
-    //    universalDevDeps.forEach((pkgName: string) => {
-    //        devDepSavePackages.push({
-    //            packageName: pkgName
-    //            //version: null,
-    //            //isPreReleased: false
-    //        });
-    //    });
-    //    if (cfg.isAspNetCore) {
-    //        const aspnetUniversalDevDeps: string[] = [
-    //            //'aspnet-prerendering',
-    //            //'aspnet-webpack'
-    //        ];
-
-    //        aspnetUniversalDevDeps.forEach((pkgName: string) => {
-    //            devDepSavePackages.push({
-    //                packageName: pkgName
-    //                //version: null,
-    //                //isPreReleased: false
-    //            });
-    //        });
-    //    }
-    //}
-
-    return checkPackagesToInstall(depSavePackages, projectRoot)
+    return checkPackagesToInstall(peerDeps, projectRoot)
         .then((packageNames: string[]) => {
             packageNames.forEach((pkgName: string) => {
-                if (depPackagesToInstallWithSave.indexOf(pkgName) === -1) {
-                    depPackagesToInstallWithSave.push(pkgName);
+                if (depsToInstall.indexOf(pkgName) === -1) {
+                    depsToInstall.push(pkgName);
                 }
             });
         })
         .then(() => {
-            return checkPackagesToInstall(devDepSavePackages, projectRoot)
+            if (cfg.cliIsLocal) {
+                return Promise.resolve();
+            }
+
+            return checkPackagesToInstall(depPackages, projectRoot)
                 .then((packageNames: string[]) => {
                     packageNames.forEach((pkgName: string) => {
-                        if (devDepPackagesToInstallWithSave.indexOf(pkgName) === -1) {
-                            devDepPackagesToInstallWithSave.push(pkgName);
+                        if (depsToInstall.indexOf(pkgName) === -1) {
+                            depsToInstall.push(pkgName);
                         }
                     });
                 });
@@ -1377,57 +1332,59 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
             if (cfg.cliIsLocal) {
                 return Promise.resolve();
             }
-            return checkPackagesToInstall(depPackages, projectRoot)
+
+            return checkPackagesToInstall(loaderDeps, projectRoot)
                 .then((packageNames: string[]) => {
-                    depPackagesToInstall.push(...packageNames);
+                    packageNames.forEach((pkgName: string) => {
+                        if (depsToInstall.indexOf(pkgName) === -1) {
+                            depsToInstall.push(pkgName);
+                        }
+                    });
                 });
         })
         .then(() => {
-            if (depPackagesToInstallWithSave.indexOf('@angular/core') > -1) {
-                depPackagesToInstallWithSave.push(...angularMinimalDeps);
+            if (depsToInstall.indexOf('@angular/core') > -1) {
+                depsToInstall.push(...angularMinimalDeps);
             }
 
-            if (depPackagesToInstallWithSave.length ||
-                devDepPackagesToInstallWithSave.length ||
-                depPackagesToInstall.length) {
+            if (depsToInstall.length) {
                 console.log('Installing packages for tooling via npm...');
                 const installedPackages: string[] = [];
+                const depsToSave: string[] = [];
+                const devDepsToSave: string[] = [];
+                depsToInstall.forEach(p => {
+                    if (depsSaveFilteredList.indexOf(p) > -1) {
+                        depsToSave.push(p);
+                    } else {
+                        devDepsToSave.push(p);
+                    }
+                });
 
                 return Promise.resolve(0).then(() => {
-                    if (!depPackagesToInstallWithSave.length) {
-                        return Promise.resolve();
-                    }
-                    return spawnAsync('npm',
-                        ['install', '-S', '--color', 'always', '--loglevel', 'error']
-                            .concat(depPackagesToInstallWithSave))
-                        .then(() => {
-                            installedPackages.push(...depPackagesToInstallWithSave);
-                            return;
-                        });
-                })
+                        if (!depsToSave.length) {
+                            return Promise.resolve();
+                        }
+                        return spawnAsync('npm',
+                                ['install', '-S', '--color', 'always', '--loglevel', 'error']
+                                .concat(depsToSave))
+                            .then(() => {
+                                installedPackages.push(...depsToSave);
+                                return;
+                            });
+                    })
                     .then(() => {
-                        if (cfg.cliIsLocal || !depPackagesToInstall.length) {
+                        if (!devDepsToSave.length) {
                             return Promise.resolve();
                         }
                         return spawnAsync('npm',
-                            ['install', '-D', '--color', 'always', '--loglevel', 'error']
-                                .concat(depPackagesToInstall))
+                                ['install', '-D', '--color', 'always', '--loglevel', 'error']
+                                .concat(devDepsToSave))
                             .then(() => {
-                                installedPackages.push(...depPackagesToInstall);
+                                installedPackages.push(...devDepsToSave);
                                 return;
                             });
-                    }).then(() => {
-                        if (!devDepPackagesToInstallWithSave.length) {
-                            return Promise.resolve();
-                        }
-                        return spawnAsync('npm',
-                            ['install', '-D', '--color', 'always', '--loglevel', 'error']
-                                .concat(devDepPackagesToInstallWithSave))
-                            .then(() => {
-                                installedPackages.push(...devDepPackagesToInstallWithSave);
-                                return;
-                            });
-                    }).then(() => {
+                    })
+                    .then(() => {
                         if (installedPackages.length) {
                             console.log(chalk.green(installedPackages.join('\n')));
                         }
@@ -1440,17 +1397,18 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
         });
 }
 
-function checkPackagesToInstall(packagesToCheck: PackageToCheck[], projectRoot: string): Promise<string[]> {
-    const tasks = packagesToCheck.map((pkgToCheck: PackageToCheck) => {
+function checkPackagesToInstall(packagesToCheck: (PackageToCheck|string)[], projectRoot: string): Promise<string[]> {
+    const tasks = packagesToCheck.map((pkgToCheck: PackageToCheck | string) => {
+        const pkgToCheckObj: PackageToCheck = typeof pkgToCheck === 'string' ? { packageName: pkgToCheck } : pkgToCheck;
         return new Promise(res => {
-            resolve(pkgToCheck.packageName,
+            resolve(pkgToCheckObj.packageName,
                 { basedir: projectRoot },
                 (error, resolvedPath) => {
                     if (error) {
-                        res(pkgToCheck);
+                        res(pkgToCheckObj);
                     } else {
-                        pkgToCheck.resolvedPath = resolvedPath;
-                        res(pkgToCheck);
+                        pkgToCheckObj.resolvedPath = resolvedPath;
+                        res(pkgToCheckObj);
                     }
                 });
         }).then((packageObj: any) => {

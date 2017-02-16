@@ -244,7 +244,8 @@ ModelManifest.xml
 # Typings file.
 typings/
 
-# Misc
+# Custom
+# ----------------------------------------------------------------------
 tmp/
 obj/
 bin/Microsoft.NodejsTools.WebRole.dll
@@ -260,3 +261,9 @@ bin/Microsoft.NodejsTools.WebRole.dll
 *.xproj
 .vscode/
 .idea
+.vs
+
+.editorconfig
+.gitattributes
+
+angular-build.sln
