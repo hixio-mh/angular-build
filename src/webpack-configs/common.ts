@@ -40,7 +40,15 @@ export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig
 
     // Copy assets
     //
-    if (typeof appConfig.assets !== 'undefined' && appConfig.assets.length && !appConfig.skipCopyAssets) {
+    let skipCopyAssets = appConfig.skipCopyAssets;
+    if (typeof appConfig.skipCopyAssets === 'undefined' || appConfig.skipCopyAssets === null) {
+        if (typeof buildOptions.skipCopyAssets !== 'undefined' && buildOptions.skipCopyAssets !== null) {
+            appConfig.skipCopyAssets = buildOptions.skipCopyAssets;
+        } else {
+            appConfig.skipCopyAssets = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
+        }
+    }
+    if (typeof appConfig.assets !== 'undefined' && appConfig.assets.length && !skipCopyAssets) {
         const copyAssetOptions = parseCopyAssetEntry(appRoot, appConfig.assets);
         if (copyAssetOptions && copyAssetOptions.length > 0) {
             commonPlugins.push(new CopyWebpackPlugin(copyAssetOptions,

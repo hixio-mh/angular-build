@@ -18,12 +18,6 @@ import {
 // ReSharper disable once CommonJsExternalModule
 const schema = require('../../configs/schema.json');
 
-const cliVersion = require('../../package.json').version;
-const initCommandUsage = `\n${chalk.green(`angular-build ${cliVersion}`)}\n
-Usage:
-  ngb init [options...]`;
-
-
 export interface PackageToCheck {
     packageName: string;
     isPreReleased?: boolean;
@@ -109,7 +103,12 @@ export interface InitConfig {
     isAspNetCore?: boolean;
 }
 
-export function getInitCommandModule(): yargs.CommandModule {
+export function getInitCommandModule(cliVersion: string): yargs.CommandModule {
+    const initCommandUsage = `\n${chalk.green(`angular-build ${cliVersion}`)}\n
+Usage:
+  ngb init [options...]`;
+
+
     const initCommandModule: yargs.CommandModule = {
         command: 'init',
         describe: 'Create angular-build config files',

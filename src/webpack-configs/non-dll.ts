@@ -343,9 +343,18 @@ export function getNonDllConfigPartial(projectRoot: string, appConfig: AppConfig
 
     // Favicons inject
     //
+    let skipGenerateIcons = appConfig.skipGenerateIcons;
+    if (typeof appConfig.skipGenerateIcons === 'undefined' || appConfig.skipGenerateIcons === null) {
+        if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
+            skipGenerateIcons = buildOptions.skipGenerateIcons;
+        } else {
+            skipGenerateIcons = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
+        }
+    }
+
     if (typeof appConfig.faviconConfig !== 'undefined' &&
         appConfig.faviconConfig !== null &&
-        !appConfig.skipGenerateIcons) {
+        !skipGenerateIcons) {
         const faviconPlugins = getFaviconPlugins(projectRoot,
             appConfig,
             stylesHtmlWebpackPluginId);

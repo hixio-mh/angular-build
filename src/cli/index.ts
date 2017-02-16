@@ -59,7 +59,7 @@ function initYargs(): yargs.Argv {
             describe: 'Show version',
             type: 'boolean'
         })
-        .command(getInitCommandModule())
-        .command(getBuildCommandModule());
+        .command(getInitCommandModule(cliVersion))
+        .command(getBuildCommandModule(cliVersion));
     return yargsInstance;
 }

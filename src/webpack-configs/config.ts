@@ -287,22 +287,6 @@ function mergeAppConfigWithDefaults(projectRoot: string, appConfig: AppConfig, b
         }
     }
 
-    if (typeof appConfig.skipCopyAssets === 'undefined' || appConfig.skipCopyAssets === null) {
-        if (typeof buildOptions.skipCopyAssets !== 'undefined' && buildOptions.skipCopyAssets !== null) {
-            appConfig.skipCopyAssets = buildOptions.skipCopyAssets;
-        } else {
-            appConfig.skipCopyAssets = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
-        }
-    }
-
-    if (typeof appConfig.skipGenerateIcons === 'undefined' || appConfig.skipGenerateIcons === null) {
-        if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
-            appConfig.skipGenerateIcons = buildOptions.skipGenerateIcons;
-        } else {
-            appConfig.skipGenerateIcons = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
-        }
-    }
-
     if (typeof appConfig.extractCss === 'undefined' || appConfig.extractCss === null) {
         if (typeof buildOptions.extractCss !== 'undefined' && buildOptions.extractCss !== null) {
             appConfig.extractCss = buildOptions.extractCss;
