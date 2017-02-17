@@ -101,7 +101,10 @@ export function build(cliOptions: CliOptions): Promise<number> {
 
             if (buildOptions.dll) {
                 // delete dlls
-                const outDirs = appConfigs.map((appConfig: AppConfig) => path.resolve(projectRoot, appConfig.outDir));
+                const outDirs = appConfigs
+                    .filter((appConfig: AppConfig) => appConfig.outDir !== appConfig.root &&
+                        path.resolve(projectRoot, appConfig.outDir) !== projectRoot)
+                    .map((appConfig: AppConfig) => path.resolve(projectRoot, appConfig.outDir));
                 const delTasks = outDirs.map((p: string) =>
                     new Promise((resolve: any, reject: any) => rimraf(p,
                             (err: Error) => err ? reject(err) : resolve(err))
@@ -128,6 +131,8 @@ export function build(cliOptions: CliOptions): Promise<number> {
                                             .then((tsConfig: any) => {
                                                 if (tsConfig.angularCompilerOptions &&
                                                     tsConfig.angularCompilerOptions.genDir &&
+                                                    tsConfig.angularCompilerOptions.genDir !== appConfig.root &&
+                                                    path.resolve(path.dirname(tsConfigPath),tsConfig.angularCompilerOptions.genDir) !== projectRoot &&
                                                     fs.existsSync(path
                                                         .resolve(path.dirname(tsConfigPath),
                                                             tsConfig.angularCompilerOptions.genDir))) {
@@ -159,17 +164,14 @@ export function build(cliOptions: CliOptions): Promise<number> {
                     })
                     .then(() => {
                         if (!appConfigs.find((appConfig: AppConfig) => appConfig.referenceDll)) {
-                            const outDirs = appConfigs.map((appConfig: AppConfig) => path
-                                .resolve(projectRoot, appConfig.outDir));
+                            const outDirs = appConfigs
+                                .filter((appConfig: AppConfig) => appConfig.outDir !== appConfig.root &&
+                                    path.resolve(projectRoot, appConfig.outDir) !== projectRoot)
+                                .map((appConfig: AppConfig) => path.resolve(projectRoot, appConfig.outDir));
                             const delTasks = outDirs.map((p: string) =>
-                                new Promise((resolve: any, reject: any) => {
-                                    rimraf(p,
-                                        (err) =>
-                                        err ? reject(err) : resolve()
-                                    );
-                                })
-                            );
-
+                                new Promise((resolve: any, reject: any) => rimraf(p,
+                                    (err: Error) => err ? reject(err) : resolve(err))
+                                ));
                             return Promise.all(delTasks).then(() => {
                                 return;
                             });

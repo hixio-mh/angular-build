@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Build system for Angular apps based on angular-cli and webpack.",
   "keywords": [
     "bizappframework",

@@ -765,7 +765,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 "build:prod": `cross-env NODE_ENV=production webpack${configOpt}--profile --colors --bail`,
                 "prebuild:prod": `npm run clean:dist`,
                 "build:aot": `cross-env NODE_ENV=production webpack${configOpt}--profile --colors --bail`,
-                "prebuild:aot": `npm run clean:dist && npm run clean:aot:compiled`,
+                "prebuild:aot": `npm run clean:dist && npm run clean:aot-compiled`,
                 "build": `npm run build:dev`,
                 "clean:dist": `npm run rimraf -- ${appConfig.outDir}/**/*`,
                 "clean:aot-compiled": `npm run rimraf -- aot-compiled`,

@@ -20,10 +20,7 @@ npm i -g @bizappframework/angular-build
 **2. Download/clone starter repo**  
 For ASP.Net Core (1.1) repo  
 [angular-build-aspnetcore-starter](https://github.com/mmzliveid/angular-build-aspnetcore-starter)  
-  
-For NodeJS repo  
-[angular-build-nodejs-starter](https://github.com/mmzliveid/angular-build-nodejs-starter)  
-  
+    
 **3. Install dependencies, build and run**  
 ```<language>
 # Change to the repo directory
