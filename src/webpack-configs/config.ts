@@ -26,7 +26,7 @@ export function getWebpackConfigs(projectRoot?: string, angularBuildConfig?: Ang
 }
 
 export function getAppConfigs(projectRoot?: string, angularBuildConfig?: AngularBuildConfig, buildOptions?: BuildOptions) {
-    projectRoot = projectRoot || process.cwd();
+    projectRoot = projectRoot ? path.resolve(projectRoot) : process.cwd();
 
     // Merge buildOptions
     buildOptions = buildOptions || {};
@@ -80,10 +80,6 @@ export function getAppConfigs(projectRoot?: string, angularBuildConfig?: Angular
         buildOptions = Object.assign(buildOptions, newBuildOptions);
     }
 
-    //if (buildOptions.dll && buildOptions.aot) {
-    //    throw new Error(`Currently dll build doesn't support AoT.`);
-    //}
-
     // Extends
     const appConfigs = angularBuildConfig.apps.map((appConfig: AppConfig) => {
         let cloneAppConfig = Object.assign({}, appConfig);
@@ -129,7 +125,7 @@ export function getAppConfigs(projectRoot?: string, angularBuildConfig?: Angular
 
 export function getWebpackConfig(projectRoot: string, appConfig: AppConfig, buildOptions?: BuildOptions, skipMerge?: boolean) {
     if (!skipMerge) {
-        projectRoot = projectRoot || process.cwd();
+        projectRoot = projectRoot ? path.resolve(projectRoot) : process.cwd();
         buildOptions = mergeBuildOptionsWithDefaults(buildOptions);
         mergeAppConfigWithBuildTargetOverrides(appConfig, buildOptions);
         mergeAppConfigWithDefaults(projectRoot, appConfig, buildOptions);
@@ -137,32 +133,44 @@ export function getWebpackConfig(projectRoot: string, appConfig: AppConfig, buil
 
     buildOptions = buildOptions || mergeBuildOptionsWithDefaults({}) || {};
 
-    //if (buildOptions.dll && buildOptions.aot) {
-    //    throw new Error(`Currently dll build doesn't support AoT.`);
-    //}
+    if (!projectRoot) {
+        throw new Error(`'projectRoot' is required.`);
+    }
 
     if (!appConfig) {
         throw new Error(`'appConfig' is required.`);
     }
 
-    if (typeof appConfig !== 'object') {
-        throw new Error(`Invalid 'appConfig'. 'appConfig' must be an object, but passed ${typeof appConfig}.`);
+    if (!appConfig.root) {
+        throw new Error(`No 'root' folder is specified. Please set 'root' folder name in appConfig.`);
+    }
+
+    if (!appConfig.outDir) {
+        throw new Error(`No 'outDir' folder is specified. Please set 'outDir' folder name in appConfig.`);
+    }
+
+    if (appConfig.outDir === appConfig.root ||
+        path.resolve(projectRoot, appConfig.outDir) === path.resolve(projectRoot, appConfig.root)) {
+        throw new Error(`'outDir' must not be the same as 'root'.`);
+    }
+
+    if (path.resolve(projectRoot, appConfig.outDir) === path.resolve(projectRoot)) {
+        throw new Error(`'outDir' must not be the same as 'projectRoot'.`);
     }
 
     if (!buildOptions.dll &&
         !appConfig.main &&
         (!appConfig.styles || !appConfig.styles.length) &&
-        (!appConfig.scripts || !appConfig.scripts.length)) {
-        throw new Error(`No entry. Please set entry in appConfig.`);
+        (!appConfig.scripts || !appConfig.scripts.length) &&
+        (!appConfig.polyfills || !appConfig.polyfills.length)) {
+        throw new Error(`No entry is specified for this build. Please set main entry in appConfig.`);
     }
 
-    if (buildOptions.dll && (!appConfig.dlls || !appConfig.dlls.length)) {
-        throw new Error(`No dll entry. Please set dll entries in appConfig.`);
+    if (buildOptions.dll &&
+        (!appConfig.dlls || !appConfig.dlls.length) &&
+        (!appConfig.polyfills || !appConfig.polyfills.length)) {
+        throw new Error(`No dll entry. Please set dll entry in appConfig.`);
     }
-
-    //if (appConfig.referenceDll && buildOptions.aot) {
-    //    throw new Error(`Currently dll reference is not supported AoT build.`);
-    //}
 
     return buildOptions.dll ? getDllConfig(projectRoot, appConfig, buildOptions) : getNonDllConfig(projectRoot, appConfig, buildOptions);
 }
@@ -254,12 +262,38 @@ function mergeAppConfigWithBuildTargetOverrides(appConfig: AppConfig, buildOptio
 }
 
 function mergeAppConfigWithDefaults(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
-    if (!appConfig || !buildOptions) {
-        return;
+    if (!projectRoot) {
+        throw new Error(`'projectRoot' is required.`);
     }
 
-    appConfig.root = appConfig.root || projectRoot;
-    appConfig.outDir = appConfig.outDir || appConfig.root;
+    if (!appConfig) {
+        throw new Error(`'appConfig' is required.`);
+    }
+
+    if (!buildOptions) {
+        throw new Error(`'buildOptions' is required.`);
+    }
+
+    if (!appConfig.root) {
+        throw new Error(`No 'root' folder is specified. Please set 'root' folder name in appConfig.`);
+    }
+
+    if (!appConfig.outDir) {
+        throw new Error(`No 'outDir' folder is specified. Please set 'outDir' folder name in appConfig.`);
+    }
+
+    appConfig.root = path.relative(projectRoot, appConfig.root);
+    appConfig.outDir = path.relative(projectRoot, appConfig.outDir);
+
+    if (appConfig.outDir === appConfig.root ||
+        path.resolve(projectRoot, appConfig.outDir) === path.resolve(projectRoot, appConfig.root)) {
+        throw new Error(`'outDir' must not be the same as 'root'.`);
+    }
+
+    if (path.resolve(projectRoot, appConfig.outDir) === path.resolve(projectRoot)) {
+        throw new Error(`'outDir' must not be the same as 'projectRoot'.`);
+    }
+
     appConfig.polyfills = appConfig.polyfills || ([] as string[]);
     appConfig.scripts = appConfig.scripts || ([] as string[]);
     appConfig.styles = appConfig.styles || ([] as string[]);

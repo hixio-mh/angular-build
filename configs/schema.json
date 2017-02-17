@@ -765,7 +765,7 @@
                     "description": "To build only specific app. Use app's name."
                 },
                 "appendOutputHash": {
-                    "description": "Appends version hash to the ouput bundled files.",
+                    "description": "Appends version hash to the ouput files.",
                     "type": "boolean"
                 },
                 "compressAssets": {
@@ -773,7 +773,7 @@
                     "type": "boolean"
                 },
                 "configFilePath": {
-                    "description": "The 'angular-build.json' oar 'angular-cli.json' config file path.",
+                    "description": "The 'angular-build.json' config file path.",
                     "type": "string"
                 },
                 "dll": {

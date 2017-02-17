@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Build system for Angular apps based on angular-cli and webpack.",
   "keywords": [
     "bizappframework",
@@ -39,7 +39,7 @@
     "@angular/compiler": "^2.4.7",
     "@angular/compiler-cli": "^2.4.7",
     "@angular/core": "^2.4.7",
-    "@ngtools/webpack": "^1.2.9",
+    "@ngtools/webpack": "^1.2.10",
     "ajv": "^4.11.3",
     "angular2-template-loader": "^0.6.2",
     "async": "^2.1.4",

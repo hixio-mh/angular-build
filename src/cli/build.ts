@@ -58,9 +58,10 @@ Usage:
 }
 
 export function build(cliOptions: CliOptions): Promise<number> {
+    cliOptions.cwd = cliOptions.cwd ? path.resolve(cliOptions.cwd) : process.cwd();
     if (cliOptions.commandOptions.project) {
         cliOptions.cwd = path.isAbsolute(cliOptions.commandOptions.project)
-            ? cliOptions.commandOptions.project
+            ? path.resolve(cliOptions.commandOptions.project)
             : path.resolve(cliOptions.cwd, cliOptions.commandOptions.project);
     }
 
@@ -102,7 +103,8 @@ export function build(cliOptions: CliOptions): Promise<number> {
             if (buildOptions.dll) {
                 // delete dlls
                 const outDirs = appConfigs
-                    .filter((appConfig: AppConfig) => appConfig.outDir !== appConfig.root &&
+                    .filter((appConfig: AppConfig) => path.resolve(projectRoot, appConfig.outDir) !==
+                        path.resolve(projectRoot, appConfig.root) &&
                         path.resolve(projectRoot, appConfig.outDir) !== projectRoot)
                     .map((appConfig: AppConfig) => path.resolve(projectRoot, appConfig.outDir));
                 const delTasks = outDirs.map((p: string) =>
@@ -131,7 +133,6 @@ export function build(cliOptions: CliOptions): Promise<number> {
                                             .then((tsConfig: any) => {
                                                 if (tsConfig.angularCompilerOptions &&
                                                     tsConfig.angularCompilerOptions.genDir &&
-                                                    tsConfig.angularCompilerOptions.genDir !== appConfig.root &&
                                                     path.resolve(path.dirname(tsConfigPath),tsConfig.angularCompilerOptions.genDir) !== projectRoot &&
                                                     fs.existsSync(path
                                                         .resolve(path.dirname(tsConfigPath),
@@ -165,7 +166,8 @@ export function build(cliOptions: CliOptions): Promise<number> {
                     .then(() => {
                         if (!appConfigs.find((appConfig: AppConfig) => appConfig.referenceDll)) {
                             const outDirs = appConfigs
-                                .filter((appConfig: AppConfig) => appConfig.outDir !== appConfig.root &&
+                                .filter((appConfig: AppConfig) => path.resolve(projectRoot, appConfig.outDir) !==
+                                    path.resolve(projectRoot, appConfig.root) &&
                                     path.resolve(projectRoot, appConfig.outDir) !== projectRoot)
                                 .map((appConfig: AppConfig) => path.resolve(projectRoot, appConfig.outDir));
                             const delTasks = outDirs.map((p: string) =>
