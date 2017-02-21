@@ -236,7 +236,7 @@ export function getWebpackStatsConfig(verbose = false) {
 export function parseCopyAssetEntry(baseDir: string, assetEntries: string | (string | AssetEntry)[]) {
     let assets: AssetEntry[] = [];
 
-    if (!assetEntries || assetEntries.length) {
+    if (!assetEntries || !assetEntries.length) {
         return assets;
     }
 
@@ -289,8 +289,37 @@ export function parseCopyAssetEntry(baseDir: string, assetEntries: string | (str
                     dot: true
                 };
             }
+            if (!asset.to && asset.output) {
+                asset.to = asset.output;
+            }
             return asset;
-        } else {
+        } else if (typeof asset === 'object' && asset.input) {
+            if (!asset.context) {
+                asset.context = baseDir;
+            }
+            const fromGlob = prepareFormGlobFn(asset.input);
+            asset.from = {
+                glob: fromGlob,
+                dot: true
+            };
+            if (!asset.to && asset.output) {
+                asset.to = asset.output;
+            }
+            return asset;
+        } else if (typeof asset === 'object' && asset.glob) {
+            if (!asset.context) {
+                asset.context = baseDir;
+            }
+            asset.from = {
+                glob: asset.glob,
+                dot: true
+            };
+            if (!asset.to && asset.output) {
+                asset.to = asset.output;
+            }
+            return asset;
+        }
+        else {
             throw new Error(`Invalid 'assets' value in appConfig.`);
         }
     });
@@ -304,7 +333,7 @@ export function parseGlobalScopedEntry(
     extraEntries: string | (string | GlobalScopedEntry)[],
     appRoot: string,
     defaultEntry: string
-): GlobalScopedEntry[] {
+): (GlobalScopedEntry & { path?: string; entry?: string; })[] {
     if (!extraEntries || !extraEntries.length) {
         return [];
     }
@@ -322,7 +351,7 @@ export function parseGlobalScopedEntry(
     return clonedEntries
         .map((extraEntry: string | GlobalScopedEntry) =>
             typeof extraEntry === 'string' ? { input: extraEntry } : extraEntry)
-        .map((extraEntry: GlobalScopedEntry) => {
+        .map((extraEntry: GlobalScopedEntry & {path?:string;entry?:string;}) => {
             extraEntry.path = path.resolve(appRoot, extraEntry.input);
             if (extraEntry.output) {
                 extraEntry.entry = extraEntry.output.replace(/\.(js|css)$/i, '');
@@ -336,7 +365,7 @@ export function parseGlobalScopedEntry(
 }
 
 // Filter extra entries out of a arran of extraEntries
-export function lazyChunksFilter(extraEntries: GlobalScopedEntry[]) {
+export function lazyChunksFilter(extraEntries: (GlobalScopedEntry & { path?: string; entry?: string; })[]) {
     return extraEntries
         .filter(extraEntry => extraEntry.lazy)
         .map(extraEntry => extraEntry.entry);
@@ -416,7 +445,6 @@ export function isAoTBuildFromNpmEvent(eventName?: string): boolean {
             lcEvent === 'aot';
     }
 }
-
 
 //export function findNpmScriptCommandName(baseDir: string, keyFilter: RegExp, valueFilter?: RegExp): string {
 //  let pkgConfigPath = path.resolve(baseDir, 'package.json');

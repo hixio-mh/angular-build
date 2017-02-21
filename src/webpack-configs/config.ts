@@ -294,6 +294,8 @@ function mergeAppConfigWithDefaults(projectRoot: string, appConfig: AppConfig, b
         throw new Error(`'outDir' must not be the same as 'projectRoot'.`);
     }
 
+    appConfig.publicPath = appConfig.publicPath || appConfig.deployUrl;
+
     appConfig.polyfills = appConfig.polyfills || ([] as string[]);
     appConfig.scripts = appConfig.scripts || ([] as string[]);
     appConfig.styles = appConfig.styles || ([] as string[]);

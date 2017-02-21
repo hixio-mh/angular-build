@@ -5,8 +5,8 @@ import * as chalk from 'chalk';
 // ReSharper disable InconsistentNaming
 const CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
 const DefinePlugin = webpack.DefinePlugin;
-const NormalModuleReplacementPlugin = webpack.NormalModuleReplacementPlugin;
 const ProvidePlugin = webpack.ProvidePlugin;
+const SourceMapDevToolPlugin = webpack.SourceMapDevToolPlugin;
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpackMerge = require('webpack-merge');
@@ -28,6 +28,20 @@ import { getStylesConfigPartial } from './styles';
 import { getDllConfig } from './dll';
 
 import { getFaviconPlugins } from './favicons';
+
+
+/**
+ * Enumerate loaders and their dependencies from this file to let the dependency validator
+ * know they are used.
+ *
+ * require('source-map-loader')
+ * require('raw-loader')
+ * require('script-loader')
+ * require('json-loader')
+ * require('url-loader')
+ * require('file-loader')
+ * require('image-webpack-loader')
+ */
 
 export function getNonDllConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
     console.log(`\n${chalk.bgBlue('INFO:')} Using non-dll config, production: ${buildOptions.production}, aot: ${buildOptions
@@ -66,7 +80,6 @@ export function getNonDllConfigPartial(projectRoot: string, appConfig: AppConfig
     const extraPlugins: any[] = [];
     const extraRules: any[] = [];
 
-    const env = getEnvName(buildOptions.production);
     const envLong = getEnvName(buildOptions.production, true);
 
     var metadata = {
@@ -287,19 +300,6 @@ export function getNonDllConfigPartial(projectRoot: string, appConfig: AppConfig
         new DefinePlugin(metadata)
     );
 
-    // Replace environment
-    //
-    if (appConfig.environments && (appConfig.environments[env] || appConfig.environments[envLong])) {
-        plugins.push(new NormalModuleReplacementPlugin(
-            // This plugin is responsible for swapping the environment files.
-            // Since it takes a RegExp as first parameter, we need to escape the path.
-            // See https://webpack.github.io/docs/list-of-plugins.html#normalmodulereplacementplugin
-            new RegExp(path.resolve(appRoot, appConfig.environments['source'])
-                .replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')),
-            path.resolve(appRoot, appConfig.environments[env] || appConfig.environments[envLong])
-        ));
-    }
-
     // Styles Inject
     //
     let separateStylesOut = false;
@@ -344,7 +344,7 @@ export function getNonDllConfigPartial(projectRoot: string, appConfig: AppConfig
     // Favicons inject
     //
     let skipGenerateIcons = appConfig.skipGenerateIcons;
-    if (typeof appConfig.skipGenerateIcons === 'undefined' || appConfig.skipGenerateIcons === null) {
+    if (typeof skipGenerateIcons === 'undefined' || skipGenerateIcons === null) {
         if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
             skipGenerateIcons = buildOptions.skipGenerateIcons;
         } else {
@@ -468,6 +468,22 @@ export function getNonDllConfigPartial(projectRoot: string, appConfig: AppConfig
             // minChunks: (module: any) => module.userRequest && module.userRequest.startsWith(nodeModulesPath)
             // minChunks: module => /node_modules/.test(module.resource)
         }));
+    }
+
+    if (!buildOptions.production && (!appConfig.target || appConfig.target === 'web')) {
+        // TODO: move to helpers
+        const hashFormat = `[chunkhash:${20}]`;
+        const relOutDir = path.relative(projectRoot, path.resolve(projectRoot, appConfig.outDir));
+        const devPlugins: any[] = [
+            new SourceMapDevToolPlugin({
+                // Remove this line if you prefer inline source maps
+                filename: appConfig.appendOutputHash
+                    ? `[file].${hashFormat}.map`
+                    : '[file].map',//'[file].map',
+                moduleFilenameTemplate: path.relative(relOutDir, '[resourcePath]') // Point sourcemap entries to the original file locations on disk
+            })
+        ];
+        plugins.push(...devPlugins);
     }
 
     const webpackNonDllConfig = {

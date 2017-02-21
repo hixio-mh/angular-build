@@ -79,6 +79,8 @@ function faviconProcessor(loader: Loader, content: Buffer): void {
 
     const callback = loader.async();
 
+    // TODO: the next version of loaderUtils
+    //const options = <QueryOptions>loaderUtils.getOptions(loader.query);
     const options = <QueryOptions>loaderUtils.parseQuery(loader.query);
     const pathPrefix = loaderUtils.interpolateName(loader, options.iconsPath, {
         context: options.context || loader.options.context,

@@ -39,11 +39,7 @@
         "stylesOutFileName": "",
         "customTagAttributes": []
       },
-      "environments": {
-        "source": "environments/environment.ts",
-        "dev": "environments/environment.ts",
-        "prod": "environments/environment.prod.ts"
-      },
+      "environmentSource": "environments/environment.ts",
       //"skipGenerateIcons": true,
       "buildTargetOverrides": {
         //"aot": {
@@ -56,6 +52,7 @@
           //"skipGenerateIcons": true
         },
         "prod": {
+          "environmentFile": "environments/environment.prod.ts",
           // Default - true
           "compressAssets": true,
           // Default - false

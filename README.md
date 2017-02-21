@@ -9,6 +9,8 @@ Easy and customizable angular build system based on [angular-cli](https://github
 - Build target overrides support - e.g. for production build - can disable using dll, for aot build - can use different bootstrap main entry  
 - Easy configuration with [angular-build.json](https://github.com/BizAppFramework/angular-build/blob/master/configs/angular-build.json)  
   
+**Note: This is NOT a replacement for angular-cli, but only for customizing build/bundle process.  
+  
 ## Quick Start:  
 Make sure you have Node version >= 6.9.1 and npm >= 3.  
   

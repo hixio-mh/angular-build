@@ -17,6 +17,16 @@ import { AppConfig, BuildOptions } from '../models';
 import { readJsonSync } from '../utils';
 import { getEnvName } from './helpers';
 
+/**
+ * Enumerate loaders and their dependencies from this file to let the dependency validator
+ * know they are used.
+ *
+ * require('ng-router-loader')
+  * require('awesome-typescript-loader')
+ * require('string-replace-loader')
+ * require('angular2-template-loader')
+ */
+
 export function getAngularConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
     if (buildOptions.dll) {
         const angular2FixPlugins = getAngular2FixPlugins(projectRoot, appConfig, buildOptions);
@@ -122,14 +132,14 @@ function getTypescriptNgcPluginConfigPartial(projectRoot: string, appConfig: App
                         configFileName: tsConfigPath
                     }
                 },
-                //{
-                //    loader: 'string-replace-loader',
-                //    options: {
-                //        search: 'moduleId:\s*module.id\s*[,]?',
-                //        replace: '',
-                //        flags: 'g'
-                //    }
-                //},
+                {
+                    loader: 'string-replace-loader',
+                    options: {
+                        search: 'moduleId:\s*module.id\s*[,]?',
+                        replace: '',
+                        flags: 'g'
+                    }
+                },
                 {
                     loader: 'angular2-template-loader'
                 }
@@ -190,6 +200,24 @@ function getTypescriptNgcPluginConfigPartial(projectRoot: string, appConfig: App
         //plugins.push(...aotReplacementPlugins);
     }
 
+    // Replace environment
+    //
+    const hostReplacementPaths = getHostReplacementPaths(projectRoot, appConfig, buildOptions);
+    if (hostReplacementPaths && Object.keys(hostReplacementPaths).length > 0) {
+        const envSourcePath = Object.keys(hostReplacementPaths)[0];
+        const envFile = hostReplacementPaths[envSourcePath];
+        if (envSourcePath !== envFile) {
+            plugins.push(new NormalModuleReplacementPlugin(
+                // This plugin is responsible for swapping the environment files.
+                // Since it takes a RegExp as first parameter, we need to escape the path.
+                // See https://webpack.github.io/docs/list-of-plugins.html#normalmodulereplacementplugin
+                new RegExp(envSourcePath
+                    .replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')),
+                envFile
+            ));
+        }
+    }
+
     const tsWebpackConfig = {
         resolve: {
             plugins: [
@@ -248,26 +276,7 @@ function getAngular2FixPlugins(projectRoot: string, appConfig: AppConfig, buildO
 }
 
 function createAotPlugin(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions, aotOptions: any) {
-    const envShort = getEnvName(buildOptions.production);
-
-    // Read the environment, and set it in the compiler host.
-    let hostOverrideFileSystem: any = {};
-    // process environment file replacement
-    if (appConfig.environments) {
-        if (!('source' in appConfig.environments)) {
-            throw new Error(`Environment configuration does not contain "source" entry.`);
-        }
-        if (!(envShort in appConfig.environments)) {
-            throw new Error(`Environment "${envShort}" does not exist.`);
-        }
-
-        const appRoot = path.resolve(projectRoot, appConfig.root);
-        const sourcePath = appConfig.environments['source'];
-        const envFile = appConfig.environments[envShort];
-        const environmentContent = fs.readFileSync(path.join(appRoot, envFile)).toString();
-
-        hostOverrideFileSystem = { [path.join(appRoot, sourcePath)]: environmentContent };
-    }
+    const hostReplacementPaths: any = getHostReplacementPaths(projectRoot, appConfig, buildOptions);
 
     const webpackIsGlobal = (buildOptions as any)['webpackIsGlobal'];
     // ReSharper disable CommonJsExternalModule
@@ -284,7 +293,32 @@ function createAotPlugin(projectRoot: string, appConfig: AppConfig, buildOptions
             i18nFile: appConfig.i18nFile,
             i18nFormat: appConfig.i18nFormat,
             locale: appConfig.locale,
-            hostOverrideFileSystem
+            hostReplacementPaths
         },
         aotOptions));
+}
+
+function getHostReplacementPaths(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
+    const envShort = getEnvName(buildOptions.production);
+    const envLong = getEnvName(buildOptions.production, true);
+    let hostReplacementPaths: any = {};
+    const appRoot = path.resolve(projectRoot, appConfig.root);
+
+    let sourcePath = appConfig.environmentSource;
+    if (!sourcePath && appConfig.environments && appConfig.environments['source']) {
+        sourcePath = appConfig.environments['source'];
+    }
+    let envFile = appConfig.environmentFile;
+    if (!envFile && appConfig.environments && appConfig.environments[envShort]) {
+        envFile = appConfig.environments[envShort];
+    }
+    if (!envFile && appConfig.environments && appConfig.environments[envLong]) {
+        envFile = appConfig.environments[envLong];
+    }
+    if (sourcePath && envFile) {
+        hostReplacementPaths = {
+            [path.join(appRoot, sourcePath)]: path.join(appRoot, envFile)
+        };
+    }
+    return hostReplacementPaths;
 }

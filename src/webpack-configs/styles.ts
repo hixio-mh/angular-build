@@ -15,6 +15,22 @@ import { SuppressEntryChunksWebpackPlugin } from '../plugins/suppress-entry-chun
 import { AppConfig, BuildOptions } from '../models';
 import { parseGlobalScopedEntry } from './helpers';
 
+/**
+ * Enumerate loaders and their dependencies from this file to let the dependency validator
+ * know they are used.
+ *
+ * require('exports-loader')
+ * require('style-loader')
+ * require('postcss-loader')
+ * require('css-loader')
+ * require('stylus')
+ * require('stylus-loader')
+ * require('less')
+ * require('less-loader')
+ * require('node-sass')
+ * require('sass-loader')
+ */
+
 // Ref: https://github.com/angular/angular-cli
 export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions):
     { entry: { [key: string]: string[] }, module: { rules: any[] }, plugins: any[] } {
@@ -22,7 +38,7 @@ export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig
     const appRoot = path.resolve(projectRoot, appConfig.root);
     const entryPoints: { [key: string]: string[] } = {};
     const globalStylePaths: string[] = [];
-
+    const stylePlugins: any[] = [];
 
     // style-loader does not support sourcemaps without absolute publicPath, so it's
     // better to disable them when not extracting css
@@ -48,46 +64,6 @@ export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig
         appConfig.stylePreprocessorOptions.includePaths.forEach((includePath: string) =>
             includePaths.push(path.resolve(appRoot, includePath)));
     }
-
-    const stylePlugins = [
-        // extract global css from js files into own css file
-        new ExtractTextPlugin({
-            filename: `[name]${hashFormat}.css`,
-            disable: appConfig.extractCss === false
-        }),
-        // TODO: when merge with webpackMerge and two LoaderOptionsPlugin(s), options object is override with last LoaderOptionsPlugin
-        new LoaderOptionsPlugin({
-            sourceMap: sourceMap,
-            options: {
-                /**
-                * Html loader advanced options
-                *
-                * See: https://github.com/webpack/html-loader#advanced-options
-                */
-                // TODO: Need to workaround Angular 2's html syntax => #id [bind] (event) *ngFor
-                //htmlLoader: {
-                //    minimize: true,
-                //    removeAttributeQuotes: false,
-                //    caseSensitive: true,
-                //    customAttrSurround: [
-                //        [/#/, /(?:)/],
-                //        [/\*/, /(?:)/],
-                //        [/\[?\(?/, /(?:)/]
-                //    ],
-                //    customAttrAssign: [/\)?\]?=/]
-                //},
-
-                postcss: [autoprefixer()].concat(extraPostCssPlugins),
-                // css-loader, stylus-loader don't support LoaderOptionsPlugin properly
-                // options are in query instead
-                sassLoader: { sourceMap: sourceMap, includePaths },
-                // less-loader doesn't support paths
-                lessLoader: { sourceMap: sourceMap },
-                // context needed as a workaround https://github.com/jtangelder/sass-loader/issues/285
-                context: projectRoot
-            }
-        })
-    ];
 
     // process global styles
     if (appConfig.styles.length > 0) {
@@ -120,31 +96,48 @@ export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig
         }
     ];
 
-    const commonLoaders = ['postcss-loader'];
+    //const commonLoaders = ['postcss-loader'];
+    const commonLoaders = [
+        // css-loader doesn't support webpack.LoaderOptionsPlugin properly,
+        // so we need to add options in its query
+        `css-loader?${JSON.stringify({ sourceMap: sourceMap, importLoaders: 1 })}`,
+        'postcss-loader'
+    ];
+
 
     // load component css as raw strings
+    //const styleRules: any = baseRules.map(({ test, use }) => ({
+    //    exclude: globalStylePaths,
+    //    test,
+    //    use: ['raw-loader'].concat(commonLoaders).concat(use)
+    //}));
     const styleRules: any = baseRules.map(({ test, use }) => ({
         exclude: globalStylePaths,
         test,
-        use: ['raw-loader'].concat(commonLoaders).concat(use)
+        use: [
+            'exports-loader?module.exports.toString()'
+        ].concat(commonLoaders).concat(use)
     }));
+
 
     // load global css as css files
     if (globalStylePaths.length > 0) {
-        styleRules.push(...baseRules.map(({ test, use }) => ({
-            include: globalStylePaths,
-            test,
-            use: ExtractTextPlugin.extract({
-                use: [
-                    // css-loader doesn't support webpack.LoaderOptionsPlugin properly,
-                    // so we need to add options in its query
-                    `css-loader?${JSON.stringify({ sourceMap: sourceMap })}`
-                ].concat(commonLoaders).concat(use),
+        styleRules.push(...baseRules.map(({test, use}) => {
+            const extractTextPlugin = {
+                use: commonLoaders.concat(use),
                 fallback: 'style-loader',
                 // publicPath needed as a workaround https://github.com/angular/angular-cli/issues/4035
                 publicPath: ''
-            })
-        })));
+            };
+            const ret: any = {
+                include: globalStylePaths,
+                test,
+                use: ExtractTextPlugin.extract(extractTextPlugin)
+            };
+            // Save the original options as arguments for eject.
+            //ret[pluginArgs] = extractTextPlugin;
+            return ret;
+        }));
     }
 
     // supress empty .js files in css only entry points
@@ -152,7 +145,7 @@ export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig
         //extraPlugins.push(new SuppressExtractedTextChunksWebpackPlugin());
         stylePlugins.push(new SuppressEntryChunksWebpackPlugin({
             chunks: Object.keys(entryPoints),
-            supressPattern: /\.js$/i,
+            supressPattern: /\.js(\.map)?$/,
             assetTagsFilterFunc: (tag: any) => !(tag.tagName === 'script' &&
                 tag.attributes.src &&
                 tag.attributes.src.match(/\.css$/i))
@@ -163,6 +156,26 @@ export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig
     return {
         entry: entryPoints,
         module: { rules: styleRules },
-        plugins: stylePlugins
+        plugins: [
+            // extract global css from js files into own css file
+            new ExtractTextPlugin({
+                filename: `[name]${hashFormat}.css`,
+                disable: appConfig.extractCss === false
+            }),
+            // TODO: when merge with webpackMerge and two LoaderOptionsPlugin(s), options object is override with last LoaderOptionsPlugin
+            new LoaderOptionsPlugin({
+                sourceMap: sourceMap,
+                options: {
+                    postcss: [autoprefixer()].concat(extraPostCssPlugins),
+                    // css-loader, stylus-loader don't support LoaderOptionsPlugin properly
+                    // options are in query instead
+                    sassLoader: { sourceMap: sourceMap, includePaths },
+                    // less-loader doesn't support paths
+                    lessLoader: { sourceMap: sourceMap },
+                    // context needed as a workaround https://github.com/jtangelder/sass-loader/issues/285
+                    context: projectRoot
+                }
+            })
+        ].concat(stylePlugins)
     };
 }

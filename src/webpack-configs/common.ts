@@ -41,14 +41,14 @@ export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig
     // Copy assets
     //
     let skipCopyAssets = appConfig.skipCopyAssets;
-    if (typeof appConfig.skipCopyAssets === 'undefined' || appConfig.skipCopyAssets === null) {
+    if (typeof skipCopyAssets === 'undefined' || skipCopyAssets === null) {
         if (typeof buildOptions.skipCopyAssets !== 'undefined' && buildOptions.skipCopyAssets !== null) {
-            appConfig.skipCopyAssets = buildOptions.skipCopyAssets;
+            skipCopyAssets = buildOptions.skipCopyAssets;
         } else {
-            appConfig.skipCopyAssets = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
+            skipCopyAssets = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
         }
     }
-    if (typeof appConfig.assets !== 'undefined' && appConfig.assets.length && !skipCopyAssets) {
+    if (typeof appConfig.assets !== 'undefined' && appConfig.assets.length > 0 && !skipCopyAssets) {
         const copyAssetOptions = parseCopyAssetEntry(appRoot, appConfig.assets);
         if (copyAssetOptions && copyAssetOptions.length > 0) {
             commonPlugins.push(new CopyWebpackPlugin(copyAssetOptions,
@@ -138,7 +138,7 @@ export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig
     //
     const webpackSharedConfig = {
         target: appConfig.target === 'node' ? 'node' : 'web',
-        devtool: appConfig.target === 'node' ? 'inline-source-map' : buildOptions.production ? false : 'source-map',
+        devtool: appConfig.target === 'node' ? 'inline-source-map' : undefined, //buildOptions.production ? false : 'source-map',
         context: projectRoot,
         output: {
             path: path.resolve(projectRoot, appConfig.outDir),
@@ -146,9 +146,9 @@ export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig
             filename: appConfig.appendOutputHash
                 ? `[name].${hashFormat}.js`
                 : '[name].js',
-            sourceMapFilename: appConfig.appendOutputHash
-                ? `[name].${hashFormat}.map`
-                : '[name].map',
+            //sourceMapFilename: appConfig.appendOutputHash
+            //    ? `[name].${hashFormat}.map`
+            //    : '[name].map',
             chunkFilename: appConfig.appendOutputHash
                 ? `[id].${hashFormat}.js`
                 : '[id].js',

@@ -24,6 +24,13 @@ import { getAngularConfigPartial } from './angular';
 
 import { getFaviconPlugins } from './favicons';
 
+/**
+ * Enumerate loaders and their dependencies from this file to let the dependency validator
+ * know they are used.
+ *
+  * require('awesome-typescript-loader')
+ */
+
 export function getDllConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
     console.info(`\n${chalk.bgBlue('INFO:')} Using dll config, production: ${buildOptions.production}\n`);
     const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
@@ -165,7 +172,7 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
 
     // Favicons plugins
     let skipGenerateIcons = appConfig.skipGenerateIcons;
-    if (typeof appConfig.skipGenerateIcons === 'undefined' || appConfig.skipGenerateIcons === null) {
+    if (typeof skipGenerateIcons === 'undefined' || skipGenerateIcons === null) {
         if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
             skipGenerateIcons = buildOptions.skipGenerateIcons;
         } else {

@@ -16,7 +16,7 @@
                 },
                 "assets": {
                     "default": "[]",
-                    "description": "The asset entries to be copied to output directory.",
+                    "description": "List of application assets.",
                     "items": {
                         "anyOf": [
                             {
@@ -54,12 +54,24 @@
                                         ],
                                         "description": "The source file, it can be absolute or relative path or glob pattern."
                                     },
+                                    "glob": {
+                                        "description": "Angular-cli compatible, same as 'glob' property of 'from' object.",
+                                        "type": "string"
+                                    },
                                     "ignore": {
                                         "description": "Additional globs to ignore for this pattern.",
                                         "items": {
                                             "type": "string"
                                         },
                                         "type": "array"
+                                    },
+                                    "input": {
+                                        "description": "Angular-cli compatible, same as 'from' property.",
+                                        "type": "string"
+                                    },
+                                    "output": {
+                                        "description": "Angular-cli compatible, same as 'to' property.",
+                                        "type": "string"
                                     },
                                     "to": {
                                         "description": "The output root if from is file or dir.",
@@ -100,6 +112,10 @@
                 "compressAssets": {
                     "description": "Compress assets.",
                     "type": "boolean"
+                },
+                "deployUrl": {
+                    "description": "Angular-cli compatible, same as 'publicPath' property.",
+                    "type": "string"
                 },
                 "dllChunkName": {
                     "default": "vendor",
@@ -145,11 +161,19 @@
                     },
                     "type": "array"
                 },
+                "environmentFile": {
+                    "description": "The environment file for the build target.",
+                    "type": "string"
+                },
+                "environmentSource": {
+                    "description": "Source file for environment config.",
+                    "type": "string"
+                },
                 "environments": {
                     "additionalProperties": {
                         "type": "string"
                     },
-                    "description": "The optin to select environment file to be used with build target - dev or prod.",
+                    "description": "Name and corresponding file for environment config.",
                     "type": "object"
                 },
                 "extends": {
@@ -240,7 +264,7 @@
                     "type": "string"
                 },
                 "outDir": {
-                    "description": "The output directory of bundled assets.",
+                    "description": "The output directory for build results.",
                     "type": "string"
                 },
                 "polyfills": {
@@ -274,7 +298,7 @@
                     "type": "boolean"
                 },
                 "root": {
-                    "description": "The root directory of app.",
+                    "description": "The root directory of the app.",
                     "type": "string"
                 },
                 "scripts": {
@@ -284,9 +308,6 @@
                         "anyOf": [
                             {
                                 "properties": {
-                                    "entry": {
-                                        "type": "string"
-                                    },
                                     "input": {
                                         "type": "string"
                                     },
@@ -294,9 +315,6 @@
                                         "type": "boolean"
                                     },
                                     "output": {
-                                        "type": "string"
-                                    },
-                                    "path": {
                                         "type": "string"
                                     }
                                 },
@@ -346,9 +364,6 @@
                         "anyOf": [
                             {
                                 "properties": {
-                                    "entry": {
-                                        "type": "string"
-                                    },
                                     "input": {
                                         "type": "string"
                                     },
@@ -356,9 +371,6 @@
                                         "type": "boolean"
                                     },
                                     "output": {
-                                        "type": "string"
-                                    },
-                                    "path": {
                                         "type": "string"
                                     }
                                 },
@@ -409,7 +421,7 @@
                 },
                 "assets": {
                     "default": "[]",
-                    "description": "The asset entries to be copied to output directory.",
+                    "description": "List of application assets.",
                     "items": {
                         "anyOf": [
                             {
@@ -447,12 +459,24 @@
                                         ],
                                         "description": "The source file, it can be absolute or relative path or glob pattern."
                                     },
+                                    "glob": {
+                                        "description": "Angular-cli compatible, same as 'glob' property of 'from' object.",
+                                        "type": "string"
+                                    },
                                     "ignore": {
                                         "description": "Additional globs to ignore for this pattern.",
                                         "items": {
                                             "type": "string"
                                         },
                                         "type": "array"
+                                    },
+                                    "input": {
+                                        "description": "Angular-cli compatible, same as 'from' property.",
+                                        "type": "string"
+                                    },
+                                    "output": {
+                                        "description": "Angular-cli compatible, same as 'to' property.",
+                                        "type": "string"
                                     },
                                     "to": {
                                         "description": "The output root if from is file or dir.",
@@ -475,6 +499,10 @@
                 "compressAssets": {
                     "description": "Compress assets.",
                     "type": "boolean"
+                },
+                "deployUrl": {
+                    "description": "Angular-cli compatible, same as 'publicPath' property.",
+                    "type": "string"
                 },
                 "dllChunkName": {
                     "default": "vendor",
@@ -519,6 +547,10 @@
                         ]
                     },
                     "type": "array"
+                },
+                "environmentFile": {
+                    "description": "The environment file for the build target.",
+                    "type": "string"
                 },
                 "extractCss": {
                     "description": "Extracts css.",
@@ -600,7 +632,7 @@
                     "type": "array"
                 },
                 "outDir": {
-                    "description": "The output directory of bundled assets.",
+                    "description": "The output directory for build results.",
                     "type": "string"
                 },
                 "polyfills": {
@@ -634,7 +666,7 @@
                     "type": "boolean"
                 },
                 "root": {
-                    "description": "The root directory of app.",
+                    "description": "The root directory of the app.",
                     "type": "string"
                 },
                 "scripts": {
@@ -644,9 +676,6 @@
                         "anyOf": [
                             {
                                 "properties": {
-                                    "entry": {
-                                        "type": "string"
-                                    },
                                     "input": {
                                         "type": "string"
                                     },
@@ -654,9 +683,6 @@
                                         "type": "boolean"
                                     },
                                     "output": {
-                                        "type": "string"
-                                    },
-                                    "path": {
                                         "type": "string"
                                     }
                                 },
@@ -706,9 +732,6 @@
                         "anyOf": [
                             {
                                 "properties": {
-                                    "entry": {
-                                        "type": "string"
-                                    },
                                     "input": {
                                         "type": "string"
                                     },
@@ -716,9 +739,6 @@
                                         "type": "boolean"
                                     },
                                     "output": {
-                                        "type": "string"
-                                    },
-                                    "path": {
                                         "type": "string"
                                     }
                                 },

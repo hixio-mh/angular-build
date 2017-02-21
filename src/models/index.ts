@@ -3,11 +3,11 @@
  */
 export interface AppConfigOverridable {
     /**
-     * The root directory of app.
+     * The root directory of the app.
      */
     root?: string;
     /**
-     * The output directory of bundled assets.
+     * The output directory for build results.
      */
     outDir?: string;
     /**
@@ -30,7 +30,7 @@ export interface AppConfigOverridable {
      */
     dllChunkName?: string;
     /**
-     * The asset entries to be copied to output directory.
+     * List of application assets.
      * @default []
      */
     assets?: (string | AssetEntry)[];
@@ -47,7 +47,7 @@ export interface AppConfigOverridable {
     /**
      *  To automatically load modules with alias key.
      */
-    provide: { [key: string]: string };
+    provide?: { [key: string]: string };
     /**
      * The index html template file.
      */
@@ -70,6 +70,10 @@ export interface AppConfigOverridable {
      * The public url address of the output files.
      */
     publicPath?: string;
+      /**
+     * Angular-cli compatible, same as 'publicPath' property.
+     */
+    deployUrl?:string;
     /**
      * To reference dll.
      */
@@ -128,6 +132,10 @@ export interface AppConfigOverridable {
      *  AoT resource override path.
      */
     aotResourceOverridePath?: string;
+    /**
+     * The environment file for the build target.
+     */
+    environmentFile?:string;
 }
 
 /**
@@ -160,14 +168,18 @@ export interface AppConfig extends AppConfigOverridable {
      * To override properties based on build targets.
      */
     //buildTargetOverrides: { [name: string]: { [key: string]: any } };
-    buildTargetOverrides: {
+    buildTargetOverrides?: {
         dev?: AppConfigOverridable;
         prod?: AppConfigOverridable;
         dll?: AppConfigOverridable;
         aot?: AppConfigOverridable;
     };
     /**
-     * The optin to select environment file to be used with build target - dev or prod.
+     * Source file for environment config.
+     */
+    environmentSource?: string;
+    /**
+     * Name and corresponding file for environment config.
      */
     environments?: { [key: string]: string };
 }
@@ -210,14 +222,28 @@ export type AssetEntry = {
      * @default false
      */
     force?: boolean;
+    /**
+     * Angular-cli compatible, same as 'glob' property of 'from' object.
+     */
+    glob?: string;
+    /**
+     * Angular-cli compatible, same as 'from' property.
+     */
+    input?: string;
+    /**
+   * Angular-cli compatible, same as 'to' property.
+   */
+    output?: string;
 };
 
+/**
+ * Global scoped entry.
+ * @additionalProperties true
+ */
 export type GlobalScopedEntry = {
     input: string;
     output?: string;
     lazy?: boolean;
-    path?: string;
-    entry?: string;
 }
 
 export type DllEntry = {
