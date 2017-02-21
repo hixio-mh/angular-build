@@ -108,7 +108,7 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerF
         app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
         {
           ConfigFile = "webpack.config.js",
-          HotModuleReplacement = true
+          //HotModuleReplacement = true
         });
     }
     
@@ -210,12 +210,8 @@ The main configuration file to build your angular apps. It is similar to or near
         ]
       },
 
-      // The optin to select environment file to be used with build target - dev or prod.
-      "environments": {
-        "source": "environments/environment.ts",
-        "dev": "environments/environment.ts",
-        "prod": "environments/environment.prod.ts"
-      },
+      // Source file for environment config.
+      "environmentSource": "environments/environment.ts",
 
       // Build target overrides
       "buildTargetOverrides": {
@@ -231,16 +227,23 @@ The main configuration file to build your angular apps. It is similar to or near
         },
 
         "prod": {
+           // The environment file for the build target
+           "environmentFile": "environments/environment.prod.ts",
+
           // Default - true
           "compressAssets": true,
+
           // Default - false
           "sourceMap": false,
+
           // Default - true
           "extractCss": true,
+
           // Module replacement for production build
           "moduleReplacements": [
             {
               "resourceRegExp": "angular2-hmr",
+
               // Path is relative to project root dir, Default - angular-build's empty.js module
               "newResource": "empty.js"
             }

@@ -1,3 +1,10 @@
+# v1.0.7  
+#### Bug fixes  
+- fixed loaderUtils warnings  
+  
+#### Changes  
+- updated some npm packages  
+  
 # v1.0.6  
 #### Bug fixes  
 - fixed problem on copy assets  
