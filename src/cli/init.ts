@@ -316,7 +316,8 @@ export function init(cliOptions: CliOptions): Promise<number> {
                         err => err ? reject(err) : resolve());
                 })
                     .then(() => {
-                        console.log(chalk.green('Created:') + ' angular-build.json');
+                        console.log(chalk.green(`${cfg.angularBuildConfigFileExists ? 'Updated' : 'Created'}:`) +
+                            ' angular-build.json');
                         return;
                     });
             }
@@ -344,7 +345,8 @@ export function init(cliOptions: CliOptions): Promise<number> {
                     }
                 })
                     .then(() => {
-                        console.log(chalk.green('Created:') + ' ' + webpackConfigFileName);
+                        console.log(chalk.green(`${cfg.webpackConfigFileExists ? 'Updated' : 'Created'}:`) +
+                            ' ' + webpackConfigFileName);
                         return;
                     });
             }
@@ -506,12 +508,6 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 const excludeList: string[] = cfg.tsConfigMaster.exclude || [];
                 if (excludeList.indexOf(appConfig.outDir) === -1) {
                     excludeList.push(appConfig.outDir);
-                }
-                if (excludeList.indexOf(`${appConfig.root}/**/*.spec.ts`) === -1) {
-                    excludeList.push(`${appConfig.root}/**/*.spec.ts`);
-                }
-                if (excludeList.indexOf(`${appConfig.root}/**/*.e2e.ts`) === -1) {
-                    excludeList.push(`${appConfig.root}/**/*.e2e.ts`);
                 }
 
                 if (exists) {
@@ -754,6 +750,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
         // 15. Update package.json
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
+            const outDirs = cfg.angularBuildConfigMaster.apps.map(app => app.outDir + '/**/*').join(' ');
             const configOpt = typeof cfg.commandOptions.webpackConfigFileName === 'undefined' ||
                 cfg.commandOptions.webpackConfigFileName === 'webpack.config.js'
                 ? ' '
@@ -763,11 +760,12 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 "prebuild:dll": `npm run clean:dist`,
                 "build:dev": `cross-env NODE_ENV=development webpack${configOpt}--profile --colors --bail`,
                 "build:prod": `cross-env NODE_ENV=production webpack${configOpt}--profile --colors --bail`,
-                "prebuild:prod": `npm run clean:dist`,
+                "build:dev:universal": `cross-env NODE_ENV=development webpack${configOpt}--profile --colors --bail`,
+                "build:prod:universal": `cross-env NODE_ENV=production webpack${configOpt}--profile --colors --bail`,
                 "build:aot": `cross-env NODE_ENV=production webpack${configOpt}--profile --colors --bail`,
-                "prebuild:aot": `npm run clean:dist && npm run clean:aot-compiled`,
+                "prebuild:aot": `npm run clean:dist`,
                 "build": `npm run build:dev`,
-                "clean:dist": `npm run rimraf -- ${appConfig.outDir}/**/*`,
+                "clean:dist": `npm run rimraf -- ${outDirs}`,
                 "clean:aot-compiled": `npm run rimraf -- aot-compiled`,
                 "cross-env": 'cross-env',
                 "lint": `npm run tslint \"${appConfig.root}/**/*.ts\"`,
@@ -1276,7 +1274,7 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
         'zone.js'
     ];
 
-    const depsSaveFilteredList = [
+    const depSaveFilteredList = [
         'es6-promise',
         'es6-shim',
         'ie-shim',
@@ -1286,8 +1284,17 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
         'ts-helpers',
         'tslib',
         'zone.js',
+
         '@angular/compiler',
-        '@angular/core'
+        '@angular/core',
+
+        '@angular/common',
+        '@angular/forms',
+        '@angular/http',
+        '@angular/router',
+        '@angular/platform-browser',
+        '@angular/platform-browser-dynamic',
+        '@angular/platform-server'
     ];
 
     const depsToInstall: string[] = [];
@@ -1352,7 +1359,7 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
                 const depsToSave: string[] = [];
                 const devDepsToSave: string[] = [];
                 depsToInstall.forEach(p => {
-                    if (depsSaveFilteredList.indexOf(p) > -1) {
+                    if (depSaveFilteredList.indexOf(p) > -1) {
                         depsToSave.push(p);
                     } else {
                         devDepsToSave.push(p);

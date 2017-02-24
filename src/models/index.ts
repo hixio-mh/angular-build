@@ -29,6 +29,15 @@ export interface AppConfigOverridable {
      * @default vendor
      */
     dllChunkName?: string;
+
+    /**
+     * If true, chunk into 'inline.js'
+     */
+    inlineChunk?: boolean;
+    /**
+     * If true, chunk into 'inline.js'
+     */
+    vendorChunk?: boolean;
     /**
      * List of application assets.
      * @default []
@@ -169,10 +178,11 @@ export interface AppConfig extends AppConfigOverridable {
      */
     //buildTargetOverrides: { [name: string]: { [key: string]: any } };
     buildTargetOverrides?: {
+        dll?: AppConfigOverridable;
         dev?: AppConfigOverridable;
         prod?: AppConfigOverridable;
-        dll?: AppConfigOverridable;
         aot?: AppConfigOverridable;
+        universal?: AppConfigOverridable;
     };
     /**
      * Source file for environment config.
@@ -327,9 +337,13 @@ export interface BuildOptions {
      */
     dll?: boolean;
     /**
-     * Set true for aot build.
+     * Set true for aot target.
      */
     aot?: boolean;
+    /**
+     * Set true for universal target.
+     */
+    universal?: boolean;
     /**
      * To reference dlls for all apps.
      */

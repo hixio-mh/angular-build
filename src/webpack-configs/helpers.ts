@@ -446,6 +446,21 @@ export function isAoTBuildFromNpmEvent(eventName?: string): boolean {
     }
 }
 
+export function isUniversalBuildFromNpmEvent(eventName?: string): boolean {
+    const lcEvent = process.env.npm_lifecycle_event;
+    if (!lcEvent) {
+        return false;
+    }
+
+    if (eventName) {
+        return lcEvent.includes(eventName);
+    } else {
+        return lcEvent.includes(':universal') ||
+            lcEvent.includes('-universal') ||
+            lcEvent === 'universal';
+    }
+}
+
 //export function findNpmScriptCommandName(baseDir: string, keyFilter: RegExp, valueFilter?: RegExp): string {
 //  let pkgConfigPath = path.resolve(baseDir, 'package.json');
 //  if (!fs.existsSync(pkgConfigPath)) {

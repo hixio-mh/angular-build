@@ -278,7 +278,8 @@ export class ChildComplier {
             delete loaderOptions['masterPicture'];
         }
         // adding !! to a request will disable all loaders specified in the configuration
-        const templateEntry = `!!${require.resolve('./icon-loader')}?${JSON.stringify(loaderOptions)}!${options.masterPicture}`;
+        const templateEntry = `!!${require.resolve('./icon-loader')}?${JSON.stringify(loaderOptions)}!${options
+            .masterPicture}`;
 
         childCompiler.apply(
             new NodeTemplatePlugin(outputOptions),

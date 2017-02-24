@@ -5,7 +5,7 @@ import * as ajv from 'ajv';
 
 import { AppConfig, BuildOptions, AngularBuildConfig } from '../models';
 import { readJsonSync } from '../utils';
-import { hasProdArg, isDllBuildFromNpmEvent, isAoTBuildFromNpmEvent } from './helpers';
+import { hasProdArg, isDllBuildFromNpmEvent, isAoTBuildFromNpmEvent, isUniversalBuildFromNpmEvent } from './helpers';
 import { getDllConfig } from './dll';
 import { getNonDllConfig } from './non-dll';
 
@@ -180,6 +180,7 @@ function mergeBuildOptionsWithDefaults(buildOptions: BuildOptions): BuildOptions
     const defaultBuildOptions: BuildOptions = {
         production: hasProdArg() || isAoTBuildFromNpmEvent() || process.argv.indexOf('--aot') > -1,
         aot: isAoTBuildFromNpmEvent() || process.argv.indexOf('--aot') > -1,
+        universal: isUniversalBuildFromNpmEvent() || process.argv.indexOf('--universal') > -1,
         dll: isDllBuildFromNpmEvent() || process.argv.indexOf('--dll') > -1,
         verbose: process.argv.indexOf('--verbose') > -1,
         progress: process.argv.indexOf('--progress') > -1,
@@ -229,10 +230,9 @@ function mergeAppConfigWithBuildTargetOverrides(appConfig: AppConfig, buildOptio
 
     Object.keys(appConfig.buildTargetOverrides).forEach((buildTargetKey: string) => {
         switch (buildTargetKey.toLowerCase()) {
-            case 'prod':
-            case 'production':
-                if (buildOptions.production) {
-                    const newConfig = appConfig.buildTargetOverrides.prod;
+            case 'dll':
+                if (buildOptions.dll) {
+                    const newConfig = appConfig.buildTargetOverrides.dll;
                     overrideAppConfig(appConfig, newConfig);
                 }
                 break;
@@ -243,15 +243,22 @@ function mergeAppConfigWithBuildTargetOverrides(appConfig: AppConfig, buildOptio
                     overrideAppConfig(appConfig, newConfig);
                 }
                 break;
-            case 'dll':
-                if (buildOptions.dll) {
-                    const newConfig = appConfig.buildTargetOverrides.dll;
+            case 'prod':
+            case 'production':
+                if (buildOptions.production) {
+                    const newConfig = appConfig.buildTargetOverrides.prod;
                     overrideAppConfig(appConfig, newConfig);
                 }
                 break;
             case 'aot':
                 if (buildOptions.aot) {
                     const newConfig = appConfig.buildTargetOverrides.aot;
+                    overrideAppConfig(appConfig, newConfig);
+                }
+                break;
+            case 'universal':
+                if (buildOptions.aot) {
+                    const newConfig = appConfig.buildTargetOverrides.universal;
                     overrideAppConfig(appConfig, newConfig);
                 }
                 break;
@@ -324,10 +331,14 @@ function mergeAppConfigWithDefaults(projectRoot: string, appConfig: AppConfig, b
     }
 
     if (typeof appConfig.extractCss === 'undefined' || appConfig.extractCss === null) {
-        if (typeof buildOptions.extractCss !== 'undefined' && buildOptions.extractCss !== null) {
-            appConfig.extractCss = buildOptions.extractCss;
+        if (!appConfig.target || appConfig.target === 'web') {
+            if (typeof buildOptions.extractCss !== 'undefined' && buildOptions.extractCss !== null) {
+                appConfig.extractCss = buildOptions.extractCss;
+            } else {
+                appConfig.extractCss = buildOptions.production;
+            }
         } else {
-            appConfig.extractCss = buildOptions.production;
+            appConfig.extractCss = false;
         }
     }
 

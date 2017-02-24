@@ -105,6 +105,9 @@
                         },
                         "prod": {
                             "$ref": "#/definitions/AppConfigOverridable"
+                        },
+                        "universal": {
+                            "$ref": "#/definitions/AppConfigOverridable"
                         }
                     },
                     "type": "object"
@@ -235,6 +238,10 @@
                 "index": {
                     "description": "The index html template file.",
                     "type": "string"
+                },
+                "inlineChunk": {
+                    "description": "If true, chunk into 'inline.js'",
+                    "type": "boolean"
                 },
                 "locale": {
                     "description": "Locale.",
@@ -404,6 +411,10 @@
                     "default": "tsconfig.json",
                     "description": "The typescript configuration file.",
                     "type": "string"
+                },
+                "vendorChunk": {
+                    "description": "If true, chunk into 'inline.js'",
+                    "type": "boolean"
                 }
             },
             "type": "object"
@@ -608,6 +619,10 @@
                     "description": "The index html template file.",
                     "type": "string"
                 },
+                "inlineChunk": {
+                    "description": "If true, chunk into 'inline.js'",
+                    "type": "boolean"
+                },
                 "locale": {
                     "description": "Locale.",
                     "type": "string"
@@ -758,6 +773,10 @@
                     "default": "tsconfig.json",
                     "description": "The typescript configuration file.",
                     "type": "string"
+                },
+                "vendorChunk": {
+                    "description": "If true, chunk into 'inline.js'",
+                    "type": "boolean"
                 }
             },
             "type": "object"
@@ -767,7 +786,7 @@
             "description": "Build options.",
             "properties": {
                 "aot": {
-                    "description": "Set true for aot build.",
+                    "description": "Set true for aot target.",
                     "type": "boolean"
                 },
                 "app": {
@@ -831,6 +850,10 @@
                 },
                 "sourceMap": {
                     "description": "Generates sourcemaps.",
+                    "type": "boolean"
+                },
+                "universal": {
+                    "description": "Set true for universal target.",
                     "type": "boolean"
                 },
                 "verbose": {

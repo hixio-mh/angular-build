@@ -345,10 +345,14 @@ export function getNonDllConfigPartial(projectRoot: string, appConfig: AppConfig
     //
     let skipGenerateIcons = appConfig.skipGenerateIcons;
     if (typeof skipGenerateIcons === 'undefined' || skipGenerateIcons === null) {
-        if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
-            skipGenerateIcons = buildOptions.skipGenerateIcons;
+        if (!appConfig.target || appConfig.target === 'web') {
+            if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
+                skipGenerateIcons = buildOptions.skipGenerateIcons;
+            } else {
+                skipGenerateIcons = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
+            }
         } else {
-            skipGenerateIcons = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
+            skipGenerateIcons = true;
         }
     }
 
@@ -448,26 +452,41 @@ export function getNonDllConfigPartial(projectRoot: string, appConfig: AppConfig
 
     // DllReferencePlugin, CommonsChunkPlugin
     //
+    let inlineChunk = appConfig.inlineChunk;
+    if (typeof inlineChunk == 'undefined' || inlineChunk == null) {
+        inlineChunk = !appConfig.target || appConfig.target === 'web';
+    }
+    let vendorChunk = appConfig.vendorChunk;
+    if (typeof vendorChunk == 'undefined' || vendorChunk == null) {
+        vendorChunk = !appConfig.target || appConfig.target === 'web';
+    }
+
     if (appConfig.referenceDll) {
-        plugins.push(new CommonsChunkPlugin({
-            minChunks: Infinity,
-            name: 'inline'
-        }));
+        if (inlineChunk) {
+            plugins.push(new CommonsChunkPlugin({
+                minChunks: Infinity,
+                name: 'inline'
+            }));
+        }
 
     } else {
-        plugins.push(new CommonsChunkPlugin({
-            minChunks: Infinity,
-            name: 'inline'
-        }));
+        if (inlineChunk) {
+            plugins.push(new CommonsChunkPlugin({
+                minChunks: Infinity,
+                name: 'inline'
+            }));
+        }
 
-        // This enables tree shaking of the vendor modules
-        plugins.push(new CommonsChunkPlugin({
-            name: vendorChunkName,
-            chunks: ['main'],
-            minChunks: (module: any) => module.resource && module.resource.startsWith(nodeModulesPath)
-            // minChunks: (module: any) => module.userRequest && module.userRequest.startsWith(nodeModulesPath)
-            // minChunks: module => /node_modules/.test(module.resource)
-        }));
+        if (vendorChunk) {
+            // This enables tree shaking of the vendor modules
+            plugins.push(new CommonsChunkPlugin({
+                name: vendorChunkName,
+                chunks: ['main'],
+                minChunks: (module: any) => module.resource && module.resource.startsWith(nodeModulesPath)
+                // minChunks: (module: any) => module.userRequest && module.userRequest.startsWith(nodeModulesPath)
+                // minChunks: module => /node_modules/.test(module.resource)
+            }));
+        }
     }
 
     if (!buildOptions.production && (!appConfig.target || appConfig.target === 'web')) {

@@ -4,23 +4,33 @@
 Easy and customizable angular build system based on [angular-cli](https://github.com/angular/angular-cli). Build config file is similar to angular-cli.json but includes some customizations:  
 - Webpack config file to project folder in order to integrate with some packages such as [Microsoft.AspNetCore.SpaServices.Webpack](https://github.com/aspnet/JavaScriptServices)    
 - DLL bundling support for optimizing webpack build time in development, see [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)  
+- Multiple app configs suitable for client/server apps, see [Angular Universal](https://github.com/angular/universal)  
 - Online or offline favicons generation - integration with [realfavicongenerator](http://realfavicongenerator.net) and [haydenbleasel/favicons](https://github.com/haydenbleasel/favicons)  
-- Customizable html injection support, single or separate output file(s) for bundled result tags (styles, scripts, favicons), and can add custom link and script attribues (such as asp-append-version) to injected result  
-- Build target overrides support - e.g. for production build - can disable using dll, for aot build - can use different bootstrap main entry  
+- Customizable html injection support, single or separate output file(s) for bundled tags (styles, scripts, favicons), and can add custom link and script attribues (such as *asp-append-version*) to injected result  
+- Build target overrides support - e.g. for AoT build ->   *"aot": { "main": "main.browser.aot.ts",  "tsconfig": "../tsconfig.webpack.aot.json" }*, for Prod build -> *prod: { "extractCss": true,  "compressAssets": true }*  
 - Easy configuration with [angular-build.json](https://github.com/BizAppFramework/angular-build/blob/master/configs/angular-build.json)  
   
-**Note: This is NOT a replacement for angular-cli, but only for customizing build/bundle process.  
+**Note: This is NOT a replacement for angular-cli, but only for build/bundle process customization.  
   
+## Background  
+[Angular-Cli](https://github.com/angular/angular-cli) is a great tool for building angular apps! I tried and tested it in my asp.net core angular projects for long weeks. I like its configuration (angular-cli.json) because it is easy and understandable. However, for some environments (such as ASP.Net Core), we want to inject bundled tags to partial views (separate html files), add custom tag attributes (such as defer, asp-append-version), support for server-side prerendering, and more. So we decided to make this package.    
+
 ## Quick Start:  
 Make sure you have Node version >= 6.9.1 and npm >= 3.  
   
-**1. Installation**
+**1. Installation**  
+For global installation,  
 ```<language>
 npm i -g @bizappframework/angular-build
 ```  
   
+Or, for local installation,  
+```<language>
+npm i --save-dev @bizappframework/angular-build
+```  
+  
 **2. Download/clone starter repo**  
-For ASP.Net Core (1.1) repo  
+ASP.Net Core (1.1) starter repo  
 [angular-build-aspnetcore-starter](https://github.com/mmzliveid/angular-build-aspnetcore-starter)  
     
 **3. Install dependencies, build and run**  
@@ -31,8 +41,9 @@ cd <your-repo>
 # Restore npm packages
 npm install
 
-# Init config files and link global installed @bizappframework/angular-build
-ngb init -l
+# Init config files 
+# Note: If you installed globally, run 'ngb init -l' to link global installed @bizappframework/angular-build
+ngb init  
 
 # Wait a few minutes and then build your angular app
 ngb build
@@ -44,7 +55,36 @@ ngb build
 You can build your angular apps using one of the following ways.  
   
 **1.** Using **ngb build** / **angular-build build** cli command   
+For dll build:  
 ```<language>
+ngb build --dll
+```  
+  
+For development build:  
+```<language>
+ngb build
+```  
+
+For production build:  
+```<language>
+ngb build --production
+```  
+
+For production AoT build:  
+```<language>
+ngb build --aot
+```  
+
+For production Universal AoT build:  
+```<language>
+ngb build --aot --universal
+```  
+  
+For more info, type '*ngb build -h*'   
+  
+```<language>
+angular-build 1.0.8
+
 Usage:
   ngb build [options...]
 
@@ -52,13 +92,11 @@ Options:
   -h                     Show help                                     [boolean]
   --project              The target project location                    [string]
   --watch                Build/bundle the app(s) with watch mode       [boolean]
-  --aot                  Set true for aot build.                       [boolean]
+  --aot                  Set true for aot target.                      [boolean]
   --app                  To build only specific app. Use app's name.
-  --append-output-hash   Appends version hash to the ouput bundled files.
-                                                                       [boolean]
+  --append-output-hash   Appends version hash to the ouput files.      [boolean]
   --compress-assets      Compress assets.                              [boolean]
-  --config-file-path     The 'angular-build.json' oar 'angular-cli.json' config
-                         file path.                                     [string]
+  --config-file-path     The 'angular-build.json' config file path.     [string]
   --dll                  Set true for dll build.                       [boolean]
   --extract-css          Extracts css.                                 [boolean]
   --performance-hint     Show performance hints.                       [boolean]
@@ -68,23 +106,16 @@ Options:
   --skip-copy-assets     Skips copying assets.                         [boolean]
   --skip-generate-icons  Skips generating icons.                       [boolean]
   --source-map           Generates sourcemaps.                         [boolean]
+  --universal            Set true for universal target.                [boolean]
   --verbose              If true, the console displays detailed diagnostic
                          information.                                  [boolean]
-
-Examples:
-
-#For development build:
-ngb build
-
-#For production build:
-ngb build --production
-
-#For production AoT build:
-ngb build --aot
 ```  
   
 **2.** Using **npm scripts**   
 ```<language>
+#For dll build:
+npm run build:dll
+
 #For development build:
 npm run build
 
@@ -93,6 +124,9 @@ npm run build:prod
 
 #For production AoT build:
 npm run build:aot
+
+#For production Universal AoT build:
+npm run build:universal:aot
 ```  
      
 **3.** Using **WebpackDevMiddleware - ([Microsoft.AspNetCore.SpaServices.Webpack](https://github.com/aspnet/JavaScriptServices))**  
@@ -108,7 +142,7 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerF
         app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
         {
           ConfigFile = "webpack.config.js",
-          //HotModuleReplacement = true
+          HotModuleReplacement = true
         });
     }
     
@@ -124,7 +158,7 @@ ngb init
 # To ask/prompt
 ngb init -p
 
-# To link angular-build cli with your project
+# To link globally installed angular-build cli with your project
 ngb init -l
 
 # More about init, show help
@@ -133,7 +167,7 @@ ngb init -h
   
 ## Files:  
 #### angular-build.json  
-The main configuration file to build your angular apps. It is similar to or nearly the same as [angular-cli](https://github.com/angular/angular-cli). The following is an example configuration.  
+The main configuration file to build your angular apps. It is similar to [angular-cli](https://github.com/angular/angular-cli) config file - '*angular-cli.json*'. The following is an example configuration.  
 ```<language>
 {
   "apps": [
@@ -215,17 +249,24 @@ The main configuration file to build your angular apps. It is similar to or near
 
       // Build target overrides
       "buildTargetOverrides": {
-        // For aot build with ngc. Default is used ngtools/webpack if main entry does not end with *.aot.ts
-        //"aot": {
-        //  "main": "main.browser.aot.ts",
-        //  "tsconfig": "../tsconfig.webpack.aot.json"
-        //},
-
-        "dev": {
-          // Default - true
-          "referenceDll": false
+        // For aot build with ngc, by default it uses ngtools/webpack if main entry does not end with *.aot.ts
+        "aot": {
+          "main": "main.browser.aot.ts",
+          "tsconfig": "../tsconfig.webpack.aot.json"
         },
 
+        // For universal build
+        "universal": {
+          "main": "main.universal.browser.ts"
+        },
+
+        // For development build
+        "dev": {
+          // Default - true
+          "referenceDll": true
+        },
+
+        // For production build
         "prod": {
            // The environment file for the build target
            "environmentFile": "environments/environment.prod.ts",

@@ -1,3 +1,19 @@
+# v1.0.8  
+#### Features  
+- added universal property to BuildOptions  
+- added - inlineChunk to AppConfig  
+- added - vendorChunk to AppConfig  
+- added - build:dev:universal to npm srcipts 
+- added - build:prod:universal to npm srcipts 
+      
+#### Bug fixes  
+    
+#### Changes  
+- in init, moved @angular deps to package.json -> dependencies section  
+- removed - 'npm run clean:aot-compiled' from package.json -> scripts -> 'prebuild:aot'  
+- removed - 'prebuild:prod' from npm scripts
+- TODO: - Error: loaderUtils.parseQuery() received a non-string value which can be problematic  
+  
 # v1.0.7  
 #### Bug fixes  
 - fixed loaderUtils warnings  

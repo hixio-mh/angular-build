@@ -1,6 +1,8 @@
 {
   "apps": [
     {
+      "name": "client",
+      "target": "web",
       "root": "",
       "outDir": "",
       "main": "",
@@ -16,11 +18,16 @@
         {
           "entry": "../package.json",
           "excludes": [
+            "@angular/compiler-cli",
+            "@angular/platform-server",
+            "angular2-platform-node",
             "angular2-universal-polyfills",
+            "aspnet-prerendering",
             "core-js",
             "es6-promise",
             "es6-shim",
             "ie-shim",
+            "isomorphic-fetch",
             "reflect-metadata",
             "rxjs",
             "tslib",
@@ -40,12 +47,7 @@
         "customTagAttributes": []
       },
       "environmentSource": "environments/environment.ts",
-      //"skipGenerateIcons": true,
       "buildTargetOverrides": {
-        //"aot": {
-        //  "main": "main.browser.aot.ts",
-        //  "tsconfig": "../tsconfig.webpack.aot.json"
-        //},
         "dev": {
           // Default - true
           "referenceDll": true
@@ -57,15 +59,29 @@
           "compressAssets": true,
           // Default - false
           "sourceMap": false,
-          // Default - true
-          "extractCss": true,
           "moduleReplacements": [
+            {
+              "resourceRegExp": "zone\\.js(\\\\|\\/)dist(\\\\|\\/)long-stack-trace-zone",
+              // Path is relative to project root dir, Default - angular-build's empty.js module
+              "newResource": "empty.js"
+            },
+            {
+              "resourceRegExp": "@angular(\\|/)compiler",
+              // Path is relative to project root dir, Default - angular-build's empty.js module
+              "newResource": "empty.js"
+            },
             {
               "resourceRegExp": "angular2-hmr",
               // Path is relative to project root dir, Default - angular-build's empty.js module
               "newResource": "empty.js"
             }
           ]
+        },
+        "aot": {
+          //"main": "main.browser.aot.ts",
+          "tsconfig": "../tsconfig.webpack.aot.json"
+        },
+        "universal": {
         }
       }
     }

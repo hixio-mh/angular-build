@@ -70,7 +70,9 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
     const vendorChunkName = appConfig.dllChunkName || 'vendor';
     const polyfillsChunkName = 'polyfills';
 
-    const rules: any[] = [];
+    const rules: any[] = [
+        //{ test: /\.css(\?|$)/, use: ['to-string-loader', 'css-loader'] }
+    ];
     const tsEntries: any[] = [];
 
     // Entry
@@ -173,12 +175,17 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
     // Favicons plugins
     let skipGenerateIcons = appConfig.skipGenerateIcons;
     if (typeof skipGenerateIcons === 'undefined' || skipGenerateIcons === null) {
-        if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
-            skipGenerateIcons = buildOptions.skipGenerateIcons;
+        if (!appConfig.target || appConfig.target === 'web') {
+            if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
+                skipGenerateIcons = buildOptions.skipGenerateIcons;
+            } else {
+                skipGenerateIcons = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
+            }
         } else {
-            skipGenerateIcons = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
+            skipGenerateIcons = true;
         }
     }
+
     if (typeof appConfig.faviconConfig !== 'undefined' &&
         appConfig.faviconConfig !== null &&
         !skipGenerateIcons) {

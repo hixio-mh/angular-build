@@ -6,7 +6,6 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "sourceMap": true,
-    "pretty": true,
     "noEmit": true,
     "noEmitOnError": true,
     "noEmitHelpers": true,
