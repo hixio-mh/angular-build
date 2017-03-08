@@ -12,12 +12,12 @@
     "importHelpers": true,
     "skipDefaultLibCheck": true,
     "lib": [
-      "es2015",
+      "es2016",
       "dom"
     ],
     "baseUrl": "",
     "mapRoot": "./",
-    "outDir": "dist/out-tsc",
+    "outDir": "./out-tsc/app",
     "typeRoots": [
       "node_modules/@types"
     ]
@@ -25,10 +25,12 @@
   "exclude": [
     "node_modules",
     "dist",
-    "wwwroot"
-  ],
-  "angularCompilerOptions": {
-    "genDir": "./aot-compiled",
-    "skipMetadataEmit": true
-  }
+    "wwwroot",
+    "test.ts",
+    "karma-test*.ts",
+    "**/*.spec.ts",
+    "**/*.e2e.ts",
+    "aot-compiled",
+    "**/main*.aot.ts"
+  ]
 }

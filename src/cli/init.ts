@@ -94,8 +94,9 @@ export interface InitConfig {
     userPackageConfig?: any;
 
     tsConfigMaster?: any;
-    tsConfigWebpackMaster?: any;
-    tsConfigWebpackAoTMaster?: any;
+    tsConfigAppMaster?: any;
+    tsConfigAppAoTMaster?: any;
+    tsConfigTestMaster?: any;
 
     faviconConfigFileExists?: boolean;
     userFaviconConfig?: any;
@@ -132,9 +133,9 @@ Usage:
                     type: 'boolean',
                     default: false
                 })
-                .option('link-cli',
+                .option('l',
                 {
-                    alias: ['l', 'linkCli'],
+                    alias: 'link',
                     describe: 'Link angular-build cli to current project',
                     type: 'boolean',
                     default: false
@@ -220,7 +221,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 }
             }
         })
-        // Reading master files
+        // Read master files
         .then(() => {
             return readJsonAsync(require.resolve('../../package.json')).then(cliPkgConfig => {
                 cfg.cliPackageJsonConfig = cliPkgConfig;
@@ -239,15 +240,21 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 });
         })
         .then(() => {
-            return readJsonAsync(require.resolve('../../configs/tsconfig.webpack.json'))
+            return readJsonAsync(require.resolve('../../configs/tsconfig.app.json'))
                 .then((tsConfig: any) => {
-                    cfg.tsConfigWebpackMaster = tsConfig;
+                    cfg.tsConfigAppMaster = tsConfig;
                 });
         })
         .then(() => {
-            return readJsonAsync(require.resolve('../../configs/tsconfig.webpack.aot.json'))
+            return readJsonAsync(require.resolve('../../configs/tsconfig.app.aot.json'))
                 .then((tsConfig: any) => {
-                    cfg.tsConfigWebpackAoTMaster = tsConfig;
+                    cfg.tsConfigAppAoTMaster = tsConfig;
+                });
+        })
+        .then(() => {
+            return readJsonAsync(require.resolve('../../configs/tsconfig.test.json'))
+                .then((tsConfig: any) => {
+                    cfg.tsConfigTestMaster = tsConfig;
                 });
         })
         .then(() => {
@@ -256,7 +263,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
                     cfg.faviconConfigMaster = faviconConfig;
                 });
         })
-        // Reead user angular-build.json
+        // Read user angular-build.json
         .then(() => {
             const cliPath = path.resolve(projectRoot, 'angular-build.json');
             return checkFileOrDirectoryExistsAsync(cliPath).then((exists: boolean) => {
@@ -272,7 +279,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 }
             });
         })
-        // Reead user angular-cli.json
+        // Read user angular-cli.json
         .then(() => {
             const cliPath = path.resolve(projectRoot, 'angular-cli.json');
             return checkFileOrDirectoryExistsAsync(cliPath).then((exists: boolean) => {
@@ -288,16 +295,40 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 }
             });
         })
+        // Read user webpack config file
+        .then(() => {
+            const possibleWebpackFiles = [
+                'webpackfile.ts', 'webpackfile.babel.js', 'webpackfile.js', 'webpack.config.ts',
+                'webpack.config.babel.js',
+                'webpack.config.js'
+            ];
+            if (cfg.commandOptions.webpackConfigFileName && possibleWebpackFiles.indexOf(cfg.commandOptions.webpackConfigFileName) === -1) {
+                possibleWebpackFiles.unshift(cfg.commandOptions.webpackConfigFileName);
+            }
+
+            return findFileOrDirectoryFromPossibleAsync(projectRoot,
+                possibleWebpackFiles,
+                cfg.commandOptions.webpackConfigFileName || 'webpack.config.js').then((foundName: string) => {
+                if (foundName &&
+                (!cfg.commandOptions
+                    .webpackConfigFileName ||
+                    foundName === cfg.commandOptions.webpackConfigFileName)) {
+                    cfg.webpackConfigFileExists = true;
+                    cfg.commandOptions.webpackConfigFileName = foundName;
+                }
+                return;
+            });
+        })
         // merge
         .then(() => mergeConfigAsync(cfg))
-        // 1. install toolings
+        // install toolings
         .then(() => {
             if (cfg.commandOptions.skipInstallTooling) {
                 return Promise.resolve();
             }
             return checkAndInstallToolings(cfg);
         })
-        // 2. save angular-build.json file
+        // save angular-build.json file
         .then(() => {
             if (cfg.angularBuildConfigFileExists && cfg.commandOptions.overrideAngularBuildConfigFile === false) {
                 return Promise.resolve();
@@ -322,7 +353,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
                     });
             }
         })
-        // 3. copy webpack.config file
+        // copy webpack.config file
         .then(() => {
             if (cfg.webpackConfigFileExists && cfg.commandOptions.overrideWebpackConfigFile === false) {
                 return Promise.resolve();
@@ -351,7 +382,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
                     });
             }
         })
-        // 4. copy empty.js
+        // copy empty.js
         .then(() => {
             const emptyPath = path.resolve(projectRoot, 'empty.js');
             return checkFileOrDirectoryExistsAsync(emptyPath).then(exists => {
@@ -372,187 +403,201 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 }
             });
         })
-        // 5. save tsconfig.webpack.json file
+        // copy karma.conf.js
         .then(() => {
-            const appConfig = cfg.angularBuildConfigMaster.apps[0];
-            const tsConfigPath = path.resolve(projectRoot, 'tsconfig.webpack.json');
-            let userTsConfigExists = false;
-            return checkFileOrDirectoryExistsAsync(tsConfigPath).then(exists => {
-                let outDir = `${appConfig.outDir}/out-tsc`;
-
-                const excludeList: string[] = cfg.tsConfigWebpackMaster.exclude || [];
-                if (excludeList.indexOf(appConfig.outDir) === -1) {
-                    excludeList.push(appConfig.outDir);
-                }
-                if (excludeList.indexOf(`${appConfig.root}/**/*.spec.ts`) === -1) {
-                    excludeList.push(`${appConfig.root}/**/*.spec.ts`);
-                }
-                if (excludeList.indexOf(`${appConfig.root}/**/*.e2e.ts`) === -1) {
-                    excludeList.push(`${appConfig.root}/**/*.e2e.ts`);
-                }
-                if (excludeList.indexOf(`${appConfig.root}/main*.aot.ts`) === -1) {
-                    excludeList.push(`${appConfig.root}/main*.aot.ts`);
-                }
-
+            const karmaPath = path.resolve(projectRoot, 'karma.conf.js');
+            return checkFileOrDirectoryExistsAsync(karmaPath).then(exists => {
                 if (exists) {
-                    userTsConfigExists = true;
-                    // Merge
-                    return readJsonAsync(tsConfigPath).then((userTsConfig: any) => {
-
-                        if (userTsConfig.compilerOptions && userTsConfig.compilerOptions.outDir) {
-                            outDir = userTsConfig.compilerOptions.outDir;
-                        }
-
-                        if (userTsConfig.exclude && userTsConfig.exclude.length) {
-                            userTsConfig.exclude.forEach((e: string) => {
-                                if (excludeList.indexOf(e) === -1) {
-                                    excludeList.push(e);
-                                }
-                            });
-                        }
-
-                        const mergedConfig: any = Object.assign({}, userTsConfig, cfg.tsConfigWebpackMaster);
-                        mergedConfig.compilerOptions.outDir = outDir;
-                        mergedConfig.exclude = excludeList;
-                        return mergedConfig;
-                    });
+                    return Promise.resolve();
                 } else {
-                    const mergedConfig: any = cfg.tsConfigWebpackMaster;
-                    mergedConfig.compilerOptions.outDir = outDir;
-                    mergedConfig.exclude = excludeList;
-                    return Promise.resolve(mergedConfig);
+                    return new Promise((resolve, reject) => {
+                            fs.copy(require.resolve('../../configs/karma.conf.js'),
+                                karmaPath,
+                                err => {
+                                    err ? reject(err) : resolve();
+                                });
+                        })
+                        .then(() => {
+                            console.log(chalk.green('Created:') + ' karma.conf.js');
+                            return;
+                        });
                 }
-            }).then((tsConfig: any) => {
-                // Create
-                return new Promise((resolve, reject) => {
-                    fs.writeFile(tsConfigPath,
-                        JSON.stringify(tsConfig, null, 2),
-                        err => err ? reject(err) : resolve());
-                })
-                    .then(() => {
-                        console.log(chalk.green(`${userTsConfigExists ? 'Updated' : 'Created'}:`) +
-                            ' tsconfig.webpack.json');
-                        return;
-                    });
             });
         })
-        // 6. save tsconfig.webpack.aot.json file
+        // copy protractor.conf.js
         .then(() => {
-            const appConfig = cfg.angularBuildConfigMaster.apps[0];
-            const tsConfigPath = path.resolve(projectRoot, 'tsconfig.webpack.aot.json');
-            let userTsConfigExists = false;
-            return checkFileOrDirectoryExistsAsync(tsConfigPath).then(exists => {
-                let outDir = `${appConfig.outDir}/out-tsc`;
-
-                const excludeList: string[] = cfg.tsConfigWebpackAoTMaster.exclude || [];
-                if (excludeList.indexOf(appConfig.outDir) === -1) {
-                    excludeList.push(appConfig.outDir);
-                }
-                if (excludeList.indexOf(`${appConfig.root}/**/*.spec.ts`) === -1) {
-                    excludeList.push(`${appConfig.root}/**/*.spec.ts`);
-                }
-                if (excludeList.indexOf(`${appConfig.root}/**/*.e2e.ts`) === -1) {
-                    excludeList.push(`${appConfig.root}/**/*.e2e.ts`);
-                }
-
+            const protractorPath = path.resolve(projectRoot, 'protractor.conf.js');
+            return checkFileOrDirectoryExistsAsync(protractorPath).then(exists => {
                 if (exists) {
-                    userTsConfigExists = true;
-                    // Merge
-                    return readJsonAsync(tsConfigPath).then((userTsConfig: any) => {
-
-                        if (userTsConfig.compilerOptions && userTsConfig.compilerOptions.outDir) {
-                            outDir = userTsConfig.compilerOptions.outDir;
-                        }
-
-                        if (userTsConfig.exclude && userTsConfig.exclude.length) {
-                            userTsConfig.exclude.forEach((e: string) => {
-                                if (excludeList.indexOf(e) === -1) {
-                                    excludeList.push(e);
-                                }
-                            });
-                        }
-
-                        const mergedConfig: any = Object.assign({}, userTsConfig, cfg.tsConfigWebpackAoTMaster);
-                        mergedConfig.compilerOptions.outDir = outDir;
-                        mergedConfig.exclude = excludeList;
-                        return mergedConfig;
-                    });
+                    return Promise.resolve();
                 } else {
-                    const mergedConfig: any = cfg.tsConfigWebpackAoTMaster;
-                    mergedConfig.compilerOptions.outDir = outDir;
-                    mergedConfig.exclude = excludeList;
-                    return Promise.resolve(mergedConfig);
+                    return new Promise((resolve, reject) => {
+                            fs.readFile(require.resolve('../../configs/protractor.conf.js'),
+                                'utf8',
+                                (err, data) => {
+                                    err ? reject(err) : resolve(data);
+                                });
+                        })
+                        .then((data: string) => {
+                            const appConfig = cfg.angularBuildConfigMaster.apps[0];
+                            const appRoot = appConfig.root || 'src';
+                            const content = data.replace(/^const\w+appRoot\w*=\w*'src';\w*$/i, `const appRoot = '${appRoot}';`);
+                            return new Promise((resolve, reject) => {
+                                fs.writeFile(path.resolve(projectRoot, 'protractor.conf.js'),
+                                    content,
+                                    (err) => {
+                                        err ? reject(err) : resolve();
+                                    });
+                            });
+                        })
+                        .then(() => {
+                            console.log(chalk.green('Created:') + ' protractor.conf.js');
+                            return;
+                        });
                 }
-            }).then((tsConfig: any) => {
-                // Create
-                return new Promise((resolve, reject) => {
-                    fs.writeFile(tsConfigPath,
-                        JSON.stringify(tsConfig, null, 2),
-                        err => err ? reject(err) : resolve());
-                })
-                    .then(() => {
-                        console.log(chalk.green(`${userTsConfigExists ? 'Updated' : 'Created'}:`) +
-                            ' tsconfig.webpack.aot.json');
-                        return;
-                    });
             });
         })
-        // 7. save root tsconfig.json file
+        // save tsconfig.app.json file
+        .then(() => {
+            //const appConfig = cfg.angularBuildConfigMaster.apps[0];
+            const tsConfigPath = path.resolve(projectRoot, 'tsconfig.app.json');
+            return checkFileOrDirectoryExistsAsync(tsConfigPath).then(exists => {
+                if (exists) {
+                    return Promise.resolve();
+                } else {
+                    //const excludeList: string[] = cfg.tsConfigAppMaster.exclude || [];
+                    //if (excludeList.indexOf(appConfig.outDir) === -1) {
+                    //    excludeList.push(appConfig.outDir);
+                    //}
+                    //if (excludeList.indexOf(`${appConfig.root}/**/*.spec.ts`) === -1) {
+                    //    excludeList.push(`${appConfig.root}/**/*.spec.ts`);
+                    //}
+                    //if (excludeList.indexOf(`${appConfig.root}/**/*.e2e.ts`) === -1) {
+                    //    excludeList.push(`${appConfig.root}/**/*.e2e.ts`);
+                    //}
+                    //if (excludeList.indexOf(`${appConfig.root}/main*aot.ts`) === -1) {
+                    //    excludeList.push(`${appConfig.root}/main*aot.ts`);
+                    //}
+
+                    const tsConfig: any = cfg.tsConfigAppMaster;
+                    //tsConfig.exclude = excludeList;
+                    // Create
+                    return new Promise((resolve, reject) => {
+                            fs.writeFile(tsConfigPath,
+                                JSON.stringify(tsConfig, null, 2),
+                                err => err ? reject(err) : resolve());
+                        })
+                        .then(() => {
+                            console.log(chalk.green(`Created:`) +
+                                ' tsconfig.app.json');
+                            return;
+                        });
+                }
+            });
+        })
+        // save tsconfig.app.aot.json file
+        .then(() => {
+            //const appConfig = cfg.angularBuildConfigMaster.apps[0];
+            const tsConfigPath = path.resolve(projectRoot, 'tsconfig.app.aot.json');
+            return checkFileOrDirectoryExistsAsync(tsConfigPath).then(exists => {
+                if (exists) {
+                    return Promise.resolve();
+                } else {
+                    //const excludeList: string[] = cfg.tsConfigAppAoTMaster.exclude || [];
+                    //if (excludeList.indexOf(appConfig.outDir) === -1) {
+                    //    excludeList.push(appConfig.outDir);
+                    //}
+                    //if (excludeList.indexOf(`${appConfig.root}/**/*.spec.ts`) === -1) {
+                    //    excludeList.push(`${appConfig.root}/**/*.spec.ts`);
+                    //}
+                    //if (excludeList.indexOf(`${appConfig.root}/**/*.e2e.ts`) === -1) {
+                    //    excludeList.push(`${appConfig.root}/**/*.e2e.ts`);
+                    //}
+
+                    const tsConfig: any = cfg.tsConfigAppAoTMaster;
+                    //tsConfig.exclude = excludeList;
+                    // Create
+                    return new Promise((resolve, reject) => {
+                            fs.writeFile(tsConfigPath,
+                                JSON.stringify(tsConfig, null, 2),
+                                err => err ? reject(err) : resolve());
+                        })
+                        .then(() => {
+                            console.log(chalk.green(`Created:`) +
+                                ' tsconfig.app.aot.json');
+                            return;
+                        });
+                }
+            });
+        })
+        // save tsconfig.test.json file
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
+            const tsConfigPath = path.resolve(projectRoot, 'tsconfig.test.json');
+            return checkFileOrDirectoryExistsAsync(tsConfigPath).then(exists => {
+                if (exists) {
+                    return Promise.resolve();
+                } else {
+                    const tsConfig: any = cfg.tsConfigTestMaster;
+                    tsConfig.files = [`${appConfig}/karma-test.browser.ts`];
+                    // Create
+                    return new Promise((resolve, reject) => {
+                            fs.writeFile(tsConfigPath,
+                                JSON.stringify(tsConfig, null, 2),
+                                err => err ? reject(err) : resolve());
+                        })
+                        .then(() => {
+                            console.log(chalk.green(`Created:`) +
+                                ' tsconfig.test.json');
+                            return;
+                        });
+                }
+            });
+        })
+        // save tsconfig.json file
+        .then(() => {
             const tsConfigPath = path.resolve(projectRoot, 'tsconfig.json');
-            let userTsConfigExists = false;
             return checkFileOrDirectoryExistsAsync(tsConfigPath).then(exists => {
-                let outDir = `${appConfig.outDir}/out-tsc`;
-
-                const excludeList: string[] = cfg.tsConfigMaster.exclude || [];
-                if (excludeList.indexOf(appConfig.outDir) === -1) {
-                    excludeList.push(appConfig.outDir);
-                }
-
                 if (exists) {
-                    userTsConfigExists = true;
-                    // Merge
-                    return readJsonAsync(tsConfigPath).then((userTsConfig: any) => {
-
-                        if (userTsConfig.compilerOptions && userTsConfig.compilerOptions.outDir) {
-                            outDir = userTsConfig.compilerOptions.outDir;
-                        }
-
-                        if (userTsConfig.exclude && userTsConfig.exclude.length) {
-                            userTsConfig.exclude.forEach((e: string) => {
-                                if (excludeList.indexOf(e) === -1) {
-                                    excludeList.push(e);
-                                }
-                            });
-                        }
-
-                        const mergedConfig: any = Object.assign({}, userTsConfig, cfg.tsConfigMaster);
-                        mergedConfig.compilerOptions.outDir = outDir;
-                        mergedConfig.exclude = excludeList;
-                        return mergedConfig;
-                    });
+                    return Promise.resolve();
                 } else {
-                    const mergedConfig: any = cfg.tsConfigMaster;
-                    mergedConfig.compilerOptions.outDir = outDir;
-                    mergedConfig.exclude = excludeList;
-                    return Promise.resolve(mergedConfig);
+                    const tsConfig: any = cfg.tsConfigMaster;
+                    // Create
+                    return new Promise((resolve, reject) => {
+                            fs.writeFile(tsConfigPath,
+                                JSON.stringify(tsConfig, null, 2),
+                                err => err ? reject(err) : resolve());
+                        })
+                        .then(() => {
+                            console.log(chalk.green(`Created:`) +
+                                ' tsconfig.json');
+                            return;
+                        });
                 }
-            }).then((tsConfig: any) => {
-                // Create
-                return new Promise((resolve, reject) => {
-                    fs.writeFile(tsConfigPath,
-                        JSON.stringify(tsConfig, null, 2),
-                        err => err ? reject(err) : resolve());
-                })
-                    .then(() => {
-                        console.log(chalk.green(`${userTsConfigExists ? 'Updated' : 'Created'}:`) +
-                            ' tsconfig.json');
-                        return;
-                    });
             });
         })
-        // 8. Create src folder
+        // save tslint.json file
+        .then(() => {
+            const tsLintPath = path.resolve(projectRoot, 'tslint.json');
+            return checkFileOrDirectoryExistsAsync(tsLintPath).then(exists => {
+                if (exists) {
+                    return Promise.resolve();
+                } else {
+                    return new Promise((resolve, reject) => {
+                            fs.copy(require.resolve('../../configs/tslint.json'),
+                                tsLintPath,
+                                err => {
+                                    err ? reject(err) : resolve();
+                                });
+                        })
+                        .then(() => {
+                            console.log(chalk.green('Created:') + ' tslint.json');
+                            return;
+                        });
+                }
+            });
+        })
+        // Create src folder
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
             const srcPath = path.resolve(projectRoot, appConfig.root);
@@ -567,7 +612,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
             }
             );
         })
-        // 9. save favicon-config.json file
+        // save favicon-config.json file
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
             const faviconConfigFileName = appConfig.faviconConfig || 'favicon-config.json';
@@ -603,7 +648,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
                     });
             });
         })
-        // 10. copy polyfills.browser.ts
+        // copy polyfills.browser.ts
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
             return checkFileOrDirectoryExistsAsync(path.resolve(projectRoot, appConfig.root, 'polyfills.browser.ts'))
@@ -628,7 +673,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 });
 
         })
-        // 11. copy rxjs.imports.ts
+        // copy rxjs.imports.ts
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
             return checkFileOrDirectoryExistsAsync(path.resolve(projectRoot, appConfig.root, 'rxjs.imports.ts'))
@@ -653,7 +698,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 });
 
         })
-        // 12. copy custom-typings.d.ts
+        // copy custom-typings.d.ts
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
             return checkFileOrDirectoryExistsAsync(path.resolve(projectRoot, appConfig.root, 'custom-typings.d.ts'))
@@ -678,7 +723,57 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 });
 
         })
-        // 13. Create environments folder
+        // copy karma-test.browser.ts
+        .then(() => {
+            const appConfig = cfg.angularBuildConfigMaster.apps[0];
+            return checkFileOrDirectoryExistsAsync(path.resolve(projectRoot, appConfig.root, 'karma-test.browser.ts'))
+                .then(exists => {
+                    if (exists) {
+                        return Promise.resolve();
+                    } else {
+                        return new Promise((resolve, reject) => {
+                                fs.copy(require.resolve('../../configs/karma-test.browser.ts'),
+                                    path.resolve(projectRoot, appConfig.root, 'karma-test.browser.ts'),
+                                    err => {
+                                        err ? reject(err) : resolve();
+                                    });
+                            })
+                            .then(() => {
+                                console.log(chalk.green('Created:') +
+                                    ' ' +
+                                    path.join(appConfig.root, 'karma-test.browser.ts'));
+                                return;
+                            });
+                    }
+                });
+
+        })
+        // copy styles.scss
+        .then(() => {
+            const appConfig = cfg.angularBuildConfigMaster.apps[0];
+            return checkFileOrDirectoryExistsAsync(path.resolve(projectRoot, appConfig.root, 'styles.scss'))
+                .then(exists => {
+                    if (exists) {
+                        return Promise.resolve();
+                    } else {
+                        return new Promise((resolve, reject) => {
+                            fs.copy(require.resolve('../../configs/styles.scss'),
+                                path.resolve(projectRoot, appConfig.root, 'styles.scss'),
+                                err => {
+                                    err ? reject(err) : resolve();
+                                });
+                        })
+                            .then(() => {
+                                console.log(chalk.green('Created:') +
+                                    ' ' +
+                                    path.join(appConfig.root, 'styles.scss'));
+                                return;
+                            });
+                    }
+                });
+
+        })
+        // create environments folder
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
             const environmentsPath = path.resolve(projectRoot, appConfig.root, 'environments');
@@ -693,7 +788,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
             }
             );
         })
-        // 14. Copy environment files
+        // copy environment files
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
             return checkFileOrDirectoryExistsAsync(path
@@ -747,32 +842,58 @@ export function init(cliOptions: CliOptions): Promise<number> {
                         });
                 });
         })
-        // 15. Update package.json
+        // update package.json
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
-            const outDirs = cfg.angularBuildConfigMaster.apps.map(app => app.outDir + '/**/*').join(' ');
+            const outDir = appConfig.outDir || 'dist';
             const configOpt = typeof cfg.commandOptions.webpackConfigFileName === 'undefined' ||
                 cfg.commandOptions.webpackConfigFileName === 'webpack.config.js'
                 ? ' '
                 : ` --config ${cfg.commandOptions.webpackConfigFileName} `;
-            const packageScripts: any = {
-                "build:dll": `cross-env NODE_ENV=development webpack${configOpt}--profile --colors --bail`,
-                "prebuild:dll": `npm run clean:dist`,
-                "build:dev": `cross-env NODE_ENV=development webpack${configOpt}--profile --colors --bail`,
-                "build:prod": `cross-env NODE_ENV=production webpack${configOpt}--profile --colors --bail`,
-                "build:dev:universal": `cross-env NODE_ENV=development webpack${configOpt}--profile --colors --bail`,
-                "build:prod:universal": `cross-env NODE_ENV=production webpack${configOpt}--profile --colors --bail`,
-                "build:aot": `cross-env NODE_ENV=production webpack${configOpt}--profile --colors --bail`,
-                "prebuild:aot": `npm run clean:dist`,
-                "build": `npm run build:dev`,
-                "clean:dist": `npm run rimraf -- ${outDirs}`,
-                "clean:aot-compiled": `npm run rimraf -- aot-compiled`,
-                "cross-env": 'cross-env',
+            let packageScripts: any = {
+                "build:dll": `cross-env NODE_ENV=development webpack${configOpt}--env.dll --profile --colors --bail`,
+                "build:dev": `cross-env NODE_ENV=development webpack${configOpt}--env.dev --profile --colors --bail`,
+                "build:prod": `cross-env NODE_ENV=production webpack${configOpt}--env.prod --profile --colors --bail`,
+                "build:universal": `cross-env NODE_ENV=production webpack${configOpt}--env.universal --env.prod --profile --colors --bail`,
+                "build:aot": `cross-env NODE_ENV=production webpack${configOpt}--env.aot --env.prod --profile --colors --bail`,
+                "build:universal:aot": `cross-env NODE_ENV=production webpack${configOpt}--env.universal --env.aot --env.prod --profile --colors --bail`,
+                "build": 'npm run build:dev',
+
+                "clean:wwwroot": 'npm run rimraf -- wwwroot/**/*',
+                "clean:dist": 'npm run rimraf -- dist/**/*',
+                "clean:aot-compiled": 'npm run rimraf -- aot-compiled',
+                "clean:coverage": 'npm run rimraf -- coverage',
+
+                "e2e": 'npm-run-all -p server:run protractor',
+                "e2e:live": 'npm-run-all -p server:run protractor -- --elementExplorer',
+                "pree2e": 'npm run webdriver:update -- --standalone',
+                "test": 'karma start',
+
+                "webdriver:start": 'npm run webdriver-manager start',
+                "webdriver:update": 'npm run webdriver-manager update',
                 "lint": `npm run tslint \"${appConfig.root}/**/*.ts\"`,
+
+                "server:run:dev": `webpack-dev-server ${configOpt}--open --progress --profile --inline --port 5000 --watch  --content-base ${appConfig.root}/`,
+                "server:run:prod": `http-server ${outDir} -p 5000 -c-1 --cors`,
+                "server:run": 'npm run server:run:dev',
+
+                "cross-env": 'cross-env',
                 "rimraf": 'rimraf',
+                "protractor": 'protractor',
                 "tslint": 'tslint',
-                "webpack": 'webpack'
+                "webpack": 'webpack',
+                "webdriver-manager": 'webdriver-manager',
+                "webpack-dev-server": 'webpack-dev-server'
             };
+
+            if (cfg.isAspNetCore) {
+                const pkgConfigAspNet : any = {
+                    "dotnet:run:dev": 'cross-env ASPNETCORE_ENVIRONMENT=Development dotnet run environment=development',
+                    "dotnet:run:prod": 'cross-env ASPNETCORE_ENVIRONMENT=Production dotnet run --configuration Release environment=production',
+                    "dotnet:run": 'dotnet run'
+                };
+                packageScripts = Object.assign(packageScripts, pkgConfigAspNet);
+            }
 
             // read package json
             return readJsonAsync(cfg.userPackageConfigFile).then((userPackageConfig: any) => {
@@ -995,9 +1116,9 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig): Promise<void> {
         })
         .then(aspNet => {
             if (aspNet) {
-                if (appConfig.index) {
-                    delete appConfig.index;
-                }
+                //if (appConfig.index) {
+                //    delete appConfig.index;
+                //}
                 cfg.isAspNetCore = true;
                 appConfig.htmlInjectOptions = appConfig.htmlInjectOptions || {};
                 appConfig.htmlInjectOptions.indexOutFileName = '../Views/Shared/_BundledScripts.cshtml';
@@ -1113,7 +1234,6 @@ function mergeWithCommandOptions(cfg: InitConfig): void {
 }
 
 function mergeConfigWithPromptAsync(cfg: InitConfig): Promise<void> {
-    const projectRoot = cfg.cwd;
     const appConfig = cfg.angularBuildConfigMaster.apps[0];
 
     return Promise.resolve(cfg.angularBuildConfigFileExists)
@@ -1137,40 +1257,22 @@ function mergeConfigWithPromptAsync(cfg: InitConfig): Promise<void> {
             }
         })
         .then(() => {
-            const possibleWebpackFiles = [
-                'webpackfile.ts', 'webpackfile.babel.js', 'webpackfile.js', 'webpack.config.ts',
-                'webpack.config.babel.js',
-                'webpack.config.js'
-            ];
-            if (cfg.commandOptions.webpackConfigFileName && possibleWebpackFiles.indexOf(cfg.commandOptions.webpackConfigFileName) === -1) {
-                possibleWebpackFiles.unshift(cfg.commandOptions.webpackConfigFileName);
-            }
-
-            return findFileOrDirectoryFromPossibleAsync(projectRoot,
-                possibleWebpackFiles,
-                cfg.commandOptions.webpackConfigFileName || 'webpack.config.js').then((foundName: string) => {
-                    if (foundName && (!cfg.commandOptions.webpackConfigFileName || foundName === cfg.commandOptions.webpackConfigFileName)) {
-                        cfg.webpackConfigFileExists = true;
-                        cfg.commandOptions.webpackConfigFileName = foundName;
-                        if (cfg.commandOptions.overrideWebpackConfigFile) {
-                            return Promise.resolve();
+            if (cfg.webpackConfigFileExists) {
+                return askAsync(chalk.bgYellow('WARNING:') +
+                    ` Override '${cfg.commandOptions.webpackConfigFileName}' yes/no (yes)?: `)
+                    .then((answer: string) => {
+                        if (answer &&
+                            answer.trim() &&
+                            (answer.trim().toLowerCase() === 'no' ||
+                                answer.trim().toLowerCase() === 'n')) {
+                            cfg.commandOptions.overrideWebpackConfigFile = false;
+                        } else {
+                            cfg.commandOptions.overrideWebpackConfigFile = true;
                         }
-                        return askAsync(chalk.bgYellow('WARNING:') +
-                            ` Override '${foundName}' yes/no (yes)?: `)
-                            .then((answer: string) => {
-                                if (answer &&
-                                    answer.trim() &&
-                                    (answer.trim().toLowerCase() === 'no' ||
-                                        answer.trim().toLowerCase() === 'n')) {
-                                    cfg.commandOptions.overrideWebpackConfigFile = false;
-                                } else {
-                                    cfg.commandOptions.overrideWebpackConfigFile = true;
-                                }
-                            });
-                    } else {
-                        return Promise.resolve();
-                    }
-                });
+                    });
+            } else {
+                return Promise.resolve();
+            }
         })
         .then(() => {
             if (cfg.commandOptions.root ||
@@ -1233,13 +1335,35 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
     }
     const installLoadersOnly = cfg.commandOptions.installLoadersOnly;
 
-    const preReleasedPackageNames = [
-        'extract-text-webpack-plugin'
+    const preReleasedPackageNames : string[] = [
     ];
 
     const peerDeps = [
+        '@angular/service-worker',
         '@types/node',
+        '@types/jasmine',
+        'codelyzer',
         'cross-env',
+        'event-source-polyfill',
+
+        'jasmine-core',
+        'jasmine-spec-reporter',
+
+        'karma',
+        'karma-chrome-launcher',
+        'karma-cli',
+        'karma-coverage-istanbul-reporter',
+        'karma-jasmine',
+        'karma-jasmine-html-reporter',
+        'karma-mocha-reporter',
+        'karma-phantomjs-launcher',
+        'karma-source-map-support',
+        'karma-sourcemap-loader',
+        'karma-webpack',
+
+        'npm-run-all',
+        'protractor',
+
         'rimraf',
         'typescript',
         'ts-node',
@@ -1250,6 +1374,10 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
         'webpack-hot-middleware'
     ];
 
+    const aspWebpackTools = [
+        'aspnet-webpack',
+        'aspnet-prerendering'
+    ];
     const loaderDeps = [
         '@angular/compiler-cli',
         '@angular/compiler',
@@ -1285,6 +1413,9 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
         'tslib',
         'zone.js',
 
+        'event-source-polyfill',
+        '@angular/service-worker',
+
         '@angular/compiler',
         '@angular/core',
 
@@ -1319,6 +1450,20 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
                     depsToInstall.push(pkgName);
                 }
             });
+        })
+        .then(() => {
+            if (!cfg.isAspNetCore) {
+                return Promise.resolve();
+            }
+
+            return checkPackagesToInstall(aspWebpackTools, projectRoot)
+                .then((packageNames: string[]) => {
+                    packageNames.forEach((pkgName: string) => {
+                        if (depsToInstall.indexOf(pkgName) === -1) {
+                            depsToInstall.push(pkgName);
+                        }
+                    });
+                });
         })
         .then(() => {
             if (cfg.cliIsLocal) {

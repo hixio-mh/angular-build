@@ -2,58 +2,41 @@
 import * as fs from 'fs';
 import * as chalk from 'chalk';
 import * as webpack from 'webpack';
-
-// ReSharper disable InconsistentNaming
-const DllPlugin = require('webpack/lib/DllPlugin');
-const IgnorePlugin = webpack.IgnorePlugin;
-
-// ReSharper disable once CommonJsExternalModule
-const { CheckerPlugin } = require('awesome-typescript-loader');
 const webpackMerge = require('webpack-merge');
-// ReSharper restore InconsistentNaming
 
 // Models
 import { AppConfig, BuildOptions } from '../models';
-import { CustomizeAssetsHtmlWebpackPlugin } from '../plugins/customize-assets-html-webpack-plugin';
 
 // Helpers
-import { parseDllEntries, getEnvName } from './helpers';
+import { parseDllEntries, getIconOptions } from '../helpers';
 
+// Internal plugins
+import { CustomizeAssetsHtmlWebpackPlugin } from '../plugins/customize-assets-html-webpack-plugin';
+import { IconWebpackPlugin } from '../plugins/icon-webpack-plugin';
+
+// Configs
 import { getCommonConfigPartial } from './common';
-import { getAngularConfigPartial } from './angular';
-
-import { getFaviconPlugins } from './favicons';
-
-/**
- * Enumerate loaders and their dependencies from this file to let the dependency validator
- * know they are used.
- *
-  * require('awesome-typescript-loader')
- */
+import {getAngularConfigPartial} from './angular';
+import { getStylesConfigPartial } from './styles';
 
 export function getDllConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
-    console.info(`\n${chalk.bgBlue('INFO:')} Using dll config, production: ${buildOptions.production}\n`);
-    const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
+    console.log(`\n${chalk.bgBlue('INFO:')} Getting dll config, build env: ${JSON
+        .stringify(buildOptions.environment)}, app name: ${appConfig.name}, app target: ${appConfig
+        .target}\n`);
 
     const configs = [
         getCommonConfigPartial(projectRoot, appConfig, buildOptions),
         getDllConfigPartial(projectRoot, appConfig, buildOptions),
         getAngularConfigPartial(projectRoot, appConfig, buildOptions),
-        {
-            resolve: {
-                extensions: ['.js'],
-                modules: [nodeModulesPath]
-            },
-            resolveLoader: {
-                modules: [nodeModulesPath]
-            }
-        }
+        getStylesConfigPartial(projectRoot, appConfig, buildOptions)
     ];
+
     return webpackMerge(configs);
 }
 
 export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
-    const hashFormat = appConfig.appendOutputHash ? `[chunkhash:${20}]` : 'lib';
+
+    const hashLibFormat = appConfig.appendOutputHash ? `[chunkhash]` : 'lib';
     const entryPoints: { [key: string]: string[] } = {};
 
     let tsConfigPath = path.resolve(projectRoot, appConfig.root, appConfig.tsconfig || 'tsconfig.json');
@@ -64,15 +47,12 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
         tsConfigPath = null;
     }
 
-    const envLong = getEnvName(buildOptions.production, true);
     let useTsLoader = false;
 
     const vendorChunkName = appConfig.dllChunkName || 'vendor';
     const polyfillsChunkName = 'polyfills';
 
-    const rules: any[] = [
-        //{ test: /\.css(\?|$)/, use: ['to-string-loader', 'css-loader'] }
-    ];
+
     const tsEntries: any[] = [];
 
     // Entry
@@ -80,7 +60,7 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
     // Vendor
     if (appConfig.dlls && appConfig.dlls.length) {
         const entries: string[] = [];
-        parseDllEntries(projectRoot, appConfig.root, appConfig.dlls, envLong).forEach(e => {
+        parseDllEntries(projectRoot, appConfig.root, appConfig.dlls, buildOptions.environment).forEach(e => {
             if (e.tsPath) {
                 useTsLoader = true;
                 if (tsEntries.indexOf(e.tsPath) === -1) {
@@ -107,7 +87,7 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
     // Polyfills
     if (appConfig.polyfills && appConfig.polyfills.length) {
         const entries: string[] = [];
-        parseDllEntries(projectRoot, appConfig.root, appConfig.polyfills, envLong).forEach(e => {
+        parseDllEntries(projectRoot, appConfig.root, appConfig.polyfills, buildOptions.environment).forEach(e => {
             if (e.tsPath) {
                 useTsLoader = true;
                 if (tsEntries.indexOf(e.tsPath) === -1) {
@@ -133,86 +113,111 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
 
     // Rules
     //
-    if (useTsLoader) {
-        const tsRules = [
-            {
-                test: /\.ts$/,
-                use: [
-                    {
-                        loader: 'awesome-typescript-loader',
-                        options: {
-                            instance: `at-${appConfig.name || 'app'}-dll-loader`,
-                            configFileName: tsConfigPath
-                            //transpileOnly: true
-                        }
-                    }
-                ],
-                include: tsEntries
-            }
-        ];
-        rules.push(...tsRules);
-    }
+    //if (useTsLoader) {
+    //    const tsRules = [
+    //        {
+    //            test: /\.ts$/,
+    //            use: [
+    //                {
+    //                    loader: 'awesome-typescript-loader',
+    //                    options: {
+    //                        instance: `at-${appConfig.name || 'app'}-dll-loader`,
+    //                        configFileName: tsConfigPath
+    //                        //transpileOnly: true
+    //                    }
+    //                }
+    //            ],
+    //            include: tsEntries
+    //        }
+    //    ];
+    //    rules.push(...tsRules);
+    //}
 
     // Plugins
     //
     const plugins = [
-        new DllPlugin({
+        new (<any>webpack).DllPlugin({
             path: path.resolve(projectRoot, appConfig.outDir, `[name]-manifest.json`),
-            name: `[name]_${hashFormat}`
+            name: `[name]_${hashLibFormat}`
         }),
 
         // es6-promise
         // Workaround for https://github.com/stefanpenner/es6-promise/issues/100
-        new IgnorePlugin(/^vertx$/)
+        new webpack.IgnorePlugin(/^vertx$/)
 
         // Workaround for https://github.com/andris9/encoding/issues/16
         //new NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop')))
     ];
-    if (useTsLoader) {
-        plugins.push(new CheckerPlugin());
-    }
+    //if (useTsLoader) {
+    //    plugins.push(new CheckerPlugin());
+    //}
 
-    // Favicons plugins
-    let skipGenerateIcons = appConfig.skipGenerateIcons;
-    if (typeof skipGenerateIcons === 'undefined' || skipGenerateIcons === null) {
-        if (!appConfig.target || appConfig.target === 'web') {
+    // Browser specific
+    //
+    if (!appConfig.target || appConfig.target === 'web' || appConfig.target === 'webworker') {
+        // Favicons plugins
+        //
+        let skipGenerateIcons = appConfig.skipGenerateIcons;
+        if (typeof skipGenerateIcons === 'undefined' || skipGenerateIcons === null) {
             if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
                 skipGenerateIcons = buildOptions.skipGenerateIcons;
             } else {
-                skipGenerateIcons = !buildOptions.dll && !buildOptions.production && appConfig.referenceDll;
+                skipGenerateIcons = !appConfig.faviconConfig;
             }
-        } else {
-            skipGenerateIcons = true;
         }
-    }
 
-    if (typeof appConfig.faviconConfig !== 'undefined' &&
-        appConfig.faviconConfig !== null &&
-        !skipGenerateIcons) {
-
-        const faviconPlugins = getFaviconPlugins(projectRoot, appConfig);
-        if (faviconPlugins && faviconPlugins.length > 0) {
-            plugins.push(...faviconPlugins);
+        const iconOptions = getIconOptions(projectRoot, appConfig);
+        if (!skipGenerateIcons && iconOptions) {
+            plugins.push(new IconWebpackPlugin(iconOptions));
 
             // remove starting slash
             plugins.push(new CustomizeAssetsHtmlWebpackPlugin({
                 removeStartingSlash: true
             }));
         }
+
     }
 
     // Config
     //
-    const webpackDllConfig = {
+    const webpackDllConfig : any = {
         entry: entryPoints,
         output: {
-            libraryTarget: appConfig.target === 'node' ? 'commonjs2' : 'var'
-        },
-        module: {
-            rules: rules
+            library: `[name]_${hashLibFormat}`
         },
         plugins: plugins
     };
+
+    //if (useTsLoader) {
+    //    webpackDllConfig.resolve = webpackDllConfig.resolve || {};
+    //    //webpackDllConfig.resolve.extensions = ['.js', '.ts'];
+
+    //    // TODO:
+    //    //const alias: any = {};
+    //    //if (fs.existsSync(tsConfigPath)) {
+    //    //    const tsConfigContent = readJsonSync(tsConfigPath);
+    //    //    const compilerOptions = tsConfigContent.compilerOptions || {};
+    //    //    const tsPaths = compilerOptions.paths || {};
+    //    //    for (let prop in tsPaths) {
+    //    //        if (tsPaths.hasOwnProperty(prop)) {
+    //    //            alias[prop] = path.resolve(projectRoot, tsPaths[prop][0]);
+    //    //        }
+    //    //    }
+    //    //}
+    //    //webpackDllConfig.resolve.alias = alias;
+    //    webpackDllConfig.resolve.plugins =
+    //    [
+    //        new TsConfigPathsPlugin({
+    //            configFileName: tsConfigPath
+    //        })
+    //    ];
+    //}
+
+    // Node specific
+    if (appConfig.target && appConfig.target !== 'web' && appConfig.target !== 'webworker') {
+        webpackDllConfig.output = webpackDllConfig.output || {};
+        webpackDllConfig.output.libraryTarget = 'commonjs2';
+    }
 
     return webpackDllConfig;
 }

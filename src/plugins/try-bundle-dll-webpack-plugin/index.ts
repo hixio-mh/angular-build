@@ -23,15 +23,12 @@ export class TryBundleDllWebpackPlugin {
         const target = compiler.options.target;
         const context = this.options.context || compiler.options.context;
         const plugins: any[] = [];
-
-        if (target === 'node') {
+        if (!target || target === 'web' || target === 'webworker') {
             this.options.manifests.forEach(manifest => {
                 plugins.push(
                     new DllReferencePlugin({
                         context: context,
-                        sourceType: 'commonjs2',
-                        manifest: manifest.file,
-                        name: `./${manifest.chunkName}`
+                        manifest: manifest.file
                     })
                 );
             });
@@ -40,7 +37,9 @@ export class TryBundleDllWebpackPlugin {
                 plugins.push(
                     new DllReferencePlugin({
                         context: context,
-                        manifest: manifest.file
+                        sourceType: 'commonjs2',
+                        manifest: manifest.file,
+                        name: `./${manifest.chunkName}`
                     })
                 );
             });

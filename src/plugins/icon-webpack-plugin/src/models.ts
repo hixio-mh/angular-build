@@ -145,7 +145,6 @@ export interface IconOptions {
 }
 
 export interface IconPluginOptions extends IconOptions {
-
     // Plugnin options
     //
     // Your source logo
@@ -172,11 +171,7 @@ export interface IconPluginOptions extends IconOptions {
     // Use offline generation, if online generation has failed. `boolean`
     preferOnline?: boolean;
 
-    // Inject the html into the html-webpack-plugin
-    inject?: boolean;
     targetHtmlWebpackPluginId?: string;
-    seperateOutput?: boolean;
-    applyCustomAttributes?: boolean;
 }
 
 export interface IconLoaderOptions extends IconOptions {

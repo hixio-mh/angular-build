@@ -7,8 +7,9 @@ import * as webpack from 'webpack';
 
 import { CliOptions } from './models';
 
-import { getAppConfigs, getWebpackConfig, getWebpackStatsConfig } from '../webpack-configs';
-import { AppConfig } from '../models/index';
+import { getAppConfigs, getWebpackConfig, getAngularBuildConfig } from '../config';
+import { getWebpackStatsConfig } from '../helpers';
+import { AppConfig } from '../models';
 import { chageDashCase, mapToYargsType, readJsonAsync } from '../utils';
 
 // ReSharper disable once CommonJsExternalModule
@@ -41,7 +42,7 @@ Usage:
                 });
 
             const buildOptionsSchema = schema.definitions.BuildOptions.properties;
-            Object.keys(buildOptionsSchema).forEach((key: string) => {
+            Object.keys(buildOptionsSchema).filter((key: string)=> key !== 'test').forEach((key: string) => {
                 yargvObj = yargvObj.options(chageDashCase(key),
                     {
                         describe: buildOptionsSchema[key].description || key,
@@ -86,15 +87,20 @@ export function build(cliOptions: CliOptions): Promise<number> {
             }
 
             buildOptions.webpackIsGlobal = true;
+            const angularBuildConfig = getAngularBuildConfig(projectRoot);
 
-            const appConfigs = getAppConfigs(projectRoot, null, buildOptions);
+            const appConfigs = getAppConfigs(projectRoot, buildOptions, angularBuildConfig);
             if (!appConfigs || appConfigs.length === 0) {
                 throw new Error(`Error in getting webpack configs. Received empty config.`);
             }
 
+            if (buildOptions.test) {
+                throw new Error(`'ngb build' doesn't support '--test' option.`);
+            }
+
             webpackConfigs = appConfigs
                 .map((appConfig: AppConfig) => {
-                    return getWebpackConfig(projectRoot, appConfig, buildOptions, true);
+                    return getWebpackConfig(projectRoot, appConfig, buildOptions, angularBuildConfig, true);
                 });
             if (!webpackConfigs || webpackConfigs.length === 0) {
                 throw new Error(`Error in getting webpack configs. Received empty config.`);

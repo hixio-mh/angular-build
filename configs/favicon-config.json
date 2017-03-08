@@ -114,7 +114,5 @@
 
   // Plugin settings
   "online": false,
-  "preferOnline": true,
-  "inject": true,
-  "applyCustomAttributes": false
+  "preferOnline": true
 }

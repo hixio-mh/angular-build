@@ -1,33 +1,43 @@
 {
+  "$schema": "node_modules/@bizappframework/angular-build/configs/schema.json#",
   "apps": [
     {
-      "name": "client",
+      "name": "browser-app",
       "target": "web",
       "root": "",
       "outDir": "",
       "main": "",
-      "assets": [],
-      "styles": [],
+      "test": "karma-test.browser.ts",
+      "assets": [
+        "assets"
+      ],
+      "styles": [
+        "styles.scss"
+      ],
       "scripts": [],
-      "polyfills": [ "polyfills.browser.ts" ],
+      "polyfills": [
+        "polyfills.browser.ts"
+      ],
       "dlls": [
-        {
-          "entry": "rxjs.imports.ts",
-          "importToMain": true
-        },
+        //{
+        //  "entry": "rxjs.imports.ts",
+        //  "importToMain": true
+        //},
         {
           "entry": "../package.json",
           "excludes": [
-            "@angular/compiler-cli",
             "@angular/platform-server",
             "angular2-platform-node",
+            "@angular/service-worker",
             "angular2-universal-polyfills",
             "aspnet-prerendering",
             "core-js",
             "es6-promise",
             "es6-shim",
+            "event-source-polyfill",
             "ie-shim",
             "isomorphic-fetch",
+            "preboot",
             "reflect-metadata",
             "rxjs",
             "tslib",
@@ -36,7 +46,8 @@
           ]
         }
       ],
-      "tsconfig": "../tsconfig.webpack.json",
+      // TODO: to check
+      "tsconfig": "../tsconfig.app.json",
       "faviconConfig": "favicon-config.json",
       "publicPath": "/",
       "index": "",
@@ -48,15 +59,17 @@
       },
       "environmentSource": "environments/environment.ts",
       "buildTargetOverrides": {
+        "dll": {},
         "dev": {
           // Default - true
-          "referenceDll": true
-          //"skipGenerateIcons": true
+          "referenceDll": true,
+          "polyfills": [
+            "polyfills.browser.ts",
+            "event-source-polyfill"
+          ]
         },
         "prod": {
           "environmentFile": "environments/environment.prod.ts",
-          // Default - true
-          "compressAssets": true,
           // Default - false
           "sourceMap": false,
           "moduleReplacements": [
@@ -67,23 +80,82 @@
             },
             {
               "resourceRegExp": "@angular(\\|/)compiler",
-              // Path is relative to project root dir, Default - angular-build's empty.js module
               "newResource": "empty.js"
             },
             {
               "resourceRegExp": "angular2-hmr",
-              // Path is relative to project root dir, Default - angular-build's empty.js module
               "newResource": "empty.js"
             }
           ]
         },
         "aot": {
           //"main": "main.browser.aot.ts",
-          "tsconfig": "../tsconfig.webpack.aot.json"
+          //"tsconfig": "../tsconfig.app.aot.json"
         },
-        "universal": {
+        "universal": {},
+        "test": {
+          "inlineChunk": false,
+          "vendorChunk": false,
+          "dlls": [],
+          "polyfills": [],
+          "tsconfig": "../tsconfig.test.json"
         }
       }
+    },
+    {
+      "name": "node-app",
+      "extends": "browser-app",
+      "target": "node",
+      "outDir": "dist",
+      "main": "",
+      "test": "",
+      "inlineChunk": false,
+      "styles": [],
+      "polyfills": [],
+      "dlls": [
+        {
+          "entry": "../package.json",
+          "excludes": [
+            "@angular/service-worker",
+            "core-js",
+            "event-source-polyfill",
+            "ie-shim",
+            "isomorphic-fetch",
+            "preboot",
+            "tslib",
+            "ts-helpers"
+          ]
+        }
+      ],
+      "index": "",
+      "htmlInjectOptions": {},
+      "skipGenerateIcons": true,
+      "extractCss": false,
+      "buildTargetOverrides": {
+        "dll": {
+          //"skip": false
+        },
+        "dev": {
+          "referenceDll": true
+        },
+        "prod": {
+          "environmentFile": "environments/environment.prod.ts",
+          "sourceMap": false,
+          "extractCss": false,
+          "moduleReplacements": [
+          ]
+        },
+        "universal": {
+          "skip": false
+        }
+      },
+      "skip": true
     }
-  ]
+  ],
+  "test": {
+    "codeCoverage": {
+      "exclude": []
+      //"disabled": true
+    }
+  }
 }

@@ -76,7 +76,6 @@ export class IconWebpackPlugin {
         emitStats: false,
         statsFilename: 'iconstats.json',
         persistentCache: true,
-        inject: true,
         online: false,
         preferOnline: false,
         settings: {
@@ -145,116 +144,123 @@ export class IconWebpackPlugin {
         this.context = compiler.context || compiler.options.context;
         this.initOptions(this.context);
 
-        compiler.plugin('make', (compilation: any, cb: (err?: Error, request?: any) => void) => {
-            this.childComplier = new ChildComplier(this.context, compilation);
+        compiler.plugin('make',
+            (compilation: any, cb: (err?: Error, request?: any) => void) => {
+                this.childComplier = new ChildComplier(this.context, compilation);
 
-            this.childComplier.compileTemplate(this.options)
-                .then((result: IconStatsResult) => {
-                    this.iconStatsResult = result;
-                    cb();
-                })
-                .catch(cb);
-        });
+                this.childComplier.compileTemplate(this.options)
+                    .then((result: IconStatsResult) => {
+                        this.iconStatsResult = result;
+                        cb();
+                    })
+                    .catch(cb);
+            });
 
 
-        compiler.plugin('compilation', (compilation: any) => {
+        compiler.plugin('compilation',
+            (compilation: any) => {
 
-            compilation.plugin('html-webpack-plugin-before-html-generation',
-                (htmlPluginArgs: any, callback: (err: Error, htmlPluginArgs?: any) => void) => {
+                compilation.plugin('html-webpack-plugin-before-html-generation',
+                    (htmlPluginArgs: any, callback: (err: Error, htmlPluginArgs?: any) => void) => {
 
-                    if (!this.options.targetHtmlWebpackPluginId ||
-                        (this.options.targetHtmlWebpackPluginId &&
-                            this.options.targetHtmlWebpackPluginId === htmlPluginArgs.plugin.options.id)) {
-                        this.isTargetHtmlWebpackPlugin = true;
-                    } else {
-                        this.isTargetHtmlWebpackPlugin = false;
-                    }
-                    if (!this.isTargetHtmlWebpackPlugin) {
-                        return callback(null, htmlPluginArgs);
-                    }
-
-                    if (this.iconStatsResult && this.iconStatsResult.stats.html && this.iconStatsResult.stats.html.length) {
-
-                        let faviconsTags: string[] = [];
-                        if (htmlPluginArgs.assets.publicPath && htmlPluginArgs.assets.publicPath !== '/') {
-                            let publicPath = htmlPluginArgs.assets.publicPath;
-                            const endsWithBsRegex = /\/$/;
-                            const startWithBsRegex = /^\/\w/;
-                            publicPath = endsWithBsRegex.test(publicPath) ? publicPath : publicPath + '/';
-                            publicPath = startWithBsRegex.test(publicPath) ? publicPath.substring(1) : publicPath;
-
-                            faviconsTags = this.iconStatsResult.stats.html.map((tag: any) => {
-                                return tag.replace(/href=\"/i, `href="${publicPath}`);
-                            });
+                        if (!this.options.targetHtmlWebpackPluginId ||
+                            (this.options.targetHtmlWebpackPluginId &&
+                                this.options.targetHtmlWebpackPluginId === htmlPluginArgs.plugin.options.id)) {
+                            this.isTargetHtmlWebpackPlugin = true;
                         } else {
-                            faviconsTags.push(...this.iconStatsResult.stats.html);
+                            this.isTargetHtmlWebpackPlugin = false;
+                        }
+                        if (!this.isTargetHtmlWebpackPlugin) {
+                            return callback(null, htmlPluginArgs);
                         }
 
-                        htmlPluginArgs.plugin.options['favicons'] = {
-                            tags: faviconsTags
-                        };
-                    }
+                        if (this.iconStatsResult &&
+                            this.iconStatsResult.stats.html &&
+                            this.iconStatsResult.stats.html.length) {
 
-                    return callback(null, htmlPluginArgs);
-                });
+                            let faviconsTags: string[] = [];
+                            if (htmlPluginArgs.assets.publicPath && htmlPluginArgs.assets.publicPath !== '/') {
+                                let publicPath = htmlPluginArgs.assets.publicPath;
+                                const endsWithBsRegex = /\/$/;
+                                const startWithBsRegex = /^\/\w/;
+                                publicPath = endsWithBsRegex.test(publicPath) ? publicPath : publicPath + '/';
+                                publicPath = startWithBsRegex.test(publicPath) ? publicPath.substring(1) : publicPath;
 
-
-            compilation.plugin('html-webpack-plugin-before-html-processing',
-                (htmlPluginArgs: any, callback: (err: Error, htmlPluginArgs?: any) => void) => {
-
-                    if (!this.isTargetHtmlWebpackPlugin || this.options.inject === false || !htmlPluginArgs.plugin.options['favicons'] || !htmlPluginArgs.plugin.options['favicons'].tags) {
-                        return callback(null, htmlPluginArgs);
-                    }
-
-                    if (this.options.seperateOutput) {
-                        htmlPluginArgs.html = '';
-                    } else {
-                        htmlPluginArgs.html = htmlPluginArgs.html || '';
-                    }
-
-                    let faviconsTags = <string[]>htmlPluginArgs.plugin.options['favicons'].tags;
-
-                    if (this.options.applyCustomAttributes && htmlPluginArgs.plugin.options.customAttributes &&
-                        htmlPluginArgs.plugin.options.customAttributes.linkAttributes) {
-                        const linkAttributes = <{ [key: string]: string }>htmlPluginArgs.plugin.options.customAttributes.linkAttributes;
-                        const linkAttributesStr = Object.keys(linkAttributes).map((key: string) => {
-                            return `${key}="${linkAttributes[key].toString()}"`;
-                        }).join(' ');
-
-                        const linkRegex = /^\<link\s+.*\/?\>$/i;
-                        faviconsTags = faviconsTags.map((tag: string) => {
-                            if (tag.match(linkRegex)) {
-                                return tag.replace(/(\/?\>)/i, ` ${linkAttributesStr}$&`);
+                                faviconsTags = this.iconStatsResult.stats.html.map((tag: any) => {
+                                    return tag.replace(/href=\"/i, `href="${publicPath}`);
+                                });
+                            } else {
+                                faviconsTags.push(...this.iconStatsResult.stats.html);
                             }
-                            return tag;
-                        });
-                    }
 
-                    if (htmlPluginArgs.html.match(/(<\/head>)/i)) {
-                        htmlPluginArgs.html = htmlPluginArgs.html.replace(
-                            /(<\/head>)/i,
-                            `  ${faviconsTags.join('\n  ')}\n$&`);
-                    } else {
-                        htmlPluginArgs.html = `${htmlPluginArgs.html.trim()}\n${faviconsTags.join('\n')}\n`;
-                        if (this.options.seperateOutput) {
-                            htmlPluginArgs.html = htmlPluginArgs.html.trim();
+                            htmlPluginArgs.plugin.options['favicons'] = {
+                                tags: faviconsTags
+                            };
                         }
-                    }
 
-                    callback(null, htmlPluginArgs);
-                });
-        });
+                        return callback(null, htmlPluginArgs);
+                    });
+
+
+                compilation.plugin('html-webpack-plugin-before-html-processing',
+                    (htmlPluginArgs: any, callback: (err: Error, htmlPluginArgs?: any) => void) => {
+
+                        if (!this.isTargetHtmlWebpackPlugin ||
+                            !htmlPluginArgs.plugin.options['favicons'] ||
+                            !htmlPluginArgs.plugin.options['favicons'].tags) {
+                            return callback(null, htmlPluginArgs);
+                        }
+
+                        //if (this.options.seperateOutput) {
+                        //    htmlPluginArgs.html = '';
+                        //} else {
+                        //    htmlPluginArgs.html = htmlPluginArgs.html || '';
+                        //}
+                        htmlPluginArgs.html = htmlPluginArgs.html || '';
+
+                        let faviconsTags = <string[]>htmlPluginArgs.plugin.options['favicons'].tags;
+
+                        //if (htmlPluginArgs.plugin.options.customAttributes && htmlPluginArgs.plugin.options.customAttributes.linkAttributes) {
+                        //    const linkAttributes = <{ [key: string]: string }>htmlPluginArgs.plugin.options
+                        //        .customAttributes.linkAttributes;
+                        //    const linkAttributesStr = Object.keys(linkAttributes).map((key: string) => {
+                        //        return `${key}="${linkAttributes[key].toString()}"`;
+                        //    }).join(' ');
+
+                        //    const linkRegex = /^\<link\s+.*\/?\>$/i;
+                        //    faviconsTags = faviconsTags.map((tag: string) => {
+                        //        if (tag.match(linkRegex)) {
+                        //            return tag.replace(/(\/?\>)/i, ` ${linkAttributesStr}$&`);
+                        //        }
+                        //        return tag;
+                        //    });
+                        //}
+
+                        if (htmlPluginArgs.html.match(/(<\/head>)/i)) {
+                            htmlPluginArgs.html = htmlPluginArgs.html.replace(
+                                /(<\/head>)/i,
+                                `  ${faviconsTags.join('\n  ')}\n$&`);
+                        } else {
+                            htmlPluginArgs.html = `${htmlPluginArgs.html.trim()}\n${faviconsTags.join('\n')}\n`;
+                            //if (this.options.seperateOutput) {
+                            //    htmlPluginArgs.html = htmlPluginArgs.html.trim();
+                            //}
+                        }
+
+                        callback(null, htmlPluginArgs);
+                    });
+            });
 
         if (!this.options.emitStats) {
-            compiler.plugin('emit', (compilation: any, cb: any) => {
-                if (this.iconStatsResult && this.iconStatsResult.outputName) {
-                    delete compilation.assets[this.iconStatsResult.outputName];
-                }
-                cb();
-            });
+            compiler.plugin('emit',
+                (compilation: any, cb: any) => {
+                    if (this.iconStatsResult && this.iconStatsResult.outputName) {
+                        delete compilation.assets[this.iconStatsResult.outputName];
+                    }
+                    cb();
+                });
         }
     }
-
 }
 
 export class ChildComplier {

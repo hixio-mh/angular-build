@@ -6,35 +6,18 @@
             "additionalProperties": false,
             "description": "The app config.",
             "properties": {
-                "aotResourceOverridePath": {
-                    "description": "AoT resource override path.",
-                    "type": "string"
-                },
                 "appendOutputHash": {
                     "description": "Appends version hash to the ouput bundled files.",
                     "type": "boolean"
                 },
                 "assets": {
-                    "default": "[]",
+                    "default": [
+                    ],
                     "description": "List of application assets.",
                     "items": {
                         "anyOf": [
                             {
                                 "properties": {
-                                    "context": {
-                                        "description": "A path that determines how to interpret the from path.",
-                                        "type": "string"
-                                    },
-                                    "flatten": {
-                                        "default": false,
-                                        "description": "Removes all directory references and only copies file names.",
-                                        "type": "boolean"
-                                    },
-                                    "force": {
-                                        "default": false,
-                                        "description": "Overwrites files already in compilation.assets (usually added by other plugins).",
-                                        "type": "boolean"
-                                    },
                                     "from": {
                                         "anyOf": [
                                             {
@@ -54,31 +37,8 @@
                                         ],
                                         "description": "The source file, it can be absolute or relative path or glob pattern."
                                     },
-                                    "glob": {
-                                        "description": "Angular-cli compatible, same as 'glob' property of 'from' object.",
-                                        "type": "string"
-                                    },
-                                    "ignore": {
-                                        "description": "Additional globs to ignore for this pattern.",
-                                        "items": {
-                                            "type": "string"
-                                        },
-                                        "type": "array"
-                                    },
-                                    "input": {
-                                        "description": "Angular-cli compatible, same as 'from' property.",
-                                        "type": "string"
-                                    },
-                                    "output": {
-                                        "description": "Angular-cli compatible, same as 'to' property.",
-                                        "type": "string"
-                                    },
                                     "to": {
                                         "description": "The output root if from is file or dir.",
-                                        "type": "string"
-                                    },
-                                    "toType": {
-                                        "description": "'file' if to has extension or from is file.\n'dir' if from is directory, to has no extension or ends in '/'.",
                                         "type": "string"
                                     }
                                 },
@@ -92,33 +52,39 @@
                     "type": "array"
                 },
                 "buildTargetOverrides": {
-                    "description": "To override properties based on build targets.",
-                    "properties": {
-                        "aot": {
-                            "$ref": "#/definitions/AppConfigOverridable"
+                    "anyOf": [
+                        {
+                            "properties": {
+                                "aot": {
+                                    "$ref": "#/definitions/AppConfigOverridable"
+                                },
+                                "dev": {
+                                    "$ref": "#/definitions/AppConfigOverridable"
+                                },
+                                "dll": {
+                                    "$ref": "#/definitions/AppConfigOverridable"
+                                },
+                                "prod": {
+                                    "$ref": "#/definitions/AppConfigOverridable"
+                                },
+                                "test": {
+                                    "$ref": "#/definitions/AppConfigOverridable"
+                                }
+                            },
+                            "type": "object"
                         },
-                        "dev": {
-                            "$ref": "#/definitions/AppConfigOverridable"
-                        },
-                        "dll": {
-                            "$ref": "#/definitions/AppConfigOverridable"
-                        },
-                        "prod": {
-                            "$ref": "#/definitions/AppConfigOverridable"
-                        },
-                        "universal": {
-                            "$ref": "#/definitions/AppConfigOverridable"
+                        {
+                            "additionalProperties": {
+                                "$ref": "#/definitions/AppConfigOverridable"
+                            },
+                            "type": "object"
                         }
-                    },
-                    "type": "object"
+                    ],
+                    "description": "To override properties based on build targets."
                 },
-                "compressAssets": {
-                    "description": "Compress assets.",
+                "disableDefaultWebpackConfigs": {
+                    "description": "If true, only custom webpack config is processed.",
                     "type": "boolean"
-                },
-                "deployUrl": {
-                    "description": "Angular-cli compatible, same as 'publicPath' property.",
-                    "type": "string"
                 },
                 "dllChunkName": {
                     "default": "vendor",
@@ -126,7 +92,8 @@
                     "type": "string"
                 },
                 "dlls": {
-                    "default": "[]",
+                    "default": [
+                    ],
                     "description": "The entries for dll bundle.",
                     "items": {
                         "anyOf": [
@@ -171,13 +138,6 @@
                 "environmentSource": {
                     "description": "Source file for environment config.",
                     "type": "string"
-                },
-                "environments": {
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "description": "Name and corresponding file for environment config.",
-                    "type": "object"
                 },
                 "extends": {
                     "description": "Extends the app config from another one. Use the name of another app config.",
@@ -227,14 +187,6 @@
                     },
                     "type": "object"
                 },
-                "i18nFile": {
-                    "description": "i18n file.",
-                    "type": "string"
-                },
-                "i18nFormat": {
-                    "description": "i18n format.",
-                    "type": "string"
-                },
                 "index": {
                     "description": "The index html template file.",
                     "type": "string"
@@ -243,12 +195,8 @@
                     "description": "If true, chunk into 'inline.js'",
                     "type": "boolean"
                 },
-                "locale": {
-                    "description": "Locale.",
-                    "type": "string"
-                },
                 "main": {
-                    "description": "The entry for app main bootstrap file.",
+                    "description": "The main entry for the app.",
                     "type": "string"
                 },
                 "moduleReplacements": {
@@ -286,7 +234,8 @@
                             "type": "string"
                         }
                     ],
-                    "default": "[]",
+                    "default": [
+                    ],
                     "description": "The entries for app polyfills to be imported to the main entry."
                 },
                 "provide": {
@@ -309,7 +258,8 @@
                     "type": "string"
                 },
                 "scripts": {
-                    "default": "[]",
+                    "default": [
+                    ],
                     "description": "Script entries to be added to the global scope.",
                     "items": {
                         "anyOf": [
@@ -334,6 +284,10 @@
                     },
                     "type": "array"
                 },
+                "serviceWorker": {
+                    "description": "Experimental support for a service worker from @angular/service-worker.",
+                    "type": "boolean"
+                },
                 "skip": {
                     "description": "To skip this app config when bundling.",
                     "type": "boolean"
@@ -354,7 +308,8 @@
                     "description": "Options to pass to style preprocessors",
                     "properties": {
                         "includePaths": {
-                            "default": "[]",
+                            "default": [
+                            ],
                             "description": "\"Paths to include. Paths will be resolved to project root.\"",
                             "items": {
                                 "type": "string"
@@ -365,7 +320,8 @@
                     "type": "object"
                 },
                 "styles": {
-                    "default": "[]",
+                    "default": [
+                    ],
                     "description": "Global script entries to be included in the build. Supported styles are .css, .scss, .less and .stylus.",
                     "items": {
                         "anyOf": [
@@ -395,7 +351,7 @@
                     "description": "Tells the build system which environment the application is targeting.",
                     "enum": [
                         "async-node",
-                        "electron",
+                        "electron-main",
                         "electron-renderer",
                         "node",
                         "node-webkit",
@@ -405,6 +361,7 @@
                     "type": "string"
                 },
                 "test": {
+                    "description": "The name of the test entry-point file.",
                     "type": "string"
                 },
                 "tsconfig": {
@@ -415,6 +372,10 @@
                 "vendorChunk": {
                     "description": "If true, chunk into 'inline.js'",
                     "type": "boolean"
+                },
+                "webpackConfig": {
+                    "description": "Custom webpack config.",
+                    "type": "string"
                 }
             },
             "type": "object"
@@ -422,35 +383,18 @@
         "AppConfigOverridable": {
             "additionalProperties": false,
             "properties": {
-                "aotResourceOverridePath": {
-                    "description": "AoT resource override path.",
-                    "type": "string"
-                },
                 "appendOutputHash": {
                     "description": "Appends version hash to the ouput bundled files.",
                     "type": "boolean"
                 },
                 "assets": {
-                    "default": "[]",
+                    "default": [
+                    ],
                     "description": "List of application assets.",
                     "items": {
                         "anyOf": [
                             {
                                 "properties": {
-                                    "context": {
-                                        "description": "A path that determines how to interpret the from path.",
-                                        "type": "string"
-                                    },
-                                    "flatten": {
-                                        "default": false,
-                                        "description": "Removes all directory references and only copies file names.",
-                                        "type": "boolean"
-                                    },
-                                    "force": {
-                                        "default": false,
-                                        "description": "Overwrites files already in compilation.assets (usually added by other plugins).",
-                                        "type": "boolean"
-                                    },
                                     "from": {
                                         "anyOf": [
                                             {
@@ -470,31 +414,8 @@
                                         ],
                                         "description": "The source file, it can be absolute or relative path or glob pattern."
                                     },
-                                    "glob": {
-                                        "description": "Angular-cli compatible, same as 'glob' property of 'from' object.",
-                                        "type": "string"
-                                    },
-                                    "ignore": {
-                                        "description": "Additional globs to ignore for this pattern.",
-                                        "items": {
-                                            "type": "string"
-                                        },
-                                        "type": "array"
-                                    },
-                                    "input": {
-                                        "description": "Angular-cli compatible, same as 'from' property.",
-                                        "type": "string"
-                                    },
-                                    "output": {
-                                        "description": "Angular-cli compatible, same as 'to' property.",
-                                        "type": "string"
-                                    },
                                     "to": {
                                         "description": "The output root if from is file or dir.",
-                                        "type": "string"
-                                    },
-                                    "toType": {
-                                        "description": "'file' if to has extension or from is file.\n'dir' if from is directory, to has no extension or ends in '/'.",
                                         "type": "string"
                                     }
                                 },
@@ -507,13 +428,9 @@
                     },
                     "type": "array"
                 },
-                "compressAssets": {
-                    "description": "Compress assets.",
+                "disableDefaultWebpackConfigs": {
+                    "description": "If true, only custom webpack config is processed.",
                     "type": "boolean"
-                },
-                "deployUrl": {
-                    "description": "Angular-cli compatible, same as 'publicPath' property.",
-                    "type": "string"
                 },
                 "dllChunkName": {
                     "default": "vendor",
@@ -521,7 +438,8 @@
                     "type": "string"
                 },
                 "dlls": {
-                    "default": "[]",
+                    "default": [
+                    ],
                     "description": "The entries for dll bundle.",
                     "items": {
                         "anyOf": [
@@ -607,14 +525,6 @@
                     },
                     "type": "object"
                 },
-                "i18nFile": {
-                    "description": "i18n file.",
-                    "type": "string"
-                },
-                "i18nFormat": {
-                    "description": "i18n format.",
-                    "type": "string"
-                },
                 "index": {
                     "description": "The index html template file.",
                     "type": "string"
@@ -623,12 +533,8 @@
                     "description": "If true, chunk into 'inline.js'",
                     "type": "boolean"
                 },
-                "locale": {
-                    "description": "Locale.",
-                    "type": "string"
-                },
                 "main": {
-                    "description": "The entry for app main bootstrap file.",
+                    "description": "The main entry for the app.",
                     "type": "string"
                 },
                 "moduleReplacements": {
@@ -662,7 +568,8 @@
                             "type": "string"
                         }
                     ],
-                    "default": "[]",
+                    "default": [
+                    ],
                     "description": "The entries for app polyfills to be imported to the main entry."
                 },
                 "provide": {
@@ -685,7 +592,8 @@
                     "type": "string"
                 },
                 "scripts": {
-                    "default": "[]",
+                    "default": [
+                    ],
                     "description": "Script entries to be added to the global scope.",
                     "items": {
                         "anyOf": [
@@ -710,6 +618,10 @@
                     },
                     "type": "array"
                 },
+                "serviceWorker": {
+                    "description": "Experimental support for a service worker from @angular/service-worker.",
+                    "type": "boolean"
+                },
                 "skip": {
                     "description": "To skip this app config when bundling.",
                     "type": "boolean"
@@ -730,7 +642,8 @@
                     "description": "Options to pass to style preprocessors",
                     "properties": {
                         "includePaths": {
-                            "default": "[]",
+                            "default": [
+                            ],
                             "description": "\"Paths to include. Paths will be resolved to project root.\"",
                             "items": {
                                 "type": "string"
@@ -741,7 +654,8 @@
                     "type": "object"
                 },
                 "styles": {
-                    "default": "[]",
+                    "default": [
+                    ],
                     "description": "Global script entries to be included in the build. Supported styles are .css, .scss, .less and .stylus.",
                     "items": {
                         "anyOf": [
@@ -767,6 +681,7 @@
                     "type": "array"
                 },
                 "test": {
+                    "description": "The name of the test entry-point file.",
                     "type": "string"
                 },
                 "tsconfig": {
@@ -777,6 +692,10 @@
                 "vendorChunk": {
                     "description": "If true, chunk into 'inline.js'",
                     "type": "boolean"
+                },
+                "webpackConfig": {
+                    "description": "Custom webpack config.",
+                    "type": "string"
                 }
             },
             "type": "object"
@@ -786,7 +705,7 @@
             "description": "Build options.",
             "properties": {
                 "aot": {
-                    "description": "Set true for aot target.",
+                    "description": "Set true for AoT build target.",
                     "type": "boolean"
                 },
                 "app": {
@@ -807,17 +726,16 @@
                     "description": "Appends version hash to the ouput files.",
                     "type": "boolean"
                 },
-                "compressAssets": {
-                    "description": "Compress assets.",
-                    "type": "boolean"
-                },
-                "configFilePath": {
-                    "description": "The 'angular-build.json' config file path.",
-                    "type": "string"
-                },
                 "dll": {
-                    "description": "Set true for dll build.",
+                    "description": "Set true for Dll build target.",
                     "type": "boolean"
+                },
+                "environment": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Additional build target environment.",
+                    "type": "object"
                 },
                 "extractCss": {
                     "description": "Extracts css.",
@@ -829,7 +747,7 @@
                     "type": "boolean"
                 },
                 "production": {
-                    "description": "Set true for production.",
+                    "description": "Set true for production build target.",
                     "type": "boolean"
                 },
                 "progress": {
@@ -852,14 +770,55 @@
                     "description": "Generates sourcemaps.",
                     "type": "boolean"
                 },
-                "universal": {
-                    "description": "Set true for universal target.",
+                "test": {
+                    "description": "Set true for test build target.",
                     "type": "boolean"
+                },
+                "typescriptWebpackTool": {
+                    "description": "Typescript webpack tool",
+                    "enum": [
+                        "@ngtools/webpack",
+                        "ngc-webpack"
+                    ],
+                    "type": "string"
                 },
                 "verbose": {
                     "default": false,
                     "description": "If true, the console displays detailed diagnostic information.",
                     "type": "boolean"
+                }
+            },
+            "type": "object"
+        },
+        "TestOptions": {
+            "additionalProperties": false,
+            "description": "Test options.",
+            "properties": {
+                "codeCoverage": {
+                    "anyOf": [
+                        {
+                            "properties": {
+                                "disabled": {
+                                    "type": "boolean"
+                                },
+                                "exclude": {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                }
+                            },
+                            "type": "object"
+                        },
+                        {
+                            "type": "boolean"
+                        }
+                    ],
+                    "description": "Generate code ceverage report"
+                },
+                "defaultTestApp": {
+                    "description": "Default test app name.",
+                    "type": "string"
                 }
             },
             "type": "object"
@@ -877,7 +836,11 @@
         },
         "buildOptions": {
             "$ref": "#/definitions/BuildOptions",
-            "description": "Build options"
+            "description": "Build options."
+        },
+        "test": {
+            "$ref": "#/definitions/TestOptions",
+            "description": "Test options."
         }
     },
     "type": "object"

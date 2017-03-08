@@ -1,41 +1,116 @@
 ﻿import * as path from 'path';
+import * as fs from 'fs';
 import * as webpack from 'webpack';
 
-// Webpack pligins
+// Plugins
 // ReSharper disable InconsistentNaming
-const LoaderOptionsPlugin = webpack.LoaderOptionsPlugin;
-const NoEmitOnErrorsPlugin = webpack.NoEmitOnErrorsPlugin;
-const NormalModuleReplacementPlugin = webpack.NormalModuleReplacementPlugin;
-const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
-const ProgressPlugin = require('webpack/lib/ProgressPlugin');
-
-// Third-party plugins
 const OptimizeJsPlugin = require('optimize-js-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 // ReSharper restore InconsistentNaming
-
-// Internal plugins
-import { CompressionPlugin } from '../plugins/compression-webpack-plugin';
 
 // Models
 import { AppConfig, BuildOptions, ModuleReplacementEntry } from '../models';
 
 // Helpers
-import { parseCopyAssetEntry, getWebpackStatsConfig } from './helpers';
+import { parseCopyAssetEntry, getWebpackStatsConfig } from '../helpers';
+
+
+/**
+ * Enumerate loaders and their dependencies from this file to let the dependency validator
+ * know they are used.
+ *
+ * require('source-map-loader')
+ * require('raw-loader')
+ * require('url-loader')
+ * require('file-loader')
+ */
 
 export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
     const appRoot = path.resolve(projectRoot, appConfig.root);
-    const hashFormat = `[chunkhash:${20}]`;
-    const emptyModulePath = require.resolve('../../empty.js');
+
+    const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
+    let emptyModulePath = path.resolve(projectRoot, 'empty.js');
+    if (!fs.existsSync(emptyModulePath)) {
+        emptyModulePath = require.resolve('../../empty.js');
+    }
+
+    const fileHashFormat = appConfig.appendOutputHash ? '.[hash]' : '';
+    const chunkHashFormat = appConfig.appendOutputHash ? '.[chunkhash]' : '';
+
+    var metadata = {
+        'ENV': JSON.stringify(buildOptions.environment),
+        'process.env': {
+            'production': buildOptions.production,
+            'ENV': JSON.stringify(buildOptions.environment),
+            'NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+        }
+    };
+
+
+    const commonRules: any[] = [
+        {
+            enforce: 'pre',
+            test: /\.js$/,
+            use: 'source-map-loader',
+            exclude: [nodeModulesPath]
+        },
+        //{
+        //    test: /\.json$/,
+        //    use: 'json-loader',
+        //    exclude: [path.resolve(projectRoot, appConfig.root, 'index.html')]
+        //},
+        {
+            test: /\.html$/,
+            use: 'raw-loader',
+            exclude: [path.resolve(projectRoot, appConfig.root, 'index.html')]
+        },
+        // Font files of all types
+        {
+            test: /\.(otf|ttf|woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
+            use: `url-loader?limit=10000&name=assets/[name]${fileHashFormat}.[ext]`
+        },
+        {
+            test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+            use: `file-loader?name=assets/[name]${fileHashFormat}.[ext]`
+        },
+        // Image loaders
+        {
+            test: /\.(jpg|png|gif|cur|ani)$/,
+            use: `url-loader?limit=25000&name=assets/[name]${fileHashFormat}.[ext]`
+        },
+        // SVG files
+        //{
+        //    test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+        //    use: `url-loader?limit=25000&mimetype=image/svg+xml`
+        //},
+        {
+            test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+            use: `file-loader?name=assets/[name]${fileHashFormat}.[ext]`
+        }
+        //{
+        //    test: /\.(jpe?g|png|gif|svg)(\?{0}(?=\?|$))/,
+        //    use: [
+        //        'file-loader?name=assets/[name].[ext]',
+        //        {
+        //            loader: 'image-webpack-loader',
+        //            options: {
+        //                progressive: true,
+        //                optimizationLevel: 7,
+        //                interlaced: false
+        //            }
+        //        }
+        //    ]
+        //}
+    ];
 
     const commonPlugins: any[] = [
-        new NoEmitOnErrorsPlugin()
+        new webpack.NoEmitOnErrorsPlugin()
     ];
 
     // ProgressPlugin
     //
     if (buildOptions.progress) {
-        commonPlugins.push(new ProgressPlugin({ profile: buildOptions.verbose, colors: true }));
+        commonPlugins.push(new (<any>webpack).ProgressPlugin({ profile: buildOptions.verbose, colors: true }));
     }
 
     // Copy assets
@@ -59,16 +134,17 @@ export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig
         }
     }
 
-    if (appConfig.compressAssets) {
-        commonPlugins.push(new CompressionPlugin({
-            asset: '[path].gz[query]',
-            algorithm: 'gzip',
-            test: /\.js$|\.html$|\.css$/,
-            threshold: 10240
-        }));
-    }
+    //if (appConfig.compressAssets) {
+    //    commonPlugins.push(new CompressionPlugin({
+    //        asset: '[path].gz[query]',
+    //        algorithm: 'gzip',
+    //        test: /\.js$|\.html$|\.css$/,
+    //        threshold: 10240
+    //    }));
+    //}
 
-    // Production replacement modules
+    // module replacement
+    //
     if (appConfig.moduleReplacements && appConfig.moduleReplacements.length > 0) {
         appConfig.moduleReplacements
             .filter((entry: ModuleReplacementEntry) => entry.resourceRegExp)
@@ -77,7 +153,7 @@ export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig
                 if (entry.newResource) {
                     newPath = path.resolve(projectRoot, entry.newResource);
                 }
-                commonPlugins.push(new NormalModuleReplacementPlugin(
+                commonPlugins.push(new webpack.NormalModuleReplacementPlugin(
                     new RegExp(entry.resourceRegExp, 'i'),
                     newPath
                 ));
@@ -88,26 +164,28 @@ export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig
     //
     if (buildOptions.production) {
         const prodPlugins: any[] = [
-            new LoaderOptionsPlugin({ debug: false, minimize: true }),
-            new NormalModuleReplacementPlugin(
-                /zone\.js(\\|\/)dist(\\|\/)long-stack-trace-zone/,
-                emptyModulePath
-            )
+            new webpack.LoaderOptionsPlugin({ debug: false, minimize: true }),
+            //new webpack.NormalModuleReplacementPlugin(
+            //    /zone\.js(\\|\/)dist(\\|\/)long-stack-trace-zone/,
+            //    emptyModulePath
+            //),
+            // TODO: to review
+            new (<any>webpack).HashedModuleIdsPlugin()
         ];
 
-        if (!appConfig.target || appConfig.target === 'web') {
+        if (!appConfig.target || appConfig.target === 'web' || appConfig.target === 'webworker') {
             prodPlugins.push(new OptimizeJsPlugin({
-                sourceMap: false
+                sourceMap: appConfig.sourceMap
             }));
 
-            prodPlugins.push(new UglifyJsPlugin({
+            prodPlugins.push(new webpack.optimize.UglifyJsPlugin({
                 beautify: false,
                 //output: {
                 //    comments: false
                 //},
                 mangle: {
-                    screw_ie8: true,
-                    keep_fnames: true
+                    screw_ie8: true
+                    //keep_fnames: true
                 },
                 compress: {
                     screw_ie8: true,
@@ -132,34 +210,71 @@ export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig
         commonPlugins.push(...prodPlugins);
     }
 
+    // Source-map
+    //
+    if (appConfig.sourceMap) {
+        const relOutDir = path.relative(projectRoot, path.resolve(projectRoot, appConfig.outDir));
+        commonPlugins.push(new webpack.SourceMapDevToolPlugin({
+            // if no value is provided the sourcemap is inlined
+            filename: buildOptions.test || (appConfig.target && appConfig.target !== 'web' && appConfig.target !== 'webworker') ? null : '[file].map',
+            test: /\.(ts|js)($|\?)/i, // process .js and .ts files only
+            moduleFilenameTemplate: path.relative(relOutDir, '[resourcePath]') // Point sourcemap entries to the original file locations on disk
+        }));
+    }
+
+    // DefinePlugin
+    if (!buildOptions.dll) {
+        // DefinePlugin
+        //
+        commonPlugins.push(
+            // NOTE: when adding more properties make sure you include them in custom-typings.d.ts
+            new webpack.DefinePlugin(metadata)
+        );
+
+        // Provide plugin
+        //
+        if (appConfig.provide && typeof appConfig.provide === 'object' && Object.keys(appConfig.provide).length > 0) {
+            commonPlugins.push(
+                // NOTE: when adding more properties make sure you include them in custom-typings.d.ts
+                new webpack.ProvidePlugin(appConfig.provide)
+            );
+        }
+    }
+
     const statsConfig = getWebpackStatsConfig(buildOptions.verbose);
+    let devtool: string;
+    if (buildOptions.test || (appConfig.target && appConfig.target !== 'web' && appConfig.target !== 'webworker')) {
+        devtool = appConfig.sourceMap ? 'inline-source-map' : ''; // '' or 'eval'
+    }
 
     // Config
     //
-    const webpackSharedConfig = {
-        target: appConfig.target === 'node' ? 'node' : 'web',
-        devtool: appConfig.target === 'node' ? 'inline-source-map' : undefined, //buildOptions.production ? false : 'source-map',
+    const webpackSharedConfig : any = {
+        target: appConfig.target || 'web',
+        devtool: devtool,
+        resolve: {
+            extensions: ['.ts', '.js','.json'],
+            modules: [nodeModulesPath]
+        },
+        //resolveLoader: {
+        //    modules: [nodeModulesPath]
+        //},
         context: projectRoot,
         output: {
             path: path.resolve(projectRoot, appConfig.outDir),
             publicPath: appConfig.publicPath,
-            filename: appConfig.appendOutputHash
-                ? `[name].${hashFormat}.js`
-                : '[name].js',
+            filename: `[name]${chunkHashFormat}.js`,
             //sourceMapFilename: appConfig.appendOutputHash
-            //    ? `[name].${hashFormat}.map`
+            //    ? `[name].[chunkhash].map`
             //    : '[name].map',
-            chunkFilename: appConfig.appendOutputHash
-                ? `[id].${hashFormat}.js`
-                : '[id].js',
-            // The name of the global variable which the library's
-            // require() function will be assigned to
-            library: appConfig.appendOutputHash ? `[name]_${hashFormat}` : '[name]_lib'
+            chunkFilename: `[id]${chunkHashFormat}.chunk.js`
+        },
+        module: {
+            rules: commonRules
         },
         plugins: commonPlugins,
-        // >= version 2.2
         performance: {
-            hints: buildOptions.performanceHint ? 'warning' : false, // boolean | "error" | "warning"
+            hints: !buildOptions.test && !buildOptions.dll && buildOptions.performanceHint ? 'warning' : false, // boolean | "error" | "warning"
             maxAssetSize: 320000, // int (in bytes),
             maxEntrypointSize: 400000, // int (in bytes)
             assetFilter(assetFilename: string) {
@@ -173,13 +288,19 @@ export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig
             crypto: 'empty',
             tls: 'empty',
             net: 'empty',
-            process: true,
+            process: true, // false
             module: false,
             clearImmediate: false,
             setImmediate: false
         },
         stats: statsConfig
     };
+
+    // Node specific
+    if (appConfig.target && appConfig.target !== 'web' && appConfig.target !== 'webworker') {
+        webpackSharedConfig.resolve = webpackSharedConfig.resolve || {};
+        webpackSharedConfig.resolve.mainFields = ['main'];
+    }
 
     return webpackSharedConfig;
 }

@@ -11,9 +11,13 @@ export interface AppConfigOverridable {
      */
     outDir?: string;
     /**
-     * The entry for app main bootstrap file.
+     * The main entry for the app.
      */
     main?: string;
+    /**
+   * The name of the test entry-point file.
+   */
+    test?: string;
     /**
      * The entries for app polyfills to be imported to the main entry.
      * @default []
@@ -79,10 +83,6 @@ export interface AppConfigOverridable {
      * The public url address of the output files.
      */
     publicPath?: string;
-      /**
-     * Angular-cli compatible, same as 'publicPath' property.
-     */
-    deployUrl?:string;
     /**
      * To reference dll.
      */
@@ -104,10 +104,6 @@ export interface AppConfigOverridable {
      */
     extractCss?: boolean;
     /**
-     * Compress assets.
-     */
-    compressAssets?: boolean;
-    /**
      * Skips copying assets.
      */
     skipCopyAssets?: boolean;
@@ -123,28 +119,22 @@ export interface AppConfigOverridable {
      * Options to pass to style preprocessors
      */
     stylePreprocessorOptions?: StylePreprocessorOptions;
-
-    test?: string;
-    /**
-     * i18n file.
-     */
-    i18nFile?: string;
-    /**
-     * i18n format.
-     */
-    i18nFormat?: string;
-    /**
-     * Locale.
-     */
-    locale?: string;
-    /**
-     *  AoT resource override path.
-     */
-    aotResourceOverridePath?: string;
     /**
      * The environment file for the build target.
      */
-    environmentFile?:string;
+    environmentFile?: string;
+    /**
+     * Experimental support for a service worker from @angular/service-worker.
+     */
+    serviceWorker?: boolean;
+    /**
+     * Custom webpack config.
+     */
+    webpackConfig?: string;
+    /**
+     * If true, only custom webpack config is processed.
+     */
+    disableDefaultWebpackConfigs?: boolean;
 }
 
 /**
@@ -164,11 +154,11 @@ export interface AppConfig extends AppConfigOverridable {
      * Tells the build system which environment the application is targeting.
      * @default web
      */
-    target?: 'async-node'
-    | 'electron'
+    target?:
+    'async-node'
+    | 'electron-main'
     | 'electron-renderer'
     | 'node'
-    | 'node-webkit'
     | 'node-webkit'
     | 'web'
     | 'webworker';
@@ -176,22 +166,18 @@ export interface AppConfig extends AppConfigOverridable {
     /**
      * To override properties based on build targets.
      */
-    //buildTargetOverrides: { [name: string]: { [key: string]: any } };
     buildTargetOverrides?: {
         dll?: AppConfigOverridable;
         dev?: AppConfigOverridable;
         prod?: AppConfigOverridable;
         aot?: AppConfigOverridable;
-        universal?: AppConfigOverridable;
-    };
+        test?: AppConfigOverridable;
+    } | { [name: string]: AppConfigOverridable };
+
     /**
      * Source file for environment config.
      */
     environmentSource?: string;
-    /**
-     * Name and corresponding file for environment config.
-     */
-    environments?: { [key: string]: string };
 }
 
 /**
@@ -209,41 +195,6 @@ export type AssetEntry = {
      * The output root if from is file or dir.
      */
     to?: string;
-    /**
-     * 'file' if to has extension or from is file.
-     * 'dir' if from is directory, to has no extension or ends in '/'.
-     */
-    toType?: string;
-    /**
-     * A path that determines how to interpret the from path.
-     */
-    context?: string;
-    /**
-     * Removes all directory references and only copies file names.
-     * @default false
-     */
-    flatten?: boolean;
-    /**
-     * Additional globs to ignore for this pattern.
-     */
-    ignore?: string[];
-    /**
-     * Overwrites files already in compilation.assets (usually added by other plugins).
-     * @default false
-     */
-    force?: boolean;
-    /**
-     * Angular-cli compatible, same as 'glob' property of 'from' object.
-     */
-    glob?: string;
-    /**
-     * Angular-cli compatible, same as 'from' property.
-     */
-    input?: string;
-    /**
-   * Angular-cli compatible, same as 'to' property.
-   */
-    output?: string;
 };
 
 /**
@@ -296,9 +247,13 @@ export interface AngularBuildConfig {
      */
     apps: AppConfig[];
     /**
-     * Build options
+     * Build options.
      */
     buildOptions?: BuildOptions;
+    /**
+     * Test options.
+     */
+    test?: TestOptions;
 }
 
 /**
@@ -306,10 +261,6 @@ export interface AngularBuildConfig {
  * @additionalProperties false
  */
 export interface BuildOptions {
-    /**
-     * The 'angular-build.json' config file path.
-     */
-    configFilePath?: string;
     /**
      * To build only specific app. Use app's name.
      */
@@ -329,21 +280,29 @@ export interface BuildOptions {
      */
     performanceHint?: boolean;
     /**
-     * Set true for production.
+     * Set true for production build target.
      */
     production?: boolean;
     /**
-     * Set true for dll build.
-     */
-    dll?: boolean;
-    /**
-     * Set true for aot target.
+     * Set true for AoT build target.
      */
     aot?: boolean;
     /**
-     * Set true for universal target.
+     * Set true for Dll build target.
      */
-    universal?: boolean;
+    dll?: boolean;
+    /**
+   * Set true for test build target.
+   */
+    test?: boolean;
+    /**
+     * Additional build target environment.
+     */
+    environment?: { [key: string]: string };
+    /**
+     * Typescript webpack tool
+     */
+    typescriptWebpackTool?: '@ngtools/webpack' | 'ngc-webpack';
     /**
      * To reference dlls for all apps.
      */
@@ -361,10 +320,6 @@ export interface BuildOptions {
      */
     extractCss?: boolean;
     /**
-     * Compress assets.
-     */
-    compressAssets?: boolean;
-    /**
      * Skips copying assets.
      */
     skipCopyAssets?: boolean;
@@ -372,4 +327,23 @@ export interface BuildOptions {
      * Skips generating icons.
      */
     skipGenerateIcons?: boolean;
+}
+
+
+/**
+ * Test options.
+ * @additionalProperties false
+ */
+export interface TestOptions {
+    /**
+      * Default test app name.
+      */
+    defaultTestApp?: string;
+    /**
+     * Generate code ceverage report
+     */
+    codeCoverage?: boolean | {
+        exclude?: string[];
+        disabled?:boolean;
+    };
 }

@@ -2,20 +2,18 @@
 import * as fs from 'fs';
 import * as webpack from 'webpack';
 
-// ReSharper disable InconsistentNaming
-const ContextReplacementPlugin = webpack.ContextReplacementPlugin;
-const NormalModuleReplacementPlugin = webpack.NormalModuleReplacementPlugin;
-
 // ReSharper disable CommonJsExternalModule
+// ReSharper disable InconsistentNaming
 const { NgcWebpackPlugin } = require('ngc-webpack');
 const {CheckerPlugin} = require('awesome-typescript-loader');
 const {TsConfigPathsPlugin} = require('awesome-typescript-loader');
-// ReSharper restore CommonJsExternalModule
 // ReSharper restore InconsistentNaming
+// ReSharper restore CommonJsExternalModule
+
+import { StaticAssetWebpackPlugin } from '../plugins/static-asset-webpack-plugin';
 
 import { AppConfig, BuildOptions } from '../models';
 import { readJsonSync } from '../utils';
-import { getEnvName } from './helpers';
 
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
@@ -28,53 +26,101 @@ import { getEnvName } from './helpers';
  */
 
 export function getAngularConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
-    if (buildOptions.dll) {
-        const angular2FixPlugins = getAngular2FixPlugins(projectRoot, appConfig, buildOptions);
-        return {
-            plugins: angular2FixPlugins
-        };
+    let useAoTPlugin : boolean;
+    if (buildOptions.typescriptWebpackTool && !buildOptions.dll && !appConfig.referenceDll) {
+        useAoTPlugin = buildOptions.typescriptWebpackTool === '@ngtools/webpack';
     } else {
-        const useAoTPlugin = !appConfig.referenceDll && !buildOptions.dll && buildOptions.aot && !appConfig.main.match(/aot\.ts$/i);
-        return useAoTPlugin
-            ? getTypescriptWithAoTPluginConfigPartial(projectRoot, appConfig, buildOptions)
-            : getTypescriptNgcPluginConfigPartial(projectRoot, appConfig, buildOptions);
+        useAoTPlugin = !buildOptions.dll && !buildOptions.test && !appConfig.referenceDll && buildOptions.aot && appConfig.main && !appConfig.main.match(/aot\.ts$/i);
     }
+
+    return useAoTPlugin
+        ? getTypescriptAoTPluginConfigPartial(projectRoot, appConfig, buildOptions)
+        : getTypescriptNgcPluginConfigPartial(projectRoot, appConfig, buildOptions);
 }
 
-function getTypescriptWithAoTPluginConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
-    const exclude = ['**/*.spec.ts'];
-    if (appConfig.test) {
-        exclude.push(path.join(projectRoot, appConfig.root, appConfig.test));
+export function getServiceWorkConfigPartial(projectRoot: string) {
+    const plugins: any[] = [];
+    const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
+    const entryPoints: { [key: string]: string[] } = {};
+
+    // TODO: to review
+    const swModule = path.resolve(nodeModulesPath, '@angular/service-worker');
+
+    // @angular/service-worker is required to be installed when serviceWorker is true.
+    if (!fs.existsSync(swModule)) {
+        throw new Error(`Your project is configured with serviceWorker = true, but @angular/service-worker is not installed.`);
+    }
+
+    // Path to the worker script itself.
+    const workerPath = path.resolve(swModule, 'bundles/worker-basic.min.js');
+
+    // Path to a small script to register a service worker.
+    const registerPath = path.resolve(swModule, 'build/assets/register-basic.min.js');
+
+    // Sanity check - both of these files should be present in @angular/service-worker.
+    if (!fs.existsSync(workerPath) || !fs.existsSync(registerPath)) {
+        throw new
+            Error(`The installed version of @angular/service-worker isn't supported. Please install a supported version. The following files should exist: \n${registerPath}\n${workerPath}`);
+    }
+
+    // TODO: to review
+    //prodPlugins.push(new GlobCopyWebpackPlugin({
+    //    patterns: ['ngsw-manifest.json'],
+    //    globOptions: {
+    //        optional: true,
+    //    },
+    //}));
+
+    // Load the Webpack plugin for manifest generation and install it.
+    const AngularServiceWorkerPlugin = require('@angular/service-worker/build/webpack')
+        .AngularServiceWorkerPlugin;
+    plugins.push(new AngularServiceWorkerPlugin());
+
+    // Copy the worker script into assets.
+    const workerContents = fs.readFileSync(workerPath).toString();
+    plugins.push(new StaticAssetWebpackPlugin('worker-basic.min.js', workerContents));
+
+    // Add a script to index.html that registers the service worker.
+    // TODO(alxhub): inline this script somehow.
+    entryPoints['sw-register'] = [registerPath];
+
+    return {
+        entry: entryPoints,
+        plugins: plugins
     };
+}
+
+function getTypescriptAoTPluginConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
+    let exclude : string[] = [];
+    if (!buildOptions.test) {
+        exclude = ['**/*.spec.ts', '**/*.e2e.ts', '**/*.e2e-spec.ts'];
+        if (appConfig.test) {
+            exclude.push(path.join(projectRoot, appConfig.root, appConfig.test));
+        }
+    }
 
     const webpackIsGlobal = (buildOptions as any)['webpackIsGlobal'];
     const ngToolsWebpackLoader = webpackIsGlobal ? require.resolve('@ngtools/webpack') : '@ngtools/webpack';
 
     const tsRules: any[] = [{
         test: /\.ts$/,
-        use: ngToolsWebpackLoader,
-        exclude: [/\.(spec|e2e|e2e-spec)\.ts$/]
+        use: ngToolsWebpackLoader
+        //exclude: [/\.(spec|e2e|e2e-spec)\.ts$/]
     }];
 
+    const tsConfigPath = path.resolve(projectRoot, appConfig.root, appConfig.tsconfig);
+    const hostReplacementPaths: any = getHostReplacementPaths(projectRoot, appConfig);
+    //const mainPath = buildOptions.test ? path.join(projectRoot, appConfig.root, appConfig.test)
+    //    : path.join(projectRoot, appConfig.root, appConfig.main);
+    const aotOptions: any = { exclude, tsConfigPath, hostReplacementPaths };
+
+  if (!buildOptions.aot) {
+        aotOptions.skipCodeGeneration = true;
+    }
 
     const tsPlugins: any[] = [
-        buildOptions.aot
-            ? createAotPlugin(projectRoot, appConfig, buildOptions, { exclude })
-            : createAotPlugin(projectRoot, appConfig, buildOptions, { exclude, skipCodeGeneration: true })
+        createAotPlugin(projectRoot, appConfig, buildOptions, aotOptions)
     ];
-
-    // TODO:
-    //const alias : any = {};
-    //if (fs.existsSync(tsConfigPath)) {
-    //    const tsConfigContent = readJsonSync(tsConfigPath);
-    //    const compilerOptions = tsConfigContent.compilerOptions || {};
-    //    const tsPaths = compilerOptions.paths || {};
-    //    for (let prop in tsPaths) {
-    //        if (tsPaths.hasOwnProperty(prop)) {
-    //            alias[prop] = path.resolve(projectRoot, tsPaths[prop][0]);
-    //        }
-    //    }
-    //}
 
     return {
         module: {
@@ -102,10 +148,55 @@ function getTypescriptNgcPluginConfigPartial(projectRoot: string, appConfig: App
         }
     }
 
+    const rules: any[] = [];
+    const plugins: any[] = [
+        new CheckerPlugin()
+    ];
+
     // Rules
     //
-    const rules = [
-        {
+    if (buildOptions.dll) {
+        rules.push({
+            test: /\.ts$/,
+            use: [
+                {
+                    loader: 'awesome-typescript-loader',
+                    options: {
+                        instance: `at-${appConfig.name || 'app'}-dll-loader`,
+                        configFileName: tsConfigPath
+                        //transpileOnly: true
+                    }
+                }
+            ],
+            exclude: [/\.(spec|e2e|e2e-spec)\.ts$/]
+            //include: tsEntries
+        });
+    } else if (buildOptions.test) {
+        // TODO:
+        rules.push({
+            test: /\.ts$/,
+            use: [
+                {
+                    loader: 'awesome-typescript-loader',
+                    options: {
+                        // use inline sourcemaps for "karma-remap-coverage" reporter
+                        sourceMap: false,
+                        inlineSourceMap: true,
+                        //instance: `at-${appConfig.name || 'app'}-test-loader`,
+                        configFileName: tsConfigPath
+                        //compilerOptions: {
+                        //    // Remove TypeScript helpers to be injected
+                        //    // below by DefinePlugin
+                        //    removeComments: true
+                        //}
+                    }
+                },
+                'angular2-template-loader'
+            ],
+            exclude: [/\.(e2e|e2e-spec)\.ts$/]
+        });
+    } else {
+        rules.push({
             test: /\.ts$/,
             use: [
                 //{
@@ -117,6 +208,7 @@ function getTypescriptNgcPluginConfigPartial(projectRoot: string, appConfig: App
                 //},
                 {
                     // MAKE SURE TO CHAIN VANILLA JS CODE, I.E. TS COMPILATION OUTPUT.
+                    // TODO: v2.1.0 -> to fix loader-utils -> parseQuery() will be replaced with getOptions()
                     loader: 'ng-router-loader',
                     options: {
                         loader: 'async-import',
@@ -132,35 +224,29 @@ function getTypescriptNgcPluginConfigPartial(projectRoot: string, appConfig: App
                         configFileName: tsConfigPath
                     }
                 },
-                {
-                    loader: 'string-replace-loader',
-                    options: {
-                        search: 'moduleId:\s*module.id\s*[,]?',
-                        replace: '',
-                        flags: 'g'
-                    }
-                },
+                //{
+                //    loader: 'string-replace-loader',
+                //    options: {
+                //        search: 'moduleId:\s*module.id\s*[,]?',
+                //        replace: '',
+                //        flags: 'g'
+                //    }
+                //},
                 {
                     loader: 'angular2-template-loader'
                 }
             ],
             exclude: [/\.(spec|e2e|e2e-spec)\.ts$/]
-        }
-    ];
+        });
+    }
 
-    // Plugins
-    //
-    const plugins: any[] = [
-        new CheckerPlugin()
-    ];
     const angular2FixPlugins = getAngular2FixPlugins(projectRoot, appConfig, buildOptions);
     plugins.push(...angular2FixPlugins);
 
     if (buildOptions.aot) {
         const aotPlugin = new NgcWebpackPlugin({
             disabled: !buildOptions.aot,
-            tsConfig: tsConfigPath,
-            resourceOverride: appConfig.aotResourceOverridePath
+            tsConfig: tsConfigPath
         });
         plugins.push(aotPlugin);
 
@@ -202,23 +288,25 @@ function getTypescriptNgcPluginConfigPartial(projectRoot: string, appConfig: App
 
     // Replace environment
     //
-    const hostReplacementPaths = getHostReplacementPaths(projectRoot, appConfig, buildOptions);
-    if (hostReplacementPaths && Object.keys(hostReplacementPaths).length > 0) {
-        const envSourcePath = Object.keys(hostReplacementPaths)[0];
-        const envFile = hostReplacementPaths[envSourcePath];
-        if (envSourcePath !== envFile) {
-            plugins.push(new NormalModuleReplacementPlugin(
-                // This plugin is responsible for swapping the environment files.
-                // Since it takes a RegExp as first parameter, we need to escape the path.
-                // See https://webpack.github.io/docs/list-of-plugins.html#normalmodulereplacementplugin
-                new RegExp(envSourcePath
-                    .replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')),
-                envFile
-            ));
+    if (!buildOptions.dll) {
+        const hostReplacementPaths = getHostReplacementPaths(projectRoot, appConfig);
+        if (hostReplacementPaths && Object.keys(hostReplacementPaths).length > 0) {
+            const envSourcePath = Object.keys(hostReplacementPaths)[0];
+            const envFile = hostReplacementPaths[envSourcePath];
+            if (envSourcePath !== envFile) {
+                plugins.push(new webpack.NormalModuleReplacementPlugin(
+                    // This plugin is responsible for swapping the environment files.
+                    // Since it takes a RegExp as first parameter, we need to escape the path.
+                    // See https://webpack.github.io/docs/list-of-plugins.html#normalmodulereplacementplugin
+                    new RegExp(envSourcePath
+                        .replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')),
+                    envFile
+                ));
+            }
         }
     }
 
-    const tsWebpackConfig = {
+  const tsWebpackConfig = {
         resolve: {
             plugins: [
                 new TsConfigPathsPlugin({
@@ -238,33 +326,44 @@ function getTypescriptNgcPluginConfigPartial(projectRoot: string, appConfig: App
 function getAngular2FixPlugins(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
     const appRoot = path.resolve(projectRoot, appConfig.root);
 
-    const angular2FixPlugins: any[] = [
-        // see:  https://github.com/angular/angular/issues/11580
-        new ContextReplacementPlugin(
-            // The (\\|\/) piece accounts for path separators in *nix and Windows
-            /angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
-            appRoot
-        )
-    ];
+    const angular2FixPlugins: any[] = [];
+
+    // see:  https://github.com/angular/angular/issues/11580
+    if (!appConfig.target || appConfig.target === 'web' || appConfig.target === 'webworker') {
+        angular2FixPlugins.push(
+            new webpack.ContextReplacementPlugin(
+                /angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
+                appRoot
+            )
+        );
+    } else {
+        angular2FixPlugins.push(
+            new webpack.ContextReplacementPlugin(
+                /\@angular\b.*\b(bundles|linker)/,
+                appRoot
+            )
+        );
+    }
+
     if (buildOptions.production) {
         const angular2FixProdPlugins: any[] = [
-            new NormalModuleReplacementPlugin(
+            new webpack.NormalModuleReplacementPlugin(
                 /facade(\\|\/)async/,
                 path.resolve(projectRoot, 'node_modules/@angular/core/src/facade/async.js')
             ),
-            new NormalModuleReplacementPlugin(
+            new webpack.NormalModuleReplacementPlugin(
                 /facade(\\|\/)collection/,
                 path.resolve(projectRoot, 'node_modules/@angular/core/src/facade/collection.js')
             ),
-            new NormalModuleReplacementPlugin(
+            new webpack.NormalModuleReplacementPlugin(
                 /facade(\\|\/)errors/,
                 path.resolve(projectRoot, 'node_modules/@angular/core/src/facade/errors.js')
             ),
-            new NormalModuleReplacementPlugin(
+            new webpack.NormalModuleReplacementPlugin(
                 /facade(\\|\/)lang/,
                 path.resolve(projectRoot, 'node_modules/@angular/core/src/facade/lang.js')
             ),
-            new NormalModuleReplacementPlugin(
+            new webpack.NormalModuleReplacementPlugin(
                 /facade(\\|\/)math/,
                 path.resolve(projectRoot, 'node_modules/@angular/core/src/facade/math.js')
             )
@@ -276,7 +375,7 @@ function getAngular2FixPlugins(projectRoot: string, appConfig: AppConfig, buildO
 }
 
 function createAotPlugin(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions, aotOptions: any) {
-    const hostReplacementPaths: any = getHostReplacementPaths(projectRoot, appConfig, buildOptions);
+    //const hostReplacementPaths: any = getHostReplacementPaths(projectRoot, appConfig);
 
     const webpackIsGlobal = (buildOptions as any)['webpackIsGlobal'];
     // ReSharper disable CommonJsExternalModule
@@ -288,37 +387,26 @@ function createAotPlugin(projectRoot: string, appConfig: AppConfig, buildOptions
 
     return new AotPlugin(Object.assign({},
         {
-            tsConfigPath: path.resolve(projectRoot, appConfig.root, appConfig.tsconfig),
+            //tsConfigPath: path.resolve(projectRoot, appConfig.root, appConfig.tsconfig),
             mainPath: path.join(projectRoot, appConfig.root, appConfig.main),
-            i18nFile: appConfig.i18nFile,
-            i18nFormat: appConfig.i18nFormat,
-            locale: appConfig.locale,
-            hostReplacementPaths
+            //hostReplacementPaths,
+            // If we don't explicitely list excludes, it will default to `['**/*.spec.ts']`.
+            exclude: []
         },
         aotOptions));
 }
 
-function getHostReplacementPaths(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
-    const envShort = getEnvName(buildOptions.production);
-    const envLong = getEnvName(buildOptions.production, true);
+function getHostReplacementPaths(projectRoot: string, appConfig: AppConfig) {
     let hostReplacementPaths: any = {};
     const appRoot = path.resolve(projectRoot, appConfig.root);
 
-    let sourcePath = appConfig.environmentSource;
-    if (!sourcePath && appConfig.environments && appConfig.environments['source']) {
-        sourcePath = appConfig.environments['source'];
-    }
-    let envFile = appConfig.environmentFile;
-    if (!envFile && appConfig.environments && appConfig.environments[envShort]) {
-        envFile = appConfig.environments[envShort];
-    }
-    if (!envFile && appConfig.environments && appConfig.environments[envLong]) {
-        envFile = appConfig.environments[envLong];
-    }
+    const sourcePath = appConfig.environmentSource;
+    const envFile = appConfig.environmentFile;
     if (sourcePath && envFile) {
         hostReplacementPaths = {
             [path.join(appRoot, sourcePath)]: path.join(appRoot, envFile)
         };
     }
+
     return hostReplacementPaths;
 }

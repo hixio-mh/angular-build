@@ -5,7 +5,11 @@ import * as resolve from 'resolve';
 //import * as ts from 'typescript';
 //const requireLike = require('require-like');
 
-import { DllEntry, GlobalScopedEntry, AssetEntry } from '../models';
+import { DllEntry, GlobalScopedEntry, AssetEntry, AppConfig } from './models';
+import {IconPluginOptions} from './plugins/icon-webpack-plugin';
+
+// Utils
+import { readJsonSync } from './utils';
 
 // Dlls
 //
@@ -13,7 +17,7 @@ export type DllTsEntry = {
     tsPath?: string;
 }
 
-export function parseDllEntries(projectRoot: string, appRootName: string, dlls: string | (string | DllEntry)[], env: string): (DllEntry & DllTsEntry)[] {
+export function parseDllEntries(projectRoot: string, appRootName: string, dlls: string | (string | DllEntry)[], env: { [key: string]: string }): (DllEntry & DllTsEntry)[] {
     const resultEntries: (DllEntry & DllTsEntry)[] = [];
 
     if (!dlls || !dlls.length) {
@@ -156,7 +160,7 @@ function getRootModuleName(projectRoot: string, name: string, existingArray: str
     return name;
 }
 
-function getArrayFromDllModule(dllModule: any, env: string): string[] {
+function getArrayFromDllModule(dllModule: any, env: { [key: string]: string }): string[] {
     if (!dllModule) {
         return null;
     }
@@ -234,10 +238,9 @@ export function getWebpackStatsConfig(verbose = false) {
 // Assets
 //
 export function parseCopyAssetEntry(baseDir: string, assetEntries: string | (string | AssetEntry)[]) {
-    let assets: AssetEntry[] = [];
 
     if (!assetEntries || !assetEntries.length) {
-        return assets;
+        return <any>[];
     }
 
     let clonedEntries: (string | AssetEntry)[];
@@ -268,7 +271,7 @@ export function parseCopyAssetEntry(baseDir: string, assetEntries: string | (str
         return p;
     };
 
-    assets = clonedEntries.map((asset: string | AssetEntry) => {
+    return clonedEntries.map((asset: string | AssetEntry) => {
         if (typeof asset === 'string') {
             const fromGlob = prepareFormGlobFn(asset);
             return {
@@ -279,8 +282,8 @@ export function parseCopyAssetEntry(baseDir: string, assetEntries: string | (str
                 context: baseDir
             };
         } else if (typeof asset === 'object' && asset.from) {
-            if (!asset.context) {
-                asset.context = baseDir;
+            if (!(<any>asset).context) {
+                (<any>asset).context = baseDir;
             }
             if (typeof asset.from === 'string') {
                 const fromGlob = prepareFormGlobFn(asset.from);
@@ -289,41 +292,42 @@ export function parseCopyAssetEntry(baseDir: string, assetEntries: string | (str
                     dot: true
                 };
             }
-            if (!asset.to && asset.output) {
-                asset.to = asset.output;
-            }
-            return asset;
-        } else if (typeof asset === 'object' && asset.input) {
-            if (!asset.context) {
-                asset.context = baseDir;
-            }
-            const fromGlob = prepareFormGlobFn(asset.input);
-            asset.from = {
-                glob: fromGlob,
-                dot: true
-            };
-            if (!asset.to && asset.output) {
-                asset.to = asset.output;
-            }
-            return asset;
-        } else if (typeof asset === 'object' && asset.glob) {
-            if (!asset.context) {
-                asset.context = baseDir;
-            }
-            asset.from = {
-                glob: asset.glob,
-                dot: true
-            };
-            if (!asset.to && asset.output) {
-                asset.to = asset.output;
-            }
+            //if (!asset.to && (<any>asset).output) {
+            //    asset.to = (<any>asset).output;
+            //}
             return asset;
         }
+        //else if (typeof asset === 'object' && (<any>asset).input) {
+        //    if (!(<any>asset).context) {
+        //        (<any>asset).context = baseDir;
+        //    }
+        //    const fromGlob = prepareFormGlobFn((<any>asset).input);
+        //    asset.from = {
+        //        glob: fromGlob,
+        //        dot: true
+        //    };
+        //    if (!asset.to && (<any>asset).output) {
+        //        asset.to = (<any>asset).output;
+        //    }
+        //    return asset;
+        //}
+        //else if (typeof asset === 'object' && (<any>asset).glob) {
+        //    if (!(<any>asset).context) {
+        //        (<any>asset).context = baseDir;
+        //    }
+        //    asset.from = {
+        //        glob: (<any>asset).glob,
+        //        dot: true
+        //    };
+        //    if (!asset.to && (<any>asset).output) {
+        //        asset.to = (<any>asset).output;
+        //    }
+        //    return asset;
+        //}
         else {
             throw new Error(`Invalid 'assets' value in appConfig.`);
         }
     });
-    return assets;
 }
 
 // Styles/scripts
@@ -397,8 +401,8 @@ export function isWebpackDevServer(): boolean {
     return process.argv[1] && !!(/webpack-dev-server/.exec(process.argv[1]));
 }
 
-export function hasProdArg(): boolean {
-    const hasProdFlag = (process.env.ASPNETCORE_ENVIRONMENT &&
+export function hasProdFlag(): boolean {
+    const hasFlag = (process.env.ASPNETCORE_ENVIRONMENT &&
             process.env.ASPNETCORE_ENVIRONMENT.toLowerCase() === 'production') ||
         process.argv.indexOf('--env.prod') > -1 ||
         process.argv.indexOf('--env.production') > -1 ||
@@ -409,11 +413,22 @@ export function hasProdArg(): boolean {
         (process.env.NODE_ENV &&
         (process.env.NODE_ENV.toLowerCase() === 'prod' ||
             process.env.NODE_ENV.toLowerCase() === 'production'));
-    return typeof hasProdFlag === 'undefined' ? false : hasProdFlag;
+    return typeof hasFlag === 'undefined' ? false : hasFlag;
 }
 
-export function getEnvName(isProd: boolean, longName?: boolean): string {
-    return longName ? isProd ? 'production' : 'development' : isProd ? 'prod' : 'dev';
+export function hasDevFlag(): boolean {
+    const hasFlag = (process.env.ASPNETCORE_ENVIRONMENT &&
+        process.env.ASPNETCORE_ENVIRONMENT.toLowerCase() === 'development') ||
+        process.argv.indexOf('--env.dev') > -1 ||
+        process.argv.indexOf('--env.development') > -1 ||
+        process.argv.indexOf('--env.Development') > -1 ||
+        (process.argv.indexOf('--dev') > -1 && process.argv[process.argv.indexOf('--dev')] === 'true') ||
+        (process.argv.indexOf('--development') > -1 && process.argv[process.argv.indexOf('--development')] === 'true') ||
+        (process.argv.indexOf('--Development') > -1 && process.argv[process.argv.indexOf('--Development')] === 'true') ||
+        (process.env.NODE_ENV &&
+            (process.env.NODE_ENV.toLowerCase() === 'dev' ||
+                process.env.NODE_ENV.toLowerCase() === 'development'));
+    return typeof hasFlag === 'undefined' ? false : hasFlag;
 }
 
 export function isDllBuildFromNpmEvent(eventName?: string): boolean {
@@ -461,6 +476,62 @@ export function isUniversalBuildFromNpmEvent(eventName?: string): boolean {
     }
 }
 
+export function isTestBuildFromNpmEvent(eventName?: string): boolean {
+    const lcEvent = process.env.npm_lifecycle_event;
+    if (!lcEvent) {
+        return false;
+    }
+
+    if (eventName) {
+        return lcEvent.includes(eventName);
+    } else {
+        return lcEvent.includes(':test') ||
+            lcEvent.includes('-test') ||
+            lcEvent === 'test';
+    }
+}
+
+export function getIconOptions(projectRoot: string, appConfig: AppConfig) {
+    const appRoot = path.resolve(projectRoot, appConfig.root);
+    const hashFormat = appConfig.appendOutputHash ? `-[hash` : '';
+
+    let iconOptions: IconPluginOptions = null;
+
+    if (typeof appConfig.faviconConfig === 'string' && appConfig.faviconConfig.match(/\.json$/i)) {
+        let iconConfigPath = path.resolve(appRoot, appConfig.faviconConfig);
+        if (!fs.existsSync(iconConfigPath)) {
+            iconConfigPath = path.resolve(projectRoot, appConfig.faviconConfig);
+        }
+        if (fs.existsSync(iconConfigPath)) {
+            iconOptions = readJsonSync(iconConfigPath);
+        }
+    }
+
+    if (!iconOptions || !iconOptions.masterPicture) {
+        return iconOptions;
+    }
+
+    iconOptions.masterPicture = path.resolve(appRoot, iconOptions.masterPicture);
+    if (!fs.existsSync(iconOptions.masterPicture) && fs.existsSync(path.resolve(projectRoot, iconOptions.masterPicture))) {
+        iconOptions.masterPicture = path.resolve(projectRoot, iconOptions.masterPicture);
+    }
+
+    if (!fs.existsSync(iconOptions.masterPicture)) {
+        throw new Error(`Icon not found at ${iconOptions.masterPicture}`);
+    }
+
+    if (!iconOptions.iconsPath) {
+        iconOptions.iconsPath = `icons${hashFormat}/`;
+    }
+    if (!iconOptions.statsFilename) {
+        iconOptions.statsFilename = 'iconstats.json';
+    }
+    if (typeof iconOptions.emitStats === 'undefined') {
+        iconOptions.emitStats = false;
+    }
+
+    return iconOptions;
+}
 //export function findNpmScriptCommandName(baseDir: string, keyFilter: RegExp, valueFilter?: RegExp): string {
 //  let pkgConfigPath = path.resolve(baseDir, 'package.json');
 //  if (!fs.existsSync(pkgConfigPath)) {

@@ -1,11 +1,11 @@
-﻿import * as path from 'path';
+﻿// Ref/fork from: https://github.com/angular/angular-cli
+import * as path from 'path';
 import * as webpack from 'webpack';
 
 // ReSharper disable once InconsistentNaming
-const LoaderOptionsPlugin = webpack.LoaderOptionsPlugin;
-
 const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
+const postcssUrl = require('postcss-url');
 //const postcssDiscardComments = require('postcss-discard-comments');
 // ReSharper disable once InconsistentNaming
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -13,7 +13,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 import { SuppressEntryChunksWebpackPlugin } from '../plugins/suppress-entry-chunks-webpack-plugin';
 
 import { AppConfig, BuildOptions } from '../models';
-import { parseGlobalScopedEntry } from './helpers';
+import { parseGlobalScopedEntry } from '../helpers';
 
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
@@ -29,11 +29,41 @@ import { parseGlobalScopedEntry } from './helpers';
  * require('less-loader')
  * require('node-sass')
  * require('sass-loader')
+ * require('raw-loader')
+ * require('to-string-loader')
  */
 
 // Ref: https://github.com/angular/angular-cli
-export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions):
-    { entry: { [key: string]: string[] }, module: { rules: any[] }, plugins: any[] } {
+export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions): { entry: { [key: string]: string[] }, module: { rules: any[] }, plugins: any[] } {
+
+    if (buildOptions.dll || buildOptions.test) {
+        const testDllStyleRules: any[] = [
+            {
+                test: /\.css(\?|$)/,
+                use: ['to-string-loader', 'css-loader'],
+                exclude: [path.resolve(projectRoot, appConfig.root, 'index.html')]
+            },
+            {
+                test: /\.scss$|\.sass$/,
+                use: ['raw-loader', 'sass-loader'],
+                exclude: [path.resolve(projectRoot, appConfig.root, 'index.html')]
+            },
+            {
+                test: /\.less/,
+                use: ['raw-loader', 'less-loader'],
+                exclude: [path.resolve(projectRoot, appConfig.root, 'index.html')]
+            },
+            {
+                test: /\.styl$/,
+                use: ['raw-loader', 'stylus-loader'],
+                exclude: [path.resolve(projectRoot, appConfig.root, 'index.html')]
+            }
+        ];
+        const testDllWebpackConfig : any = {
+            module: { rules: testDllStyleRules }
+        };
+        return testDllWebpackConfig;
+    }
 
     const appRoot = path.resolve(projectRoot, appConfig.root);
     const entryPoints: { [key: string]: string[] } = {};
@@ -45,11 +75,29 @@ export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig
     // https://github.com/webpack-contrib/style-loader#recommended-configuration
     const sourceMap = appConfig.extractCss !== false && appConfig.sourceMap;
 
-    // minify/optimize css in production
-    // autoprefixer is always run separately so disable here
-    const extraPostCssPlugins = buildOptions.production
-        ? [cssnano({ safe: true, autoprefixer: false })]
-        : [];
+    // Minify/optimize css in production.
+    const cssnanoPlugin = cssnano({ safe: true, autoprefixer: false });
+
+    // Convert absolute resource URLs to account for base-href and deploy-url.
+    //const baseHref = wco.buildOptions.baseHref;
+    const publicPath = appConfig.publicPath;
+    const postcssUrlOptions = {
+        url: (u: string) => {
+            // Only convert absolute URLs, which CSS-Loader won't process into require().
+            if (!u.startsWith('/')) {
+                return u;
+            }
+            // Join together base-href, deploy-url and the original URL.
+            // Also dedupe multiple slashes into single ones.
+            return `/$${publicPath || ''}/${u}`.replace(/\/\/+/g, '/');
+        }
+    };
+    const urlPlugin = postcssUrl(postcssUrlOptions);
+
+    // PostCSS plugins.
+    const postCssPlugins = [autoprefixer(), urlPlugin].concat(
+        buildOptions.production ? [cssnanoPlugin] : []
+    );
 
     // determine hashing format
     const hashFormat = appConfig.appendOutputHash ? `.[contenthash:${20}]` : '';
@@ -163,10 +211,10 @@ export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig
                 disable: appConfig.extractCss === false
             }),
             // TODO: when merge with webpackMerge and two LoaderOptionsPlugin(s), options object is override with last LoaderOptionsPlugin
-            new LoaderOptionsPlugin({
+            new webpack.LoaderOptionsPlugin({
                 sourceMap: sourceMap,
                 options: {
-                    postcss: [autoprefixer()].concat(extraPostCssPlugins),
+                    postcss: postCssPlugins,
                     // css-loader, stylus-loader don't support LoaderOptionsPlugin properly
                     // options are in query instead
                     sassLoader: { sourceMap: sourceMap, includePaths },
