@@ -145,7 +145,7 @@ ngb init -h
     
 ## Files:  
 #### angular-build.json  
-The main configuration file to build your angular apps. It is similar to [angular-cli](https://github.com/angular/angular-cli) config file - '*angular-cli.json*'. The following is an example configuration. 
+The main configuration file to build your angular apps. It is similar to [angular-cli](https://github.com/angular/angular-cli) config file - 'angular-cli.json'. The following is an example configuration. 
 ```<language>
 {
   "apps": [
@@ -153,24 +153,22 @@ The main configuration file to build your angular apps. It is similar to [angula
       // The root directory of angular app.
       "root": "Client",
 
-      // The output directory of bundled assets.
+      // The output directory for build/bundled result.
       "outDir": "wwwroot",
 
-      // The entry for app main bootstrap file.
+      // The entry for app bootstrap main file.
       "main": "main.browser.ts",
 
       // The asset entries to be copied to output directory.
       "assets": [
-        "assets/**/*"
+        "assets"
       ],
 
-      // Global script entries to be included in the build. Supported styles are .css, .scss, .less and .stylus.
+      // Global style entries to be included in the build. 
+      // Supported styles are .css, .scss, .less and .stylus.
       "styles": [
         "styles.scss"
-      ],
-
-      // Script entries to be added to the global scope.
-      "scripts": [],
+      ],      
 
       // The entries for app polyfills to be imported to the main entry.
       "polyfills": [
@@ -227,16 +225,6 @@ The main configuration file to build your angular apps. It is similar to [angula
 
       // Build target overrides
       "buildTargetOverrides": {
-        // For aot build with ngc, by default it uses ngtools/webpack if main entry does not end with *.aot.ts
-        "aot": {
-          "main": "main.browser.aot.ts",
-          "tsconfig": "../tsconfig.app.aot.json"
-        },
-
-        // For universal build
-        "universal": {
-          "main": "main.universal.browser.ts"
-        },
 
         // For development build
         "dev": {
@@ -264,7 +252,18 @@ The main configuration file to build your angular apps. It is similar to [angula
               "newResource": "empty.js"
             }
           ]
-        }
+        },
+      
+        "aot": {
+          // For aot build with ngc, by default it uses ngtools/webpack if main entry does not end with *.aot.ts
+          "main": "main.browser.aot.ts",
+          "tsconfig": "../tsconfig.app.aot.json"
+        },
+
+        // For universal build
+        "universal": {
+          "main": "main.universal.browser.ts"
+        },
       }
     }
   ]
@@ -275,12 +274,19 @@ The typescript model is [here](https://github.com/BizAppFramework/angular-build/
 ### webpack.config.js  
 ```<language>
 const getWebpackConfigs = require('@bizappframework/angular-build').getWebpackConfigs;
-const configs = getWebpackConfigs(__dirname);
-module.exports = configs;
+
+module.exports = function (env) {
+    const configs = getWebpackConfigs(__dirname, { environment: env });
+    if (!configs || !configs.length) {
+        throw new Error('No webpack config available.');
+    }
+
+    return configs;
+};
 ```  
 
-Pre-configured webpack config models for your angular apps can be get by **getWebpackConfigs** function. The role of this function is to provide webpack config models by parsing 'angular-build.json' file.  
-If you use **ngb build** cli command, this file will be skiped.   
+Pre-configured webpack config models for your angular apps can be get by 'getWebpackConfigs' function. The role of this function is to provide webpack config models by parsing 'angular-build.json' file.  
+If you use 'ngb build' cli command, this file will be skiped.   
   
 ### favicon.config.json  
 ```<language>
