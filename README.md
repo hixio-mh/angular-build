@@ -40,7 +40,8 @@ cd <your-repo>
 npm install
 
 # Init config files 
-# Note: If you installed globally, run 'ngb init -l' to link global installed @bizappframework/angular-build
+# Note: If you installed globally, 
+# run 'ngb init -l' to link global installed @bizappframework/angular-build
 ngb init  
 
 # Wait a few minutes and then build your angular app
@@ -48,3 +49,46 @@ ngb build
 
 # Run your app
 ```
+  
+## Ways to build your angular apps:  
+You can build your angular apps using one of the following ways.  
+  
+#### 1. Using 'ngb build' cli command   
+For dll build:  
+```<language>
+ngb build --dll
+
+# Or
+ngb build --environment.dll=true
+```
+
+For development build:  
+```<language>
+ngb build
+```
+
+For production build:  
+```<language>
+ngb build --production
+
+# Or
+ngb build --environment.prod=true
+```
+
+For production AoT build:  
+```<language>
+ngb build --aot
+
+# Or
+ngb build --environment.prod=true --environment.aot=true
+```
+
+For custom environment build:
+```<language>
+# ngb build --environment.[name]=[value]
+
+# e.g. for environment universal
+ngb build --environment.universal=true
+```  
+  
+For more info, type 'ngb build -h'   
