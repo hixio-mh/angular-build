@@ -26,7 +26,7 @@
     "ios": {
       "pictureAspect": "backgroundAndMargin",
       //"backgroundColor": "#ffffff",
-      "margin": "0", // 14%
+      "margin": 0, // 14%
       "assets": {
         "ios6AndPriorIcons": false,
         "ios7AndLaterIcons": true,
@@ -64,7 +64,7 @@
       "pictureAspect": "circle",
       "keepPictureInCircle": true,
       "circleInnerMargin": "0",
-      "margin": "0",
+      "margin": 0,
       //"backgroundColor": "#FFFFFF"
       "manifest": {
         //"appName": null,
@@ -78,13 +78,13 @@
     "coast": {
       "pictureAspect": "backgroundAndMargin",
       //"backgroundColor": "#FFFFFF",
-      "margin": "0" // 12%
+      "margin": 0 // 12%
     },
 
     "openGraph": {
       "pictureAspect": "backgroundAndMargin",
       //"backgroundColor": "#136497",
-      "margin": "0", // 12%
+      "margin": 0, // 12%
       "ratio": "1.91:1"
     }
 
@@ -102,17 +102,15 @@
     "scalingAlgorithm": "Mitchell",
     "errorOnImageTooSmall": true
   },
-  "versioning": false,
   "appName": "",
   "version": "1.0",
   "appDescription": "",
   "developerName": "",
   "developerUrl": "",
   "background": "#ffffff",
-  "dir": "auto",
-  "lang": "en-US",
 
   // Plugin settings
   "online": false,
-  "preferOnline": true
+  "preferOnline": true,
+  "emitFaviconIcoToOutDirRoot":  true
 }

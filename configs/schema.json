@@ -167,6 +167,12 @@
                                         },
                                         "type": "object"
                                     },
+                                    "filter": {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
                                     "tagName": {
                                         "type": "string"
                                     }
@@ -179,6 +185,9 @@
                             "type": "string"
                         },
                         "indexOutFileName": {
+                            "type": "string"
+                        },
+                        "scriptsOutFileName": {
                             "type": "string"
                         },
                         "stylesOutFileName": {
@@ -505,6 +514,12 @@
                                         },
                                         "type": "object"
                                     },
+                                    "filter": {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
                                     "tagName": {
                                         "type": "string"
                                     }
@@ -517,6 +532,9 @@
                             "type": "string"
                         },
                         "indexOutFileName": {
+                            "type": "string"
+                        },
+                        "scriptsOutFileName": {
                             "type": "string"
                         },
                         "stylesOutFileName": {

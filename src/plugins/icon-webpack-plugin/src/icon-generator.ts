@@ -15,7 +15,7 @@ const unzip = require('unzip2');
 const rfg = require('rfg-api').init();
 // ReSharper restore InconsistentNaming
 
-import { IconOptions, IconResult, IconFileInfo } from './models';
+import { FaviconConfig, IconResult, IconFileInfo } from './models';
 
 
 // ReSharper disable InconsistentNaming
@@ -100,7 +100,7 @@ export class IconGenerator {
         iconsPath: string,
         online: boolean,
         preferOnline: boolean,
-        options: IconOptions,
+        options: FaviconConfig,
         cb: (err?: Error, result?: IconResult) => void) {
         if (online || preferOnline) {
             this.generateRfgOnline(imageFileStream, iconsPath, preferOnline, options, cb);
@@ -113,7 +113,7 @@ export class IconGenerator {
     //
     private generateOffline(imageFileStream: Buffer,
         iconsPath: string,
-        options: IconOptions,
+        options: FaviconConfig,
         cb: (err?: Error, result?: IconResult) => void) {
 
         const offlineOptions = this.prepareOfflineOptions(options);
@@ -155,7 +155,7 @@ export class IconGenerator {
             });
     }
 
-    private prepareOfflineOptions(iconOptions: IconOptions): IconOptions {
+    private prepareOfflineOptions(iconOptions: FaviconConfig): FaviconConfig {
         const options = <any>Object.assign({}, iconOptions);
 
         if (options.background) {
@@ -310,7 +310,7 @@ export class IconGenerator {
     private generateRfgOnline(imageFileStream: Buffer,
         iconsPath: string,
         preferOnline: boolean,
-        options: IconOptions,
+        options: FaviconConfig,
         cb: (err?: Error, result?: IconResult) => void) {
 
         const rfgOptions: any = this.prepareRfgOnlineOptions(imageFileStream, options);
@@ -403,7 +403,7 @@ export class IconGenerator {
             .on('error', (err: Error) => cb(err));
     }
 
-    private prepareRfgOnlineOptions(imageFileStream: Buffer, iconOptions: IconOptions): IconOptions {
+    private prepareRfgOnlineOptions(imageFileStream: Buffer, iconOptions: FaviconConfig): FaviconConfig {
 
         const options = <any>Object.assign({}, iconOptions);
 

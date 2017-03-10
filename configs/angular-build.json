@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "node_modules/@bizappframework/angular-build/configs/schema.json#",
   "apps": [
     {
@@ -52,7 +52,7 @@
       "publicPath": "/",
       "index": "",
       "htmlInjectOptions": {
-        "indexOutFileName": "",
+        "scriptsOutFileName": "",
         "iconsOutFileName": "",
         "stylesOutFileName": "",
         "customTagAttributes": []

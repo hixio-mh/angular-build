@@ -6,7 +6,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as crypto from 'crypto';
+//import * as crypto from 'crypto';
 
 const loaderUtils = require('loader-utils');
 //const pluginVersion = require('../package.json').version;
@@ -61,7 +61,7 @@ export type QueryOptions = IconLoaderOptions;
 export interface LoaderCachedResult {
     hash: string;
     version: string;
-    optionHash: string;
+    optionHash?: string;
     result: IconLoaderResult;
 }
 
@@ -80,7 +80,6 @@ function faviconProcessor(loader: Loader, content: Buffer): void {
     const callback = loader.async();
 
     const options = <QueryOptions>loaderUtils.getOptions(loader);
-    console.log(JSON.stringify(options, null, 4));
     const pathPrefix = loaderUtils.interpolateName(loader, options.iconsPath, {
         context: options.context || loader.options.context,
         content: content,
@@ -127,6 +126,10 @@ function faviconProcessor(loader: Loader, content: Buffer): void {
             };
 
             iconStreamResult.files.forEach((file: any) => {
+                if (options.emitFaviconIcoToOutDirRoot && file.name === 'favicon.ico') {
+                    loader.emitFile(file.name, file.contents);
+                }
+
                 loader.emitFile(pathPrefix + file.name, file.contents);
             });
 
@@ -156,7 +159,7 @@ export class FaviconPersitenceCacheService {
         const cachedResult: LoaderCachedResult = {
             hash: fileHash,
             version: PACKAGE_VERSION,
-            optionHash: this.generateHashForOptions(options),
+            //optionHash: this.generateHashForOptions(options),
             result: iconResult
         };
 
@@ -167,10 +170,11 @@ export class FaviconPersitenceCacheService {
      * Checks if the given cache object is still valid
      */
     isCacheValid(cache: LoaderCachedResult, fileHash: string, options: QueryOptions): boolean {
+        const fileHashEqual = cache.hash === fileHash;
         // Verify that the source file is the same
-        return cache.hash === fileHash &&
+        return fileHashEqual &&
             // Verify that the options are the same
-            cache.optionHash === this.generateHashForOptions(options) &&
+            //cache.optionHash === this.generateHashForOptions(options) &&
             // Verify that the favicons version of the cache maches this version
             cache.version === PACKAGE_VERSION;
     }
@@ -211,7 +215,9 @@ export class FaviconPersitenceCacheService {
                                 cb(null);
                                 return;
                             }
-                            cb(null, cache.result);
+
+                            const result = cache.result;
+                            cb(null, result);
                         } catch (e) {
                             cb(e);
                             return;
@@ -223,11 +229,11 @@ export class FaviconPersitenceCacheService {
     /**
      * Generates a md5 hash for the given options
      */
-    generateHashForOptions(options: QueryOptions): string {
-        const hash = crypto.createHash('md5');
-        hash.update(JSON.stringify(options));
-        return hash.digest('hex');
-    }
+    //generateHashForOptions(options: QueryOptions): string {
+    //    const hash = crypto.createHash('md5');
+    //    hash.update(JSON.stringify(options));
+    //    return hash.digest('hex');
+    //}
 }
 
 // ReSharper disable once CommonJsExternalModule

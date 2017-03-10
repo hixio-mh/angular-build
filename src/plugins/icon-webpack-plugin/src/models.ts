@@ -1,4 +1,7 @@
 ﻿// See: http://realfavicongenerator.net/api/non_interactive_api#.WG8UhRt96Uk
+/**
+ * @additionalProperties true
+ */
 export interface IconDesign {
     // rfg
     androidChrome?: {
@@ -20,7 +23,7 @@ export interface IconDesign {
 
     ios?: {
         pictureAspect?: string;
-        margin?: number;
+        margin?: number | string;
         backgroundColor?: string;
         startupImage?: {
             backgroundColor?: string;
@@ -59,22 +62,22 @@ export interface IconDesign {
     coast?: {
         pictureAspect?: string;
         backgroundColor?: string;
-        margin?: number;
+        margin?: number | string;
     };
 
     openGraph?: {
         pictureAspect?: string;
         backgroundColor?: string;
-        margin?: number;
+        margin?: number | string;
         ratio?: string;
     },
 
     firefoxApp?: {
         pictureAspect?: string;
-        keepPictureInCircle?: string;
+        keepPictureInCircle?: string | boolean;
         circleInnerMargin?: string;
         backgroundColor?: string;
-        margin?: number;
+        margin?: number | string;
         manifest?: {
             appName?: string;
             appDescription?: string;
@@ -92,7 +95,10 @@ export interface IconDesign {
     };
 }
 
-export interface IconOptions {
+/**
+ * @additionalProperties false
+ */
+export interface FaviconConfig {
 
     apiKey?: string;
 
@@ -142,53 +148,61 @@ export interface IconOptions {
         errorOnImageTooSmall?: boolean;
     };
 
-}
+    versioning?: boolean | {
+        paramName: string;
+        paramValue:string;
+    };
 
-export interface IconPluginOptions extends IconOptions {
-    // Plugnin options
-    //
-    // Your source logo
+    /**
+    * Your source logo
+    */
     masterPicture: string;
 
-    // Loader/Plugnin options
-    //
-    // The prefix for all image files (might be a folder or a name)
+    /**
+     * The prefix for all image files (might be a folder or a name)
+     */
     iconsPath?: string;
 
-    // Emit all stats of the generated icons
+    /**
+     * Emit all stats of the generated icons
+     * @default false
+     */
     emitStats?: boolean;
 
-    // The name of the json containing all favicon information
+    /**
+     * The name of the json containing all favicon information
+     */
     statsFilename?: string;
 
-    // Generate a cache file with control hashes and
-    // don't rebuild the favicons until those hashes change
+    /* Generate a cache file with control hashes and
+    * don't rebuild the favicons until those hashes change.
+    */
     persistentCache?: boolean;
 
-    // Use RealFaviconGenerator to create favicons? `boolean`
+    /**
+     * Use RealFaviconGenerator to create favicons? `boolean`
+     */
     online?: boolean;
 
-    // Use offline generation, if online generation has failed. `boolean`
+    /**
+     * Use offline generation, if online generation has failed. `boolean`
+     */
     preferOnline?: boolean;
 
-    targetHtmlWebpackPluginId?: string;
+    /**
+     * Copy 'favicon.ico' file to root output directory
+     */
+    emitFaviconIcoToOutDirRoot?: boolean;
 }
 
-export interface IconLoaderOptions extends IconOptions {
-    // Loader/Plugnin options
-    //
-    // The prefix for all image files (might be a folder or a name)
-    iconsPath?: string;
 
-    // Generate a cache file with control hashes and
-    // don't rebuild the favicons until those hashes change
-    persistentCache?: boolean;
+export interface IconPluginOptions extends FaviconConfig {
 
-    // Use RealFaviconGenerator to create favicons? `boolean`
-    online?: boolean;
+    targetHtmlWebpackPluginIds?: string[];
+}
 
-    // Use offline generation, if online generation has failed. `boolean`
-    preferOnline?: boolean;
+
+export interface IconLoaderOptions extends FaviconConfig {
 
     context?: string;
 

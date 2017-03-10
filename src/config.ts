@@ -573,7 +573,7 @@ function mergeBuildOptionsWithDefaults(buildOptions: BuildOptions): BuildOptions
         process.argv.indexOf('--performanceHint') > -1) {
         buildOptions.performanceHint = true;
         defaultBuildOptions.performanceHint = true;
-    } else if (!buildOptions.dll && !buildOptions.test){
+    } else if (!buildOptions.dll && !buildOptions.test && buildOptions.production){
         buildOptions.performanceHint = true;
         defaultBuildOptions.performanceHint = true;
     }

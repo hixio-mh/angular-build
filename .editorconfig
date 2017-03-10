@@ -1,4 +1,4 @@
-# http://editorconfig.org
+﻿# http://editorconfig.org
 
 root = true
 
@@ -9,7 +9,7 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = false
 indent_style = space
-ndent_size = 4
+indent_size = 4
 
 [{package.json,.travis.yml}]
 indent_style = space

@@ -1,5 +1,5 @@
 ﻿export class CustomizeAssetsHtmlPluginOptions {
-    targetHtmlWebpackPluginId?: string;
+    targetHtmlWebpackPluginIds?: string[];
 
     clearHeadAssets?: boolean;
     clearBodyAssets?: boolean;
@@ -18,17 +18,17 @@
     assetTagsFilterFunc?: (tag: any) => boolean;
 
     // attributes
-    customTagAttributes?: {
-        tagName: string;
-        attribute: { [key: string]: string | boolean };
-    }[];
+    //customTagAttributes?: {
+    //    tagName: string;
+    //    attribute: { [key: string]: string | boolean };
+    //}[];
 
     removeStartingSlash?: boolean;
 }
 
 export class CustomizeAssetsHtmlWebpackPlugin {
     private publicPath = '';
-    private isTargetHtmlWebpackPlugin = false;
+    //private isTargetHtmlWebpackPlugin = false;
 
     constructor(private readonly options: CustomizeAssetsHtmlPluginOptions) { }
 
@@ -39,14 +39,14 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                 compilation.plugin('html-webpack-plugin-before-html-generation',
                     (htmlPluginArgs: any, callback: any) => {
 
-                        if (!this.options.targetHtmlWebpackPluginId ||
-                            (this.options.targetHtmlWebpackPluginId &&
-                                this.options.targetHtmlWebpackPluginId === htmlPluginArgs.plugin.options.id)) {
-                            this.isTargetHtmlWebpackPlugin = true;
-                        } else {
-                            this.isTargetHtmlWebpackPlugin = false;
+                        let isTargetHtmlWebpackPlugin = false;
+                        if (!this.options.targetHtmlWebpackPluginIds || !this.options.targetHtmlWebpackPluginIds.length ||
+                            (this.options.targetHtmlWebpackPluginIds && this.options.targetHtmlWebpackPluginIds.length &&
+                            this.options.targetHtmlWebpackPluginIds.indexOf(htmlPluginArgs.plugin.options.id) > -1)) {
+                            isTargetHtmlWebpackPlugin = true;
                         }
-                        if (!this.isTargetHtmlWebpackPlugin) {
+
+                        if (!isTargetHtmlWebpackPlugin) {
                             return callback(null, htmlPluginArgs);
                         }
 
@@ -100,7 +100,14 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                 compilation.plugin('html-webpack-plugin-alter-asset-tags',
                     (htmlPluginArgs: any, callback: any) => {
 
-                        if (!this.isTargetHtmlWebpackPlugin) {
+                        let isTargetHtmlWebpackPlugin = false;
+                        if (!this.options.targetHtmlWebpackPluginIds || !this.options.targetHtmlWebpackPluginIds.length ||
+                            (this.options.targetHtmlWebpackPluginIds && this.options.targetHtmlWebpackPluginIds.length &&
+                                this.options.targetHtmlWebpackPluginIds.indexOf(htmlPluginArgs.plugin.options.id) > -1)) {
+                            isTargetHtmlWebpackPlugin = true;
+                        }
+
+                        if (!isTargetHtmlWebpackPlugin) {
                             return callback(null, htmlPluginArgs);
                         }
                         // add
@@ -126,6 +133,7 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                                 });
                             });
                         }
+
                         if (this.options.scriptSrcToHeadAssets && this.options.scriptSrcToHeadAssets.length) {
                             this.options.scriptSrcToHeadAssets.forEach((script: string) => {
                                 script = (this.options.addPublicPath && this.publicPath) ? this.publicPath + script : script;
@@ -139,9 +147,11 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                                 });
                             });
                         }
+
                         if (headEntries.length) {
                             htmlPluginArgs.head = headEntries.concat(htmlPluginArgs.head);
                         }
+
                         // body
                         const bodyEntries: any[] = [];
                         if (this.options.cssSrcToBodyAssets && this.options.cssSrcToBodyAssets.length) {
@@ -221,10 +231,12 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                                 return tag;
                             });
 
-                        if (this.options && this.options.customTagAttributes) {
+                        // TODO:
+                        const customAttributes = htmlPluginArgs.plugin.options.customAttributes;
+                        if (customAttributes && customAttributes.length) {
                             let customLinkAttributes: { [key: string]: string | boolean } = null;
-                            const linkAttributes = this.options.customTagAttributes
-                                .filter(c => c.tagName === 'link').map(c => c.attribute);
+                            const linkAttributes = customAttributes
+                                .filter((c:any) => c.tagName === 'link').map((c:any) => c.attribute);
                             if (linkAttributes.length) {
                                 customLinkAttributes = linkAttributes
                                     .reduce((prev: { [key: string]: string | boolean },
@@ -234,8 +246,8 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                             }
 
                             let customScriptAttributes: { [key: string]: string | boolean } = null;
-                            const scriptAttributes = this.options.customTagAttributes
-                                .filter(c => c.tagName === 'script').map(c => c.attribute);
+                            const scriptAttributes = customAttributes
+                                .filter((c: any) => c.tagName === 'script').map( (c:any) => c.attribute);
                             if (scriptAttributes.length) {
                                 customScriptAttributes = scriptAttributes
                                     .reduce((prev: { [key: string]: string | boolean },

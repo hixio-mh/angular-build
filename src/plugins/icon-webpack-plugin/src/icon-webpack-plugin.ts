@@ -163,9 +163,9 @@ export class IconWebpackPlugin {
                 compilation.plugin('html-webpack-plugin-before-html-generation',
                     (htmlPluginArgs: any, callback: (err: Error, htmlPluginArgs?: any) => void) => {
 
-                        if (!this.options.targetHtmlWebpackPluginId ||
-                            (this.options.targetHtmlWebpackPluginId &&
-                                this.options.targetHtmlWebpackPluginId === htmlPluginArgs.plugin.options.id)) {
+                        if (!this.options.targetHtmlWebpackPluginIds || !this.options.targetHtmlWebpackPluginIds.length ||
+                            (this.options.targetHtmlWebpackPluginIds && this.options.targetHtmlWebpackPluginIds.length &&
+                                this.options.targetHtmlWebpackPluginIds.indexOf(htmlPluginArgs.plugin.options.id) > -1)) {
                             this.isTargetHtmlWebpackPlugin = true;
                         } else {
                             this.isTargetHtmlWebpackPlugin = false;

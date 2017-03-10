@@ -114,7 +114,7 @@ export function build(cliOptions: CliOptions): Promise<number> {
                         path.resolve(projectRoot, appConfig.outDir) !== projectRoot)
                     .map((appConfig: AppConfig) => path.resolve(projectRoot, appConfig.outDir));
                 const delTasks = outDirs.map((p: string) =>
-                    new Promise((resolve: any, reject: any) => rimraf(p,
+                    new Promise((resolve: any, reject: any) => rimraf(p + '/**/*',
                             (err: Error) => err ? reject(err) : resolve(err))
                     ));
                 return Promise.all(delTasks).then(() => {
@@ -123,8 +123,8 @@ export function build(cliOptions: CliOptions): Promise<number> {
             } else {
                 return Promise.resolve()
                     .then(() => {
+                        // delete aot-compiled
                         if (buildOptions.aot) {
-                            // delete aot-compiled
                             const parsedTsConfigPaths: string[] = [];
                             const aotGenDirTasks = appConfigs.map((appConfig: AppConfig) => {
                                 if (appConfig.root && appConfig.tsconfig) {
@@ -170,6 +170,7 @@ export function build(cliOptions: CliOptions): Promise<number> {
                         return Promise.resolve();
                     })
                     .then(() => {
+                        // delete outDirs
                         if (!appConfigs.find((appConfig: AppConfig) => appConfig.referenceDll)) {
                             const outDirs = appConfigs
                                 .filter((appConfig: AppConfig) => path.resolve(projectRoot, appConfig.outDir) !==
@@ -177,7 +178,7 @@ export function build(cliOptions: CliOptions): Promise<number> {
                                     path.resolve(projectRoot, appConfig.outDir) !== projectRoot)
                                 .map((appConfig: AppConfig) => path.resolve(projectRoot, appConfig.outDir));
                             const delTasks = outDirs.map((p: string) =>
-                                new Promise((resolve: any, reject: any) => rimraf(p,
+                                new Promise((resolve: any, reject: any) => rimraf(p + '/**/*',
                                     (err: Error) => err ? reject(err) : resolve(err))
                                 ));
                             return Promise.all(delTasks).then(() => {

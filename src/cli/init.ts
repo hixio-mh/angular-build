@@ -15,8 +15,10 @@ import {
     getVersionfromPackageJsonAsync, askAsync, spawnAsync
 } from '../utils';
 
-// ReSharper disable once CommonJsExternalModule
+// ReSharper disable CommonJsExternalModule
 const schema = require('../../configs/schema.json');
+const faviconSchema = require('../../configs/favicon-config-schema.json');
+// ReSharper restore CommonJsExternalModule
 
 export interface PackageToCheck {
     packageName: string;
@@ -334,8 +336,15 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 return Promise.resolve();
             } else {
                 if (cfg.angularBuildConfigFileExists && !cfg.commandOptions.overrideAngularBuildConfigFile) {
+
+                    const userAngularBuildConfigClone = Object.assign({}, cfg.userAngularBuildConfig);
+                    if ((userAngularBuildConfigClone as any)['$schema']) {
+                        delete (userAngularBuildConfigClone as any)['$schema'];
+                    }
+
                     const validate = ajv().compile(schema);
-                    const valid = validate(cfg.userAngularBuildConfig);
+                    const valid = validate(userAngularBuildConfigClone);
+
                     if (valid) {
                         return Promise.resolve();
                     }
@@ -359,26 +368,53 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 return Promise.resolve();
             } else {
                 const webpackConfigFileName = cfg.commandOptions.webpackConfigFileName || 'webpack.config.js';
-
                 return new Promise((resolve, reject) => {
-                    if (webpackConfigFileName.match(/\.ts$/i)) {
-                        fs.copy(require.resolve('../../configs/webpack.config.ts'),
-                            path.resolve(projectRoot, webpackConfigFileName),
-                            err => {
-                                err ? reject(err) : resolve();
-                            });
-                    } else {
-                        fs.copy(require.resolve('../../configs/webpack.config.js'),
-                            path.resolve(projectRoot, webpackConfigFileName),
-                            err => {
-                                err ? reject(err) : resolve();
-                            });
-                    }
-                })
-                    .then(() => {
-                        console.log(chalk.green(`${cfg.webpackConfigFileExists ? 'Updated' : 'Created'}:`) +
-                            ' ' + webpackConfigFileName);
-                        return;
+                        if (cfg.webpackConfigFileExists) {
+                            fs.readFile(path.resolve(projectRoot, webpackConfigFileName),
+                                'utf8',
+                                (err, data) => {
+                                    err ? reject(err) : resolve(data);
+                                });
+                        } else {
+                            return resolve(null);
+                        }
+                    })
+                    .then((data: string) => {
+                        if (data &&
+                            !data
+                            .match(/const\s+getWebpackConfigs\s*=\s*require\s*\(\'@bizappframework\/angular-build\'\)\.getWebpackConfigs;\s*/g) &&
+                            !data
+                            .match(/import\s*\{\s*getWebpackConfigs\s*\}\s*from\s+\'@bizappframework\/angular-build\'\s*;\s*/g)) {
+                            return true;
+                        }
+                        return false;
+                    })
+                    .then((shouldCopy: boolean) => {
+                        if (shouldCopy) {
+                            return new Promise((resolve, reject) => {
+                                    if (webpackConfigFileName.match(/\.ts$/i)) {
+                                        fs.copy(require.resolve('../../configs/webpack.config.ts'),
+                                            path.resolve(projectRoot, webpackConfigFileName),
+                                            err => {
+                                                err ? reject(err) : resolve();
+                                            });
+                                    } else {
+                                        fs.copy(require.resolve('../../configs/webpack.config.js'),
+                                            path.resolve(projectRoot, webpackConfigFileName),
+                                            err => {
+                                                err ? reject(err) : resolve();
+                                            });
+                                    }
+                                })
+                                .then(() => {
+                                    console.log(chalk.green(`${cfg.webpackConfigFileExists ? 'Updated' : 'Created'}:`) +
+                                        ' ' +
+                                        webpackConfigFileName);
+                                    return;
+                                });
+                        } else {
+                            return Promise.resolve();
+                        }
                     });
             }
         })
@@ -441,7 +477,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
                         .then((data: string) => {
                             const appConfig = cfg.angularBuildConfigMaster.apps[0];
                             const appRoot = appConfig.root || 'src';
-                            const content = data.replace(/^const\w+appRoot\w*=\w*'src';\w*$/i, `const appRoot = '${appRoot}';`);
+                            const content = data.replace(`const appRoot = 'src';`, `const appRoot = '${appRoot}';`);
                             return new Promise((resolve, reject) => {
                                 fs.writeFile(path.resolve(projectRoot, 'protractor.conf.js'),
                                     content,
@@ -539,7 +575,8 @@ export function init(cliOptions: CliOptions): Promise<number> {
                     return Promise.resolve();
                 } else {
                     const tsConfig: any = cfg.tsConfigTestMaster;
-                    tsConfig.files = [`${appConfig}/karma-test.browser.ts`];
+                    tsConfig.files = [`${appConfig.root||'src'}/karma-test.browser.ts`];
+                    tsConfig.include = [`${appConfig.root||'src'}/**/*.spec.ts`];
                     // Create
                     return new Promise((resolve, reject) => {
                             fs.writeFile(tsConfigPath,
@@ -577,26 +614,26 @@ export function init(cliOptions: CliOptions): Promise<number> {
             });
         })
         // save tslint.json file
-        .then(() => {
-            const tsLintPath = path.resolve(projectRoot, 'tslint.json');
-            return checkFileOrDirectoryExistsAsync(tsLintPath).then(exists => {
-                if (exists) {
-                    return Promise.resolve();
-                } else {
-                    return new Promise((resolve, reject) => {
-                            fs.copy(require.resolve('../../configs/tslint.json'),
-                                tsLintPath,
-                                err => {
-                                    err ? reject(err) : resolve();
-                                });
-                        })
-                        .then(() => {
-                            console.log(chalk.green('Created:') + ' tslint.json');
-                            return;
-                        });
-                }
-            });
-        })
+        //.then(() => {
+        //    const tsLintPath = path.resolve(projectRoot, 'tslint.json');
+        //    return checkFileOrDirectoryExistsAsync(tsLintPath).then(exists => {
+        //        if (exists) {
+        //            return Promise.resolve();
+        //        } else {
+        //            return new Promise((resolve, reject) => {
+        //                    fs.copy(require.resolve('../../configs/tslint.json'),
+        //                        tsLintPath,
+        //                        err => {
+        //                            err ? reject(err) : resolve();
+        //                        });
+        //                })
+        //                .then(() => {
+        //                    console.log(chalk.green('Created:') + ' tslint.json');
+        //                    return;
+        //                });
+        //        }
+        //    });
+        //})
         // Create src folder
         .then(() => {
             const appConfig = cfg.angularBuildConfigMaster.apps[0];
@@ -625,20 +662,42 @@ export function init(cliOptions: CliOptions): Promise<number> {
                     userFaviconConfigExists = true;
                     // Merge
                     return readJsonAsync(faviconConfigPath).then((userFaviconConfig: any) => {
+                        const cloneFaviconConfig = Object.assign({}, userFaviconConfig);
+                        if ((cloneFaviconConfig as any)['$schema']) {
+                            delete (cloneFaviconConfig as any)['$schema'];
+                        }
+
+                        const validate = ajv().compile(faviconSchema);
+                        const valid = validate(cloneFaviconConfig);
+                        if (valid && userFaviconConfig.masterPicture ) {
+                            return Promise.resolve(null);
+                        }
+
+                        if (!valid) {
+                            return Promise.resolve(cfg.faviconConfigMaster);
+
+                        }
+
                         userFaviconConfig.masterPicture = userFaviconConfig.masterPicture ||
                             cfg.faviconConfigMaster.masterPicture;
+
                         return Object.assign({}, cfg.faviconConfigMaster, userFaviconConfig);
+
                     });
                 } else {
                     return Promise.resolve(cfg.faviconConfigMaster);
                 }
             }).then((faviconConfig: any) => {
+                if (!faviconConfig) {
+                    return Promise.resolve();
+                }
+
                 // Create
                 return new Promise((resolve, reject) => {
-                    fs.writeFile(faviconConfigPath,
-                        JSON.stringify(faviconConfig, null, 2),
-                        err => err ? reject(err) : resolve());
-                })
+                        fs.writeFile(faviconConfigPath,
+                            JSON.stringify(faviconConfig, null, 2),
+                            err => err ? reject(err) : resolve());
+                    })
                     .then(() => {
                         const relativePath = path.relative(projectRoot, faviconConfigPath);
                         console.log(chalk.green(`${userFaviconConfigExists ? 'Updated' : 'Created'}:`) +
@@ -864,23 +923,23 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 "clean:aot-compiled": 'npm run rimraf -- aot-compiled',
                 "clean:coverage": 'npm run rimraf -- coverage',
 
-                "e2e": 'npm-run-all -p server:run protractor',
-                "e2e:live": 'npm-run-all -p server:run protractor -- --elementExplorer',
+                "e2e": 'npm-run-all -p server protractor',
+                "e2e:live": 'npm-run-all -p server protractor -- --elementExplorer',
                 "pree2e": 'npm run webdriver:update -- --standalone',
                 "test": 'karma start',
 
                 "webdriver:start": 'npm run webdriver-manager start',
                 "webdriver:update": 'npm run webdriver-manager update',
-                "lint": `npm run tslint \"${appConfig.root}/**/*.ts\"`,
+                //"lint": `npm run tslint \"${appConfig.root}/**/*.ts\"`,
 
-                "server:run:dev": `webpack-dev-server ${configOpt}--open --progress --profile --inline --port 5000 --watch  --content-base ${appConfig.root}/`,
-                "server:run:prod": `http-server ${outDir} -p 5000 -c-1 --cors`,
-                "server:run": 'npm run server:run:dev',
+                "server:dev": `webpack-dev-server ${configOpt}--open --progress --profile --inline --port 5000 --watch  --content-base ${appConfig.root}/`,
+                "server:prod": `http-server ${outDir} -p 5000 -c-1 --cors`,
+                "server": 'npm run server:dev',
 
                 "cross-env": 'cross-env',
                 "rimraf": 'rimraf',
                 "protractor": 'protractor',
-                "tslint": 'tslint',
+                //"tslint": 'tslint',
                 "webpack": 'webpack',
                 "webdriver-manager": 'webdriver-manager',
                 "webpack-dev-server": 'webpack-dev-server'
@@ -1121,7 +1180,7 @@ function mergeConfigWithPossibleAsync(cfg: InitConfig): Promise<void> {
                 //}
                 cfg.isAspNetCore = true;
                 appConfig.htmlInjectOptions = appConfig.htmlInjectOptions || {};
-                appConfig.htmlInjectOptions.indexOutFileName = '../Views/Shared/_BundledScripts.cshtml';
+                appConfig.htmlInjectOptions.scriptsOutFileName = '../Views/Shared/_BundledScripts.cshtml';
                 appConfig.htmlInjectOptions.iconsOutFileName = '../Views/Shared/_FavIcons.cshtml';
                 appConfig.htmlInjectOptions.stylesOutFileName = '../Views/Shared/_BundledStyles.cshtml';
                 appConfig.htmlInjectOptions
@@ -1342,22 +1401,26 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
         '@angular/service-worker',
         '@types/node',
         '@types/jasmine',
-        'codelyzer',
+
+        //'codelyzer',
         'cross-env',
         'event-source-polyfill',
+
+        'http-server',
+        'ie-shim',
 
         'jasmine-core',
         'jasmine-spec-reporter',
 
         'karma',
         'karma-chrome-launcher',
-        'karma-cli',
+        //'karma-cli',
         'karma-coverage-istanbul-reporter',
         'karma-jasmine',
         'karma-jasmine-html-reporter',
         'karma-mocha-reporter',
-        'karma-phantomjs-launcher',
-        'karma-source-map-support',
+        //'karma-phantomjs-launcher',
+        //'karma-source-map-support',
         'karma-sourcemap-loader',
         'karma-webpack',
 
@@ -1551,9 +1614,10 @@ function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
 function checkPackagesToInstall(packagesToCheck: (PackageToCheck|string)[], projectRoot: string): Promise<string[]> {
     const tasks = packagesToCheck.map((pkgToCheck: PackageToCheck | string) => {
         const pkgToCheckObj: PackageToCheck = typeof pkgToCheck === 'string' ? { packageName: pkgToCheck } : pkgToCheck;
+        const baseDir = path.resolve(projectRoot, 'node_modules');
         return new Promise(res => {
             resolve(pkgToCheckObj.packageName,
-                { basedir: projectRoot },
+                { basedir: baseDir },
                 (error, resolvedPath) => {
                     if (error) {
                         res(pkgToCheckObj);

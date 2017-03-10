@@ -220,11 +220,13 @@ export type ModuleReplacementEntry = {
 
 export type HtmlInjectOptions = {
     indexOutFileName?: string;
+    scriptsOutFileName?: string;
     stylesOutFileName?: string;
     iconsOutFileName?: string;
     customTagAttributes?: {
         tagName: string;
         attribute: { [key: string]: string | boolean };
+        filter?: string[];
     }[];
 }
 

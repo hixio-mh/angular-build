@@ -166,16 +166,19 @@ export function getNonDllConfigPartial(projectRoot: string, appConfig: AppConfig
     // CommonsChunkPlugin
     //
     let inlineChunk = appConfig.inlineChunk;
-    if (typeof inlineChunk == 'undefined' || inlineChunk == null) {
-        if (!buildOptions.test && appConfig.target !== 'web' && appConfig.target !== 'webworker') {
-            inlineChunk = true;
-        }
+    if ((typeof inlineChunk == 'undefined' || inlineChunk == null) &&
+        !buildOptions.test &&
+        (appConfig.target === 'web' ||
+        appConfig.target === 'webworker')) {
+        inlineChunk = true;
     }
+
     let vendorChunk = appConfig.vendorChunk;
-    if (typeof vendorChunk == 'undefined' || vendorChunk == null) {
-        if (!buildOptions.test && appConfig.target !== 'web' && appConfig.target !== 'webworker') {
-            vendorChunk = true;
-        }
+    if ((typeof vendorChunk == 'undefined' || vendorChunk == null) &&
+        !buildOptions.test &&
+        (appConfig.target === 'web' ||
+            appConfig.target === 'webworker')) {
+        vendorChunk = true;
     }
 
     if (appConfig.referenceDll) {
@@ -265,19 +268,127 @@ export function getHtmlInjectConfigPartial(projectRoot: string, appConfig: AppCo
     chunkSortList.push('main');
 
     const defaultHtmlWebpackPluginId = 'DefaultHtmlWebpackPlugin';
+    const stylesHtmlWebpackPluginId = 'StylesHtmlWebpackPlugin';
+    const scriptsHtmlWebpackPluginId = 'ScriptsHtmlWebpackPlugin';
+
+    const manifests: { file: string; chunkName: string; }[] = [];
+    if (appConfig.referenceDll) {
+        if (appConfig.polyfills && appConfig.polyfills.length > 0) {
+            manifests.push({
+                file: path.resolve(projectRoot, appConfig.outDir, `${polyfillsChunkName}-manifest.json`),
+                chunkName: polyfillsChunkName
+            });
+        }
+
+        manifests.push(
+            {
+                file: path.resolve(projectRoot, appConfig.outDir, `${vendorChunkName}-manifest.json`),
+                chunkName: vendorChunkName
+            }
+        );
+
+        const dllRefScripts: string[] = manifests.map(manifest => {
+            return `${manifest.chunkName}.js`;
+        });
+
+        //let customScriptAttributes = customFilteredAttributes
+        //    .filter(a => a.tagName === 'script');
+
+        const targetIds = [defaultHtmlWebpackPluginId, scriptsHtmlWebpackPluginId];
+        extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
+            targetHtmlWebpackPluginIds: targetIds,
+            scriptSrcToBodyAssets: dllRefScripts,
+            //customTagAttributes: customScriptAttributes,
+            addPublicPath: true
+        }));
+    }
+
+
+
+    // Default inject
+    //
+    if (appConfig.index || appConfig.htmlInjectOptions.indexOutFileName) {
+        const customFilteredAttributes: any[] = appConfig.htmlInjectOptions.customTagAttributes
+            ? appConfig.htmlInjectOptions.customTagAttributes
+            .filter(a => !a.filter ||
+                !a.filter.length ||
+                (a.filter && a.filter.length && (a.filter.indexOf('index') > -1 || a.filter.indexOf('indexOut') > -1)))
+            : [];
+
+
+        if (appConfig.index && appConfig.index.trim()) {
+            extraPlugins.push(new HtmlWebpackPlugin({
+                template: path.resolve(appRoot, appConfig.index),
+                filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInjectOptions.indexOutFileName || appConfig.index),
+                chunksSortMode: packageChunkSort(chunkSortList),
+                title: '',
+                customAttributes: customFilteredAttributes,
+                id: defaultHtmlWebpackPluginId
+            }));
+        } else {
+            extraPlugins.push(new HtmlWebpackPlugin({
+                templateContent: ' ',
+                filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInjectOptions.indexOutFileName || appConfig.index),
+                chunksSortMode: packageChunkSort(chunkSortList),
+                title: '',
+                customAttributes: customFilteredAttributes,
+                id: defaultHtmlWebpackPluginId,
+                inject: true
+            }));
+
+            // move head assets to body
+            //if (customFilteredAttributes.length) {
+            //    extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
+            //        targetHtmlWebpackPluginId: defaultHtmlWebpackPluginId,
+            //        moveHeadAssetsToBody: true
+            //    }));
+            //}
+        }
+
+        // add dll entry - polyfills.js and vendor.js
+        //if (appConfig.referenceDll) {
+
+        //    let customScriptAttributes = customFilteredAttributes
+        //        .filter(a => a.tagName === 'script');
+
+        //    extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
+        //        targetHtmlWebpackPluginId: defaultHtmlWebpackPluginId,
+        //        scriptSrcToBodyAssets: dllRefScripts,
+        //        customTagAttributes: customScriptAttributes,
+        //        addPublicPath: true
+        //    }));
+
+        //}
+
+        // ** Order is import
+        // custom script/link attributes
+        if (customFilteredAttributes.length) {
+            extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
+                targetHtmlWebpackPluginIds: [defaultHtmlWebpackPluginId]
+            }));
+        }
+    }
 
     // Styles Inject
     //
     let separateStylesOut = appConfig.htmlInjectOptions.stylesOutFileName &&
         appConfig.htmlInjectOptions.stylesOutFileName !== appConfig.htmlInjectOptions.indexOutFileName &&
+        appConfig.htmlInjectOptions.stylesOutFileName !== appConfig.htmlInjectOptions.scriptsOutFileName &&
         appConfig.htmlInjectOptions.stylesOutFileName !== appConfig.index &&
         appConfig.extractCss &&
         styleEntryNames.length > 0;
 
-    const stylesHtmlWebpackPluginId = separateStylesOut ? 'StylesHtmlWebpackPlugin' : null;
+    const customStyleAttributes: any[] = appConfig.htmlInjectOptions.customTagAttributes
+        ? appConfig.htmlInjectOptions.customTagAttributes
+        .filter(a => a.tagName === 'link' && (!a.filter ||
+            !a.filter.length ||
+            (a.filter && a.filter.length && a.filter.indexOf('stylesOut') > -1)))
+        : [];
+
     if (separateStylesOut ||
     (appConfig.htmlInjectOptions.stylesOutFileName &&
         appConfig.htmlInjectOptions.stylesOutFileName !== appConfig.htmlInjectOptions.indexOutFileName &&
+        appConfig.htmlInjectOptions.stylesOutFileName !== appConfig.htmlInjectOptions.scriptsOutFileName &&
         appConfig.htmlInjectOptions.stylesOutFileName !== appConfig.index)) {
         extraPlugins.push(new HtmlWebpackPlugin({
             templateContent: ' ',
@@ -285,7 +396,7 @@ export function getHtmlInjectConfigPartial(projectRoot: string, appConfig: AppCo
             title: '',
             excludeChunks: lazyChunks,
             chunks: separateStylesOut ? styleEntryNames : [], // [] for clean purpose only
-            customAttributes: appConfig.htmlInjectOptions.customTagAttributes,
+            customAttributes: customStyleAttributes,
             inject: true,
             id: stylesHtmlWebpackPluginId
         }));
@@ -293,18 +404,15 @@ export function getHtmlInjectConfigPartial(projectRoot: string, appConfig: AppCo
 
     if (separateStylesOut) {
         // custom link attributes
-        if (appConfig.htmlInjectOptions.customTagAttributes && appConfig.htmlInjectOptions.customTagAttributes.find(c => c.tagName === 'link')) {
-            const customLinkAttributes = appConfig.htmlInjectOptions.customTagAttributes
-                .filter(c => c.tagName === 'link');
+        if (customStyleAttributes.length) {
             extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
-                targetHtmlWebpackPluginId: stylesHtmlWebpackPluginId,
-                customTagAttributes: customLinkAttributes
+                targetHtmlWebpackPluginIds: [stylesHtmlWebpackPluginId]
             }));
         }
 
         // move head assets to body
         extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
-            targetHtmlWebpackPluginId: stylesHtmlWebpackPluginId,
+            targetHtmlWebpackPluginIds: [stylesHtmlWebpackPluginId],
             moveHeadAssetsToBody: true
         }));
     }
@@ -314,10 +422,16 @@ export function getHtmlInjectConfigPartial(projectRoot: string, appConfig: AppCo
     const iconOptions = getIconOptions(projectRoot, appConfig);
     if (iconOptions) {
 
+        const customIconAttributes: any[] = appConfig.htmlInjectOptions.customTagAttributes ? appConfig.htmlInjectOptions.customTagAttributes
+            .filter(a => !a.filter ||
+                !a.filter.length ||
+                (a.filter && a.filter.length && a.filter.indexOf('iconsOut') > -1)) : [];
+
         let iconsInjectOutFileName = appConfig.htmlInjectOptions.iconsOutFileName;
 
         const iconHtmlSeparateOut = iconsInjectOutFileName &&
             iconsInjectOutFileName !== appConfig.htmlInjectOptions.indexOutFileName &&
+            iconsInjectOutFileName !== appConfig.htmlInjectOptions.scriptsOutFileName &&
             iconsInjectOutFileName !== appConfig.htmlInjectOptions.stylesOutFileName &&
             iconsInjectOutFileName !== appConfig.index;
 
@@ -332,109 +446,80 @@ export function getHtmlInjectConfigPartial(projectRoot: string, appConfig: AppCo
                 filename: path.resolve(projectRoot, appConfig.outDir, iconsInjectOutFileName),
                 chunks: [],
                 title: '',
-                customAttributes: appConfig.htmlInjectOptions.customTagAttributes,
+                customAttributes: customIconAttributes,
                 inject: true,
                 id: iconsHtmlWebpackPluginId
             }));
         }
-        iconOptions.targetHtmlWebpackPluginId = iconsHtmlWebpackPluginId;
+        iconOptions.targetHtmlWebpackPluginIds = [iconsHtmlWebpackPluginId, defaultHtmlWebpackPluginId];
 
-        // TODO:
         // Favicons plugins
         //
         let skipGenerateIcons = appConfig.skipGenerateIcons;
         if (typeof skipGenerateIcons === 'undefined' || skipGenerateIcons === null) {
             if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
                 skipGenerateIcons = buildOptions.skipGenerateIcons;
-            } else {
-                skipGenerateIcons = appConfig.referenceDll;
             }
+            //else {
+            //    skipGenerateIcons = appConfig.referenceDll;
+            //}
         }
         if (!skipGenerateIcons) {
             extraPlugins.push(new IconWebpackPlugin(iconOptions));
         }
     }
 
-    // Default inject
+    // Script inject
     //
-    if (appConfig.index || appConfig.htmlInjectOptions.indexOutFileName) {
+    if (appConfig.htmlInjectOptions.scriptsOutFileName && appConfig.htmlInjectOptions.scriptsOutFileName !== appConfig.htmlInjectOptions.indexOutFileName && appConfig.htmlInjectOptions.scriptsOutFileName !== appConfig.index) {
         const excludeChunks = lazyChunks.slice();
         if (separateStylesOut) {
             excludeChunks.push(...styleEntryNames);
         }
 
-        if (appConfig.index && appConfig.index.trim()) {
-            extraPlugins.push(new HtmlWebpackPlugin({
-                template: path.resolve(appRoot, appConfig.index),
-                filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInjectOptions.indexOutFileName || appConfig.index),
-                chunksSortMode: packageChunkSort(chunkSortList),
-                excludeChunks: excludeChunks,
-                title: '',
-                customAttributes: appConfig.htmlInjectOptions.customTagAttributes,
-                id: defaultHtmlWebpackPluginId
-            }));
-        } else {
-            extraPlugins.push(new HtmlWebpackPlugin({
-                templateContent: ' ',
-                filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInjectOptions.indexOutFileName || appConfig.index),
-                chunksSortMode: packageChunkSort(chunkSortList),
-                excludeChunks: excludeChunks,
-                title: '',
-                customAttributes: appConfig.htmlInjectOptions.customTagAttributes,
-                id: defaultHtmlWebpackPluginId,
-                inject: true
-            }));
+        const customScriptAttributes: any[] = appConfig.htmlInjectOptions.customTagAttributes
+            ? appConfig.htmlInjectOptions.customTagAttributes
+                .filter(a => a.tagName === 'script' && (!a.filter ||
+                    !a.filter.length ||
+                    (a.filter && a.filter.length && a.filter.indexOf('scriptsOut') > -1)))
+            : [];
 
-            // move head assets to body
-            if (appConfig.htmlInjectOptions.customTagAttributes) {
-                extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
-                    targetHtmlWebpackPluginId: defaultHtmlWebpackPluginId,
-                    moveHeadAssetsToBody: true
-                }));
-            }
+        extraPlugins.push(new HtmlWebpackPlugin({
+            templateContent: ' ',
+            filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInjectOptions.scriptsOutFileName),
+            chunksSortMode: packageChunkSort(chunkSortList),
+            excludeChunks: excludeChunks,
+            title: '',
+            customAttributes: customScriptAttributes,
+            id: scriptsHtmlWebpackPluginId,
+            inject: true
+        }));
+
+        // move head assets to body
+        if (customScriptAttributes.length) {
+            extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
+                targetHtmlWebpackPluginIds: [scriptsHtmlWebpackPluginId],
+                moveHeadAssetsToBody: true
+            }));
         }
 
         // add dll entry - polyfills.js and vendor.js
-        if (appConfig.referenceDll) {
-            const manifests: { file: string; chunkName: string; }[] = [];
-            manifests.push(
-                {
-                    file: path.resolve(projectRoot, appConfig.outDir, `${vendorChunkName}-manifest.json`),
-                    chunkName: vendorChunkName
-                }
-            );
-
-            if (appConfig.polyfills && appConfig.polyfills.length > 0) {
-                manifests.push({
-                    file: path.resolve(projectRoot, appConfig.outDir, `${polyfillsChunkName}-manifest.json`),
-                    chunkName: polyfillsChunkName
-                });
-            }
-
-            const dllRefScripts: string[] = manifests.map(manifest => {
-                return `${manifest.chunkName}.js`;
-            });
-
-            let customScriptAttributes: any[] = [];
-            if (appConfig.htmlInjectOptions.customTagAttributes) {
-                customScriptAttributes = appConfig.htmlInjectOptions.customTagAttributes
-                    .filter(c => c.tagName === 'script');
-            }
-            extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
-                targetHtmlWebpackPluginId: defaultHtmlWebpackPluginId,
-                scriptSrcToBodyAssets: dllRefScripts,
-                customTagAttributes: customScriptAttributes,
-                addPublicPath: true
-            }));
-
-        }
+        //if (appConfig.referenceDll) {
+        //    if (customScriptAttributes.length) {
+        //        extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
+        //            targetHtmlWebpackPluginIds: [scriptsHtmlWebpackPluginId],
+        //            //scriptSrcToBodyAssets: dllRefScripts,
+        //            customTagAttributes: customScriptAttributes,
+        //            addPublicPath: true
+        //        }));
+        //    }
+        //}
 
         // ** Order is import
         // custom script/link attributes
-        if (appConfig.htmlInjectOptions.customTagAttributes) {
+        if (customScriptAttributes.length) {
             extraPlugins.push(new CustomizeAssetsHtmlWebpackPlugin({
-                targetHtmlWebpackPluginId: defaultHtmlWebpackPluginId,
-                customTagAttributes: appConfig.htmlInjectOptions.customTagAttributes
+                targetHtmlWebpackPluginIds: [scriptsHtmlWebpackPluginId]
             }));
         }
     }
