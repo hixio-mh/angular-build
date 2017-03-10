@@ -12,3 +12,39 @@ Easy and customizable angular build system based on [angular-cli](https://github
   
 ## Background  
 [Angular-Cli](https://github.com/angular/angular-cli) is a great tool for building angular apps! I tried and tested it in my asp.net core angular projects for long weeks. I like its configuration (angular-cli.json) because it is easy and understandable. However, for some environments (such as ASP.Net Core), we want to inject bundled tags to partial views (separate cshtml files), add custom tag attributes (such as defer, asp-append-version), support for server-side prerendering, and more. So we made this package.  
+  
+## Quick Start:  
+Make sure you have Node version >= 6.9.1 and npm >= 3.  
+  
+#### 1. Installation
+For global installation,  
+```<language>
+npm i @bizappframework/angular-build -g
+```
+  
+Or, for local installation,  
+```<language>
+npm i @bizappframework/angular-build --save-dev
+```
+  
+#### 2. Download/clone starter repo  
+ASP.Net Core (1.1) starter repo  
+[angular-build-aspnetcore-starter](https://github.com/mmzliveid/angular-build-aspnetcore-starter)  
+    
+#### 3. Install dependencies, build and run  
+```<language>
+# Change to the repo directory
+cd <your-repo>
+
+# Restore npm packages
+npm install
+
+# Init config files 
+# Note: If you installed globally, run 'ngb init -l' to link global installed @bizappframework/angular-build
+ngb init  
+
+# Wait a few minutes and then build your angular app
+ngb build
+
+# Run your app
+```
