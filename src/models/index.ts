@@ -304,7 +304,7 @@ export interface BuildOptions {
     /**
      * Typescript webpack tool
      */
-    typescriptWebpackTool?: '@ngtools/webpack' | 'ngc-webpack';
+    typescriptWebpackTool?: '@ngtools/webpack' | 'default';
     /**
      * To reference dlls for all apps.
      */

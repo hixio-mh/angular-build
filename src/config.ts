@@ -7,7 +7,7 @@ const webpackMerge = require('webpack-merge');
 import { AppConfig, BuildOptions, AngularBuildConfig, AssetEntry, GlobalScopedEntry } from './models';
 import { readJsonSync } from './utils';
 import { hasProdFlag, hasDevFlag, isDllBuildFromNpmEvent, isAoTBuildFromNpmEvent, isUniversalBuildFromNpmEvent,
-    isTestBuildFromNpmEvent, parseCopyAssetEntry, parseGlobalScopedEntry } from './helpers';
+    isTestBuildFromNpmEvent, parseCopyAssetEntry, parseGlobalScopedEntry, isWebpackDevServer } from './helpers';
 import {getDllConfig} from './webpack-configs/dll';
 import { getNonDllConfig } from './webpack-configs/non-dll';
 import { getTestConfig } from './webpack-configs/test';
@@ -544,6 +544,14 @@ function mergeBuildOptionsWithDefaults(buildOptions: BuildOptions): BuildOptions
         (defaultBuildOptions.environment as any)['dev'] = true;
     }
 
+    // devServer
+    if (!buildOptions.production &&
+        ((buildOptions.environment as any)['dev'] || (buildOptions.environment as any)['development']) &&
+        isWebpackDevServer()) {
+        (buildOptions.environment as any)['devServer'] = true;
+        (defaultBuildOptions.environment as any)['devServer'] = true;
+    }
+
     // Reset aot = false
     if ((buildOptions.dll || buildOptions.test) && buildOptions.aot) {
         console.warn(`\n${chalk.bgYellow('WARN:')} 'aot' is automatically disabled in dll/test build.\n`);
@@ -627,6 +635,10 @@ function mergeAppConfigWithBuildTargetOverrides(appConfig: AppConfig, buildOptio
         } else {
             buildTargets.push('dev');
             buildTargets.push('development');
+
+            if (isWebpackDevServer()) {
+                buildTargets.push('devServer');
+            }
         }
 
         if (buildOptions.dll || (buildOptions.environment as any)['dll']) {
@@ -638,23 +650,24 @@ function mergeAppConfigWithBuildTargetOverrides(appConfig: AppConfig, buildOptio
 
     Object.keys(buildOptions.environment).forEach(key => {
         if ((buildOptions.test || (buildOptions.environment as any)['test']) &&
-        (key.toLowerCase() === 'test' ||
-            key.toLowerCase() === 'prod' ||
-            key.toLowerCase() === 'production' ||
-            key.toLowerCase() === 'dev' ||
-            key.toLowerCase() === 'development' ||
-            key.toLowerCase() === 'dll' ||
-            key.toLowerCase() === 'aot')) {
+        (key === 'test' ||
+            key === 'prod' ||
+            key === 'production' ||
+            key === 'dev' ||
+            key === 'development' ||
+            key === 'devServer' ||
+            key === 'dll' ||
+            key === 'aot')) {
             return;
         }
 
-        if (buildTargets.indexOf(key.toLowerCase()) === -1) {
-            buildTargets.push(key.toLowerCase());
+        if (buildTargets.indexOf(key) === -1) {
+            buildTargets.push(key);
         }
     });
 
     Object.keys(appConfig.buildTargetOverrides).forEach((buildTargetKey: string) => {
-        const targetName = buildTargetKey.toLowerCase();
+        const targetName = buildTargetKey;
         const targets = targetName.split(',');
         targets.forEach(t => {
             t = t.trim();
@@ -717,38 +730,43 @@ function mergeAppConfigWithDefaults(projectRoot: string, appConfig: AppConfig, b
     appConfig.htmlInjectOptions = appConfig.htmlInjectOptions || {};
     appConfig.target = appConfig.target || 'web';
 
-    if (typeof appConfig.referenceDll === 'undefined' || appConfig.referenceDll === null) {
-        if (!buildOptions.test) {
-            if (typeof buildOptions.referenceDll !== 'undefined' && buildOptions.referenceDll !== null) {
-                appConfig.referenceDll = buildOptions.referenceDll;
-            } else {
-                appConfig.referenceDll = !buildOptions.production &&
-                    !buildOptions.aot &&
-                    appConfig.dlls &&
-                    appConfig.dlls.length > 0;
-            }
-        }
-    } else {
-        if (buildOptions.test && appConfig.referenceDll) {
-            appConfig.referenceDll = false;
-            console.warn(`\n${chalk.bgYellow('WARN:')} 'referenceDll' is automatically disabled in test build.\n`);
+    if ((typeof appConfig.referenceDll === 'undefined' || appConfig.referenceDll === null) && !buildOptions.test) {
+        if (typeof buildOptions.referenceDll !== 'undefined' && buildOptions.referenceDll !== null) {
+            appConfig.referenceDll = buildOptions.referenceDll;
         } else {
-            if (buildOptions.aot && appConfig.referenceDll) {
-                appConfig.referenceDll = false;
-                console.warn(`\n${chalk.bgYellow('WARN:')} 'referenceDll' is automatically disabled in aot build.\n`);
-            }
-            if (buildOptions.typescriptWebpackTool === '@ngtools/webpack' && appConfig.referenceDll) {
-                buildOptions.typescriptWebpackTool = null;
-                console.warn(`\n${chalk
-                    .bgYellow('WARN:')} '@ngtools/webpack' is automatically disabled in 'referenceDll'.\n`);
-            }
+            appConfig.referenceDll = !buildOptions.production &&
+                !buildOptions.aot &&
+                appConfig.dlls &&
+                appConfig.dlls.length > 0;
+        }
+    }
+
+    if (appConfig.referenceDll) {
+        if (appConfig.referenceDll && buildOptions.test) {
+            appConfig.referenceDll = false;
+            console.warn(`\n${chalk.bgYellow('WARN:')} 'referenceDll' is automatically disabled at test build.\n`);
+        }
+
+        if (appConfig.referenceDll && buildOptions.test) {
+            appConfig.referenceDll = false;
+            console.warn(`\n${chalk.bgYellow('WARN:')} 'referenceDll' is automatically disabled at test build.\n`);
+        }
+        if (appConfig.referenceDll && buildOptions.aot) {
+            appConfig.referenceDll = false;
+            console.warn(`\n${chalk.bgYellow('WARN:')} 'referenceDll' is automatically disabled at aot build.\n`);
+        }
+
+        if (appConfig.referenceDll && buildOptions.typescriptWebpackTool === '@ngtools/webpack') {
+            buildOptions.typescriptWebpackTool = null;
+            console.warn(`\n${chalk
+                .bgYellow('WARN:')} '@ngtools/webpack' is automatically disabled at 'referenceDll'.\n`);
         }
     }
 
     if (buildOptions.typescriptWebpackTool === '@ngtools/webpack' && buildOptions.test) {
         buildOptions.typescriptWebpackTool = null;
         console.warn(`\n${chalk
-            .bgYellow('WARN:')} '@ngtools/webpack' is automatically disabled in test build.\n`);
+            .bgYellow('WARN:')} '@ngtools/webpack' is automatically disabled at test build.\n`);
     }
 
     if (typeof appConfig.extractCss === 'undefined' || appConfig.extractCss === null) {

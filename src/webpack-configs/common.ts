@@ -12,7 +12,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 import { AppConfig, BuildOptions, ModuleReplacementEntry } from '../models';
 
 // Helpers
-import { parseCopyAssetEntry, getWebpackStatsConfig } from '../helpers';
+import { parseCopyAssetEntry, getWebpackStatsConfig, isWebpackDevServer } from '../helpers';
 
 
 /**
@@ -295,6 +295,21 @@ export function getCommonConfigPartial(projectRoot: string, appConfig: AppConfig
         },
         stats: statsConfig
     };
+
+    // devServer
+    if (!buildOptions.production &&
+        isWebpackDevServer() &&
+        (appConfig.target === 'web' || appConfig.target === 'webworker')) {
+        webpackSharedConfig.devServer = {
+            contentBase: path.join(projectRoot, appConfig.outDir + '/'),
+            historyApiFallback: true,
+            watchOptions: {
+                aggregateTimeout: 300,
+                poll: 1000
+            },
+            stats: Object.assign({}, statsConfig, { children: true })
+        };
+    }
 
     // Node specific
     if (appConfig.target && appConfig.target !== 'web' && appConfig.target !== 'webworker') {

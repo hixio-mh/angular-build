@@ -47,7 +47,7 @@ export interface CommandOptions {
      * Link angular-build cli to current project
      * @default false
      */
-    linkCli?: boolean;
+    link?: boolean;
     /**
      * Skip install tooling
      * @default false
@@ -903,8 +903,8 @@ export function init(cliOptions: CliOptions): Promise<number> {
         })
         // update package.json
         .then(() => {
-            const appConfig = cfg.angularBuildConfigMaster.apps[0];
-            const outDir = appConfig.outDir || 'dist';
+            const firstAppConfig = cfg.userAngularBuildConfig.apps[0];
+            const outDir = firstAppConfig.outDir || 'dist';
             const configOpt = typeof cfg.commandOptions.webpackConfigFileName === 'undefined' ||
                 cfg.commandOptions.webpackConfigFileName === 'webpack.config.js'
                 ? ' '
@@ -913,38 +913,47 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 "build:dll": `cross-env NODE_ENV=development webpack${configOpt}--env.dll --profile --colors --bail`,
                 "build:dev": `cross-env NODE_ENV=development webpack${configOpt}--env.dev --profile --colors --bail`,
                 "build:prod": `cross-env NODE_ENV=production webpack${configOpt}--env.prod --profile --colors --bail`,
-                "build:universal": `cross-env NODE_ENV=production webpack${configOpt}--env.universal --env.prod --profile --colors --bail`,
                 "build:aot": `cross-env NODE_ENV=production webpack${configOpt}--env.aot --env.prod --profile --colors --bail`,
+                "build:universal": `cross-env NODE_ENV=production webpack${configOpt}--env.universal --env.prod --profile --colors --bail`,
                 "build:universal:aot": `cross-env NODE_ENV=production webpack${configOpt}--env.universal --env.aot --env.prod --profile --colors --bail`,
-                "build": 'npm run build:dev',
+                "build": 'npm run build:dev'
 
-                "clean:wwwroot": 'npm run rimraf -- wwwroot/**/*',
-                "clean:dist": 'npm run rimraf -- dist/**/*',
-                "clean:aot-compiled": 'npm run rimraf -- aot-compiled',
-                "clean:coverage": 'npm run rimraf -- coverage',
-
-                "e2e": 'npm-run-all -p server protractor',
-                "e2e:live": 'npm-run-all -p server protractor -- --elementExplorer',
-                "pree2e": 'npm run webdriver:update -- --standalone',
-                "test": 'karma start',
-
-                "webdriver:start": 'npm run webdriver-manager start',
-                "webdriver:update": 'npm run webdriver-manager update',
                 //"lint": `npm run tslint \"${appConfig.root}/**/*.ts\"`,
-
-                "server:dev": `webpack-dev-server ${configOpt}--open --progress --profile --inline --port 5000 --watch  --content-base ${appConfig.root}/`,
-                "server:prod": `http-server ${outDir} -p 5000 -c-1 --cors`,
-                "server": 'npm run server:dev',
-
-                "cross-env": 'cross-env',
-                "rimraf": 'rimraf',
-                "protractor": 'protractor',
-                //"tslint": 'tslint',
-                "webpack": 'webpack',
-                "webdriver-manager": 'webdriver-manager',
-                "webpack-dev-server": 'webpack-dev-server'
             };
 
+            // Clean
+            cfg.userAngularBuildConfig.apps.forEach((appConfig: AppConfig) => {
+                if (appConfig.outDir === 'wwwroot') {
+                    packageScripts['clean:' + appConfig.outDir] = 'npm run rimraf -- ' + appConfig.outDir + '/**/*';
+                } else {
+                    packageScripts['clean:' + appConfig.outDir] = 'npm run rimraf -- ' + appConfig.outDir;
+                }
+            });
+            packageScripts['clean:aot-compiled'] = 'npm run rimraf -- aot-compiled';
+            packageScripts['clean:coverage'] = 'npm run rimraf -- coverage';
+
+            // Tests
+            const pkgConfigTest: any = {
+                "test": 'karma start',
+
+                "e2e": 'npm-run-all -p -r http-server:run protractor',
+                "e2e:live": 'npm-run-all -p -r http-server:run protractor -- --elementExplorer',
+                "pree2e": 'npm run webdriver:update -- --standalone',
+
+                "webdriver:start": 'npm run webdriver-manager start',
+                "webdriver:update": 'npm run webdriver-manager update'
+            };
+            packageScripts = Object.assign(packageScripts, pkgConfigTest);
+
+            // Http server
+            const pkgConfigServer: any = {
+                "serve:dev": `webpack-dev-server ${configOpt}--open --progress --inline --hot --watch --port 5000`,
+                "serve": 'npm run serve:dev',
+                "http-server:run": `http-server ${outDir} -p 5000 -c-1 --cors`
+            };
+            packageScripts = Object.assign(packageScripts, pkgConfigServer);
+
+            // ASP.Net Core
             if (cfg.isAspNetCore) {
                 const pkgConfigAspNet : any = {
                     "dotnet:run:dev": 'cross-env ASPNETCORE_ENVIRONMENT=Development dotnet run environment=development',
@@ -953,6 +962,18 @@ export function init(cliOptions: CliOptions): Promise<number> {
                 };
                 packageScripts = Object.assign(packageScripts, pkgConfigAspNet);
             }
+
+            // Http server
+            const pkgConfigMap: any = {
+                "cross-env": 'cross-env',
+                "rimraf": 'rimraf',
+                "protractor": 'protractor',
+                //"tslint": 'tslint',
+                "webpack": 'webpack',
+                "webdriver-manager": 'webdriver-manager',
+                "webpack-dev-server": 'webpack-dev-server'
+            };
+            packageScripts = Object.assign(packageScripts, pkgConfigMap);
 
             // read package json
             return readJsonAsync(cfg.userPackageConfigFile).then((userPackageConfig: any) => {
@@ -985,7 +1006,7 @@ export function init(cliOptions: CliOptions): Promise<number> {
             });
         })
         .then(() => {
-            if (cfg.commandOptions.linkCli && !cfg.cliIsLocal) {
+            if (cfg.commandOptions.link && !cfg.cliIsLocal) {
                 console.log('\nLinking @bizappframework/angular-build...');
                 return spawnAsync('npm',
                     ['link', '@bizappframework/angular-build', '--color', 'always', '--loglevel', 'error']);
@@ -1390,7 +1411,7 @@ function mergeConfigWithPromptAsync(cfg: InitConfig): Promise<void> {
 function checkAndInstallToolings(cfg: InitConfig): Promise<void> {
     const projectRoot = cfg.cwd;
     if (typeof cfg.commandOptions.installLoadersOnly === 'undefined') {
-        cfg.commandOptions.installLoadersOnly = cfg.commandOptions.linkCli;
+        cfg.commandOptions.installLoadersOnly = cfg.commandOptions.link;
     }
     const installLoadersOnly = cfg.commandOptions.installLoadersOnly;
 

@@ -27,17 +27,10 @@ Or, for local installation,
 npm i @bizappframework/angular-build --save-dev
 ```
   
-#### 2. Download/clone starter repo  
-ASP.Net Core (1.1) starter repo  
-[angular-build-aspnetcore-starter](https://github.com/mmzliveid/angular-build-aspnetcore-starter)  
-    
-#### 3. Install dependencies, build and run  
+#### 2. Build/bundle your angular app  
 ```<language>
-# Change to the repo directory
-cd <your-repo>
-
-# Restore npm packages
-npm install
+# Change to your project directory
+cd <your-project-dir>
 
 # Init config files 
 # Note: If you installed globally, 
@@ -109,7 +102,7 @@ npm run build:aot
 ```
      
 #### 3. Using WebpackDevMiddleware - ([Microsoft.AspNetCore.SpaServices.Webpack](https://github.com/aspnet/JavaScriptServices))  
-Add the following code to Startup.cs. See [angular-build-aspnetcore-starter](https://github.com/mmzliveid/angular-build-aspnetcore-starter) repo.  
+Add the following code to Startup.cs.  
 ```<language>
 public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
 {

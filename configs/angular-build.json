@@ -5,7 +5,7 @@
       "name": "browser-app",
       "target": "web",
       "root": "",
-      "outDir": "",
+      "outDir": "wwwroot",
       "main": "",
       "test": "karma-test.browser.ts",
       "assets": [
@@ -157,5 +157,8 @@
       "exclude": []
       //"disabled": true
     }
+  },
+  "buildOptions": {
+    "typescriptWebpackTool": "@ngtools/webpack"
   }
 }

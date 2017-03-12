@@ -96,7 +96,7 @@ export interface IconDesign {
 }
 
 /**
- * @additionalProperties false
+ * @additionalProperties true
  */
 export interface FaviconConfig {
 

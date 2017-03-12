@@ -1,10 +1,12 @@
-# v2.0.0  
+﻿# v2.0.0  
 #### Features  
-- added - karma test config  
-- added - protractor e2e test config  
-- added - custom environment build support
+- added - karma unit test config
+- added - protractor e2e test config
+- added - custom environment name support
+- added - custom webpack config support
 - added - service worker
-      
+- added - filter in htmlInjectOptions -> customAttributes
+  
 #### Bug fixes and changes  
 - bug fixes, code refactoring and npm packages update  
   

@@ -796,7 +796,7 @@
                     "description": "Typescript webpack tool",
                     "enum": [
                         "@ngtools/webpack",
-                        "ngc-webpack"
+                        "default"
                     ],
                     "type": "string"
                 },

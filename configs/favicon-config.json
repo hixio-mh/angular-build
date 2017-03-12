@@ -1,4 +1,5 @@
 ﻿{
+  "$schema": "../node_modules/@bizappframework/angular-build/configs/favicon-config-schema.json#",
   "masterPicture": "",
   "iconsPath": "icons-[hash]/",
   "design": {
@@ -112,5 +113,5 @@
   // Plugin settings
   "online": false,
   "preferOnline": true,
-  "emitFaviconIcoToOutDirRoot":  true
+  "emitFaviconIcoToOutDirRoot": true
 }
