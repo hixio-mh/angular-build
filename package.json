@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Build system for Angular apps based on angular-cli config and featuring Angular 2/4, DLL bundle, AoT, JIT, custom html injection, online/offline favicons generation, typeScript, webpack, karma, protractor, jasmine, service worker.",
   "keywords": [
     "angular",
@@ -99,7 +99,7 @@
     "webpack": "^2.2.1",
     "webpack-merge": "^4.0.0",
     "yargs": "^7.0.2",
-    "zone.js": "^0.7.8"
+    "zone.js": "^0.8.0"
   },
   "devDependencies": {
     "@types/chalk": "^0.4.31",

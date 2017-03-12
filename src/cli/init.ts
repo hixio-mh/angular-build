@@ -380,14 +380,17 @@ export function init(cliOptions: CliOptions): Promise<number> {
                         }
                     })
                     .then((data: string) => {
-                        if (data &&
-                            !data
-                            .match(/const\s+getWebpackConfigs\s*=\s*require\s*\(\'@bizappframework\/angular-build\'\)\.getWebpackConfigs;\s*/g) &&
-                            !data
-                            .match(/import\s*\{\s*getWebpackConfigs\s*\}\s*from\s+\'@bizappframework\/angular-build\'\s*;\s*/g)) {
-                            return true;
+                        if (data) {
+                            if (!data
+                                .match(/const\s+getWebpackConfigs\s*=\s*require\s*\(\'@bizappframework\/angular-build\'\)\.getWebpackConfigs;\s*/g) &&
+                                !data
+                                .match(/import\s*\{\s*getWebpackConfigs\s*\}\s*from\s+\'@bizappframework\/angular-build\'\s*;\s*/g)) {
+                                return true;
+                            } else {
+                                return false;
+                            }
                         }
-                        return false;
+                        return true;
                     })
                     .then((shouldCopy: boolean) => {
                         if (shouldCopy) {

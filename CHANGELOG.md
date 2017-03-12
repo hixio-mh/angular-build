@@ -1,4 +1,8 @@
-﻿# v2.0.0  
+﻿# v2.0.1  
+#### Bug fixes
+- bug fix - copy webpack config file  
+  
+# v2.0.0  
 #### Features  
 - added - karma unit test config
 - added - protractor e2e test config
