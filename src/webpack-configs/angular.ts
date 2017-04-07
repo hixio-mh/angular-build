@@ -74,7 +74,9 @@ export function getServiceWorkConfigPartial(projectRoot: string) {
     // Load the Webpack plugin for manifest generation and install it.
     const AngularServiceWorkerPlugin = require('@angular/service-worker/build/webpack')
         .AngularServiceWorkerPlugin;
-    plugins.push(new AngularServiceWorkerPlugin());
+    plugins.push(new AngularServiceWorkerPlugin({
+        baseHref: '/'
+    }));
 
     // Copy the worker script into assets.
     const workerContents = fs.readFileSync(workerPath).toString();

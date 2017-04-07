@@ -61,6 +61,7 @@
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="TODO.md" />
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>

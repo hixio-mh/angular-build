@@ -78,11 +78,11 @@ export function build(cliOptions: CliOptions): Promise<number> {
                 const buildOptionsSchema = schema.definitions.BuildOptions.properties;
                 Object.keys(cliOptions.commandOptions)
                     .filter((key: string) => buildOptionsSchema[key] &&
-                        typeof cliOptions.commandOptions[key] !== 'undefined' &&
-                        cliOptions.commandOptions[key] !== null &&
-                        cliOptions.commandOptions[key] !== '')
+                        typeof (<any>cliOptions).commandOptions[key] !== 'undefined' &&
+                        (<any>cliOptions).commandOptions[key] !== null &&
+                        (<any>cliOptions).commandOptions[key] !== '')
                     .forEach((key: string) => {
-                        buildOptions[key] = cliOptions.commandOptions[key];
+                        buildOptions[key] = (<any>cliOptions).commandOptions[key];
                     });
             }
 

@@ -30,7 +30,7 @@ export function getKarmaConfigOptions(projectRoot: string) {
     if (angularBuildConfig.test && angularBuildConfig.test.codeCoverage) {
         if (typeof angularBuildConfig.test.codeCoverage === 'boolean') {
             codeCoverage = angularBuildConfig.test.codeCoverage;
-        } else if (typeof angularBuildConfig.test.codeCoverage === 'object' && !angularBuildConfig.test.codeCoverage.disabled) {
+        } else if (typeof angularBuildConfig.test.codeCoverage === 'object' && !(<any>angularBuildConfig.test.codeCoverage).disabled) {
             codeCoverage = true;
         }
     }
@@ -92,7 +92,7 @@ export function getKarmaConfigOptions(projectRoot: string) {
         const assetEntries = parseCopyAssetEntry(appRoot, appConfig.assets);
         assetEntries.forEach((assetEntry: AssetEntry) => {
 
-            const removeGlobFn = (p: string) => {
+            const removeGlobFn = (p: string) : string => {
                 if (p.endsWith('/**/*')) {
                     return p.substring(0, p.length - 5);
                 } else if (p.endsWith('/**')) {
@@ -103,17 +103,21 @@ export function getKarmaConfigOptions(projectRoot: string) {
                 return p;
             };
 
-            let from = '';
-            let assetsPattern = '';
+            let from : string= '';
+            let assetsPattern : string = '';
 
             if (typeof (assetEntry.from) === 'object') {
-                from = assetEntry.from.glob;
-                from = removeGlobFn(from);
-                assetsPattern = path.relative(projectRoot, path.resolve(projectRoot, appConfig.root, assetEntry.from.glob));
+                const objFrom: {
+                    glob: string;
+                    dot?: boolean;
+                } = assetEntry.from;
+                const fromGlob = objFrom.glob;
+                from = removeGlobFn(fromGlob);
+                assetsPattern = path.relative(projectRoot, path.resolve(projectRoot, appConfig.root, fromGlob));
             } else if (typeof (assetEntry.from) === 'string') {
-                from = assetEntry.from;
-                from = removeGlobFn(from);
-                assetsPattern = path.relative(projectRoot, path.resolve(projectRoot, appConfig.root, assetEntry.from));
+                const strFrom = assetEntry.from;
+                from = removeGlobFn(strFrom);
+                assetsPattern = path.relative(projectRoot, path.resolve(projectRoot, appConfig.root, strFrom));
             }
             assetsPattern = assetsPattern.replace(/\\/g, '/');
             if (!assetsPattern.startsWith('./')) {

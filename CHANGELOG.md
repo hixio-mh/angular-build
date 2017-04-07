@@ -1,5 +1,9 @@
 ﻿# v2.0.1  
 #### Bug fixes
+- bug fix and update packages
+  
+# v2.0.1  
+#### Bug fixes
 - bug fix - copy webpack config file  
   
 # v2.0.0  

@@ -281,13 +281,13 @@ export function parseCopyAssetEntry(baseDir: string, assetEntries: string | (str
                 },
                 context: baseDir
             };
-        } else if (typeof asset === 'object' && asset.from) {
+        } else if (typeof asset === 'object' && (<any>asset).from) {
             if (!(<any>asset).context) {
                 (<any>asset).context = baseDir;
             }
-            if (typeof asset.from === 'string') {
-                const fromGlob = prepareFormGlobFn(asset.from);
-                asset.from = {
+            if (typeof (<any>asset).from === 'string') {
+                const fromGlob = prepareFormGlobFn((<any>asset).from);
+                (<any>asset).from = {
                     glob: fromGlob,
                     dot: true
                 };

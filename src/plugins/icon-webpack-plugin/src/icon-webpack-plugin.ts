@@ -123,7 +123,7 @@ export class IconWebpackPlugin {
                 throw new Error('Invalid options.');
             }
 
-            if (!this.rawOptions.masterPicture) {
+            if (!(<any>this.rawOptions).masterPicture) {
                 throw new Error('"masterPicture" is required.');
             }
 
@@ -318,7 +318,7 @@ export class ChildComplier {
                             return cb(childCompilation.errors[0] || 'Favicons generation failed');
                         }
 
-                        const resultFile = chunks[0].files[0]; // iconstats.json
+                        const resultFile = (<any>chunks[0]).files[0]; // iconstats.json
                         const resultCode = childCompilation.assets[resultFile].source(); // module.exports = {"iconsPath":"icons/","html":["<meta name=\"mobile-web-app-capable\" ....
                         let resultJson: string;
                         try {

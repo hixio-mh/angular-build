@@ -906,8 +906,12 @@ export function init(cliOptions: CliOptions): Promise<number> {
         })
         // update package.json
         .then(() => {
-            const firstAppConfig = cfg.userAngularBuildConfig.apps[0];
-            const outDir = firstAppConfig.outDir || 'dist';
+            let outDir = 'dist';
+            if (cfg.userAngularBuildConfig && cfg.userAngularBuildConfig.apps.length) {
+                const firstAppConfig = cfg.userAngularBuildConfig.apps[0];
+                outDir = firstAppConfig.outDir || 'dist';
+            }
+
             const configOpt = typeof cfg.commandOptions.webpackConfigFileName === 'undefined' ||
                 cfg.commandOptions.webpackConfigFileName === 'webpack.config.js'
                 ? ' '

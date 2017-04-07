@@ -7,7 +7,7 @@ const webpackMerge = require('webpack-merge');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // Models
-import { AppConfig, BuildOptions, GlobalScopedEntry } from '../models';
+import { AppConfig, BuildOptions, GlobalScopedEntry, DllEntry } from '../models';
 
 // Helpers
 import { parseDllEntries, parseGlobalScopedEntry, lazyChunksFilter, packageChunkSort, getIconOptions } from
@@ -130,7 +130,7 @@ export function getNonDllConfigPartial(projectRoot: string, appConfig: AppConfig
     if (appConfig.main && appConfig.main.trim().length) {
         const appMain = path.resolve(projectRoot, appConfig.root, appConfig.main);
         if (appConfig.dlls && appConfig.dlls.length) {
-            appConfig.dlls.filter(e => typeof e === 'object' && e.importToMain).forEach(e => dllEntries.push(e));
+            appConfig.dlls.filter(e => typeof e === 'object' && (e as DllEntry).importToMain).forEach(e => dllEntries.push(e));
         }
 
         const entries: string[] = [];

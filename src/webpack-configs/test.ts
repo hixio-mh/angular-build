@@ -45,7 +45,7 @@ export function getTestConfigPartial(projectRoot: string, appConfig: AppConfig, 
     if (testOptions.codeCoverage) {
         let codeCoverageExclude: string[] = [];
         if (typeof testOptions.codeCoverage === 'object') {
-            codeCoverageExclude = testOptions.codeCoverage.exclude || [];
+            codeCoverageExclude = (<any>testOptions.codeCoverage).exclude || [];
         }
 
         let exclude: (string | RegExp)[] = [

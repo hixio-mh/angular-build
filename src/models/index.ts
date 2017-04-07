@@ -83,6 +83,7 @@ export interface AppConfigOverridable {
      * The public url address of the output files.
      */
     publicPath?: string;
+    
     /**
      * To reference dll.
      */
