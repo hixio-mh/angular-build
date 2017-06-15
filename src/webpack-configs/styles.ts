@@ -1,149 +1,79 @@
-﻿// Ref/fork from: https://github.com/angular/angular-cli
-import * as path from 'path';
-//import * as webpack from 'webpack';
+﻿import * as path from 'path';
+import * as webpack from 'webpack';
 
-// ReSharper disable once InconsistentNaming
-const autoprefixer = require('autoprefixer');
+import * as autoprefixer from 'autoprefixer';
+import * as ExtractTextPlugin from 'extract-text-webpack-plugin';
+
+// ReSharper disable CommonJsExternalModule
 const cssnano = require('cssnano');
 const postcssUrl = require('postcss-url');
-//const postcssDiscardComments = require('postcss-discard-comments');
-// ReSharper disable once InconsistentNaming
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+// ReSharper restore CommonJsExternalModule
 
+// internal plugins
 import { SuppressEntryChunksWebpackPlugin } from '../plugins/suppress-entry-chunks-webpack-plugin';
 
-import { AppConfig, BuildOptions } from '../models';
-import { parseGlobalScopedEntry } from '../helpers';
+import { parseStyleEntry, StyleParsedEntry } from '../helpers';
+import { AppProjectConfig, ProjectConfig } from '../models';
+
+import { WebpackConfigOptions } from './webpack-config-options';
 
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
  * know they are used.
- *
- * require('exports-loader')
- * require('style-loader')
- * require('postcss-loader')
  * require('css-loader')
- * require('stylus')
- * require('stylus-loader')
+ * require('exports-loader')
  * require('less')
  * require('less-loader')
  * require('node-sass')
- * require('sass-loader')
  * require('raw-loader')
+ * require('postcss-loader')
+ * require('sass-loader')
+ * require('style-loader')
  * require('to-string-loader')
  */
 
 // Ref: https://github.com/angular/angular-cli
-export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions): { entry: { [key: string]: string[] }, module: { rules: any[] }, plugins: any[] } {
+export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
+    const projectRoot = webpackConfigOptions.projectRoot;
+    const buildOptions = webpackConfigOptions.buildOptions;
+    const projectConfig = webpackConfigOptions.projectConfig as ProjectConfig;
+    const environment = buildOptions.environment || {};
 
-    if (buildOptions.dll || buildOptions.test) {
-        const testDllStyleRules: any[] = [
-            {
-                test: /\.css(\?|$)/,
-                use: ['to-string-loader', 'css-loader'],
-                exclude: [path.resolve(projectRoot, appConfig.root, 'index.html')]
-            },
-            {
-                test: /\.scss$|\.sass$/,
-                use: ['raw-loader', 'sass-loader'],
-                exclude: [path.resolve(projectRoot, appConfig.root, 'index.html')]
-            },
-            {
-                test: /\.less/,
-                use: ['raw-loader', 'less-loader'],
-                exclude: [path.resolve(projectRoot, appConfig.root, 'index.html')]
-            },
-            {
-                test: /\.styl$/,
-                use: ['raw-loader', 'stylus-loader'],
-                exclude: [path.resolve(projectRoot, appConfig.root, 'index.html')]
-            }
-        ];
-        const testDllWebpackConfig : any = {
-            module: { rules: testDllStyleRules }
-        };
-        return testDllWebpackConfig;
-    }
-
-    const appRoot = path.resolve(projectRoot, appConfig.root);
+    const srcDir = projectConfig.srcDir ? path.resolve(projectRoot, projectConfig.srcDir) : projectRoot;
     const entryPoints: { [key: string]: string[] } = {};
-    const globalStylePaths: string[] = [];
     const stylePlugins: any[] = [];
 
     // style-loader does not support sourcemaps without absolute publicPath, so it's
     // better to disable them when not extracting css
     // https://github.com/webpack-contrib/style-loader#recommended-configuration
-    const cssSourceMap = appConfig.extractCss !== false && appConfig.sourceMap;
+    const cssSourceMap = (projectConfig as AppProjectConfig).extractCss && projectConfig.sourceMap;
 
     const minimizeCss = buildOptions.production;
-    const publicPath = appConfig.publicPath;
-    const baseHref = (<any>appConfig).baseHref || '';
-    // determine hashing format
-    const hashFormat = appConfig.appendOutputHash ? `.[contenthash:${20}]` : '';
 
-// ReSharper disable once Lambda
-    const postcssPluginCreator = function () {
-        return [
-            autoprefixer(),
-            postcssUrl({
-// ReSharper disable once InconsistentNaming
-                url: (URL: string) => {
-                    // Only convert root relative URLs, which CSS-Loader won't process into require().
-                    if (!URL.startsWith('/') || URL.startsWith('//')) {
-                        return URL;
-                    }
+    // Convert absolute resource URLs to account for base-href and deploy-url.
+    const publicPath = (projectConfig as AppProjectConfig).publicPath || (buildOptions as any).publicPath || '';
+    const baseHref = (projectConfig as AppProjectConfig).baseHref || (buildOptions as any).baseHref || '';
+    const globalStylePaths: string[] = [];
 
-                    if (publicPath.match(/:\/\//)) {
-                        // If deployUrl contains a scheme, ignore baseHref use deployUrl as is.
-                        return `${publicPath.replace(/\/$/, '')}${URL}`;
-                    } else if (baseHref.match(/:\/\//)) {
-                        // If baseHref contains a scheme, include it as is.
-                        return baseHref.replace(/\/$/, '') +
-                            `/${publicPath}/${URL}`.replace(/\/\/+/g, '/');
-                    } else {
-                        // Join together base-href, deploy-url and the original URL.
-                        // Also dedupe multiple slashes into single ones.
-                        return `/${baseHref}/${publicPath}/${URL}`.replace(/\/\/+/g, '/');
-                    }
-                }
-            })
-        ].concat(
-            minimizeCss ? [cssnano({ safe: true, autoprefixer: false })] : []
-        );
-    };
-
-    // use includePaths from appConfig
     const includePaths: string[] = [];
-
-    if (appConfig.stylePreprocessorOptions &&
-        appConfig.stylePreprocessorOptions.includePaths &&
-        appConfig.stylePreprocessorOptions.includePaths.length > 0
+    if (projectConfig.stylePreprocessorOptions &&
+        projectConfig.stylePreprocessorOptions.includePaths &&
+        projectConfig.stylePreprocessorOptions.includePaths.length > 0
     ) {
-        appConfig.stylePreprocessorOptions.includePaths.forEach((includePath: string) =>
-            includePaths.push(path.resolve(appRoot, includePath)));
-    }
-
-    // process global styles
-    if (appConfig.styles.length > 0) {
-        const globalStyles = parseGlobalScopedEntry(appConfig.styles, appRoot, 'styles');
-        // add style entry points
-        globalStyles.forEach(style =>
-            entryPoints[style.entry]
-                ? entryPoints[style.entry].push(style.path)
-                : entryPoints[style.entry] = [style.path]
-        );
-        // add global css paths
-        globalStylePaths.push(...globalStyles.map((style) => style.path));
+        projectConfig.stylePreprocessorOptions.includePaths.forEach((includePath: string) =>
+            includePaths.push(path.resolve(srcDir, includePath)));
     }
 
     // set base rules to derive final rules from
-    const baseRules : any[] = [
-        { test: /\.css$/, use: []},
+    const baseRules: any[] = [
+        { test: /\.css$/, use: [] },
         {
             test: /\.scss$|\.sass$/, use: [{
                 loader: 'sass-loader',
                 options: {
                     sourceMap: cssSourceMap,
+                    // bootstrap-sass requires a minimum precision of 8
+                    precision: 8,
                     includePaths
                 }
             }]
@@ -155,17 +85,47 @@ export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig
                     sourceMap: cssSourceMap
                 }
             }]
-        },
-        {
-            test: /\.styl$/, use: [{
-                loader: 'stylus-loader',
-                options: {
-                    sourceMap: cssSourceMap,
-                    paths: includePaths
-                }
-            }]
         }
     ];
+
+    // ReSharper disable once Lambda
+    const postcssPluginFactory = function (): any[] {
+        // safe settings based on: https://github.com/ben-eb/cssnano/issues/358#issuecomment-283696193
+        const importantCommentRe = /@preserve|@license|[@#]\s*source(?:Mapping)?URL|^!/i;
+        const minimizeOptions = {
+            autoprefixer: false, // full pass with autoprefixer is run separately
+            safe: true,
+            mergeLonghand: false, // version 3+ should be safe; cssnano currently uses 2.x
+            discardComments: { remove: (comment: string) => !importantCommentRe.test(comment) }
+        };
+
+        return [
+            postcssUrl({
+                url: (u: string) => {
+                    // Only convert root relative URLs, which CSS-Loader won't process into require().
+                    if (!u.startsWith('/') || u.startsWith('//')) {
+                        return u;
+                    }
+
+                    if (publicPath.match(/:\/\//)) {
+                        // If deployUrl contains a scheme, ignore baseHref use deployUrl as is.
+                        return `${publicPath.replace(/\/$/, '')}${u}`;
+                    } else if (baseHref.match(/:\/\//)) {
+                        // If baseHref contains a scheme, include it as is.
+                        return baseHref.replace(/\/$/, '') +
+                            `/${publicPath}/${u}`.replace(/\/\/+/g, '/');
+                    } else {
+                        // Join together base-href, deploy-url and the original URL.
+                        // Also dedupe multiple slashes into single ones.
+                        return `/${baseHref}/${publicPath}/${u}`.replace(/\/\/+/g, '/');
+                    }
+                }
+            }),
+            autoprefixer()
+        ].concat(
+            minimizeCss ? [cssnano(minimizeOptions)] : []
+            );
+    };
 
     const commonLoaders: any[] = [
         {
@@ -178,64 +138,89 @@ export function getStylesConfigPartial(projectRoot: string, appConfig: AppConfig
         {
             loader: 'postcss-loader',
             options: {
-                // A non-function property is required to workaround a webpack option handling bug
+                // non-function property is required to workaround a webpack option handling bug
                 ident: 'postcss',
-                plugins: postcssPluginCreator
+                plugins: postcssPluginFactory
             }
         }
     ];
-    
+
+    // process global styles
+    let globalStyleParsedEntries: StyleParsedEntry[] = [];
+    if (projectConfig.styles && projectConfig.styles.length > 0) {
+        globalStyleParsedEntries = parseStyleEntry(projectConfig.styles, srcDir, 'styles');
+        globalStylePaths.push(...globalStyleParsedEntries.map((style) => style.path));
+    }
+
+
     const styleRules: any[] = baseRules.map(({ test, use }) => ({
         exclude: globalStylePaths,
         test,
         use: [
-            'exports-loader?module.exports.toString()'
+            'exports-loader?module.exports.toString()' // or raw-loader?
         ].concat(commonLoaders).concat(use)
     }));
 
+    // app only
+    if (projectConfig.projectType === 'app' &&
+        projectConfig.platformTarget === 'web' &&
+        !environment.dll && !environment.test) {
+        // determine hashing format
+        const hashFormat = (projectConfig as AppProjectConfig).appendOutputHash ? `.[contenthash:${20}]` : '';
 
-    // load global css as css files
-    if (globalStylePaths.length > 0) {
-        styleRules.push(...baseRules.map(({test, use}) => {
-            const extractTextPlugin = {
-                use: commonLoaders.concat(use),
-                fallback: 'style-loader',
-                // publicPath needed as a workaround https://github.com/angular/angular-cli/issues/4035
-                publicPath: ''
-            };
-            const ret: any = {
-                include: globalStylePaths,
-                test,
-                use: ExtractTextPlugin.extract(extractTextPlugin)
-            };
-            // Save the original options as arguments for eject.
-            //ret[pluginArgs] = extractTextPlugin;
-            return ret;
-        }));
-    }
+        // load global css as css files
+        if (globalStyleParsedEntries.length > 0) {
 
-    // Suppress empty .js files in css only entry points
-    if (appConfig.extractCss !== false) {
-        //extraPlugins.push(new SuppressExtractedTextChunksWebpackPlugin());
-        stylePlugins.push(new SuppressEntryChunksWebpackPlugin({
-            chunks: Object.keys(entryPoints),
-            supressPattern: /\.js(\.map)?$/,
-            assetTagsFilterFunc: (tag: any) => !(tag.tagName === 'script' &&
-                tag.attributes.src &&
-                tag.attributes.src.match(/\.css$/i))
+            // add style entry points
+            globalStyleParsedEntries.forEach(style =>
+                entryPoints[style.entry]
+                    ? entryPoints[style.entry].push(style.path)
+                    : entryPoints[style.entry] = [style.path]
+            );
 
-        }));
+
+            styleRules.push(...baseRules.map(({ test, use }) => {
+                const extractTextPlugin = {
+                    use: [
+                        ...commonLoaders,
+                        ...(use as any[])
+                    ],
+                    // publicPath needed as a workaround https://github.com/angular/angular-cli/issues/4035
+                    publicPath: ''
+                };
+                const ret: any = {
+                    include: globalStylePaths,
+                    test,
+                    use: (projectConfig as AppProjectConfig).extractCss
+                        ? ExtractTextPlugin.extract(extractTextPlugin)
+                        : ['style-loader', ...extractTextPlugin.use]
+                };
+
+                return ret;
+            }));
+        }
+
+        // suppress empty .js files in css only entry points
+        if ((projectConfig as AppProjectConfig).extractCss) {
+            // extract global css from js files into own css file
+            stylePlugins.push(
+                new ExtractTextPlugin({
+                    filename: `[name]${hashFormat}.css`
+                }));
+            stylePlugins.push(new SuppressEntryChunksWebpackPlugin({
+                chunks: Object.keys(entryPoints),
+                supressPattern: /\.js(\.map)?$/,
+                assetTagsFilterFunc: (tag: any) => !(tag.tagName === 'script' &&
+                    tag.attributes.src &&
+                    tag.attributes.src.match(/\.css$/i))
+
+            }));
+        }
     }
 
     return {
         entry: entryPoints,
         module: { rules: styleRules },
-        plugins: [
-            // extract global css from js files into own css file
-            new ExtractTextPlugin({
-                filename: `[name]${hashFormat}.css`,
-                disable: appConfig.extractCss === false
-            })
-        ].concat(stylePlugins)
+        plugins: stylePlugins
     };
 }

@@ -8,7 +8,8 @@ export interface TryBundleDllPluginOptions {
     manifests: { file: string; chunkName: string; }[];
     context?: string;
     debug?: boolean;
-    getDllConfigFunc: Function;
+    sourceLibraryType?: string;
+    getDllConfigFunc: (silent?: boolean) => webpack.Configuration;
 }
 
 export class TryBundleDllWebpackPlugin {
@@ -17,18 +18,24 @@ export class TryBundleDllWebpackPlugin {
     constructor(private readonly options: TryBundleDllPluginOptions) {
     }
 
-    apply(compiler: any) {
+    apply(compiler: any): void {
         this.compiler = compiler;
 
         const target = compiler.options.target;
         const context = this.options.context || compiler.options.context;
+        const webpackDllConfig = this.options.getDllConfigFunc(true);
+        const sourceLibraryType = webpackDllConfig.output && webpackDllConfig.output.libraryTarget
+            ? webpackDllConfig.output.libraryTarget
+            : this.options.sourceLibraryType;
         const plugins: any[] = [];
-        if (!target || target === 'web' || target === 'webworker') {
+        if (!target || target === 'node' || target === 'async-node' || target === 'node-webkit') {
             this.options.manifests.forEach(manifest => {
                 plugins.push(
                     new DllReferencePlugin({
                         context: context,
-                        manifest: manifest.file
+                        manifest: manifest.file,
+                        name: `./${manifest.chunkName}`,
+                        sourceType: sourceLibraryType || 'commonjs2'
                     })
                 );
             });
@@ -37,9 +44,8 @@ export class TryBundleDllWebpackPlugin {
                 plugins.push(
                     new DllReferencePlugin({
                         context: context,
-                        sourceType: 'commonjs2',
                         manifest: manifest.file,
-                        name: `./${manifest.chunkName}`
+                        sourceType: sourceLibraryType
                     })
                 );
             });
@@ -49,11 +55,11 @@ export class TryBundleDllWebpackPlugin {
         compiler.options.plugins.push(...plugins);
 
         compiler.plugin('run', (c: any, next: any) => this.tryBundleDll(next));
-        compiler.plugin('watch-run', (c: any, next: any) => this.tryBundleDll(next));
+        compiler.plugin('watch-run', (c: any, next: any) => this.tryBundleDll(next, true));
     }
 
 
-    tryBundleDll(next: (err?: Error) => any): void {
+    tryBundleDll(next: (err?: Error) => any, watch?: boolean): void {
         this.checkManifestFile()
             .then((exists: boolean) => {
                 if (exists) {
@@ -69,15 +75,14 @@ export class TryBundleDllWebpackPlugin {
                                 return reject(err);
                             }
 
-                            //process.stdout.write(stats.toString(statsConfig) + '\n');
                             console.log(stats.toString(statsConfig));
 
-                            // TODO:
-                            //if (watch) {
-                            //  return;
-                            //}
+                             if (watch) {
+                               return;
+                             }
 
                             if (stats.hasErrors()) {
+                                console.log(stats.toString('errors-only'));
                                 reject();
                             } else {
                                 resolve();
@@ -85,12 +90,6 @@ export class TryBundleDllWebpackPlugin {
                         };
 
                         webpackCompiler.run(callback);
-                        // TODO:
-                        //if (watch) {
-                        //  webpackCompiler.watch({}, callback);
-                        //} else {
-                        //  webpackCompiler.run(callback);
-                        //}
                     });
                 }
             })
@@ -98,7 +97,7 @@ export class TryBundleDllWebpackPlugin {
             .catch((err: Error) => next(err));
     }
 
-    private checkManifestFile() {
+    private checkManifestFile(): Promise<any> {
         const tasks = this.options.manifests.map(manifest => {
             return new Promise((resolve) => {
                 return fs.stat(manifest.file,

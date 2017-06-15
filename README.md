@@ -322,10 +322,18 @@ If you use 'ngb build' cli command, this file will be skiped.
 For more information see  [realfavicongenerator.net](https://realfavicongenerator.net/api/non_interactive_api#.WKUizzt96Uk), ** note use lower camel case instead and replace 'favicon_design' with 'design'.  
 The typescript model is [here](https://github.com/BizAppFramework/angular-build/blob/master/src/plugins/icon-webpack-plugin/src/models.ts)  
    
+## Analyzing Build Statistics  
+[webpack/analyse](https://github.com/webpack/analyse)  
+[th0r/webpack-bundle-analyzer](https://github.com/th0r/webpack-bundle-analyzer)  
+[danvk/source-map-explorer](https://github.com/danvk/source-map-explorer)  
+  
+Ref: https://survivejs.com/webpack/optimizing/analyzing-build-statistics/  
+  
 ## References:  
 [angular/angular-cli](https://github.com/angular/angular-cli)  
-[AngularClass/angular2-webpack-starter](https://github.com/AngularClass/angular2-webpack-starter)  
+[AngularClass/angular-starter](https://github.com/AngularClass/angular-starter)  
 [realfavicongenerator.net](https://realfavicongenerator.net/api/non_interactive_api)  
 [jantimon/favicons-webpack-plugin](https://github.com/jantimon/favicons-webpack-plugin)  
 [haydenbleasel/favicons](https://github.com/haydenbleasel/favicons)  
 [MarkPieszak/aspnetcore-angular2-universal](https://github.com/MarkPieszak/aspnetcore-angular2-universal)  
+[Webpack Docs](https://webpack.js.org/configuration/)  

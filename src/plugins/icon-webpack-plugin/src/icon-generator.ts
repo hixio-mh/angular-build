@@ -15,7 +15,8 @@ const unzip = require('unzip2');
 const rfg = require('rfg-api').init();
 // ReSharper restore InconsistentNaming
 
-import { FaviconConfig, IconResult, IconFileInfo } from './models';
+import { FaviconConfig } from './interfaces';
+import { IconGenerateResult, IconFileInfo } from './plugin-models';
 
 
 // ReSharper disable InconsistentNaming
@@ -88,7 +89,7 @@ export class IconGenerator {
 
     private readonly coastDefault = {
         pictureAspect: 'backgroundAndMargin',
-        margin: 0 //"12%"
+        margin: 0 // "12%"
     };
 
     private readonly openGraphDefault = {
@@ -101,7 +102,7 @@ export class IconGenerator {
         online: boolean,
         preferOnline: boolean,
         options: FaviconConfig,
-        cb: (err?: Error, result?: IconResult) => void) {
+        cb: (err?: Error, result?: IconGenerateResult) => void): void {
         if (online || preferOnline) {
             this.generateRfgOnline(imageFileStream, iconsPath, preferOnline, options, cb);
         } else {
@@ -114,7 +115,7 @@ export class IconGenerator {
     private generateOffline(imageFileStream: Buffer,
         iconsPath: string,
         options: FaviconConfig,
-        cb: (err?: Error, result?: IconResult) => void) {
+        cb: (err?: Error, result?: IconGenerateResult) => void): void {
 
         const offlineOptions = this.prepareOfflineOptions(options);
 
@@ -129,7 +130,7 @@ export class IconGenerator {
                 const html = (<string[]>result.html).filter(entry => entry.indexOf('manifest') === -1)
                     .map(entry => entry.replace(/(href=[""])/g, `$1${iconsPath}`));
 
-                const iconResult: IconResult = {
+                const iconResult: IconGenerateResult = {
                     iconsPath: iconsPath,
                     html: html,
                     files: []
@@ -151,25 +152,25 @@ export class IconGenerator {
                     };
                     iconResult.files.push(f);
                 });
-                cb(null, iconResult);
+                cb(undefined, iconResult);
             });
     }
 
     private prepareOfflineOptions(iconOptions: FaviconConfig): FaviconConfig {
-        const options = <any>Object.assign({}, iconOptions);
+        const options = Object.assign({}, iconOptions) as any;
 
         if (options.background) {
             options.background = `#${color(options.background).toHex()}`;
         }
 
-        options['url'] = '';
-        options['path'] = '';
+        options.url = '';
+        options.path = '';
 
-        if (options['developerUrl'] && !options['developerURL']) {
-            options['developerURL'] = options['developerUrl'];
+        if (options.developerUrl && !options.developerURL) {
+            options.developerURL = options.developerUrl;
         }
-        if (options['startUrl'] && !options['start_url']) {
-            options['start_url'] = options['startUrl'];
+        if (options.startUrl && !options.start_url) {
+            options.start_url = options.startUrl;
         }
 
         const designDefault = {
@@ -184,8 +185,8 @@ export class IconGenerator {
         };
 
         if (!options.design) {
-            if (options['icons']) {
-                options.design = Object.assign({}, designDefault, options['icons']);
+            if (options.icons) {
+                options.design = Object.assign({}, designDefault, options.icons);
             } else {
                 options.design = Object.assign({}, designDefault);
             }
@@ -195,8 +196,8 @@ export class IconGenerator {
 
         // android
         if (options.design.androidChrome) {
-            if (!options.design['android']) {
-                options.design['android'] = true;
+            if (!options.design.android) {
+                options.design.android = true;
             }
 
             if (options.design.androidChrome.themeColor && !options.background) {
@@ -216,40 +217,40 @@ export class IconGenerator {
             if (options.design.androidChrome.manifest &&
                 options.design.androidChrome.manifest.startUrl &&
                 !options.startUrl) {
-                options.startUrl = options['start_url'] = options.design.androidChrome.manifest.startUrl;
+                options.startUrl = options.start_url = options.design.androidChrome.manifest.startUrl;
             }
         }
 
         // apple
         if (options.design.ios) {
-            if (!options.design['appleIcon'] || typeof options.design['appleIcon'] !== 'object') {
-                options.design['appleIcon'] = { offset: undefined };
+            if (!options.design.appleIcon || typeof options.design.appleIcon !== 'object') {
+                options.design.appleIcon = { offset: undefined };
             }
-            if (options.design.ios.startupImage && !options.design['appleStartup']) {
-                options.design['appleStartup'] = true;
+            if (options.design.ios.startupImage && !options.design.appleStartup) {
+                options.design.appleStartup = true;
             }
             if (options.design.ios.backgroundColor && !options.background) {
                 options.background = options.design.ios.backgroundColor;
             }
-            if (options.design.ios.margin && !options.design['appleIcon'].offset) {
-                options.design['appleIcon'].offset = Math.round(60 / 100 * options.design.ios.margin);
+            if (options.design.ios.margin && !options.design.appleIcon.offset) {
+                options.design.appleIcon.offset = Math.round(60 / 100 * options.design.ios.margin);
             }
         }
 
         // favicons
         if (options.design.desktopBrowser) {
-            if (!options.design['favicons']) {
-                options.design['favicons'] = true;
+            if (!options.design.favicons) {
+                options.design.favicons = true;
             }
         }
 
         // firefox
         if (options.design.firefoxApp) {
-            if (!options.design['firefox'] || typeof options.design['firefox'] !== 'object') {
-                options.design['firefox'] = { offset: undefined };
+            if (!options.design.firefox || typeof options.design.firefox !== 'object') {
+                options.design.firefox = { offset: undefined };
             }
-            if (options.design.firefoxApp.margin && !options.design['firefox'].offset) {
-                options.design['firefox'].offset = Math.round(60 / 100 * options.design.firefoxApp.margin);
+            if (options.design.firefoxApp.margin && !options.design.firefox.offset) {
+                options.design.firefox.offset = Math.round(60 / 100 * options.design.firefoxApp.margin);
             }
             if (options.design.firefoxApp.backgroundColor && !options.background) {
                 options.background = options.design.firefoxApp.backgroundColor;
@@ -270,18 +271,18 @@ export class IconGenerator {
             if (options.design.firefoxApp.manifest &&
                 options.design.firefoxApp.manifest.developerUrl &&
                 !options.developerUrl) {
-                options.developerUrl = options['developerURL'] = options.design.firefoxApp.manifest.developerUrl;
+                options.developerUrl = options.developerURL = options.design.firefoxApp.manifest.developerUrl;
             }
         }
 
         // coast
         if (options.design.coast) {
-            if (typeof options.design['coast'] !== 'object') {
-                options.design['coast'] = Object.assign({}, { offset: undefined });
+            if (typeof options.design.coast !== 'object') {
+                options.design.coast = Object.assign({}, { offset: undefined });
             }
 
-            if (options.design.coast.margin && !options.design.coast['offset']) {
-                options.design.coast['offset'] = Math.round(228 / 100 * options.design.coast.margin);
+            if (options.design.coast.margin && !options.design.coast.offset) {
+                options.design.coast.offset = Math.round(228 / 100 * options.design.coast.margin);
             }
             if (options.design.coast.backgroundColor && !options.background) {
                 options.background = options.design.coast.backgroundColor;
@@ -290,8 +291,8 @@ export class IconGenerator {
 
         // yandex
         if (options.design.yandexBrowser) {
-            if (!options.design['yandex']) {
-                options.design['yandex'] = true;
+            if (!options.design.yandex) {
+                options.design.yandex = true;
             }
             if (options.design.yandexBrowser.backgroundColor && !options.background) {
                 options.background = options.design.yandexBrowser.backgroundColor;
@@ -299,7 +300,7 @@ export class IconGenerator {
         }
 
 
-        options['icons'] = Object.assign({}, options.design);
+        options.icons = Object.assign({}, options.design);
         delete options.design;
 
         return options;
@@ -311,24 +312,24 @@ export class IconGenerator {
         iconsPath: string,
         preferOnline: boolean,
         options: FaviconConfig,
-        cb: (err?: Error, result?: IconResult) => void) {
+        cb: (err?: Error, result?: IconGenerateResult) => void): void {
 
         const rfgOptions: any = this.prepareRfgOnlineOptions(imageFileStream, options);
         const requestData = rfg.createRequest({
             apiKey: rfgOptions.apiKey || API_KEY,
-            masterPicture: rfgOptions['masterPicture'],
+            masterPicture: rfgOptions.masterPicture,
             iconsPath: iconsPath,
             design: rfgOptions.design,
             settings: rfgOptions.settings,
-            versioning: rfgOptions['versioning']
+            versioning: rfgOptions.versioning
         });
 
         const args = {
             data: {
-                "favicon_generation": requestData
+                favicon_generation: requestData
             },
             headers: {
-                "Content-Type": 'application/json'
+                'Content-Type': 'application/json'
             }
         };
 
@@ -355,8 +356,8 @@ export class IconGenerator {
                 }
 
                 const html = <string[]>data.favicon_generation_result.favicon.html_code.split('\n');
-                //filesUrls: result.favicon.files_urls
-                const iconResult: IconResult = {
+                // filesUrls: result.favicon.files_urls
+                const iconResult: IconGenerateResult = {
                     iconsPath: iconsPath,
                     html: html,
                     files: []
@@ -372,15 +373,15 @@ export class IconGenerator {
                         cb(err);
                         return;
                     }
-                    iconResult.files = files;
-                    return cb(null, iconResult);
+                    iconResult.files = files as IconFileInfo[];
+                    return cb(undefined, iconResult);
                 };
 
                 this.fetchRfgIconPack(data.favicon_generation_result.favicon.package_url, fetchCallBack);
             });
     }
 
-    private fetchRfgIconPack(url: string, cb: (err?: Error, files?: IconFileInfo[]) => void) {
+    private fetchRfgIconPack(url: string, cb: (err?: Error, files?: IconFileInfo[]) => void): void {
         const files: IconFileInfo[] = [];
         https.get(url,
             (res: http.IncomingMessage) =>
@@ -394,10 +395,11 @@ export class IconGenerator {
                             .on('data', (d: any) => bufs.push(d))
                             .on('end', () => files.push({ name: fileName, size: size, contents: Buffer.concat(bufs) }))
                             .on('error', (err: Error) => cb(err));
-                        // Important: If you do not intend to consume an entry stream's raw data, call autodrain() to dispose of the entry's contents.
+                        // Important: If you do not intend to consume an entry stream's raw data, call autodrain() to
+                        // dispose of the entry's contents.
                         entry.autodrain();
                     })
-                    .on('close', () => cb(null, files))
+                    .on('close', () => cb(undefined, files))
                     .on('error', (err: Error) => cb(err))
         )
             .on('error', (err: Error) => cb(err));
@@ -410,17 +412,13 @@ export class IconGenerator {
         options.apiKey = options.apiKey || API_KEY;
 
         const source = { size: sizeOf(imageFileStream), file: imageFileStream };
-        options['masterPicture'] = {
-            //content: source.size.type === 'svg' ? source : source.file.toString('base64')
+        options.masterPicture = {
+            // content: source.size.type === 'svg' ? source : source.file.toString('base64')
             content: source.file.toString('base64')
         };
 
-        //options['filesLocation'] = {
-        //  path: ''
-        //};
-
         // desktopBrower
-        if (options.design['favicons'] && !options.design.desktopBrowser) {
+        if (options.design.favicons && !options.design.desktopBrowser) {
             options.design.desktopBrowser = Object.assign({}, this.desktopBrowserDefault);
         }
         if (options.design.desktopBrowser && typeof options.design.desktopBrowser !== 'object') {
@@ -429,7 +427,7 @@ export class IconGenerator {
 
 
         // androidChrome
-        if (options.design['android'] && !options.design.androidChrome) {
+        if (options.design.android && !options.design.androidChrome) {
             options.design.androidChrome = Object.assign({}, this.androidChromeDefault);
         }
         if (options.design.androidChrome && typeof options.design.androidChrome !== 'object') {
@@ -454,7 +452,7 @@ export class IconGenerator {
         }
 
         // apple - ios
-        if (options.design['appleIcon'] && !options.design.ios) {
+        if (options.design.appleIcon && !options.design.ios) {
             options.design.ios = Object.assign({}, this.iosDefault);
         }
         if (options.design.ios && typeof options.design.ios !== 'object') {
@@ -464,14 +462,14 @@ export class IconGenerator {
             if (options.background && !options.design.ios.backgroundColor) {
                 options.design.ios.backgroundColor = options.background;
             }
-            if (options.design.ios['offset'] && !options.design.ios.margin) {
-                options.design.ios.margin = Math.round(57 / 100 * options.design.ios['offset']);
-                delete options.design.ios['offset'];
+            if (options.design.ios.offset && !options.design.ios.margin) {
+                options.design.ios.margin = Math.round(57 / 100 * options.design.ios.offset);
+                delete options.design.ios.offset;
             }
         }
 
         // apple - startupImage
-        if (options.design['appleStartup'] && options.design.ios && !options.design.ios.startupImage) {
+        if (options.design.appleStartup && options.design.ios && !options.design.ios.startupImage) {
             options.design.ios.startupImage = {};
         }
         if (options.design.ios && options.design.ios.startupImage && typeof options.design.ios.startupImage !== 'object') {
@@ -494,7 +492,7 @@ export class IconGenerator {
         }
 
         // firefoxApp
-        if (options.design['firefox'] && !options.design.firefoxApp) {
+        if (options.design.firefox && !options.design.firefoxApp) {
             options.design.firefoxApp = Object.assign({}, this.firefoxAppDefault);
         }
         if (options.design.firefoxApp && typeof options.design.firefoxApp !== 'object') {
@@ -518,14 +516,14 @@ export class IconGenerator {
                 options.design.firefoxApp.manifest
                     .developerUrl = options.developerUrl;
             }
-            if (options.design.firefoxApp['offset'] && !options.design.firefoxApp.margin) {
-                options.design.firefoxApp.margin = Math.round(60 / 100 * options.design.firefoxApp['offset']);
-                delete options.design.firefoxApp['offset'];
+            if (options.design.firefoxApp.offset && !options.design.firefoxApp.margin) {
+                options.design.firefoxApp.margin = Math.round(60 / 100 * options.design.firefoxApp.offset);
+                delete options.design.firefoxApp.offset;
             }
         }
 
         // yandexBrowser
-        if (options.design['yandex'] && !options.design.yandexBrowser) {
+        if (options.design.yandex && !options.design.yandexBrowser) {
             options.design.yandexBrowser = Object.assign({}, this.yandexBrowserDefault);
         }
         if (options.design.yandexBrowser && typeof options.design.yandexBrowser !== 'object') {
@@ -555,9 +553,9 @@ export class IconGenerator {
             options.design.coast = Object.assign({}, this.coastDefault);
         }
         if (options.design.coast) {
-            if (options.design.coast['offset'] && !options.design.coast.margin) {
-                options.design.coast.margin = Math.round(228 / 100 * options.design.coast['offset']);
-                delete options.design.coast['offset'];
+            if (options.design.coast.offset && !options.design.coast.margin) {
+                options.design.coast.margin = Math.round(228 / 100 * options.design.coast.offset);
+                delete options.design.coast.offset;
             }
             if (options.background && !options.design.coast.backgroundColor) {
                 options.design.coast.backgroundColor = options.background;

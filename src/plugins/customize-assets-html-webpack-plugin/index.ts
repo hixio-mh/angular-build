@@ -17,18 +17,11 @@
     // filter
     assetTagsFilterFunc?: (tag: any) => boolean;
 
-    // attributes
-    //customTagAttributes?: {
-    //    tagName: string;
-    //    attribute: { [key: string]: string | boolean };
-    //}[];
-
     removeStartingSlash?: boolean;
 }
 
 export class CustomizeAssetsHtmlWebpackPlugin {
     private publicPath = '';
-    //private isTargetHtmlWebpackPlugin = false;
 
     constructor(private readonly options: CustomizeAssetsHtmlPluginOptions) { }
 
@@ -39,10 +32,13 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                 compilation.plugin('html-webpack-plugin-before-html-generation',
                     (htmlPluginArgs: any, callback: any) => {
 
+                        const targetHtmlWebpackPluginIds = this.options.targetHtmlWebpackPluginIds || [];
+
                         let isTargetHtmlWebpackPlugin = false;
-                        if (!this.options.targetHtmlWebpackPluginIds || !this.options.targetHtmlWebpackPluginIds.length ||
-                            (this.options.targetHtmlWebpackPluginIds && this.options.targetHtmlWebpackPluginIds.length &&
-                            this.options.targetHtmlWebpackPluginIds.indexOf(htmlPluginArgs.plugin.options.id) > -1)) {
+                        if (!targetHtmlWebpackPluginIds.length ||
+                        (targetHtmlWebpackPluginIds.length &&
+                            targetHtmlWebpackPluginIds.indexOf(htmlPluginArgs.plugin.options.id) >
+                            -1)) {
                             isTargetHtmlWebpackPlugin = true;
                         }
 
@@ -51,41 +47,51 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                         }
 
                         let publicPath = '';
-                        if (htmlPluginArgs.assets && htmlPluginArgs.assets.publicPath && htmlPluginArgs.assets.publicPath !== '/') {
+                        if (htmlPluginArgs.assets &&
+                            htmlPluginArgs.assets.publicPath &&
+                            htmlPluginArgs.assets.publicPath !== '/') {
                             publicPath = htmlPluginArgs.assets.publicPath;
                             const endsWithBsRegex = /\/$/;
                             const startWithBsRegex = /^\/\w/;
                             publicPath = endsWithBsRegex.test(publicPath) ? publicPath : publicPath + '/';
-                            publicPath = startWithBsRegex.test(publicPath) ? publicPath.substring(1) : publicPath;
+                            publicPath = startWithBsRegex.test(publicPath) ? publicPath.substr(1) : publicPath;
                         }
                         this.publicPath = publicPath;
 
                         const customCss: string[] = [];
                         const customScripts: string[] = [];
+                        const cssSrcToHeadAssets = this.options.cssSrcToHeadAssets || [];
+                        const scriptSrcToHeadAssets = this.options.scriptSrcToHeadAssets || [];
+                        const cssSrcToBodyAssets = this.options.cssSrcToBodyAssets || [];
+                        const scriptSrcToBodyAssets = this.options.scriptSrcToBodyAssets || [];
 
-                        if (this.options.cssSrcToHeadAssets && this.options.cssSrcToHeadAssets.length) {
-                            this.options.cssSrcToHeadAssets.forEach((css: string) => {
+                        if (cssSrcToHeadAssets.length) {
+                            cssSrcToHeadAssets.forEach((css: string) => {
                                 css = (this.options.addPublicPath && this.publicPath) ? this.publicPath + css : css;
                                 customCss.push(css);
                             });
                         }
-                        if (this.options.scriptSrcToHeadAssets && this.options.scriptSrcToHeadAssets.length) {
-                            this.options.scriptSrcToHeadAssets.forEach((script: string) => {
-                                script = (this.options.addPublicPath && this.publicPath) ? this.publicPath + script : script;
+                        if (scriptSrcToHeadAssets.length) {
+                            scriptSrcToHeadAssets.forEach((script: string) => {
+                                script = (this.options.addPublicPath && this.publicPath)
+                                    ? this.publicPath + script
+                                    : script;
                                 customScripts.push(script);
                             });
                         }
 
                         // body
-                        if (this.options.cssSrcToBodyAssets && this.options.cssSrcToBodyAssets.length) {
-                            this.options.cssSrcToBodyAssets.forEach((css: string) => {
+                        if (cssSrcToBodyAssets.length) {
+                            cssSrcToBodyAssets.forEach((css: string) => {
                                 css = (this.options.addPublicPath && this.publicPath) ? this.publicPath + css : css;
                                 customCss.push(css);
                             });
                         }
-                        if (this.options.scriptSrcToBodyAssets && this.options.scriptSrcToBodyAssets.length) {
-                            this.options.scriptSrcToBodyAssets.forEach((script: string) => {
-                                script = (this.options.addPublicPath && this.publicPath) ? this.publicPath + script : script;
+                        if (scriptSrcToBodyAssets.length) {
+                            scriptSrcToBodyAssets.forEach((script: string) => {
+                                script = (this.options.addPublicPath && this.publicPath)
+                                    ? this.publicPath + script
+                                    : script;
                                 customScripts.push(script);
                             });
                         }
@@ -99,32 +105,29 @@ export class CustomizeAssetsHtmlWebpackPlugin {
 
                 compilation.plugin('html-webpack-plugin-alter-asset-tags',
                     (htmlPluginArgs: any, callback: any) => {
+                        const cssSrcToHeadAssets = this.options.cssSrcToHeadAssets || [];
+                        const scriptSrcToHeadAssets = this.options.scriptSrcToHeadAssets || [];
+                        const cssSrcToBodyAssets = this.options.cssSrcToBodyAssets || [];
+                        const scriptSrcToBodyAssets = this.options.scriptSrcToBodyAssets || [];
+
+                        const targetHtmlWebpackPluginIds = this.options.targetHtmlWebpackPluginIds || [];
 
                         let isTargetHtmlWebpackPlugin = false;
-                        if (!this.options.targetHtmlWebpackPluginIds || !this.options.targetHtmlWebpackPluginIds.length ||
-                            (this.options.targetHtmlWebpackPluginIds && this.options.targetHtmlWebpackPluginIds.length &&
-                                this.options.targetHtmlWebpackPluginIds.indexOf(htmlPluginArgs.plugin.options.id) > -1)) {
+                        if (targetHtmlWebpackPluginIds.length ||
+                        (targetHtmlWebpackPluginIds.length &&
+                            targetHtmlWebpackPluginIds.indexOf(htmlPluginArgs.plugin.options.id) >
+                            -1)) {
                             isTargetHtmlWebpackPlugin = true;
                         }
 
                         if (!isTargetHtmlWebpackPlugin) {
                             return callback(null, htmlPluginArgs);
                         }
-                        // add
-                        //if (this.options.customHeadTags) {
-                        //  htmlPluginArgs.head = this.options.customHeadTagsUnshift
-                        //    ? this.options.customHeadTags.concat(htmlPluginArgs.head)
-                        //    : htmlPluginArgs.head.concat(this.options.customHeadTags);
-                        //}
-                        //if (this.options.customBodyTags) {
-                        //  htmlPluginArgs.body = this.options.customBodyTagsUnshift
-                        //    ? this.options.customBodyTags.concat(htmlPluginArgs.body)
-                        //    : htmlPluginArgs.body.concat(this.options.customBodyTags);
-                        //}
+
                         // head
                         const headEntries: any[] = [];
-                        if (this.options.cssSrcToHeadAssets && this.options.cssSrcToHeadAssets.length) {
-                            this.options.cssSrcToHeadAssets.forEach((css: string) => {
+                        if (cssSrcToHeadAssets.length) {
+                            cssSrcToHeadAssets.forEach((css: string) => {
                                 css = (this.options.addPublicPath && this.publicPath) ? this.publicPath + css : css;
                                 headEntries.push({
                                     tagName: 'link',
@@ -134,9 +137,11 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                             });
                         }
 
-                        if (this.options.scriptSrcToHeadAssets && this.options.scriptSrcToHeadAssets.length) {
-                            this.options.scriptSrcToHeadAssets.forEach((script: string) => {
-                                script = (this.options.addPublicPath && this.publicPath) ? this.publicPath + script : script;
+                        if (scriptSrcToHeadAssets.length) {
+                            scriptSrcToHeadAssets.forEach((script: string) => {
+                                script = (this.options.addPublicPath && this.publicPath)
+                                    ? this.publicPath + script
+                                    : script;
                                 headEntries.push({
                                     tagName: 'script',
                                     closeTag: true,
@@ -154,8 +159,8 @@ export class CustomizeAssetsHtmlWebpackPlugin {
 
                         // body
                         const bodyEntries: any[] = [];
-                        if (this.options.cssSrcToBodyAssets && this.options.cssSrcToBodyAssets.length) {
-                            this.options.cssSrcToBodyAssets.forEach((css: string) => {
+                        if (cssSrcToBodyAssets.length) {
+                            cssSrcToBodyAssets.forEach((css: string) => {
                                 css = (this.options.addPublicPath && this.publicPath) ? this.publicPath + css : css;
                                 bodyEntries.push({
                                     tagName: 'link',
@@ -164,9 +169,11 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                                 });
                             });
                         }
-                        if (this.options.scriptSrcToBodyAssets && this.options.scriptSrcToBodyAssets.length) {
-                            this.options.scriptSrcToBodyAssets.forEach((script: string) => {
-                                script = (this.options.addPublicPath && this.publicPath) ? this.publicPath + script : script;
+                        if (scriptSrcToBodyAssets.length) {
+                            scriptSrcToBodyAssets.forEach((script: string) => {
+                                script = (this.options.addPublicPath && this.publicPath)
+                                    ? this.publicPath + script
+                                    : script;
                                 bodyEntries.push({
                                     tagName: 'script',
                                     closeTag: true,
@@ -209,7 +216,9 @@ export class CustomizeAssetsHtmlWebpackPlugin {
 
                         // *** Order is import
                         // add attributes
-                        const updateAttributesFn = (tags: any[], targetTagName: string, attributes: { [key: string]: string | boolean }) =>
+                        const updateAttributesFn = (tags: any[],
+                                targetTagName: string,
+                                attributes: { [key: string]: string | boolean }) =>
                             tags.map((tag: any) => {
                                 if (tag.tagName === targetTagName) {
                                     Object.keys(attributes).forEach((key: string) => {
@@ -221,11 +230,19 @@ export class CustomizeAssetsHtmlWebpackPlugin {
 
                         const removeStartingSlashFn = (tags: any[]) =>
                             tags.map((tag: any) => {
-                                if ((tag.tagName === 'link' || tag.tagName === 'script') && tag.attributes && (tag.attributes['href'] || tag.attributes['src'])) {
-                                    if (tag.attributes.href && tag.attributes.href.length > 1 && tag.attributes.href[0] === '/' && tag.attributes.href[1].match(/\w/i)) {
-                                        tag.attributes.href = tag.attributes.href.substring(1);
-                                    } else if (tag.attributes.src && tag.attributes.src.length > 1 && tag.attributes.src[0] === '/' && tag.attributes.src[1].match(/\w/i)) {
-                                        tag.attributes.src = tag.attributes.src.substring(1);
+                                if ((tag.tagName === 'link' || tag.tagName === 'script') &&
+                                    tag.attributes &&
+                                    (tag.attributes.href || tag.attributes.src)) {
+                                    if (tag.attributes.href &&
+                                        tag.attributes.href.length > 1 &&
+                                        tag.attributes.href[0] === '/' &&
+                                        tag.attributes.href[1].match(/\w/i)) {
+                                        tag.attributes.href = tag.attributes.href.substr(1);
+                                    } else if (tag.attributes.src &&
+                                        tag.attributes.src.length > 1 &&
+                                        tag.attributes.src[0] === '/' &&
+                                        tag.attributes.src[1].match(/\w/i)) {
+                                        tag.attributes.src = tag.attributes.src.substr(1);
                                     }
                                 }
                                 return tag;
@@ -234,9 +251,9 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                         // TODO:
                         const customAttributes = htmlPluginArgs.plugin.options.customAttributes;
                         if (customAttributes && customAttributes.length) {
-                            let customLinkAttributes: { [key: string]: string | boolean } = null;
+                            let customLinkAttributes: { [key: string]: string | boolean } | null = null;
                             const linkAttributes = customAttributes
-                                .filter((c:any) => c.tagName === 'link').map((c:any) => c.attribute);
+                                .filter((c: any) => c.tagName === 'link').map((c: any) => c.attribute);
                             if (linkAttributes.length) {
                                 customLinkAttributes = linkAttributes
                                     .reduce((prev: { [key: string]: string | boolean },
@@ -245,9 +262,9 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                                     });
                             }
 
-                            let customScriptAttributes: { [key: string]: string | boolean } = null;
+                            let customScriptAttributes: { [key: string]: string | boolean } | null = null;
                             const scriptAttributes = customAttributes
-                                .filter((c: any) => c.tagName === 'script').map( (c:any) => c.attribute);
+                                .filter((c: any) => c.tagName === 'script').map((c: any) => c.attribute);
                             if (scriptAttributes.length) {
                                 customScriptAttributes = scriptAttributes
                                     .reduce((prev: { [key: string]: string | boolean },
@@ -257,12 +274,16 @@ export class CustomizeAssetsHtmlWebpackPlugin {
                             }
 
                             if (customLinkAttributes) {
-                                htmlPluginArgs.head = updateAttributesFn(htmlPluginArgs.head, 'link', customLinkAttributes);
-                                htmlPluginArgs.body = updateAttributesFn(htmlPluginArgs.body, 'link', customLinkAttributes);
+                                htmlPluginArgs.head =
+                                    updateAttributesFn(htmlPluginArgs.head, 'link', customLinkAttributes);
+                                htmlPluginArgs.body =
+                                    updateAttributesFn(htmlPluginArgs.body, 'link', customLinkAttributes);
                             }
                             if (customScriptAttributes) {
-                                htmlPluginArgs.head = updateAttributesFn(htmlPluginArgs.head, 'script', customScriptAttributes);
-                                htmlPluginArgs.body = updateAttributesFn(htmlPluginArgs.body, 'script', customScriptAttributes);
+                                htmlPluginArgs.head =
+                                    updateAttributesFn(htmlPluginArgs.head, 'script', customScriptAttributes);
+                                htmlPluginArgs.body =
+                                    updateAttributesFn(htmlPluginArgs.body, 'script', customScriptAttributes);
                             }
                         }
 

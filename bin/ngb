@@ -11,9 +11,11 @@ const SemVer = require('semver').SemVer;
 const fs = require('fs');
 const path = require('path');
 
+let cliVersion = packageJson['version'];
+
 //global.angularBuildCliIsLocal = true;
 
-function _fromPackageJson(cwd) {
+function _versionFromPackageJson(cwd) {
   cwd = cwd || process.cwd();
 
   do {
@@ -23,7 +25,8 @@ function _fromPackageJson(cwd) {
       if (content) {
         const json = JSON.parse(content);
         if (json['version']) {
-          return new SemVer(json['version']);
+          //return new SemVer(json['version']);
+          return json['version'];
         }
       }
     }
@@ -45,19 +48,26 @@ function _exit(code) {
   process.exit(code);
 }
 
-resolve('angular-build', { basedir: process.cwd() }, (error, projectLocalCli) => {
+// Show the warnings due to package and version deprecation.
+const version = new SemVer(process.version);
+if (version.compare(new SemVer('6.9.0')) < 0) {
+  process.stderr.write(yellow(`You are running version ${version.version} of Node, which will not be supported in future versions of the CLI. The official Node version that will be supported is 6.9 and greater.`));
+}
+
+resolve('@bizappframework/angular-build', {
+  basedir: process.cwd()
+}, (error, projectLocalCli) => {
   let cli = null;
   let cliIsLocal = false;
 
   if (error) {
-    cliIsLocal = false;
-
-    // If there is an error, resolve could not find the ng-cli
-    // library from a package.json. Instead, include it from a relative
-    // path to this script file (which is likely a globally installed
-    // npm package). Most common cause for hitting this is `ng new`
-    cli = require('../dist/cli');
-  }else{
+    cliIsLocal = false;            
+    if (fs.existsSync(path.resolve(__dirname, '../cli/index.js'))) {
+      cli = require('../cli');
+    } else {
+      cli = require('../dist/cli');
+    }
+  } else {
     cliIsLocal = true;
 
     // This was run from a global, check local version.
@@ -65,32 +75,52 @@ resolve('angular-build', { basedir: process.cwd() }, (error, projectLocalCli) =>
     let localVersion;
     let shouldWarn = false;
     try {
-      localVersion = _fromPackageJson();
-      shouldWarn = localVersion && globalVersion.compare(localVersion) < 0;
+      let v = _versionFromPackageJson();
+      if (v) {
+        localVersion = new SemVer(v);
+        cliVersion = localVersion;
+      }
+
+      shouldWarn = localVersion && globalVersion.compare(localVersion) > 0;
     } catch (err) {
       console.error(err);
       shouldWarn = true;
     }
 
-
     if (shouldWarn) {
-      // eslint-disable no-console
-      console.log(chalk.yellow(`Your global Angular-build cli version (${globalVersion}) is greater than `
-        + `your local version (${localVersion}). The local Angular-build cli version is used.`));
+      console.log(chalk.yellow(`Your global angular-build cli version (${globalVersion}) is greater than ` +
+        `your local version (${localVersion}). The local Angular-build cli version is used.`));
     }
 
-    cli = require(projectLocalCli);
+    // projectLocalCli -> index.js
+    let localCliPath = path.resolve(path.dirname(projectLocalCli), './cli');
+    cli = require(localCliPath);
   }
+
+  if ('default' in cli) {
+    cli = cli['default'];
+  }
+
+  let standardInput;
+  try {
+    standardInput = process.stdin;
+  } catch (e) {
+    delete process.stdin;
+    process.stdin = new events.EventEmitter();
+    standardInput = process.stdin;
+  }
+
   cli({
-   cliIsLocal: cliIsLocal,
-   inputStream: process.stdin,
-   outputStream: process.stdout
-  })
-    .then(function (result) {
-      _exit(typeof result === 'object' ? result.exitCode : result);
-    })
+    cliArgs: process.argv.slice(2),
+    inputStream: standardInput,
+    outputStream: process.stdout,
+    errorStream: process.stderr,
+    cliVersion: cliVersion,
+    cliIsLocal: cliIsLocal
+  }).then((result) => _exit(typeof result === 'object' ? result.exitCode : result))
     .catch(err => {
-      console.error(chalk.white.bgRed('ERROR:') + ' ' + err);
-      _exit(-1);
+      if (err) {
+        throw err;
+      }
     });
 });

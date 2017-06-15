@@ -1,0 +1,59 @@
+{
+  "$schema": "node_modules/@bizappframework/angular-build/schemas/schema-draft-04.json#",
+  "apps": [],
+  "libs": [
+    {
+      "srcDir": "src",
+      "outDir": "dist",
+      "styles": [
+        {
+          "from": "",
+          "to": ""
+        }
+      ],
+      "main": "index.js",
+      "tsconfig": "tsconfig.json",
+      "tsTranspilations": [
+        {
+          "tsconfig": "tsconfig.json",
+          "copyTemplateAndStyleUrls": true
+        }
+      ],
+      "bundleTargets": [
+        {
+          "name": "esm-es2015",
+          "entryResolution": {
+            "source": "tsTranspilations"
+          },
+          "libraryTarget": "es",
+          "outDir": "bundles"
+        },
+        {
+          "name": "esm-es5",
+          "entryResolution": {
+            "source": "prevBundleTarget"
+          },
+          "libraryTarget": "es",
+          "outDir": "bundles",
+          "transformOnly": true,
+          "transformTarget": "es5"
+        },
+        {
+          "name": "umd-es5",
+          "entryResolution": {
+            "source": "prevBundleTarget"
+          },
+          "libraryTarget": "umd",
+          "outDir": "bundles"
+        }
+      ],
+      "packageOptions": {
+        "packageConfigSource": "package.json",
+        "main": "",
+        "module": "",
+        "es2015": "",
+        "typings": ""
+      }
+    }
+  ]
+}

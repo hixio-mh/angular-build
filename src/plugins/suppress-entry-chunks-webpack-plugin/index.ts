@@ -1,4 +1,4 @@
-﻿// Ref: angular-cli - https://github.com/angular/angular-cli/blob/master/packages/angular-cli/plugins/suppress-entry-chunks-webpack-plugin.ts
+﻿// Ref: angular-cli - https://github.com/angular/angular-cli
 
 // ExtractTextPlugin leaves behind the entry points, which we might not need anymore
 // if they were entirely css. This plugin removes those entry points.
@@ -33,8 +33,8 @@ export class SuppressEntryChunksWebpackPlugin {
                     (htmlPluginArgs: any, callback: any) => {
 
                         if (!this.options.targetHtmlWebpackPluginId ||
-                            (this.options.targetHtmlWebpackPluginId &&
-                                this.options.targetHtmlWebpackPluginId === htmlPluginArgs.plugin.options.id)) {
+                        (this.options.targetHtmlWebpackPluginId &&
+                            this.options.targetHtmlWebpackPluginId === htmlPluginArgs.plugin.options.id)) {
                             this.isTargetHtmlWebpackPlugin = true;
                         } else {
                             this.isTargetHtmlWebpackPlugin = false;
@@ -53,16 +53,17 @@ export class SuppressEntryChunksWebpackPlugin {
         });
     }
 
-    supressAssets(compilation: any, callback: any) {
+    supressAssets(compilation: any, callback: any): void {
         if (!this.options.chunks || !this.options.supressPattern) {
             callback();
             return;
         }
-        compilation.chunks.filter((chunk: any) => this.options.chunks.indexOf(chunk.name) !== -1)
+        const options: SuppressEntryChunksPluginOptions = this.options || {};
+        compilation.chunks.filter((chunk: any) => options.chunks && options.chunks.indexOf(chunk.name) !== -1)
             .forEach((chunk: any) => {
                 const newFiles: string[] = [];
                 chunk.files.forEach((file: string) => {
-                    if (file.match(this.options.supressPattern)) {
+                    if (options.supressPattern && file.match(options.supressPattern)) {
                         delete compilation.assets[file];
                     } else {
                         newFiles.push(file);
@@ -71,6 +72,5 @@ export class SuppressEntryChunksWebpackPlugin {
                 chunk.files = newFiles;
             });
         callback();
-        return;
     }
 }

@@ -1,79 +1,93 @@
 ﻿import * as path from 'path';
-import * as fs from 'fs';
-import * as chalk from 'chalk';
 import * as webpack from 'webpack';
-const webpackMerge = require('webpack-merge');
 
-// Models
-import { AppConfig, BuildOptions } from '../models';
+// plugins
+import * as webpackMerge from 'webpack-merge';
 
-// Helpers
-import { parseDllEntries, getIconOptions } from '../helpers';
-
-// Internal plugins
+// internal plugins
 import { CustomizeAssetsHtmlWebpackPlugin } from '../plugins/customize-assets-html-webpack-plugin';
 import { IconWebpackPlugin } from '../plugins/icon-webpack-plugin';
 
-// Configs
+import { DllParsedEntry, parseIconOptions, parseDllEntry } from '../helpers';
+import { AppProjectConfig } from '../models';
+import { Logger } from '../utils';
+
+import { getAngularConfigPartial } from './angular';
 import { getCommonConfigPartial } from './common';
-import {getAngularConfigPartial} from './angular';
 import { getStylesConfigPartial } from './styles';
 
-export function getDllConfig(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
-    console.log(`\n${chalk.bgBlue('INFO:')} Getting dll config, build env: ${JSON
-        .stringify(buildOptions.environment)}, app name: ${appConfig.name}, app target: ${appConfig
-        .target}\n`);
+import { WebpackConfigOptions } from './webpack-config-options';
+
+export function getAppDllConfig(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
+    const buildOptions = webpackConfigOptions.buildOptions;
+    const projectConfig = webpackConfigOptions.projectConfig;
+    const environment = buildOptions.environment || {};
+    const logger = webpackConfigOptions.logger || new Logger();
+
+    if (!webpackConfigOptions.silent) {
+        logger.log('\n');
+        let msg = 'Using webpack dll config:';
+        const envStr = Object.keys(environment).map(key => `${key}: ${environment[key]}`).join(', ');
+        if (projectConfig.platformTarget) {
+            msg += `\nplatform target  - ${projectConfig.platformTarget}`;
+        }
+        if (projectConfig.libraryTarget) {
+            msg += `\nlibrary format   - ${projectConfig.libraryTarget}`;
+        }
+        if (envStr) {
+            msg += `\nenvironment      - ${envStr}`;
+        }
+        logger.infoLine(msg);
+        logger.log('\n');
+    }
 
     const configs = [
-        getCommonConfigPartial(projectRoot, appConfig, buildOptions),
-        getDllConfigPartial(projectRoot, appConfig, buildOptions),
-        getAngularConfigPartial(projectRoot, appConfig, buildOptions),
-        getStylesConfigPartial(projectRoot, appConfig, buildOptions)
+        getCommonConfigPartial(webpackConfigOptions),
+        getAppDllConfigPartial(webpackConfigOptions),
+        getAngularConfigPartial(webpackConfigOptions),
+        getStylesConfigPartial(webpackConfigOptions)
     ];
 
     return webpackMerge(configs);
 }
 
-export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, buildOptions: BuildOptions) {
+export function getAppDllConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
+    const projectRoot = webpackConfigOptions.projectRoot;
+    const buildOptions = webpackConfigOptions.buildOptions;
+    const appConfig = webpackConfigOptions.projectConfig as AppProjectConfig;
+    const environment = buildOptions.environment || {};
 
-    const hashLibFormat = appConfig.appendOutputHash ? `[chunkhash]` : 'lib';
+    if (!environment.dll) {
+        return {};
+    }
+
+    const hashLibFormat = appConfig.platformTarget === 'web' && appConfig.appendOutputHash ? `[chunkhash]` : '';
+    // TODO: to review
+    const libraryName = appConfig.libraryName || `[name]_${hashLibFormat || 'lib'}`;
+
     const entryPoints: { [key: string]: string[] } = {};
 
-    let tsConfigPath = path.resolve(projectRoot, appConfig.root, appConfig.tsconfig || 'tsconfig.json');
-    if (!fs.existsSync(tsConfigPath)) {
-        tsConfigPath = path.resolve(projectRoot, 'tsconfig.json');
-    }
-    if (!fs.existsSync(tsConfigPath)) {
-        tsConfigPath = null;
-    }
-
-    let useTsLoader = false;
-
-    const vendorChunkName = appConfig.dllChunkName || 'vendor';
-    const polyfillsChunkName = 'polyfills';
-
+    const vendorChunkName = appConfig.vendorChunkName || 'vendor';
+    const polyfillsChunkName = appConfig.polyfillsChunkName || 'polyfills';
 
     const tsEntries: any[] = [];
 
-    // Entry
-    //
-    // Vendor
+    // vendor
     if (appConfig.dlls && appConfig.dlls.length) {
         const entries: string[] = [];
-        parseDllEntries(projectRoot, appConfig.root, appConfig.dlls, buildOptions.environment).forEach(e => {
-            if (e.tsPath) {
-                useTsLoader = true;
-                if (tsEntries.indexOf(e.tsPath) === -1) {
-                    tsEntries.push(e.tsPath);
+        parseDllEntry(projectRoot, appConfig.srcDir || '', appConfig.dlls, environment).forEach((dllParsedEntry: DllParsedEntry) => {
+            if (dllParsedEntry.tsPath) {
+                if (tsEntries.indexOf(dllParsedEntry.tsPath) === -1) {
+                    tsEntries.push(dllParsedEntry.tsPath);
                 }
-                if (entries.indexOf(e.tsPath) === -1) {
-                    entries.push(e.tsPath);
+                if (entries.indexOf(dllParsedEntry.tsPath) === -1) {
+                    entries.push(dllParsedEntry.tsPath);
                 }
             } else {
-                if (Array.isArray(e.entry)) {
-                    entries.push(...e.entry.filter((ee: string) => entries.indexOf(ee) === -1));
-                } else if (entries.indexOf(e.entry) === -1) {
-                    entries.push(e.entry);
+                if (Array.isArray(dllParsedEntry.entry)) {
+                    entries.push(...dllParsedEntry.entry.filter((ee: string) => entries.indexOf(ee) === -1));
+                } else if (entries.indexOf(dllParsedEntry.entry) === -1) {
+                    entries.push(dllParsedEntry.entry);
                 }
             }
         });
@@ -84,26 +98,26 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
         entryPoints[vendorChunkName] = entries;
     }
 
-    // Polyfills
+    // polyfills
     if (appConfig.polyfills && appConfig.polyfills.length) {
         const entries: string[] = [];
-        parseDllEntries(projectRoot, appConfig.root, appConfig.polyfills, buildOptions.environment).forEach(e => {
-            if (e.tsPath) {
-                useTsLoader = true;
-                if (tsEntries.indexOf(e.tsPath) === -1) {
-                    tsEntries.push(e.tsPath);
+        parseDllEntry(projectRoot, appConfig.srcDir || '', appConfig.polyfills, environment).forEach(
+            (e: any) => {
+                if (e.tsPath) {
+                    if (tsEntries.indexOf(e.tsPath) === -1) {
+                        tsEntries.push(e.tsPath);
+                    }
+                    if (entries.indexOf(e.tsPath) === -1) {
+                        entries.push(e.tsPath);
+                    }
+                } else {
+                    if (Array.isArray(e.entry)) {
+                        entries.push(...e.entry.filter((ee: string) => entries.indexOf(ee) === -1));
+                    } else if (entries.indexOf(e.entry) === -1) {
+                        entries.push(e.entry);
+                    }
                 }
-                if (entries.indexOf(e.tsPath) === -1) {
-                    entries.push(e.tsPath);
-                }
-            } else {
-                if (Array.isArray(e.entry)) {
-                    entries.push(...e.entry.filter((ee: string) => entries.indexOf(ee) === -1));
-                } else if (entries.indexOf(e.entry) === -1) {
-                    entries.push(e.entry);
-                }
-            }
-        });
+            });
 
         if (entries.length === 0) {
             throw new Error(`No polyfills entry.`);
@@ -111,63 +125,20 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
         entryPoints[polyfillsChunkName] = entries;
     }
 
-    // Rules
-    //
-    //if (useTsLoader) {
-    //    const tsRules = [
-    //        {
-    //            test: /\.ts$/,
-    //            use: [
-    //                {
-    //                    loader: 'awesome-typescript-loader',
-    //                    options: {
-    //                        instance: `at-${appConfig.name || 'app'}-dll-loader`,
-    //                        configFileName: tsConfigPath
-    //                        //transpileOnly: true
-    //                    }
-    //                }
-    //            ],
-    //            include: tsEntries
-    //        }
-    //    ];
-    //    rules.push(...tsRules);
-    //}
-
-    // Plugins
-    //
+    // plugins
     const plugins = [
-        new (<any>webpack).DllPlugin({
+        new webpack.DllPlugin({
+            context: projectRoot,
             path: path.resolve(projectRoot, appConfig.outDir, `[name]-manifest.json`),
-            name: `[name]_${hashLibFormat}`
-        }),
-
-        // es6-promise
-        // Workaround for https://github.com/stefanpenner/es6-promise/issues/100
-        new webpack.IgnorePlugin(/^vertx$/)
-
-        // Workaround for https://github.com/andris9/encoding/issues/16
-        //new NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop')))
+            name: libraryName
+        })
     ];
-    //if (useTsLoader) {
-    //    plugins.push(new CheckerPlugin());
-    //}
 
-    // Browser specific
-    //
-    if (!appConfig.target || appConfig.target === 'web' || appConfig.target === 'webworker') {
-        // Favicons plugins
-        //
-        let skipGenerateIcons = appConfig.skipGenerateIcons;
-        if (typeof skipGenerateIcons === 'undefined' || skipGenerateIcons === null) {
-            if (typeof buildOptions.skipGenerateIcons !== 'undefined' && buildOptions.skipGenerateIcons !== null) {
-                skipGenerateIcons = buildOptions.skipGenerateIcons;
-            } else {
-                skipGenerateIcons = !appConfig.faviconConfig;
-            }
-        }
-
-        const iconOptions = getIconOptions(projectRoot, appConfig);
-        if (!skipGenerateIcons && iconOptions) {
+    // browser specific
+    if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
+        // favicons plugins
+        const iconOptions = parseIconOptions(projectRoot, appConfig);
+        if (iconOptions && iconOptions.masterPicture) {
             plugins.push(new IconWebpackPlugin(iconOptions));
 
             // remove starting slash
@@ -175,49 +146,16 @@ export function getDllConfigPartial(projectRoot: string, appConfig: AppConfig, b
                 removeStartingSlash: true
             }));
         }
-
     }
 
-    // Config
-    //
-    const webpackDllConfig : any = {
+    // webpack config
+    const webpackDllConfig: webpack.Configuration = {
         entry: entryPoints,
         output: {
-            library: `[name]_${hashLibFormat}`
+            library: libraryName
         },
         plugins: plugins
     };
-
-    //if (useTsLoader) {
-    //    webpackDllConfig.resolve = webpackDllConfig.resolve || {};
-    //    //webpackDllConfig.resolve.extensions = ['.js', '.ts'];
-
-    //    // TODO:
-    //    //const alias: any = {};
-    //    //if (fs.existsSync(tsConfigPath)) {
-    //    //    const tsConfigContent = readJsonSync(tsConfigPath);
-    //    //    const compilerOptions = tsConfigContent.compilerOptions || {};
-    //    //    const tsPaths = compilerOptions.paths || {};
-    //    //    for (let prop in tsPaths) {
-    //    //        if (tsPaths.hasOwnProperty(prop)) {
-    //    //            alias[prop] = path.resolve(projectRoot, tsPaths[prop][0]);
-    //    //        }
-    //    //    }
-    //    //}
-    //    //webpackDllConfig.resolve.alias = alias;
-    //    webpackDllConfig.resolve.plugins =
-    //    [
-    //        new TsConfigPathsPlugin({
-    //            configFileName: tsConfigPath
-    //        })
-    //    ];
-    //}
-
-    // Node specific
-    if (appConfig.target && appConfig.target !== 'web' && appConfig.target !== 'webworker') {
-        webpackDllConfig.output = webpackDllConfig.output || {};
-        webpackDllConfig.output.libraryTarget = 'commonjs2';
-    }
 
     return webpackDllConfig;
 }

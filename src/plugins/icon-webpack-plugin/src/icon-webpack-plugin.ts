@@ -1,28 +1,18 @@
-﻿/**
- * Credits
-  * jantimon/favicons-webpack-plugin - https://github.com/jantimon/favicons-webpack-plugin
- *
- * Ref:
- * haydenbleasel/favicons - https://github.com/haydenbleasel/favicons
- *webpack/docs - https://github.com/webpack/docs/wiki/plugins
- */
+﻿// Ref: jantimon/favicons-webpack-plugin - https://github.com/jantimon/favicons-webpack-plugin
+// Ref: haydenbleasel/favicons - https://github.com/haydenbleasel/favicons
 // Ref: webpack/docs - https://github.com/webpack/docs/wiki/plugins
 // Ref: webpack/docs - https://github.com/webpack/docs/wiki/how-to-write-a-plugin
 // Ref:ampedandwired/html-webpack-plugin - https://github.com/ampedandwired/html-webpack-plugin
 
 import * as path from 'path';
 
-// ReSharper disable InconsistentNaming
 const NodeTemplatePlugin = require('webpack/lib/node/NodeTemplatePlugin');
 const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
 const LoaderTargetPlugin = require('webpack/lib/LoaderTargetPlugin');
 const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
-// ReSharper restore InconsistentNaming
 
-import { IconPluginOptions } from './models';
-import { readJsonSync } from './utils';
+import { IconPluginOptions } from './plugin-models';
 
-// ReSharper disable once InconsistentNaming
 export interface IconStatsResult {
     outputName: string;
     stats: {
@@ -30,48 +20,8 @@ export interface IconStatsResult {
     };
 }
 
-// ReSharper disable once InconsistentNaming
-//export interface HtmlPluginArgs
-//{
-//  html?: string;
-//  assets?: {
-//    publicPath?: string;
-//    chunks?: {};
-//    js?: string[];
-//    css?: string[];
-//  },
-//  plugin?: {
-//    options?: {
-//      template?: string;
-//      filename?: string;
-//      hash?: boolean;
-//      inject?: boolean|string;
-//      compile?: boolean;
-//      favicon?: string;
-//      minify?: boolean | {}; // See: https://github.com/kangax/html-minifier#options-quick-reference
-//      cache?: boolean;
-//      showErrors?: boolean;
-//      chunks?: string|string[];
-//      excludeChunks?: string[];
-//      title?: string;
-//      xhtml?: boolean;
-
-//      // custom added
-//      id?: string;
-//      customAttributes?: any;
-//      //faviconStats?: any;
-//    };
-//    childCompilerHash?: string;
-//    childCompilationOutputName?: string;
-//    assetJson?: string;
-//  },
-//  outputName?: string;
-//}
-
 export class IconWebpackPlugin {
-
     private readonly defaultPluginOptions: IconPluginOptions = {
-        masterPicture: null,
         iconsPath: 'icons-[hash]/',
         emitStats: false,
         statsFilename: 'iconstats.json',
@@ -84,71 +34,39 @@ export class IconWebpackPlugin {
         }
     };
 
-    private readonly rawOptions: IconPluginOptions | string;
-    private options: IconPluginOptions;
-    private optionInitialized: boolean;
-
-    private context: string;
-    private iconStatsResult: IconStatsResult = null;
-    private childComplier: ChildComplier = null;
+    private iconStatsResult?: IconStatsResult;
+    private childComplier?: ChildComplier;
     private isTargetHtmlWebpackPlugin = false;
 
-    constructor(options: IconPluginOptions | string) {
+    constructor(private readonly options: IconPluginOptions) {
         if (!options) {
             throw new Error('"options" is required');
         }
-        this.rawOptions = options;
+        if (!options.masterPicture) {
+            throw new Error('"masterPicture" is required.');
+        }
+
+
+        if (options.iconsPath) {
+            options.iconsPath = /\/$/.test(options.iconsPath)
+                ? options.iconsPath
+                : options.iconsPath + '/';
+        }
+
+        this.options = Object.assign({}, this.defaultPluginOptions, options);
     }
 
-    private initOptions(context: string): void {
 
-        if (this.optionInitialized) {
-            return;
-        }
-
-        // may be config file or icon file.
-        if (typeof this.rawOptions == 'string') {
-            const str = this.rawOptions as string;
-            if (str.match(/\.json$/i)) {
-                const pathAbsolute = path.isAbsolute(str) ? str : path.resolve(context, str);
-                this.options = Object.assign({}, this.defaultPluginOptions, readJsonSync(pathAbsolute));
-            } else if (str.match(/\.(png|jpe?g|svg|bmp)$/i)) {
-                const pathAbsolute = path.isAbsolute(str) ? str : path.resolve(context, str);
-                this.options = Object.assign({}, this.defaultPluginOptions, { masterPicture: pathAbsolute });
-            } else {
-                throw new Error('Invalid options.');
-            }
-        } else {
-            if (typeof this.rawOptions !== 'object') {
-                throw new Error('Invalid options.');
-            }
-
-            if (!(<any>this.rawOptions).masterPicture) {
-                throw new Error('"masterPicture" is required.');
-            }
-
-            this.options = Object.assign({}, this.defaultPluginOptions, this.rawOptions);
-        }
-
-        if (this.options.iconsPath) {
-            this.options.iconsPath = /\/$/.test(this.options.iconsPath)
-                ? this.options.iconsPath
-                : this.options.iconsPath + '/';
-        }
-
-        this.optionInitialized = true;
-    }
 
     apply(compiler: any): void {
-
-        this.context = compiler.context || compiler.options.context;
-        this.initOptions(this.context);
+        const context = compiler.context || compiler.options.context;
 
         compiler.plugin('make',
             (compilation: any, cb: (err?: Error, request?: any) => void) => {
-                this.childComplier = new ChildComplier(this.context, compilation);
+                const childComplier = new ChildComplier(context, compilation);
+                this.childComplier = childComplier;
 
-                this.childComplier.compileTemplate(this.options)
+                childComplier.compileTemplate(this.options)
                     .then((result: IconStatsResult) => {
                         this.iconStatsResult = result;
                         cb();
@@ -161,7 +79,7 @@ export class IconWebpackPlugin {
             (compilation: any) => {
 
                 compilation.plugin('html-webpack-plugin-before-html-generation',
-                    (htmlPluginArgs: any, callback: (err: Error, htmlPluginArgs?: any) => void) => {
+                    (htmlPluginArgs: any, callback: (err?: Error, htmlPluginArgs?: any) => void) => {
 
                         if (!this.options.targetHtmlWebpackPluginIds || !this.options.targetHtmlWebpackPluginIds.length ||
                             (this.options.targetHtmlWebpackPluginIds && this.options.targetHtmlWebpackPluginIds.length &&
@@ -171,7 +89,7 @@ export class IconWebpackPlugin {
                             this.isTargetHtmlWebpackPlugin = false;
                         }
                         if (!this.isTargetHtmlWebpackPlugin) {
-                            return callback(null, htmlPluginArgs);
+                            return callback(undefined, htmlPluginArgs);
                         }
 
                         if (this.iconStatsResult &&
@@ -184,7 +102,7 @@ export class IconWebpackPlugin {
                                 const endsWithBsRegex = /\/$/;
                                 const startWithBsRegex = /^\/\w/;
                                 publicPath = endsWithBsRegex.test(publicPath) ? publicPath : publicPath + '/';
-                                publicPath = startWithBsRegex.test(publicPath) ? publicPath.substring(1) : publicPath;
+                                publicPath = startWithBsRegex.test(publicPath) ? publicPath.substr(1) : publicPath;
 
                                 faviconsTags = this.iconStatsResult.stats.html.map((tag: any) => {
                                     return tag.replace(/href=\"/i, `href="${publicPath}`);
@@ -193,48 +111,27 @@ export class IconWebpackPlugin {
                                 faviconsTags.push(...this.iconStatsResult.stats.html);
                             }
 
-                            htmlPluginArgs.plugin.options['favicons'] = {
+                            htmlPluginArgs.plugin.options.favicons = {
                                 tags: faviconsTags
                             };
                         }
 
-                        return callback(null, htmlPluginArgs);
+                        return callback(undefined, htmlPluginArgs);
                     });
 
 
                 compilation.plugin('html-webpack-plugin-before-html-processing',
-                    (htmlPluginArgs: any, callback: (err: Error, htmlPluginArgs?: any) => void) => {
+                    (htmlPluginArgs: any, callback: (err?: Error, htmlPluginArgs?: any) => void) => {
 
                         if (!this.isTargetHtmlWebpackPlugin ||
-                            !htmlPluginArgs.plugin.options['favicons'] ||
-                            !htmlPluginArgs.plugin.options['favicons'].tags) {
-                            return callback(null, htmlPluginArgs);
+                            !htmlPluginArgs.plugin.options.favicons ||
+                            !htmlPluginArgs.plugin.options.favicons.tags) {
+                            return callback(undefined, htmlPluginArgs);
                         }
 
-                        //if (this.options.seperateOutput) {
-                        //    htmlPluginArgs.html = '';
-                        //} else {
-                        //    htmlPluginArgs.html = htmlPluginArgs.html || '';
-                        //}
                         htmlPluginArgs.html = htmlPluginArgs.html || '';
 
-                        let faviconsTags = <string[]>htmlPluginArgs.plugin.options['favicons'].tags;
-
-                        //if (htmlPluginArgs.plugin.options.customAttributes && htmlPluginArgs.plugin.options.customAttributes.linkAttributes) {
-                        //    const linkAttributes = <{ [key: string]: string }>htmlPluginArgs.plugin.options
-                        //        .customAttributes.linkAttributes;
-                        //    const linkAttributesStr = Object.keys(linkAttributes).map((key: string) => {
-                        //        return `${key}="${linkAttributes[key].toString()}"`;
-                        //    }).join(' ');
-
-                        //    const linkRegex = /^\<link\s+.*\/?\>$/i;
-                        //    faviconsTags = faviconsTags.map((tag: string) => {
-                        //        if (tag.match(linkRegex)) {
-                        //            return tag.replace(/(\/?\>)/i, ` ${linkAttributesStr}$&`);
-                        //        }
-                        //        return tag;
-                        //    });
-                        //}
+                        const faviconsTags = <string[]>htmlPluginArgs.plugin.options.favicons.tags;
 
                         if (htmlPluginArgs.html.match(/(<\/head>)/i)) {
                             htmlPluginArgs.html = htmlPluginArgs.html.replace(
@@ -242,12 +139,9 @@ export class IconWebpackPlugin {
                                 `  ${faviconsTags.join('\n  ')}\n$&`);
                         } else {
                             htmlPluginArgs.html = `${htmlPluginArgs.html.trim()}\n${faviconsTags.join('\n')}\n`;
-                            //if (this.options.seperateOutput) {
-                            //    htmlPluginArgs.html = htmlPluginArgs.html.trim();
-                            //}
                         }
 
-                        callback(null, htmlPluginArgs);
+                        callback(undefined, htmlPluginArgs);
                     });
             });
 
@@ -271,7 +165,7 @@ export class ChildComplier {
     compileTemplate(options: IconPluginOptions): Promise<IconStatsResult> {
 
         var outputOptions = {
-            filename: options.statsFilename,
+            filename: options.statsFilename as string,
             publicPath: this.parentCompilation.outputOptions.publicPath
         };
 
@@ -280,8 +174,8 @@ export class ChildComplier {
         childCompiler.context = this.context;
 
         const loaderOptions: any = Object.assign({}, options);
-        if (loaderOptions['masterPicture']) {
-            delete loaderOptions['masterPicture'];
+        if (loaderOptions.masterPicture) {
+            delete loaderOptions.masterPicture;
         }
         // adding !! to a request will disable all loaders specified in the configuration
         const templateEntry = `!!${require.resolve('./icon-loader')}?${JSON.stringify(loaderOptions)}!${options
@@ -318,11 +212,11 @@ export class ChildComplier {
                             return cb(childCompilation.errors[0] || 'Favicons generation failed');
                         }
 
-                        const resultFile = (<any>chunks[0]).files[0]; // iconstats.json
-                        const resultCode = childCompilation.assets[resultFile].source(); // module.exports = {"iconsPath":"icons/","html":["<meta name=\"mobile-web-app-capable\" ....
+                        const resultFile = (chunks[0]).files[0]; // iconstats.json
+                        const resultCode = childCompilation.assets[resultFile].source();
                         let resultJson: string;
                         try {
-                            /* eslint no-eval:0 */
+                            // tslint:disable-next-line:no-eval
                             const result = eval(resultCode);
                             resultJson = JSON.stringify(result);
                         } catch (e) {
@@ -330,10 +224,10 @@ export class ChildComplier {
                         }
 
                         childCompilation.assets[resultFile] = {
-                            source() {
+                            source(): any {
                                 return resultJson;
                             },
-                            size() {
+                            size(): number {
                                 return resultJson.length;
                             }
                         };
@@ -371,7 +265,7 @@ export class ChildComplier {
 
                     const compilationResult: IconStatsResult = {
                         // Hash of the template entry point.
-                        //hash: entries[0].hash,
+                        // hash: entries[0].hash,
                         outputName: outputName,
                         stats: JSON.parse(childCompilation.assets[outputName].source())
                     };
