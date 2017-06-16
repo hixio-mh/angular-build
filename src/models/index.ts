@@ -9,8 +9,8 @@ export interface ProjectConfigBase {
     projectType?: 'app' | 'lib';
     /**
      * The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.
-     * Mostly 'srcDir' is refer to a folder containing your typescript source files.
-     * If not specified and 'main' entry is present, default to directory of 'main' entry,
+     * Usually 'srcDir' is refer to a folder containing your typescript source files.
+     * If not specified and main entry is present, default to directory of main entry,
      * otherwise, current working directory is used.
      */
     srcDir?: string;
@@ -23,18 +23,18 @@ export interface ProjectConfigBase {
     /**
      * The main entry file to be bundled.
      */
-    main?: string;
+    entry?: string;
     /**
-     * The output bundle name for 'main' entry.
+     * The output bundle file name for main entry.
      */
-    mainOutFileName?: string;
+    outFileName?: string;
     /**
-     * The typescript configuration file. Path is relative to 'srcDir'.
+     * The typescript configuration file.
      * @default tsconfig.json
      */
     tsconfig?: string;
     /**
-     * List of assets to be copied to outDir.
+     * List of assets to be copied to 'outDir'.
      * @default []
      */
     assets?: (string | AssetEntry)[];
@@ -49,11 +49,33 @@ export interface ProjectConfigBase {
      */
     sourceMap?: boolean;
     /**
-     * Banner text or file to add at the top of each generated bundle files.
+     * If true, minified files will be generated.
+     */
+    minify?: boolean;
+    /**
+     * Banner text or file name to add at the top of each generated bundle files.
+     * For example, 'banner.txt'.
      */
     banner?: string;
     /**
+     * Options to pass to style preprocessors
+     */
+    stylePreprocessorOptions?: StylePreprocessorOptions;
+    /**
+     * Bundle module format.
+     */
+    libraryTarget?: LibraryTarget;
+    /**
+     * The libraryName is used depending on the value of the 'libraryTarget' options.
+     */
+    libraryName?: string;
+    /**
+     * The externals configuration option provides a way of excluding dependencies from the output bundle.
+     */
+    externals?: ExternalsEntry | ExternalsEntry[];
+    /**
      * Tells the build system which platform environment the application is targeting.
+     * This is only used by webpack.
      */
     platformTarget?:
     'async-node'
@@ -63,13 +85,9 @@ export interface ProjectConfigBase {
     | 'node-webkit'
     | 'web'
     | 'webworker';
-
-    /**
-     * Options to pass to style preprocessors
-     */
-    stylePreprocessorOptions?: StylePreprocessorOptions;
     /**
      * This option controls if and how source maps are generated.
+     * This is only used by webpack's devTool.
      */
     sourceMapDevTool?: 'eval' | 'inline-source-map' | 'cheap-eval-source-map' | 'cheap-source-map' |
     'cheap-module-eval-source-map' | 'cheap-module-source-map' | 'eval-source-map' | 'source-map' |
@@ -84,26 +102,21 @@ export interface ProjectConfigBase {
 
     /**
      * Whether to resolve symlinks to their symlinked location.
+     * This is only used by webpack.
      */
     preserveSymlinks?: boolean;
     /**
-     * Bundle analyzer options.
+     * Webpack Bundle analyzer options.
+     * This is only used by webpack.
      */
     bundleAnalyzerOptions?: BundleAnalyzerOptions;
     /**
      * Replaces resources with new resources.
+     * This is only used by webpack.
      */
     moduleReplacements?: ModuleReplacementEntry[];
     /**
-     * Bundle module format.
-     */
-    libraryTarget?: LibraryTarget;
-    /**
-     * The libraryName is used depending on the value of the libraryTarget options.
-     */
-    libraryName?: string;
-    /**
-     * Specifies custom webpack config file to be merged. Paths will be resolved to project root.
+     * Custom webpack config file to be merged. Path will be resolved to project root.
      */
     webpackConfig?: string;
     /**
@@ -111,17 +124,15 @@ export interface ProjectConfigBase {
      */
     disableDefaultWebpackConfigs?: boolean;
     /**
-     * The externals configuration option provides a way of excluding dependencies from the output bundle.
-     */
-    externals?: ExternalsEntry | ExternalsEntry[];
-    /**
      * Typescript loader for webpack.
+     * This is only used by webpack.
      */
     tsLoader?: 'auto' | 'ngtools/webpack';
     /**
      * The webpack stats option lets you precisely control what bundle information gets displayed.
+     * This is only used by webpack.
      */
-    webpackStats?: WebpackStatsPreset | WebpackStatsToStringOptions;
+    stats?: WebpackStatsPreset | WebpackStatsToStringOptions;
     /**
      * If true, this config will be skipped by the build process.
      */
@@ -167,7 +178,7 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
      */
     bundleTool?: 'rollup' | 'webpack';
     /**
-     * Package options for library project.
+     * Packaging options for library project.
      */
     packageOptions?: PackageOptions;
 }
@@ -358,15 +369,25 @@ export interface BundleTarget {
      */
     entryResolution?: {
         /**
-         * Entry resolution source.
+         * Entry resolution root directory.
          */
-        source: 'tsTranspilations' | 'bundleTargets' | 'prevBundleTarget' | 'outDir';
+        entryRoot: 'tsTranspilationOutDir' | 'bundleTargetOutDir' | 'outDir';
         /**
-         * Array items index or name of tsTranspilations or bundleTargets.
-         * If not specified first or default item is used.
+         * If 'tsTranspilations' is array, name or array index can be specified.
+         * If not specified, first item will be used.
          */
-        sourceIndex?: number | string;
+        tsTranspilationIndex?: number | string;
+        /**
+         * If 'bundleTargets' is array, name or array index can be specified.
+         * If not specified, previous item will be used.
+         */
+        bundleTargetIndex?: number | string;
     };
+    /**
+     * Custom main entry file name, if not present, main entry will be used.
+     * If 'entryResolution' is present, path will be resolved from 'entryResolution.entryRoot'.
+     */
+    entry?: string;
     /**
      * Bundle module format.
      */
@@ -374,9 +395,9 @@ export interface BundleTarget {
     /**
      * Custom bundle output file name.
      */
-    bundleOutFileName?: string;
+    outFileName?: string;
     /**
-     * Custom outuput directory for bundled results.
+     * Custom output directory for bundled results.
      */
     outDir?: string;
     /**
@@ -384,33 +405,31 @@ export interface BundleTarget {
      */
     addPureAnnotations?: boolean;
     /**
-     * Transform source to specific ECMA target only.
+     * Transforms entry file or bundled result to specific ECMA script target.
+     * @default none
      */
-    transformOnly?: boolean;
+    scriptTarget?: 'none' | 'es5';
     /**
-     * Transform ECMA script target.
+     * If true, the process will perform script target transformation only.
+     * @default false
      */
-    transformTarget?: 'es5';
+    transformScriptTargetOnly?: boolean;
     /**
      * If true, templateUrl and styleUrls will be inlined.
      * @default true
      */
     inlineResources?: boolean;
-    /**
-     * Search pattern for inline resources.
-     */
-    inlineResourceIncludes?: string[];
 }
 
 /**
- * Package options for library project
+ * Packaging options for library project
  * @additionalProperties false
  */
 export interface PackageOptions {
     /**
-     * The source package.json file to be copied.
+     * The source package.json file to be updated and copied.
      */
-    packageConfigSource?: string;
+    packageConfigFile?: string;
     /**
      * The main index for package.json file.
      */
@@ -432,51 +451,11 @@ export interface PackageOptions {
      */
     readMeFile?: string;
     /**
-     * If true, update version in package.json with root's one.
+     * If true, update version in package.json with project root package.json's version.
      * @default true
      */
     useRootPackageConfigVerion?: boolean;
 }
-
-/**
- * The asset entry
- * @additionalProperties false
- */
-export type AssetEntry = {
-    /**
-     * The source file, it can be absolute or relative path or glob pattern.
-     */
-    from: string;
-    /**
-     * The output root if from is file or dir.
-     */
-    to?: string;
-};
-
-/**
- * Global style entry
- * @additionalProperties false
- */
-export type StyleEntry = {
-} & AssetEntry;
-
-/**
- * Global script entry
- * @additionalProperties false
- */
-export type ScriptEntry = {
-    lazy?: boolean;
-} & AssetEntry;
-
-/**
- * Dll entry
- * @additionalProperties false
- */
-export type DllEntry = {
-    entry: string | string[];
-    importToMain?: boolean;
-    excludes?: string[];
-};
 
 /**
  * External module entry
@@ -488,14 +467,13 @@ export type ExternalsEntry = string | ExternalsObjectElement;
  */
 export type ExternalsObjectElement = {
     [key: string]: boolean |
-    string |
-    {
-        commonjs: string;
-        amd: string;
-        root: string;
-        [key: string]: string | boolean;
-
-    };
+                   string |
+                   {
+                       commonjs: string;
+                       amd: string;
+                       root: string;
+                       [key: string]: string | boolean;
+                   };
 };
 
 /**
@@ -506,26 +484,6 @@ export interface ModuleReplacementEntry {
     resourcePath: string;
     newResourcePath: string;
     resolveFrom?: 'projectRoot' | 'srcDir';
-}
-
-/**
- * Html injection options
- * @additionalProperties false
- */
-export interface HtmlInjectOptions {
-    /**
-     * The index html template file.
-     */
-    index?: string;
-    indexOut?: string;
-    scriptsOut?: string;
-    stylesOut?: string;
-    iconsOut?: string;
-    customTagAttributes?: {
-        tagName: string;
-        attribute: { [key: string]: string | boolean };
-        skipOutFilters?: string[];
-    }[];
 }
 
 /**
@@ -545,11 +503,11 @@ export interface StylePreprocessorOptions {
  */
 export type WebpackStatsPreset
     = boolean
-    | 'errors-only'
-    | 'minimal'
-    | 'none'
-    | 'normal'
-    | 'verbose';
+      | 'errors-only'
+      | 'minimal'
+      | 'none'
+      | 'normal'
+      | 'verbose';
 
 /**
  * Webpack Stats toJson options
@@ -606,7 +564,7 @@ export interface WebpackStatsToStringOptions extends WebpackStatsToJsonOptions {
 }
 
 /**
- * Bundle analyzer options
+ * Webpack bundle analyzer options
  * @additionalProperties false
  */
 export interface BundleAnalyzerOptions {
@@ -644,7 +602,86 @@ export interface BundleAnalyzerOptions {
 }
 
 /**
- * Performance options
+ * The asset entry
+ * @additionalProperties false
+ */
+export type AssetEntry = {
+    /**
+     * The source file, it can be absolute or relative path or glob pattern.
+     */
+    from: string;
+    /**
+     * The output root.
+     */
+    to?: string;
+};
+
+/**
+ * Global style entry
+ * @additionalProperties false
+ */
+export type StyleEntry = {
+    /**
+     * The source style file, it can be .scss/.sass, .less or .css
+     */
+    from: string;
+    /**
+     * The output style file name.
+     */
+    to?: string;
+};
+
+/**
+ * Global script entry
+ * @additionalProperties false
+ */
+export type ScriptEntry = {
+    /**
+     * The source Javascript file
+     */
+    from: string;
+    /**
+     * The output script file name.
+     */
+    to?: string;
+    /**
+     * If true, it will be lazy loaded, and will not be injected to target html.
+     */
+    lazy?: boolean;
+};
+
+/**
+ * Dll entry
+ * @additionalProperties false
+ */
+export type DllEntry = {
+    entry: string | string[];
+    importToMain?: boolean;
+    excludes?: string[];
+};
+
+/**
+ * Html injection options
+ * @additionalProperties false
+ */
+export interface HtmlInjectOptions {
+    /**
+     * The index html template file.
+     */
+    index?: string;
+    indexOut?: string;
+    scriptsOut?: string;
+    stylesOut?: string;
+    iconsOut?: string;
+    customTagAttributes?: {
+        tagName: string;
+        attribute: { [key: string]: string | boolean };
+        skipOutFilters?: string[];
+    }[];
+}
+
+/**
+ * Webpack performance options
  * @additionalProperties false
  */
 export interface PerformanceOptions {
@@ -695,7 +732,7 @@ export interface BuildOptions {
     /**
      * Project filter to build only specific app(s) or lib(s). Specifies target app or lib project name(s).
      */
-    project?: string | string[];
+    filter?: string | string[];
     /**
      * If true, the console displays detailed diagnostic information.
      * @default false

@@ -6,6 +6,7 @@ import { TryBundleDllWebpackPlugin } from '../plugins/try-bundle-dll-webpack-plu
 
 
 import { AppProjectConfig } from '../models';
+import { mergeProjectConfigWithEnvOverrides } from '../helpers';
 
 // configs
 import { getAppDllConfig } from './dll';
@@ -47,13 +48,21 @@ export function getAppReferenceDllConfigPartial(webpackConfigOptions: WebpackCon
     cloneWebpackConfigOptions.projectConfig = JSON.parse(JSON.stringify(cloneWebpackConfigOptions.projectConfig));
     cloneWebpackConfigOptions.buildOptions = JSON.parse(JSON.stringify(cloneWebpackConfigOptions.buildOptions));
     cloneWebpackConfigOptions.buildOptions.environment = cloneWebpackConfigOptions.buildOptions.environment || {};
+
     cloneWebpackConfigOptions.buildOptions.environment.dll = true;
+    cloneWebpackConfigOptions.buildOptions.environment.aot = false;
+    (cloneWebpackConfigOptions.projectConfig as AppProjectConfig).htmlInjectOptions = {};
+    (cloneWebpackConfigOptions.projectConfig as AppProjectConfig).referenceDll = false;
+    (cloneWebpackConfigOptions.projectConfig as AppProjectConfig).extractCss = false;
+    mergeProjectConfigWithEnvOverrides((cloneWebpackConfigOptions.projectConfig as AppProjectConfig),
+        cloneWebpackConfigOptions.buildOptions);
 
     // try bundle dll
     plugins.push(new TryBundleDllWebpackPlugin({
         context: projectRoot,
         debug: cloneWebpackConfigOptions.buildOptions.verbose,
         manifests: manifests,
+        sourceLibraryType: cloneWebpackConfigOptions.projectConfig.libraryTarget,
         getDllConfigFunc: (silent?: boolean) => {
             if (silent) {
                 cloneWebpackConfigOptions.silent = true;

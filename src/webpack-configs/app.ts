@@ -10,7 +10,7 @@ import { Logger } from '../utils';
 import { getAngularConfigPartial } from './angular';
 import {
     getChunksConfigPartial, getHtmlInjectConfigPartial, getGlobalScriptsConfigPartial,
-    } from './browser';
+} from './browser';
 import { getCommonConfigPartial } from './common';
 import { getAppReferenceDllConfigPartial } from './reference-dll';
 import { getStylesConfigPartial } from './styles';
@@ -25,23 +25,16 @@ export function getAppWebpackConfig(webpackConfigOptions: WebpackConfigOptions):
     const logger = webpackConfigOptions.logger || new Logger();
 
     if (!webpackConfigOptions.silent) {
-        logger.log('\n');
-        let msg = 'Using webpack app config:';
-        const envStr = Object.keys(environment).map(key => `${key}: ${environment[key]}`).join(', ');
-        if (appConfig.main) {
-            msg += `\nmain entry       - ${appConfig.main}`;
-        }
+        let msg = 'Using rollup lib config:';
+        msg += ` main entry - ${webpackConfigOptions.bundleEntryFile || appConfig.entry}`;
         if (appConfig.platformTarget) {
-            msg += `\nplatform target  - ${appConfig.platformTarget}`;
+            msg += `, platform target - ${appConfig.platformTarget}`;
         }
-        if (appConfig.libraryTarget) {
-            msg += `\nlibrary format   - ${appConfig.libraryTarget}`;
+        msg += `, library format - ${appConfig.libraryTarget}`;
+        if (Object.keys(environment)) {
+            msg += `, environment - ${JSON.stringify(environment)}`;
         }
-        if (envStr) {
-            msg += `\nenvironment      - ${envStr}`;
-        }
-        logger.infoLine(msg);
-        logger.log('\n');
+        logger.logLine(msg);
     }
 
     const configs: any[] = [
@@ -69,16 +62,16 @@ export function getAppMainChunkConfigPartial(webpackConfigOptions: WebpackConfig
     const appConfig = webpackConfigOptions.projectConfig as AppProjectConfig;
     const environment = buildOptions.environment || {};
 
-    if (!appConfig.main) {
-        return {};
+    if (!appConfig.entry) {
+        throw new Error(`The 'appConfig.entry' is required.`);
     }
 
-    const srcDir = path.resolve(projectRoot, appConfig.srcDir);
+    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
     const entryPoints: { [key: string]: string[] } = {};
-    const mainChunkName = appConfig.mainOutFileName || 'main';
+    const mainChunkName = appConfig.outFileName || 'main';
 
     // main entry
-    const appMain = path.resolve(srcDir, appConfig.main);
+    const appMain = path.resolve(srcDir, appConfig.entry);
 
     const dllEntries: any[] = [];
     if (appConfig.polyfills && appConfig.polyfills.length && appConfig.referenceDll) {

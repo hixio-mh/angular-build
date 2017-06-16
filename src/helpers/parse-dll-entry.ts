@@ -65,7 +65,7 @@ export function parseDllEntry(projectRoot: string,
                             resultEntries.push(Object.assign({}, dllEntry, { entry: null, tsPath: appDllPath }));
                             return;
                         } else {
-                            throw new Error(`Error in parsing dll entry. Invalid entry: ${entryName}\n`);
+                            throw new Error(`Error in parsing dll entry. Invalid entry: ${entryName}.`);
                         }
                     }
 
@@ -76,7 +76,7 @@ export function parseDllEntry(projectRoot: string,
                             resultEntries.push(Object.assign({}, dllEntry, { entry: null, tsPath: appDllPath }));
                             return;
                         } else {
-                            throw new Error(`Error in parsing dll entry. Invalid entry: ${entryName}\n`);
+                            throw new Error(`Error in parsing dll entry. Invalid entry: ${entryName}.`);
                         }
                     }
 
@@ -122,10 +122,10 @@ export function parseDllEntry(projectRoot: string,
                     if (entryArray.length > 0) {
                         resultEntries.push(Object.assign({}, dllEntry, { entry: entryArray }));
                     } else {
-                        throw new Error(`Error in parsing dll entry. No entry parsed. file: ${packagePath}`);
+                        throw new Error(`Error in parsing dll entry. No entry parsed. file: ${packagePath}.`);
                     }
                 } else {
-                    throw new Error(`Error in parsing dll entry. Invalid entry: ${entryName}`);
+                    throw new Error(`Error in parsing dll entry. Invalid entry: ${entryName}.`);
                 }
             });
         });

@@ -25,20 +25,17 @@ export function getAppDllConfig(webpackConfigOptions: WebpackConfigOptions): web
     const logger = webpackConfigOptions.logger || new Logger();
 
     if (!webpackConfigOptions.silent) {
-        logger.log('\n');
         let msg = 'Using webpack dll config:';
-        const envStr = Object.keys(environment).map(key => `${key}: ${environment[key]}`).join(', ');
         if (projectConfig.platformTarget) {
-            msg += `\nplatform target  - ${projectConfig.platformTarget}`;
+            msg += `, platform target - ${projectConfig.platformTarget}`;
         }
         if (projectConfig.libraryTarget) {
-            msg += `\nlibrary format   - ${projectConfig.libraryTarget}`;
+            msg += `, library format - ${projectConfig.libraryTarget}`;
         }
-        if (envStr) {
-            msg += `\nenvironment      - ${envStr}`;
+        if (Object.keys(environment)) {
+            msg += `, environment - ${JSON.stringify(environment)}`;
         }
-        logger.infoLine(msg);
-        logger.log('\n');
+        logger.logLine(msg);
     }
 
     const configs = [
@@ -75,22 +72,23 @@ export function getAppDllConfigPartial(webpackConfigOptions: WebpackConfigOption
     // vendor
     if (appConfig.dlls && appConfig.dlls.length) {
         const entries: string[] = [];
-        parseDllEntry(projectRoot, appConfig.srcDir || '', appConfig.dlls, environment).forEach((dllParsedEntry: DllParsedEntry) => {
-            if (dllParsedEntry.tsPath) {
-                if (tsEntries.indexOf(dllParsedEntry.tsPath) === -1) {
-                    tsEntries.push(dllParsedEntry.tsPath);
+        parseDllEntry(projectRoot, appConfig.srcDir || '', appConfig.dlls, environment).forEach(
+            (dllParsedEntry: DllParsedEntry) => {
+                if (dllParsedEntry.tsPath) {
+                    if (tsEntries.indexOf(dllParsedEntry.tsPath) === -1) {
+                        tsEntries.push(dllParsedEntry.tsPath);
+                    }
+                    if (entries.indexOf(dllParsedEntry.tsPath) === -1) {
+                        entries.push(dllParsedEntry.tsPath);
+                    }
+                } else {
+                    if (Array.isArray(dllParsedEntry.entry)) {
+                        entries.push(...dllParsedEntry.entry.filter((ee: string) => entries.indexOf(ee) === -1));
+                    } else if (entries.indexOf(dllParsedEntry.entry) === -1) {
+                        entries.push(dllParsedEntry.entry);
+                    }
                 }
-                if (entries.indexOf(dllParsedEntry.tsPath) === -1) {
-                    entries.push(dllParsedEntry.tsPath);
-                }
-            } else {
-                if (Array.isArray(dllParsedEntry.entry)) {
-                    entries.push(...dllParsedEntry.entry.filter((ee: string) => entries.indexOf(ee) === -1));
-                } else if (entries.indexOf(dllParsedEntry.entry) === -1) {
-                    entries.push(dllParsedEntry.entry);
-                }
-            }
-        });
+            });
 
         if (entries.length === 0) {
             throw new Error(`No dll entry.`);

@@ -32,13 +32,13 @@ export function getHtmlInjectConfigPartial(webpackConfigOptions: WebpackConfigOp
         return {};
     }
 
-    const appRoot = path.resolve(projectRoot, appConfig.srcDir);
+    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
     const extraPlugins: any[] = [];
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
     const polyfillsChunkName = appConfig.polyfillsChunkName || 'polyfills';
     const inlineChunkName = appConfig.inlineChunkName || 'inline';
-    const mainChunkName = appConfig.mainOutFileName || 'main';
+    const mainChunkName = appConfig.outFileName || 'main';
 
     const styleEntryNames: string[] = [];
     const chunkSortList = [inlineChunkName, polyfillsChunkName, 'sw-register'];
@@ -47,7 +47,7 @@ export function getHtmlInjectConfigPartial(webpackConfigOptions: WebpackConfigOp
 
     // global styles
     if (appConfig.styles && appConfig.styles.length) {
-        parseStyleEntry(appConfig.styles, appRoot, 'styles').forEach((styleEntry: StyleParsedEntry) => {
+        parseStyleEntry(appConfig.styles, srcDir, 'styles').forEach((styleEntry: StyleParsedEntry) => {
             if (chunkSortList.indexOf(styleEntry.entry) === -1) {
                 chunkSortList.push(styleEntry.entry);
             }
@@ -58,7 +58,7 @@ export function getHtmlInjectConfigPartial(webpackConfigOptions: WebpackConfigOp
     // global scripts
     const lazyChunks: string[] = [];
     if (appConfig.scripts && appConfig.scripts.length) {
-        parseScriptEntry(appConfig.scripts, appRoot, 'scripts').forEach((scriptEntry: ScriptParsedEntry) => {
+        parseScriptEntry(appConfig.scripts, srcDir, 'scripts').forEach((scriptEntry: ScriptParsedEntry) => {
             if (chunkSortList.indexOf(scriptEntry.entry) === -1) {
                 chunkSortList.push(scriptEntry.entry);
             }
@@ -119,7 +119,7 @@ export function getHtmlInjectConfigPartial(webpackConfigOptions: WebpackConfigOp
 
         if (appConfig.htmlInjectOptions.index && appConfig.htmlInjectOptions.index.trim()) {
             extraPlugins.push(new HtmlWebpackPlugin({
-                template: path.resolve(appRoot, appConfig.htmlInjectOptions.index),
+                template: path.resolve(srcDir, appConfig.htmlInjectOptions.index),
                 filename: path.resolve(projectRoot,
                     appConfig.outDir,
                     appConfig.htmlInjectOptions.indexOut || appConfig.htmlInjectOptions.index),
@@ -344,7 +344,7 @@ export function getChunksConfigPartial(webpackConfigOptions: WebpackConfigOption
         return {};
     }
 
-    const srcDir = path.resolve(projectRoot, appConfig.srcDir);
+    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
     let entryPoints: { [key: string]: string[] } = {};
     const rules: any[] = [];
     const plugins: any[] = [];
@@ -372,7 +372,7 @@ export function getChunksConfigPartial(webpackConfigOptions: WebpackConfigOption
         path.resolve(projectRoot, 'aot-compiled', 'node_modules')
     ];
 
-    let tsConfigPath = path.resolve(projectRoot, appConfig.srcDir, appConfig.tsconfig || 'tsconfig.json');
+    let tsConfigPath = path.resolve(projectRoot, appConfig.srcDir || '', appConfig.tsconfig || 'tsconfig.json');
     const aotGenDirAbs = getAoTGenDirSync(tsConfigPath);
     if (tsConfigPath && aotGenDirAbs) {
         vendorChunkStartPaths.push(path.resolve(aotGenDirAbs, 'node_modules'));
@@ -389,7 +389,7 @@ export function getChunksConfigPartial(webpackConfigOptions: WebpackConfigOption
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
     const polyfillsChunkName = appConfig.polyfillsChunkName || 'polyfills';
     const inlineChunkName = appConfig.inlineChunkName || 'inline';
-    const mainChunkName = appConfig.mainOutFileName || 'main';
+    const mainChunkName = appConfig.outFileName || 'main';
 
     // polyfills
     const dllEntries: any[] = [];
@@ -482,7 +482,7 @@ export function getGlobalScriptsConfigPartial(webpackConfigOptions: WebpackConfi
         return {};
     }
 
-    const srcDir = path.resolve(projectRoot, appConfig.srcDir);
+    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
     const entryPoints: { [key: string]: string[] } = {};
 
     // global scripts

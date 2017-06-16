@@ -6,7 +6,7 @@
       "platfromTarget": "web",
       "srcDir": "",
       "outDir": "wwwroot",
-      "main": "main.browser.ts",
+      "entry": "main.browser.ts",
       "assets": [
         "assets/**/*"
       ],
@@ -132,7 +132,7 @@
           ]
         },
         "aot": {
-          //"main": "main.browser.aot.ts",
+          //"entry": "main.browser.aot.ts",
           //"tsconfig": "tsconfig.browser.aot.json"
         }
       }
@@ -142,7 +142,7 @@
       "extends": "browser",
       "platfromTarget": "node",
       "outDir": "dist",
-      "main": "main.server.ts",
+      "entry": "main.server.ts",
       "styles": [],
       "polyfills": [],
       "dlls": [],
@@ -161,7 +161,7 @@
           ]
         },
         "aot": {
-          //"main": "main.server.aot.ts",
+          //"entry": "main.server.aot.ts",
           //"tsconfig": "tsconfig.server.aot.json"
         },
         "universal": {

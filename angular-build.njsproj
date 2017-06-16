@@ -51,11 +51,12 @@
     <Content Include="bin\angular-build" />
     <Content Include="bin\ngb" />
     <Content Include="CHANGELOG.md" />
-    <Content Include="src\schemas\favicon-config-schema-draft-04.json" />
-    <Content Include="src\schemas\favicon-config-schema.json" />
-    <Content Include="src\schemas\schema-draft-04.json" />
-    <Content Include="src\schemas\schema.json" />
+    <Content Include="schemas\favicon-config-schema-draft-04.json" />
+    <Content Include="schemas\favicon-config-schema.json" />
+    <Content Include="schemas\schema-draft-04.json" />
+    <Content Include="schemas\schema.json" />
     <Content Include="templates\angular-build.lib.json" />
+    <Content Include="templates\angular-build.universal-app.json" />
     <Content Include="templates\favicon-config.json">
       <SubType>Code</SubType>
     </Content>
@@ -71,9 +72,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\" />
+    <Folder Include="schemas\" />
     <Folder Include="src\plugins\rollup-plugin-ng-resource-inline\" />
     <Folder Include="src\rollup-configs\" />
-    <Folder Include="src\schemas\" />
     <Folder Include="templates\" />
     <Folder Include="tools\" />
     <Folder Include="src\" />
@@ -162,9 +163,6 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\plugins\static-asset-webpack-plugin\index.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\cli\utils.ts.bak">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\utils\change-dash-case.ts" />

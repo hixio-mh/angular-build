@@ -32,7 +32,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     const projectConfig = webpackConfigOptions.projectConfig;
     const environment = buildOptions.environment || {};
 
-    const srcDir = path.resolve(projectRoot, projectConfig.srcDir);
+    const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
     const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
 
     const fileHashFormat = projectConfig.projectType === 'app' &&
@@ -146,7 +146,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         commonPlugins.push(new (webpack as any).ProgressPlugin({ profile: buildOptions.verbose }));
     }
 
-    const statOptions: webpack.Options.Stats = getWebpackToStringStatsOptions(projectConfig.webpackStats, buildOptions.verbose);
+    const statOptions: webpack.Options.Stats = getWebpackToStringStatsOptions(projectConfig.stats, buildOptions.verbose);
 
     let profile = (buildOptions as any).profile;
     const hot = environment.hot || environment.devServer;

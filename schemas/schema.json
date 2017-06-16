@@ -12,7 +12,7 @@
                 },
                 "assets": {
                     "default": [],
-                    "description": "List of assets to be copied to outDir.",
+                    "description": "List of assets to be copied to 'outDir'.",
                     "items": {
                         "anyOf": [
                             {
@@ -22,7 +22,7 @@
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root if from is file or dir.",
+                                        "description": "The output root.",
                                         "type": "string"
                                     }
                                 },
@@ -36,7 +36,7 @@
                     "type": "array"
                 },
                 "banner": {
-                    "description": "Banner text or file to add at the top of each generated bundle files.",
+                    "description": "Banner text or file name to add at the top of each generated bundle files.\nFor example, 'banner.txt'.",
                     "type": "string"
                 },
                 "baseHref": {
@@ -45,7 +45,7 @@
                 },
                 "bundleAnalyzerOptions": {
                     "$ref": "#/definitions/BundleAnalyzerOptions",
-                    "description": "Bundle analyzer options."
+                    "description": "Webpack Bundle analyzer options.\nThis is only used by webpack."
                 },
                 "disableDefaultWebpackConfigs": {
                     "description": "If true, only custom webpack config is processed.",
@@ -89,6 +89,10 @@
                         ]
                     },
                     "type": "array"
+                },
+                "entry": {
+                    "description": "The main entry file to be bundled.",
+                    "type": "string"
                 },
                 "envOverrides": {
                     "anyOf": [
@@ -134,6 +138,12 @@
                             "additionalProperties": {
                                 "anyOf": [
                                     {
+                                        "additionalProperties": {
+                                            "type": [
+                                                "string",
+                                                "boolean"
+                                            ]
+                                        },
                                         "properties": {
                                             "amd": {
                                                 "type": "string"
@@ -164,6 +174,12 @@
                                         "additionalProperties": {
                                             "anyOf": [
                                                 {
+                                                    "additionalProperties": {
+                                                        "type": [
+                                                            "string",
+                                                            "boolean"
+                                                        ]
+                                                    },
                                                     "properties": {
                                                         "amd": {
                                                             "type": "string"
@@ -241,23 +257,19 @@
                     "type": "array"
                 },
                 "libraryName": {
-                    "description": "The libraryName is used depending on the value of the libraryTarget options.",
+                    "description": "The libraryName is used depending on the value of the 'libraryTarget' options.",
                     "type": "string"
                 },
                 "libraryTarget": {
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
                 },
-                "main": {
-                    "description": "The main entry file to be bundled.",
-                    "type": "string"
-                },
-                "mainOutFileName": {
-                    "description": "The output bundle name for 'main' entry.",
-                    "type": "string"
+                "minify": {
+                    "description": "If true, minified files will be generated.",
+                    "type": "boolean"
                 },
                 "moduleReplacements": {
-                    "description": "Replaces resources with new resources.",
+                    "description": "Replaces resources with new resources.\nThis is only used by webpack.",
                     "items": {
                         "$ref": "#/definitions/ModuleReplacementEntry"
                     },
@@ -271,12 +283,16 @@
                     "description": "The output directory for build results.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
                     "type": "string"
                 },
+                "outFileName": {
+                    "description": "The output bundle file name for main entry.",
+                    "type": "string"
+                },
                 "performanceOptions": {
                     "$ref": "#/definitions/PerformanceOptions",
                     "description": "Performance options for application project."
                 },
                 "platformTarget": {
-                    "description": "Tells the build system which platform environment the application is targeting.",
+                    "description": "Tells the build system which platform environment the application is targeting.\nThis is only used by webpack.",
                     "enum": [
                         "async-node",
                         "electron-main",
@@ -309,7 +325,7 @@
                     "type": "string"
                 },
                 "preserveSymlinks": {
-                    "description": "Whether to resolve symlinks to their symlinked location.",
+                    "description": "Whether to resolve symlinks to their symlinked location.\nThis is only used by webpack.",
                     "type": "boolean"
                 },
                 "projectType": {
@@ -337,14 +353,15 @@
                             {
                                 "properties": {
                                     "from": {
-                                        "description": "The source file, it can be absolute or relative path or glob pattern.",
+                                        "description": "The source Javascript file",
                                         "type": "string"
                                     },
                                     "lazy": {
+                                        "description": "If true, it will be lazy loaded, and will not be injected to target html.",
                                         "type": "boolean"
                                     },
                                     "to": {
-                                        "description": "The output root if from is file or dir.",
+                                        "description": "The output script file name.",
                                         "type": "string"
                                     }
                                 },
@@ -366,7 +383,7 @@
                     "type": "boolean"
                 },
                 "sourceMapDevTool": {
-                    "description": "This option controls if and how source maps are generated.",
+                    "description": "This option controls if and how source maps are generated.\nThis is only used by webpack's devTool.",
                     "enum": [
                         "#@cheap-eval-source-map",
                         "#@cheap-module-eval-source-map",
@@ -413,8 +430,27 @@
                     ]
                 },
                 "srcDir": {
-                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nMostly 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and 'main' entry is present, default to directory of 'main' entry,\notherwise, current working directory is used.",
+                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and main entry is present, default to directory of main entry,\notherwise, current working directory is used.",
                     "type": "string"
+                },
+                "stats": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/WebpackStatsToStringOptions"
+                        },
+                        {
+                            "enum": [
+                                "errors-only",
+                                false,
+                                "minimal",
+                                "none",
+                                "normal",
+                                true,
+                                "verbose"
+                            ]
+                        }
+                    ],
+                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis is only used by webpack."
                 },
                 "stylePreprocessorOptions": {
                     "$ref": "#/definitions/StylePreprocessorOptions",
@@ -428,11 +464,11 @@
                             {
                                 "properties": {
                                     "from": {
-                                        "description": "The source file, it can be absolute or relative path or glob pattern.",
+                                        "description": "The source style file, it can be .scss/.sass, .less or .css",
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root if from is file or dir.",
+                                        "description": "The output style file name.",
                                         "type": "string"
                                     }
                                 },
@@ -446,7 +482,7 @@
                     "type": "array"
                 },
                 "tsLoader": {
-                    "description": "Typescript loader for webpack.",
+                    "description": "Typescript loader for webpack.\nThis is only used by webpack.",
                     "enum": [
                         "auto",
                         "ngtools/webpack"
@@ -455,7 +491,7 @@
                 },
                 "tsconfig": {
                     "default": "tsconfig.json",
-                    "description": "The typescript configuration file. Path is relative to 'srcDir'.",
+                    "description": "The typescript configuration file.",
                     "type": "string"
                 },
                 "vendorChunk": {
@@ -475,27 +511,8 @@
                     "type": "array"
                 },
                 "webpackConfig": {
-                    "description": "Specifies custom webpack config file to be merged. Paths will be resolved to project root.",
+                    "description": "Custom webpack config file to be merged. Path will be resolved to project root.",
                     "type": "string"
-                },
-                "webpackStats": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/WebpackStatsToStringOptions"
-                        },
-                        {
-                            "enum": [
-                                "errors-only",
-                                false,
-                                "minimal",
-                                "none",
-                                "normal",
-                                true,
-                                "verbose"
-                            ]
-                        }
-                    ],
-                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed."
                 }
             },
             "type": "object"
@@ -510,7 +527,7 @@
                 },
                 "assets": {
                     "default": [],
-                    "description": "List of assets to be copied to outDir.",
+                    "description": "List of assets to be copied to 'outDir'.",
                     "items": {
                         "anyOf": [
                             {
@@ -520,7 +537,7 @@
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root if from is file or dir.",
+                                        "description": "The output root.",
                                         "type": "string"
                                     }
                                 },
@@ -534,7 +551,7 @@
                     "type": "array"
                 },
                 "banner": {
-                    "description": "Banner text or file to add at the top of each generated bundle files.",
+                    "description": "Banner text or file name to add at the top of each generated bundle files.\nFor example, 'banner.txt'.",
                     "type": "string"
                 },
                 "baseHref": {
@@ -543,7 +560,7 @@
                 },
                 "bundleAnalyzerOptions": {
                     "$ref": "#/definitions/BundleAnalyzerOptions",
-                    "description": "Bundle analyzer options."
+                    "description": "Webpack Bundle analyzer options.\nThis is only used by webpack."
                 },
                 "disableDefaultWebpackConfigs": {
                     "description": "If true, only custom webpack config is processed.",
@@ -588,12 +605,22 @@
                     },
                     "type": "array"
                 },
+                "entry": {
+                    "description": "The main entry file to be bundled.",
+                    "type": "string"
+                },
                 "externals": {
                     "anyOf": [
                         {
                             "additionalProperties": {
                                 "anyOf": [
                                     {
+                                        "additionalProperties": {
+                                            "type": [
+                                                "string",
+                                                "boolean"
+                                            ]
+                                        },
                                         "properties": {
                                             "amd": {
                                                 "type": "string"
@@ -624,6 +651,12 @@
                                         "additionalProperties": {
                                             "anyOf": [
                                                 {
+                                                    "additionalProperties": {
+                                                        "type": [
+                                                            "string",
+                                                            "boolean"
+                                                        ]
+                                                    },
                                                     "properties": {
                                                         "amd": {
                                                             "type": "string"
@@ -701,23 +734,19 @@
                     "type": "array"
                 },
                 "libraryName": {
-                    "description": "The libraryName is used depending on the value of the libraryTarget options.",
+                    "description": "The libraryName is used depending on the value of the 'libraryTarget' options.",
                     "type": "string"
                 },
                 "libraryTarget": {
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
                 },
-                "main": {
-                    "description": "The main entry file to be bundled.",
-                    "type": "string"
-                },
-                "mainOutFileName": {
-                    "description": "The output bundle name for 'main' entry.",
-                    "type": "string"
+                "minify": {
+                    "description": "If true, minified files will be generated.",
+                    "type": "boolean"
                 },
                 "moduleReplacements": {
-                    "description": "Replaces resources with new resources.",
+                    "description": "Replaces resources with new resources.\nThis is only used by webpack.",
                     "items": {
                         "$ref": "#/definitions/ModuleReplacementEntry"
                     },
@@ -727,12 +756,16 @@
                     "description": "The output directory for build results.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
                     "type": "string"
                 },
+                "outFileName": {
+                    "description": "The output bundle file name for main entry.",
+                    "type": "string"
+                },
                 "performanceOptions": {
                     "$ref": "#/definitions/PerformanceOptions",
                     "description": "Performance options for application project."
                 },
                 "platformTarget": {
-                    "description": "Tells the build system which platform environment the application is targeting.",
+                    "description": "Tells the build system which platform environment the application is targeting.\nThis is only used by webpack.",
                     "enum": [
                         "async-node",
                         "electron-main",
@@ -765,7 +798,7 @@
                     "type": "string"
                 },
                 "preserveSymlinks": {
-                    "description": "Whether to resolve symlinks to their symlinked location.",
+                    "description": "Whether to resolve symlinks to their symlinked location.\nThis is only used by webpack.",
                     "type": "boolean"
                 },
                 "projectType": {
@@ -793,14 +826,15 @@
                             {
                                 "properties": {
                                     "from": {
-                                        "description": "The source file, it can be absolute or relative path or glob pattern.",
+                                        "description": "The source Javascript file",
                                         "type": "string"
                                     },
                                     "lazy": {
+                                        "description": "If true, it will be lazy loaded, and will not be injected to target html.",
                                         "type": "boolean"
                                     },
                                     "to": {
-                                        "description": "The output root if from is file or dir.",
+                                        "description": "The output script file name.",
                                         "type": "string"
                                     }
                                 },
@@ -822,7 +856,7 @@
                     "type": "boolean"
                 },
                 "sourceMapDevTool": {
-                    "description": "This option controls if and how source maps are generated.",
+                    "description": "This option controls if and how source maps are generated.\nThis is only used by webpack's devTool.",
                     "enum": [
                         "#@cheap-eval-source-map",
                         "#@cheap-module-eval-source-map",
@@ -869,8 +903,27 @@
                     ]
                 },
                 "srcDir": {
-                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nMostly 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and 'main' entry is present, default to directory of 'main' entry,\notherwise, current working directory is used.",
+                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and main entry is present, default to directory of main entry,\notherwise, current working directory is used.",
                     "type": "string"
+                },
+                "stats": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/WebpackStatsToStringOptions"
+                        },
+                        {
+                            "enum": [
+                                "errors-only",
+                                false,
+                                "minimal",
+                                "none",
+                                "normal",
+                                true,
+                                "verbose"
+                            ]
+                        }
+                    ],
+                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis is only used by webpack."
                 },
                 "stylePreprocessorOptions": {
                     "$ref": "#/definitions/StylePreprocessorOptions",
@@ -884,11 +937,11 @@
                             {
                                 "properties": {
                                     "from": {
-                                        "description": "The source file, it can be absolute or relative path or glob pattern.",
+                                        "description": "The source style file, it can be .scss/.sass, .less or .css",
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root if from is file or dir.",
+                                        "description": "The output style file name.",
                                         "type": "string"
                                     }
                                 },
@@ -902,7 +955,7 @@
                     "type": "array"
                 },
                 "tsLoader": {
-                    "description": "Typescript loader for webpack.",
+                    "description": "Typescript loader for webpack.\nThis is only used by webpack.",
                     "enum": [
                         "auto",
                         "ngtools/webpack"
@@ -911,7 +964,7 @@
                 },
                 "tsconfig": {
                     "default": "tsconfig.json",
-                    "description": "The typescript configuration file. Path is relative to 'srcDir'.",
+                    "description": "The typescript configuration file.",
                     "type": "string"
                 },
                 "vendorChunk": {
@@ -931,27 +984,8 @@
                     "type": "array"
                 },
                 "webpackConfig": {
-                    "description": "Specifies custom webpack config file to be merged. Paths will be resolved to project root.",
+                    "description": "Custom webpack config file to be merged. Path will be resolved to project root.",
                     "type": "string"
-                },
-                "webpackStats": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/WebpackStatsToStringOptions"
-                        },
-                        {
-                            "enum": [
-                                "errors-only",
-                                false,
-                                "minimal",
-                                "none",
-                                "normal",
-                                true,
-                                "verbose"
-                            ]
-                        }
-                    ],
-                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed."
                 }
             },
             "type": "object"
@@ -981,11 +1015,7 @@
                     },
                     "type": "object"
                 },
-                "production": {
-                    "description": "Set true for production build target.",
-                    "type": "boolean"
-                },
-                "project": {
+                "filter": {
                     "anyOf": [
                         {
                             "items": {
@@ -999,6 +1029,10 @@
                     ],
                     "description": "Project filter to build only specific app(s) or lib(s). Specifies target app or lib project name(s)."
                 },
+                "production": {
+                    "description": "Set true for production build target.",
+                    "type": "boolean"
+                },
                 "verbose": {
                     "default": false,
                     "description": "If true, the console displays detailed diagnostic information.",
@@ -1009,7 +1043,7 @@
         },
         "BundleAnalyzerOptions": {
             "additionalProperties": false,
-            "description": "Bundle analyzer options",
+            "description": "Webpack bundle analyzer options",
             "properties": {
                 "generateAnalyzerReport": {
                     "default": false,
@@ -1051,25 +1085,31 @@
                     "description": "Adds `@__PURE__` annotation comments to IIFEs for library bundle with es5 target and umd format.",
                     "type": "boolean"
                 },
-                "bundleOutFileName": {
-                    "description": "Custom bundle output file name.",
+                "entry": {
+                    "description": "Custom main entry file name, if not present, main entry will be used.\nIf 'entryResolution' is present, path will be resolved from 'entryResolution.entryRoot'.",
                     "type": "string"
                 },
                 "entryResolution": {
                     "description": "Custom entry resolution for bundling. If not specified, main entry is used.",
                     "properties": {
-                        "source": {
-                            "description": "Entry resolution source.",
+                        "bundleTargetIndex": {
+                            "description": "If 'bundleTargets' is array, name or array index can be specified.\nIf not specified, previous item will be used.",
+                            "type": [
+                                "string",
+                                "number"
+                            ]
+                        },
+                        "entryRoot": {
+                            "description": "Entry resolution root directory.",
                             "enum": [
-                                "bundleTargets",
+                                "bundleTargetOutDir",
                                 "outDir",
-                                "prevBundleTarget",
-                                "tsTranspilations"
+                                "tsTranspilationOutDir"
                             ],
                             "type": "string"
                         },
-                        "sourceIndex": {
-                            "description": "Array items index or name of tsTranspilations or bundleTargets.\nIf not specified first or default item is used.",
+                        "tsTranspilationIndex": {
+                            "description": "If 'tsTranspilations' is array, name or array index can be specified.\nIf not specified, first item will be used.",
                             "type": [
                                 "string",
                                 "number"
@@ -1077,13 +1117,6 @@
                         }
                     },
                     "type": "object"
-                },
-                "inlineResourceIncludes": {
-                    "description": "Search pattern for inline resources.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
                 },
                 "inlineResources": {
                     "default": true,
@@ -1099,17 +1132,26 @@
                     "type": "string"
                 },
                 "outDir": {
-                    "description": "Custom outuput directory for bundled results.",
+                    "description": "Custom output directory for bundled results.",
                     "type": "string"
                 },
-                "transformOnly": {
-                    "description": "Transform source to specific ECMA target only.",
+                "outFileName": {
+                    "description": "Custom bundle output file name.",
+                    "type": "string"
+                },
+                "scriptTarget": {
+                    "default": "none",
+                    "description": "Transforms entry file or bundled result to specific ECMA script target.",
+                    "enum": [
+                        "es5",
+                        "none"
+                    ],
+                    "type": "string"
+                },
+                "transformScriptTargetOnly": {
+                    "default": false,
+                    "description": "If true, the process will perform script target transformation only.",
                     "type": "boolean"
-                },
-                "transformTarget": {
-                    "description": "Transform ECMA script target.",
-                    "const": "es5",
-                    "type": "string"
                 }
             },
             "type": "object"
@@ -1169,7 +1211,7 @@
             "properties": {
                 "assets": {
                     "default": [],
-                    "description": "List of assets to be copied to outDir.",
+                    "description": "List of assets to be copied to 'outDir'.",
                     "items": {
                         "anyOf": [
                             {
@@ -1179,7 +1221,7 @@
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root if from is file or dir.",
+                                        "description": "The output root.",
                                         "type": "string"
                                     }
                                 },
@@ -1193,12 +1235,12 @@
                     "type": "array"
                 },
                 "banner": {
-                    "description": "Banner text or file to add at the top of each generated bundle files.",
+                    "description": "Banner text or file name to add at the top of each generated bundle files.\nFor example, 'banner.txt'.",
                     "type": "string"
                 },
                 "bundleAnalyzerOptions": {
                     "$ref": "#/definitions/BundleAnalyzerOptions",
-                    "description": "Bundle analyzer options."
+                    "description": "Webpack Bundle analyzer options.\nThis is only used by webpack."
                 },
                 "bundleTargets": {
                     "anyOf": [
@@ -1226,6 +1268,10 @@
                 "disableDefaultWebpackConfigs": {
                     "description": "If true, only custom webpack config is processed.",
                     "type": "boolean"
+                },
+                "entry": {
+                    "description": "The main entry file to be bundled.",
+                    "type": "string"
                 },
                 "envOverrides": {
                     "anyOf": [
@@ -1259,6 +1305,12 @@
                             "additionalProperties": {
                                 "anyOf": [
                                     {
+                                        "additionalProperties": {
+                                            "type": [
+                                                "string",
+                                                "boolean"
+                                            ]
+                                        },
                                         "properties": {
                                             "amd": {
                                                 "type": "string"
@@ -1289,6 +1341,12 @@
                                         "additionalProperties": {
                                             "anyOf": [
                                                 {
+                                                    "additionalProperties": {
+                                                        "type": [
+                                                            "string",
+                                                            "boolean"
+                                                        ]
+                                                    },
                                                     "properties": {
                                                         "amd": {
                                                             "type": "string"
@@ -1331,23 +1389,19 @@
                     "type": "boolean"
                 },
                 "libraryName": {
-                    "description": "The libraryName is used depending on the value of the libraryTarget options.",
+                    "description": "The libraryName is used depending on the value of the 'libraryTarget' options.",
                     "type": "string"
                 },
                 "libraryTarget": {
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
                 },
-                "main": {
-                    "description": "The main entry file to be bundled.",
-                    "type": "string"
-                },
-                "mainOutFileName": {
-                    "description": "The output bundle name for 'main' entry.",
-                    "type": "string"
+                "minify": {
+                    "description": "If true, minified files will be generated.",
+                    "type": "boolean"
                 },
                 "moduleReplacements": {
-                    "description": "Replaces resources with new resources.",
+                    "description": "Replaces resources with new resources.\nThis is only used by webpack.",
                     "items": {
                         "$ref": "#/definitions/ModuleReplacementEntry"
                     },
@@ -1361,12 +1415,16 @@
                     "description": "The output directory for build results.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
                     "type": "string"
                 },
+                "outFileName": {
+                    "description": "The output bundle file name for main entry.",
+                    "type": "string"
+                },
                 "packageOptions": {
                     "$ref": "#/definitions/PackageOptions",
-                    "description": "Package options for library project."
+                    "description": "Packaging options for library project."
                 },
                 "platformTarget": {
-                    "description": "Tells the build system which platform environment the application is targeting.",
+                    "description": "Tells the build system which platform environment the application is targeting.\nThis is only used by webpack.",
                     "enum": [
                         "async-node",
                         "electron-main",
@@ -1379,7 +1437,7 @@
                     "type": "string"
                 },
                 "preserveSymlinks": {
-                    "description": "Whether to resolve symlinks to their symlinked location.",
+                    "description": "Whether to resolve symlinks to their symlinked location.\nThis is only used by webpack.",
                     "type": "boolean"
                 },
                 "projectType": {
@@ -1399,7 +1457,7 @@
                     "type": "boolean"
                 },
                 "sourceMapDevTool": {
-                    "description": "This option controls if and how source maps are generated.",
+                    "description": "This option controls if and how source maps are generated.\nThis is only used by webpack's devTool.",
                     "enum": [
                         "#@cheap-eval-source-map",
                         "#@cheap-module-eval-source-map",
@@ -1446,8 +1504,27 @@
                     ]
                 },
                 "srcDir": {
-                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nMostly 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and 'main' entry is present, default to directory of 'main' entry,\notherwise, current working directory is used.",
+                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and main entry is present, default to directory of main entry,\notherwise, current working directory is used.",
                     "type": "string"
+                },
+                "stats": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/WebpackStatsToStringOptions"
+                        },
+                        {
+                            "enum": [
+                                "errors-only",
+                                false,
+                                "minimal",
+                                "none",
+                                "normal",
+                                true,
+                                "verbose"
+                            ]
+                        }
+                    ],
+                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis is only used by webpack."
                 },
                 "stylePreprocessorOptions": {
                     "$ref": "#/definitions/StylePreprocessorOptions",
@@ -1461,11 +1538,11 @@
                             {
                                 "properties": {
                                     "from": {
-                                        "description": "The source file, it can be absolute or relative path or glob pattern.",
+                                        "description": "The source style file, it can be .scss/.sass, .less or .css",
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root if from is file or dir.",
+                                        "description": "The output style file name.",
                                         "type": "string"
                                     }
                                 },
@@ -1479,7 +1556,7 @@
                     "type": "array"
                 },
                 "tsLoader": {
-                    "description": "Typescript loader for webpack.",
+                    "description": "Typescript loader for webpack.\nThis is only used by webpack.",
                     "enum": [
                         "auto",
                         "ngtools/webpack"
@@ -1502,31 +1579,12 @@
                 },
                 "tsconfig": {
                     "default": "tsconfig.json",
-                    "description": "The typescript configuration file. Path is relative to 'srcDir'.",
+                    "description": "The typescript configuration file.",
                     "type": "string"
                 },
                 "webpackConfig": {
-                    "description": "Specifies custom webpack config file to be merged. Paths will be resolved to project root.",
+                    "description": "Custom webpack config file to be merged. Path will be resolved to project root.",
                     "type": "string"
-                },
-                "webpackStats": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/WebpackStatsToStringOptions"
-                        },
-                        {
-                            "enum": [
-                                "errors-only",
-                                false,
-                                "minimal",
-                                "none",
-                                "normal",
-                                true,
-                                "verbose"
-                            ]
-                        }
-                    ],
-                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed."
                 }
             },
             "type": "object"
@@ -1537,7 +1595,7 @@
             "properties": {
                 "assets": {
                     "default": [],
-                    "description": "List of assets to be copied to outDir.",
+                    "description": "List of assets to be copied to 'outDir'.",
                     "items": {
                         "anyOf": [
                             {
@@ -1547,7 +1605,7 @@
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root if from is file or dir.",
+                                        "description": "The output root.",
                                         "type": "string"
                                     }
                                 },
@@ -1561,12 +1619,12 @@
                     "type": "array"
                 },
                 "banner": {
-                    "description": "Banner text or file to add at the top of each generated bundle files.",
+                    "description": "Banner text or file name to add at the top of each generated bundle files.\nFor example, 'banner.txt'.",
                     "type": "string"
                 },
                 "bundleAnalyzerOptions": {
                     "$ref": "#/definitions/BundleAnalyzerOptions",
-                    "description": "Bundle analyzer options."
+                    "description": "Webpack Bundle analyzer options.\nThis is only used by webpack."
                 },
                 "bundleTargets": {
                     "anyOf": [
@@ -1595,12 +1653,22 @@
                     "description": "If true, only custom webpack config is processed.",
                     "type": "boolean"
                 },
+                "entry": {
+                    "description": "The main entry file to be bundled.",
+                    "type": "string"
+                },
                 "externals": {
                     "anyOf": [
                         {
                             "additionalProperties": {
                                 "anyOf": [
                                     {
+                                        "additionalProperties": {
+                                            "type": [
+                                                "string",
+                                                "boolean"
+                                            ]
+                                        },
                                         "properties": {
                                             "amd": {
                                                 "type": "string"
@@ -1631,6 +1699,12 @@
                                         "additionalProperties": {
                                             "anyOf": [
                                                 {
+                                                    "additionalProperties": {
+                                                        "type": [
+                                                            "string",
+                                                            "boolean"
+                                                        ]
+                                                    },
                                                     "properties": {
                                                         "amd": {
                                                             "type": "string"
@@ -1673,23 +1747,19 @@
                     "type": "boolean"
                 },
                 "libraryName": {
-                    "description": "The libraryName is used depending on the value of the libraryTarget options.",
+                    "description": "The libraryName is used depending on the value of the 'libraryTarget' options.",
                     "type": "string"
                 },
                 "libraryTarget": {
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
                 },
-                "main": {
-                    "description": "The main entry file to be bundled.",
-                    "type": "string"
-                },
-                "mainOutFileName": {
-                    "description": "The output bundle name for 'main' entry.",
-                    "type": "string"
+                "minify": {
+                    "description": "If true, minified files will be generated.",
+                    "type": "boolean"
                 },
                 "moduleReplacements": {
-                    "description": "Replaces resources with new resources.",
+                    "description": "Replaces resources with new resources.\nThis is only used by webpack.",
                     "items": {
                         "$ref": "#/definitions/ModuleReplacementEntry"
                     },
@@ -1699,12 +1769,16 @@
                     "description": "The output directory for build results.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
                     "type": "string"
                 },
+                "outFileName": {
+                    "description": "The output bundle file name for main entry.",
+                    "type": "string"
+                },
                 "packageOptions": {
                     "$ref": "#/definitions/PackageOptions",
-                    "description": "Package options for library project."
+                    "description": "Packaging options for library project."
                 },
                 "platformTarget": {
-                    "description": "Tells the build system which platform environment the application is targeting.",
+                    "description": "Tells the build system which platform environment the application is targeting.\nThis is only used by webpack.",
                     "enum": [
                         "async-node",
                         "electron-main",
@@ -1717,7 +1791,7 @@
                     "type": "string"
                 },
                 "preserveSymlinks": {
-                    "description": "Whether to resolve symlinks to their symlinked location.",
+                    "description": "Whether to resolve symlinks to their symlinked location.\nThis is only used by webpack.",
                     "type": "boolean"
                 },
                 "projectType": {
@@ -1737,7 +1811,7 @@
                     "type": "boolean"
                 },
                 "sourceMapDevTool": {
-                    "description": "This option controls if and how source maps are generated.",
+                    "description": "This option controls if and how source maps are generated.\nThis is only used by webpack's devTool.",
                     "enum": [
                         "#@cheap-eval-source-map",
                         "#@cheap-module-eval-source-map",
@@ -1784,8 +1858,27 @@
                     ]
                 },
                 "srcDir": {
-                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nMostly 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and 'main' entry is present, default to directory of 'main' entry,\notherwise, current working directory is used.",
+                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and main entry is present, default to directory of main entry,\notherwise, current working directory is used.",
                     "type": "string"
+                },
+                "stats": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/WebpackStatsToStringOptions"
+                        },
+                        {
+                            "enum": [
+                                "errors-only",
+                                false,
+                                "minimal",
+                                "none",
+                                "normal",
+                                true,
+                                "verbose"
+                            ]
+                        }
+                    ],
+                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis is only used by webpack."
                 },
                 "stylePreprocessorOptions": {
                     "$ref": "#/definitions/StylePreprocessorOptions",
@@ -1799,11 +1892,11 @@
                             {
                                 "properties": {
                                     "from": {
-                                        "description": "The source file, it can be absolute or relative path or glob pattern.",
+                                        "description": "The source style file, it can be .scss/.sass, .less or .css",
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root if from is file or dir.",
+                                        "description": "The output style file name.",
                                         "type": "string"
                                     }
                                 },
@@ -1817,7 +1910,7 @@
                     "type": "array"
                 },
                 "tsLoader": {
-                    "description": "Typescript loader for webpack.",
+                    "description": "Typescript loader for webpack.\nThis is only used by webpack.",
                     "enum": [
                         "auto",
                         "ngtools/webpack"
@@ -1840,31 +1933,12 @@
                 },
                 "tsconfig": {
                     "default": "tsconfig.json",
-                    "description": "The typescript configuration file. Path is relative to 'srcDir'.",
+                    "description": "The typescript configuration file.",
                     "type": "string"
                 },
                 "webpackConfig": {
-                    "description": "Specifies custom webpack config file to be merged. Paths will be resolved to project root.",
+                    "description": "Custom webpack config file to be merged. Path will be resolved to project root.",
                     "type": "string"
-                },
-                "webpackStats": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/WebpackStatsToStringOptions"
-                        },
-                        {
-                            "enum": [
-                                "errors-only",
-                                false,
-                                "minimal",
-                                "none",
-                                "normal",
-                                true,
-                                "verbose"
-                            ]
-                        }
-                    ],
-                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed."
                 }
             },
             "type": "object"
@@ -1903,7 +1977,7 @@
         },
         "PackageOptions": {
             "additionalProperties": false,
-            "description": "Package options for library project",
+            "description": "Packaging options for library project",
             "properties": {
                 "es2015": {
                     "description": "The es2015 module index for package.json file.",
@@ -1917,8 +1991,8 @@
                     "description": "The esm module index for package.json file.",
                     "type": "string"
                 },
-                "packageConfigSource": {
-                    "description": "The source package.json file to be copied.",
+                "packageConfigFile": {
+                    "description": "The source package.json file to be updated and copied.",
                     "type": "string"
                 },
                 "readMeFile": {
@@ -1931,7 +2005,7 @@
                 },
                 "useRootPackageConfigVerion": {
                     "default": true,
-                    "description": "If true, update version in package.json with root's one.",
+                    "description": "If true, update version in package.json with project root package.json's version.",
                     "type": "boolean"
                 }
             },
@@ -1939,7 +2013,7 @@
         },
         "PerformanceOptions": {
             "additionalProperties": false,
-            "description": "Performance options",
+            "description": "Webpack performance options",
             "properties": {
                 "hints": {
                     "description": "Turns hints on/off. In addition, tells webpack to throw either an error or a warning when hints are\nfound. This property is set to \"warning\" by default.",

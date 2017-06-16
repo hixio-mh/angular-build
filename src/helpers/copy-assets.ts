@@ -12,7 +12,6 @@ export async function copyAssets(baseDir: string, outDir: string, assetEntries: 
     await Promise.all(parsedAssetEntries.map(async (assetEntry: AssetParsedEntry) => {
         if (typeof assetEntry.from === 'string') {
             const absoluteFrom = path.resolve(assetEntry.from);
-
             const relativeFrom = path.relative(baseDir, absoluteFrom);
             const dest = path.resolve(outDir, assetEntry.to || relativeFrom);
             await fs.copy(absoluteFrom, dest);

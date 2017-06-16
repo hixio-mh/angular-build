@@ -1,9 +1,8 @@
-﻿import * as yargs from 'yargs';
+﻿import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as yargs from 'yargs';
 
 import { chageDashCase, colorize, yargsTypeMap } from '../../utils';
-
-// ReSharper disable once CommonJsExternalModule
-const schema = require('../../schemas/schema.json');
 
 export function getBuildCommandModule(cliVersion: string): yargs.CommandModule {
     const buildCommandUsage = `\n${colorize(`angular-build ${cliVersion}`, 'green')}\n
@@ -55,6 +54,18 @@ Usage:
                         alias: 'environment',
                         describe: 'Additional build target environment'
                 });
+
+            let schemaPath = './schemas/schema.json';
+            if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
+                schemaPath = '../schemas/schema.json';
+            }
+            if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
+                schemaPath = '../../schemas/schema.json';
+            }
+            if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
+                schemaPath = '../../../schemas/schema.json';
+            }
+            const schema = require(schemaPath);
 
             const buildOptionsSchema = schema.definitions.BuildOptions.properties;
             Object.keys(buildOptionsSchema).filter((key: string) => key !== 'test' && key !== 'environment').forEach((key: string) => {

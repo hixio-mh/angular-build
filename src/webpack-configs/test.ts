@@ -207,7 +207,7 @@ export function getTestConfig(webpackConfigOptions: WebpackConfigOptions): webpa
     logger.log('\n');
     logger.infoLine(`Using test config, env: ${JSON
         .stringify(buildOptions.environment)}, name: ${projectConfig.name}, platform target: ${projectConfig
-            .platformTarget}, test entry: ${projectConfig.main}\n`);
+            .platformTarget}, test entry: ${projectConfig.entry}\n`);
 
     const configs: any[] = [
         getCommonConfigPartial(webpackConfigOptions),
@@ -265,7 +265,7 @@ export function getTestConfigPartial(webpackConfigOptions: WebpackConfigOptions)
         //   devtool: testConfig.sourcemaps ? 'inline-source-map' : 'eval',
         entry: {
             // appConfig.test
-            test: path.resolve(projectRoot, projectConfig.srcDir, projectConfig.main)
+            test: path.resolve(projectRoot, projectConfig.srcDir, projectConfig.entry)
         },
         module: {
             rules: extraRules

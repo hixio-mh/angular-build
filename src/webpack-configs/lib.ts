@@ -19,23 +19,16 @@ export function getLibWebpackConfig(webpackConfigOptions: WebpackConfigOptions):
     const logger = webpackConfigOptions.logger || new Logger();
 
     if (!webpackConfigOptions.silent) {
-        logger.log('\n');
-        let msg = 'Using webpack lib config:';
-        const envStr = Object.keys(environment).map(key => `${key}: ${environment[key]}`).join(', ');
-        if (libConfig.main) {
-            msg += `\nmain entry       - ${libConfig.main}`;
-        }
+        let msg = 'Using rollup lib config:';
+        msg += ` main entry - ${webpackConfigOptions.bundleEntryFile || libConfig.entry || 'index.js'}`;
         if (libConfig.platformTarget) {
-            msg += `\nplatform target  - ${libConfig.platformTarget}`;
+            msg += `, platform target - ${libConfig.platformTarget}`;
         }
-        if (libConfig.libraryTarget) {
-            msg += `\nlibrary format   - ${libConfig.libraryTarget}`;
+        msg += `, library format - ${libConfig.libraryTarget}`;
+        if (Object.keys(environment)) {
+            msg += `, environment - ${JSON.stringify(environment)}`;
         }
-        if (envStr) {
-            msg += `\nenvironment      - ${envStr}`;
-        }
-        logger.infoLine(msg);
-        logger.log('\n');
+        logger.logLine(msg);
     }
 
     const configs: any[] = [
@@ -53,11 +46,7 @@ export function getLibConfigPartial(webpackConfigOptions: WebpackConfigOptions):
     const libConfig = webpackConfigOptions.projectConfig as LibProjectConfig;
 
     const bundleRoot = webpackConfigOptions.bundleRoot || path.resolve(projectRoot, libConfig.srcDir || '');
-    const bundleEntryFile = webpackConfigOptions.bundleEntryFile || libConfig.main;
-
-    if (!bundleEntryFile) {
-        throw new Error(`Them 'main' entry is required at lib config.`);
-    }
+    const bundleEntryFile = webpackConfigOptions.bundleEntryFile || libConfig.entry || 'index.js';
 
     if (!webpackConfigOptions.bundleOutFileName) {
         throw new Error(`The 'webpackConfigOptions.bundleOutFileName' is required.`);

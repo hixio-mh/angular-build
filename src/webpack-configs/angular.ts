@@ -22,7 +22,6 @@ import { WebpackConfigOptions } from './webpack-config-options';
  * require('ng-router-loader')
  * require('awesome-typescript-loader')
  * require('angular2-template-loader')
- * require('string-replace-loader')'
  */
 
 export function getAngularConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
@@ -38,7 +37,7 @@ export function getAngularConfigPartial(webpackConfigOptions: WebpackConfigOptio
             useAoTPlugin = false;
             if (!webpackConfigOptions.silent) {
                 logger.log('\n');
-                logger.warnLine(`'@ngtools/webpack' is automatically disabled when using 'referenceDll' option.\n`);
+                logger.warnLine(`'@ngtools/webpack' is automatically disabled when using 'referenceDll' option.`);
             }
         }
 
@@ -46,7 +45,7 @@ export function getAngularConfigPartial(webpackConfigOptions: WebpackConfigOptio
             useAoTPlugin = false;
             if (!webpackConfigOptions.silent) {
                 logger.log('\n');
-                logger.warnLine(`'@ngtools/webpack' is automatically disabled when using dll build.\n`);
+                logger.warnLine(`'@ngtools/webpack' is automatically disabled when using dll build.`);
             }
         }
     } else {
@@ -55,8 +54,8 @@ export function getAngularConfigPartial(webpackConfigOptions: WebpackConfigOptio
             !environment.lib &&
             !environment.test &&
             !(projectConfig as AppProjectConfig).referenceDll &&
-            !!projectConfig.main &&
-            !(/\.aot\.ts$/i.test(projectConfig.main));
+            !!projectConfig.entry &&
+            (projectConfig as AppProjectConfig).tsLoader !== 'auto';
     }
 
     return useAoTPlugin
@@ -85,7 +84,7 @@ function getTypescriptAoTPluginConfigPartial(webpackConfigOptions: WebpackConfig
         // exclude: [/\.(spec|e2e|e2e-spec)\.ts$/]
     }];
 
-    const tsConfigPath = path.resolve(projectRoot, projectConfig.srcDir, projectConfig.tsconfig || 'tsconfig.json');
+    const tsConfigPath = path.resolve(projectRoot, projectConfig.srcDir || '', projectConfig.tsconfig || 'tsconfig.json');
     const hostReplacementPaths: any = getHostReplacementPaths(projectRoot, projectConfig);
     const aotOptions: any = { exclude, tsConfigPath, hostReplacementPaths };
 
@@ -119,13 +118,19 @@ function getTypescriptDefaultPluginConfigPartial(webpackConfigOptions: WebpackCo
         new CheckerPlugin()
     ];
 
-    let tsConfigPath = path.resolve(projectRoot, projectConfig.srcDir, projectConfig.tsconfig || 'tsconfig.json');
+    const tsConfigPath = path.resolve(projectRoot, projectConfig.srcDir || '', projectConfig.tsconfig || 'tsconfig.json');
 
     // TODO: to review
     const aotGenDirAbs = getAoTGenDirSync(tsConfigPath);
     const aotGenDirRel = path.relative(projectRoot, aotGenDirAbs || '');
     const testExcludes = [/\.(spec|e2e|e2e-spec)\.ts$/];
-    const moduleIdReplaceSearchPattern = '\\s*moduleId:\\s*module\\.id\\s*,?\\s*';
+    // const moduleIdReplaceSearchPattern = '\\s*moduleId:\\s*module\\.id\\s*,?\\s*';
+
+    const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
+    // IMPORTANT: To solve 'Cannot read property 'newLine' of undefined' error.
+    const tsLoader = webpackIsGlobal ? require.resolve('awesome-typescript-loader') : 'awesome-typescript-loader';
+    const ngTemplateLoader = webpackIsGlobal ? require.resolve('angular2-template-loader') : 'angular2-template-loader';
+    const ngRouterLoader = webpackIsGlobal ? require.resolve('ng-router-loader') : 'ng-router-loader';
 
     // rules
     if (environment.test) {
@@ -133,7 +138,7 @@ function getTypescriptDefaultPluginConfigPartial(webpackConfigOptions: WebpackCo
             test: /\.ts$/,
             use: [
                 {
-                    loader: 'awesome-typescript-loader',
+                    loader: tsLoader,
                     options: {
                         // use inline sourcemaps for "karma-remap-coverage" reporter
                         sourceMap: false,
@@ -147,15 +152,7 @@ function getTypescriptDefaultPluginConfigPartial(webpackConfigOptions: WebpackCo
                     }
                 },
                 {
-                    loader: 'angular2-template-loader'
-                },
-                {
-                    loader: 'string-replace-loader',
-                    options: {
-                        search: '\s*moduleId:\s*module\.id\s*,?\s*',
-                        replace: '',
-                        flags: 'g'
-                    }
+                    loader: ngTemplateLoader
                 }
             ],
             exclude: [/\.(e2e|e2e-spec)\.ts$/]
@@ -165,7 +162,7 @@ function getTypescriptDefaultPluginConfigPartial(webpackConfigOptions: WebpackCo
             test: /\.ts$/,
             use: [
                 {
-                    loader: 'awesome-typescript-loader',
+                    loader: tsLoader,
                     options: {
                         instance: `at-${projectConfig.name || 'app'}-lib-loader`,
                         configFileName: tsConfigPath
@@ -180,7 +177,7 @@ function getTypescriptDefaultPluginConfigPartial(webpackConfigOptions: WebpackCo
             test: /\.ts$/,
             use: [
                 {
-                    loader: 'awesome-typescript-loader',
+                    loader: tsLoader,
                     options: {
                         instance: `at-${projectConfig.name || 'app'}-lib-loader`,
                         configFileName: tsConfigPath
@@ -188,15 +185,7 @@ function getTypescriptDefaultPluginConfigPartial(webpackConfigOptions: WebpackCo
                     }
                 },
                 {
-                    loader: 'angular2-template-loader'
-                },
-                {
-                    loader: 'string-replace-loader',
-                    options: {
-                        search: moduleIdReplaceSearchPattern,
-                        replace: '\n',
-                        flags: 'g'
-                    }
+                    loader: ngTemplateLoader
                 }
             ],
             exclude: testExcludes
@@ -215,7 +204,7 @@ function getTypescriptDefaultPluginConfigPartial(webpackConfigOptions: WebpackCo
                 {
                     // MAKE SURE TO CHAIN VANILLA JS CODE, I.E. TS COMPILATION OUTPUT.
                     // TODO: v2.1.0 -> to fix loader-utils -> parseQuery() will be replaced with getOptions()
-                    loader: `ng-router-loader?${JSON.stringify({
+                    loader: `${ngRouterLoader}?${JSON.stringify({
                         loader: 'async-import',
                         genDir: aotGenDirRel,
                         aot: environment.aot,
@@ -223,23 +212,24 @@ function getTypescriptDefaultPluginConfigPartial(webpackConfigOptions: WebpackCo
                     })}`
                 },
                 {
-                    loader: 'awesome-typescript-loader',
+                    loader: tsLoader,
                     options: {
                         instance: `at-${projectConfig.name || 'app'}-loader`,
                         configFileName: tsConfigPath
                     }
                 },
                 {
-                    loader: 'angular2-template-loader'
-                },
-                {
-                    loader: 'string-replace-loader',
-                    options: {
-                        search: moduleIdReplaceSearchPattern,
-                        replace: '',
-                        flags: 'g'
-                    }
+                    loader: ngTemplateLoader
                 }
+                // sourcemaps may be mis-generated.
+                // {
+                //    loader: 'string-replace-loader',
+                //    options: {
+                //        search: moduleIdReplaceSearchPattern,
+                //        replace: '',
+                //        flags: 'g'
+                //    }
+                // }
             ],
             exclude: testExcludes
         });
@@ -290,22 +280,22 @@ function getTypescriptDefaultPluginConfigPartial(webpackConfigOptions: WebpackCo
 }
 
 function getAngularFixPlugins(projectRoot: string, projectConfig: ProjectConfig): any[] {
-    const srcDir = path.resolve(projectRoot, projectConfig.srcDir);
-    const angular2FixPlugins: any[] = [];
+    const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
+    const angularFixPlugins: any[] = [];
 
     // see:  https://github.com/angular/angular/issues/11580
     if ((projectConfig as AppProjectConfig).platformTarget === 'node' ||
         (projectConfig as AppProjectConfig).platformTarget === 'async-node' ||
         (projectConfig as AppProjectConfig).platformTarget === 'node-webkit') {
         // TODO: to review
-        angular2FixPlugins.push(
+        angularFixPlugins.push(
             new webpack.ContextReplacementPlugin(
                 /\@angular\b.*\b(bundles|linker)/,
                 srcDir
             )
         );
     } else {
-        angular2FixPlugins.push(
+        angularFixPlugins.push(
             new webpack.ContextReplacementPlugin(
                 // Angular 2
                 /// angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
@@ -316,7 +306,7 @@ function getAngularFixPlugins(projectRoot: string, projectConfig: ProjectConfig)
         );
     }
 
-    return angular2FixPlugins;
+    return angularFixPlugins;
 }
 
 function createAotPlugin(webpackConfigOptions: WebpackConfigOptions, aotOptions: any): any {
@@ -325,8 +315,8 @@ function createAotPlugin(webpackConfigOptions: WebpackConfigOptions, aotOptions:
     const projectConfig = webpackConfigOptions.projectConfig;
     const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
 
-    if (!projectConfig.main) {
-        throw new Error(`The 'projectConfig.main' property is required.`);
+    if (!projectConfig.entry) {
+        throw new Error(`The 'projectConfig.entry' property is required.`);
     }
 
     // ReSharper disable CommonJsExternalModule
@@ -342,7 +332,7 @@ function createAotPlugin(webpackConfigOptions: WebpackConfigOptions, aotOptions:
             // IMPORTANT
             // If not specifed mainPath and angularCompilerOptions, awesome error occurs:
             // ERROR in Cannot read property 'split' of undefined
-            mainPath: path.join(projectRoot, projectConfig.srcDir || '', projectConfig.main),
+            mainPath: path.join(projectRoot, projectConfig.srcDir || '', projectConfig.entry),
             // If we don't explicitely list excludes, it will default to `['**/*.spec.ts']`.
             exclude: []
         },
@@ -370,7 +360,7 @@ function getHostReplacementPaths(projectRoot: string, projectConfig: ProjectConf
     const hostReplacementPaths: { [key: string]: string } = {};
     if (projectConfig.moduleReplacements) {
         projectConfig.moduleReplacements.forEach((entry: ModuleReplacementEntry) => {
-            let root = path.resolve(projectRoot, projectConfig.srcDir);
+            let root = path.resolve(projectRoot, projectConfig.srcDir || '');
             if (entry.resolveFrom === 'projectRoot' || (!entry.resolveFrom && !/\.ts$/ig.test(entry.resourcePath))) {
                 if (entry.newResourcePath && fs.existsSync(path.resolve(projectRoot, entry.newResourcePath))) {
                     root = path.resolve(projectRoot);

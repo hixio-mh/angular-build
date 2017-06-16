@@ -50,6 +50,55 @@ export function prepareAngularBuildConfig(projectRoot: string,
     });
 }
 
+export function mergeProjectConfigWithEnvOverrides(projectConfig: AppProjectConfig | LibProjectConfig, buildOptions: BuildOptions): void {
+    if (!projectConfig || !projectConfig.envOverrides || Object.keys(projectConfig.envOverrides).length === 0) {
+        return;
+    }
+    const environment = buildOptions.environment || {};
+
+    const buildTargets: string[] = [];
+    if (environment.test) {
+        buildTargets.push('test');
+    } else {
+        if (buildOptions.production || environment.prod || environment.production) {
+            buildTargets.push('prod');
+            buildTargets.push('production');
+        } else if (!buildOptions.production || environment.dev || environment.development) {
+            buildTargets.push('dev');
+            buildTargets.push('development');
+        }
+
+        if (environment.dll) {
+            buildTargets.push('dll');
+        } else if (environment.aot) {
+            buildTargets.push('aot');
+        }
+    }
+
+    Object.keys(environment)
+        .filter(key => reserviedEnvNames.indexOf(key) === -1 &&
+            buildTargets.indexOf(key) === -1 &&
+            environment[key] &&
+            (typeof environment[key] === 'boolean' || environment[key] === 'true'))
+        .forEach(key => {
+            buildTargets.push(key);
+        });
+
+    Object.keys(projectConfig.envOverrides).forEach((buildTargetKey: string) => {
+        const targetName = buildTargetKey;
+        const targets = targetName.split(',');
+        targets.forEach(t => {
+            t = t.trim();
+            if (buildTargets.indexOf(t) > -1) {
+                const newConfig = (projectConfig.envOverrides as any)[t];
+                if (newConfig && typeof newConfig === 'object') {
+                    overrideProjectConfig(projectConfig, newConfig);
+                }
+            }
+        });
+    });
+}
+
 function applyProjectConfigExtends(projectConfigs: ProjectConfig[]): ProjectConfig[] {
     if (!projectConfigs) {
         return [];
@@ -93,17 +142,17 @@ function mergeBuildOptionsWithDefaults(buildOptions: BuildOptions): BuildOptions
     }
     if (environment.app &&
         (typeof environment.app === 'string' || Array.isArray(environment.app))) {
-        buildOptions.project = environment.app as any;
+        buildOptions.filter = environment.app as any;
         delete environment.app;
     }
     if (environment.lib &&
         (typeof environment.lib === 'string' || Array.isArray(environment.lib))) {
-        buildOptions.project = environment.lib as any;
+        buildOptions.filter = environment.lib as any;
         delete environment.lib;
     }
     if (environment.project &&
         (typeof environment.project === 'string' || Array.isArray(environment.project))) {
-        buildOptions.project = environment.project as any;
+        buildOptions.filter = environment.project as any;
         delete environment.project;
     }
 
@@ -228,55 +277,6 @@ function mergeBuildOptionsWithDefaults(buildOptions: BuildOptions): BuildOptions
     return buildOptions;
 }
 
-function mergeProjectConfigWithEnvOverrides(projectConfig: AppProjectConfig | LibProjectConfig, buildOptions: BuildOptions): void {
-    if (!projectConfig || !projectConfig.envOverrides || Object.keys(projectConfig.envOverrides).length === 0) {
-        return;
-    }
-    const environment = buildOptions.environment || {};
-
-    const buildTargets: string[] = [];
-    if (environment.test) {
-        buildTargets.push('test');
-    } else {
-        if (buildOptions.production || environment.prod || environment.production) {
-            buildTargets.push('prod');
-            buildTargets.push('production');
-        } else if (!buildOptions.production || environment.dev || environment.development) {
-            buildTargets.push('dev');
-            buildTargets.push('development');
-        }
-
-        if (environment.dll) {
-            buildTargets.push('dll');
-        } else if (environment.aot) {
-            buildTargets.push('aot');
-        }
-    }
-
-    Object.keys(environment)
-        .filter(key => reserviedEnvNames.indexOf(key) === -1 &&
-            buildTargets.indexOf(key) === -1 &&
-            environment[key] &&
-            (typeof environment[key] === 'boolean' || environment[key] === 'true'))
-        .forEach(key => {
-            buildTargets.push(key);
-        });
-
-    Object.keys(projectConfig.envOverrides).forEach((buildTargetKey: string) => {
-        const targetName = buildTargetKey;
-        const targets = targetName.split(',');
-        targets.forEach(t => {
-            t = t.trim();
-            if (buildTargets.indexOf(t) > -1) {
-                const newConfig = (projectConfig.envOverrides as any)[t];
-                if (newConfig && typeof newConfig === 'object') {
-                    overrideProjectConfig(projectConfig, newConfig);
-                }
-            }
-        });
-    });
-}
-
 function overrideProjectConfig(oldConfig: any, newConfig: any): void {
     if (!newConfig || !oldConfig || typeof newConfig !== 'object' || Object.keys(newConfig).length === 0) {
         return;
@@ -295,10 +295,10 @@ function mergeProjectConfigWithDefaults(projectRoot: string,
     projectConfig: ProjectConfig,
     buildOptions: BuildOptions): void {
     if (!projectConfig.srcDir &&
-        projectConfig.main &&
-        fs.existsSync(path.resolve(projectRoot, projectConfig.main)) &&
-        fs.existsSync(path.resolve(projectRoot, path.dirname(projectConfig.main)))) {
-        const mathDir = path.relative(projectRoot, path.dirname(projectConfig.main));
+        projectConfig.entry &&
+        fs.existsSync(path.resolve(projectRoot, projectConfig.entry)) &&
+        fs.existsSync(path.resolve(projectRoot, path.dirname(projectConfig.entry)))) {
+        const mathDir = path.relative(projectRoot, path.dirname(projectConfig.entry));
         projectConfig.srcDir = mathDir.replace(/\\/, '/');
     }
     projectConfig.srcDir = projectConfig.srcDir || '';

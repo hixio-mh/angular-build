@@ -44,8 +44,8 @@ export function getAppWebpackConfigs(projectRoot: string,
 
     // apply filter
     const filterProjects: string[] = [];
-    if (buildOptions.project) {
-        filterProjects.push(...Array.isArray(buildOptions.project) ? buildOptions.project : [buildOptions.project]);
+    if (buildOptions.filter) {
+        filterProjects.push(...Array.isArray(buildOptions.filter) ? buildOptions.filter : [buildOptions.filter]);
     }
 
     if (appConfigs.length === 0) {
@@ -89,10 +89,11 @@ export function getWebpackConfig(webpackConfigOptions: WebpackConfigOptions): we
     if (!environment.test && !projectConfig.outDir) {
         throw new Error(`The 'outDir' is required.`);
     }
-    if (path.resolve(projectRoot, projectConfig.outDir) === path.resolve(projectRoot)) {
+    if (projectConfig.outDir && path.resolve(projectRoot, projectConfig.outDir) === path.resolve(projectRoot)) {
         throw new Error(`The 'outDir' must NOT be the same as project root directory.`);
     }
-    if (path.resolve(projectRoot, projectConfig.outDir) === path.resolve(projectRoot, projectConfig.srcDir)) {
+    if (projectConfig.outDir &&
+        path.resolve(projectRoot, projectConfig.outDir) === path.resolve(projectRoot, projectConfig.srcDir || '')) {
         throw new Error(`The 'outDir' must NOT be the same as 'srcDir' directory.`);
     }
 
@@ -117,6 +118,7 @@ export function getWebpackConfig(webpackConfigOptions: WebpackConfigOptions): we
 
     if (projectConfig.projectType === 'app') {
         if (environment.test) {
+            // TODO:
             throw new Error('NotImplemented');
         }
 
@@ -131,6 +133,7 @@ export function getWebpackConfig(webpackConfigOptions: WebpackConfigOptions): we
         }
     } else {
         if (environment.test) {
+            // TODO:
             throw new Error('NotImplemented');
         }
 

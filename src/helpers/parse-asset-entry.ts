@@ -19,10 +19,10 @@ export function parseAssetEntry(baseDir: string, assetEntries: string | (string 
 
     const entries = Array.isArray(assetEntries) ? assetEntries : [assetEntries];
     const clonedEntries = entries.map((entry: any) =>
-        typeof entry === 'object' ? Object.assign({ from: null }, entry) : entry
+        typeof entry === 'object' ? JSON.parse(JSON.stringify(entry)) : entry
     );
 
-    const prepareGlobFn = (p: string) => {
+    const prepareGlobFromFn = (p: string) => {
         if (!p) {
             return '';
         }
@@ -31,17 +31,14 @@ export function parseAssetEntry(baseDir: string, assetEntries: string | (string 
             !path.isAbsolute(p) &&
             fs.existsSync(path.resolve(baseDir, p)) &&
             fs.statSync(path.resolve(baseDir, p)).isDirectory()) {
-            if (p.lastIndexOf('/') > -1) {
-                p = p.substr(0, p.length - 1);
-            }
-            p += '/**/*';
+            p = path.join(p, '**/*');
         }
         return p;
     };
 
     return clonedEntries.map((asset: string | AssetEntry) => {
         if (typeof asset === 'string') {
-            const fromGlob: string = prepareGlobFn(asset);
+            const fromGlob: string = prepareGlobFromFn(asset);
             if (fromGlob === asset && path.isAbsolute(fromGlob)) {
                 return {
                     from: asset,
@@ -63,7 +60,7 @@ export function parseAssetEntry(baseDir: string, assetEntries: string | (string 
             }
             const from = (asset as AssetEntry).from;
             if (typeof from === 'string') {
-                const fromGlob = prepareGlobFn(from);
+                const fromGlob = prepareGlobFromFn(from);
 
                 if (fromGlob === from && path.isAbsolute(fromGlob)) {
                     assetParsedEntry.from = from;
@@ -76,7 +73,7 @@ export function parseAssetEntry(baseDir: string, assetEntries: string | (string 
             }
             return assetParsedEntry;
         } else {
-            throw new Error(`Invalid 'assets' value in appConfig.`);
+            throw new Error(`Invalid 'assets' value in config.`);
         }
     });
 }

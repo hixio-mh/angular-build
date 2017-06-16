@@ -90,8 +90,8 @@ async function buildInternal(cliOptions: CliOptions, logger: Logger = new Logger
 
     // filter
     const filterProjects: string[] = [];
-    if (buildOptions.project) {
-        filterProjects.push(...Array.isArray(buildOptions.project) ? buildOptions.project : [buildOptions.project]);
+    if (buildOptions.filter) {
+        filterProjects.push(...Array.isArray(buildOptions.filter) ? buildOptions.filter : [buildOptions.filter]);
     }
 
     if (appConfigs.length === 0 && libConfigs.length === 0) {
@@ -181,22 +181,18 @@ async function buildLib(projectRoot: string,
 
     let tsTranspilations: TsTranspilation[] = [];
     if (libConfig.tsTranspilations) {
-        tsTranspilations = Array.isArray(libConfig.tsTranspilations)
+        tsTranspilations = (Array.isArray(libConfig.tsTranspilations)
             ? libConfig.tsTranspilations
-            : [libConfig.tsTranspilations];
-        tsTranspilations =
-            tsTranspilations.filter(
-                (tsTranspilation: TsTranspilation) => tsTranspilation && Object.keys(tsTranspilation).length > 0);
+            : [libConfig.tsTranspilations]).filter(
+            (tsTranspilation: TsTranspilation) => tsTranspilation && Object.keys(tsTranspilation).length > 0);
     }
 
     let bundleTargets: BundleTarget[] = [];
     if (libConfig.bundleTargets) {
-        bundleTargets = Array.isArray(libConfig.bundleTargets)
+        bundleTargets = (Array.isArray(libConfig.bundleTargets)
             ? libConfig.bundleTargets
-            : [libConfig.bundleTargets];
-        bundleTargets =
-            bundleTargets.filter(
-                (bundleTarget: BundleTarget) => bundleTarget && Object.keys(bundleTarget).length > 0);
+            : [libConfig.bundleTargets]).filter(
+            (bundleTarget: BundleTarget) => bundleTarget && Object.keys(bundleTarget).length > 0);
     }
 
     const srcDir = path.resolve(projectRoot, libConfig.srcDir || '');
@@ -206,10 +202,10 @@ async function buildLib(projectRoot: string,
         ((libConfig.assets && libConfig.assets.length) ||
             (libConfig.styles && libConfig.styles.length) ||
             bundleTargets.length ||
-            libConfig.main ||
+            libConfig.entry ||
             libConfig.libraryTarget ||
-            (libConfig.packageOptions && libConfig.packageOptions.packageConfigSource))) {
-        throw new Error(`The 'outDir' property is required.`);
+            (libConfig.packageOptions && libConfig.packageOptions.packageConfigFile))) {
+        throw new Error(`The 'outDir' property is required in lib config.`);
     }
 
     if (libConfig.outDir) {
@@ -224,7 +220,8 @@ async function buildLib(projectRoot: string,
 
     let stylePreprocessorIncludePaths: string[] = [];
     if (libConfig.stylePreprocessorOptions && libConfig.stylePreprocessorOptions.includePaths) {
-        stylePreprocessorIncludePaths = libConfig.stylePreprocessorOptions.includePaths.map(p => path.resolve(srcDir, p));
+        stylePreprocessorIncludePaths =
+            libConfig.stylePreprocessorOptions.includePaths.map(p => path.resolve(srcDir, p));
     }
 
     // typescript transpilations
@@ -234,7 +231,7 @@ async function buildLib(projectRoot: string,
             const tsTanspileInfo = await getTsTranspileInfo(projectRoot, libConfig, tsTranspilation);
             const foundItem = processedTsTanspileInfoes.find(info => info.outDir === tsTanspileInfo.outDir);
             if (foundItem) {
-                logger.warnLine(`The same outDir is used at tsTranspilations and skipping it.`);
+                logger.warnLine(`The same 'outDir' is used at tsTranspilations and skipping it.`);
                 continue;
             }
 
@@ -280,9 +277,9 @@ async function buildLib(projectRoot: string,
 
     // read package info
     let pkgConfig: any | undefined;
-    if (libConfig.packageOptions && libConfig.packageOptions.packageConfigSource) {
-        if (await fs.exists(path.resolve(srcDir, libConfig.packageOptions.packageConfigSource))) {
-            pkgConfig = await readJson(path.resolve(srcDir, libConfig.packageOptions.packageConfigSource));
+    if (libConfig.packageOptions && libConfig.packageOptions.packageConfigFile) {
+        if (await fs.exists(path.resolve(srcDir, libConfig.packageOptions.packageConfigFile))) {
+            pkgConfig = await readJson(path.resolve(srcDir, libConfig.packageOptions.packageConfigFile));
         }
     }
     if (!pkgConfig && srcDir && await fs.exists(path.resolve(srcDir, 'package.json'))) {
@@ -300,17 +297,16 @@ async function buildLib(projectRoot: string,
     // copy assets
     if (libConfig.assets && libConfig.assets.length) {
         if (!outDir) {
-            throw new Error(`The 'outDir' property is required.`);
+            throw new Error(`The 'outDir' property is required in lib config.`);
         }
         logger.logLine(`Copying assets to ${path.relative(projectRoot, outDir as string)}`);
         await copyAssets(srcDir, outDir as string, libConfig.assets);
     }
 
     // process global styles
-    // TODO: to write rollup plugin?
     if (libConfig.styles && libConfig.styles.length) {
         if (!outDir) {
-            throw new Error(`The 'outDir' property is required.`);
+            throw new Error(`The 'outDir' property is required in lib config.`);
         }
 
         logger.logLine(`Processing global styles to ${path.relative(projectRoot, outDir as string)}`);
@@ -332,7 +328,7 @@ async function buildLib(projectRoot: string,
         }
     }
 
-    // bundling
+    // bundleTargets
     if (bundleTargets.length === 0 && libConfig.libraryTarget) {
         // create default bundle target
         const defaultBundleTarget: BundleTarget = {
@@ -341,47 +337,43 @@ async function buildLib(projectRoot: string,
         bundleTargets.push(defaultBundleTarget);
     }
 
+    // bundling
     if (bundleTargets.length) {
         if (!outDir) {
-            throw new Error(`The 'outDir' property is required.`);
+            throw new Error(`The 'outDir' property is required in lib config.`);
         }
 
         for (let i = 0; i < bundleTargets.length; i++) {
             const target = bundleTargets[i];
-            target.libraryTarget = target.libraryTarget || libConfig.libraryTarget;
 
             let bundleRootDir = srcDir || projectRoot;
             let bundleEntryFile: string | undefined = undefined;
-
-            if (!target.libraryTarget) {
-                throw new Error(`'libraryTarget' is required at bundleTargets[${i}].`);
-            }
 
             let formatSuffix = target.libraryTarget &&
                 target.libraryTarget !== libConfig.libraryTarget
                 ? `.${target.libraryTarget}`
                 : '';
-            if (target.transformOnly && target.transformTarget) {
-                formatSuffix = `.${target.transformTarget}`;
+            if (target.scriptTarget) {
+                formatSuffix = `${formatSuffix}.${target.scriptTarget}`;
             }
 
             // bundleDestFileName
-            let bundleDestFileName = target.bundleOutFileName;
+            let bundleDestFileName = target.outFileName;
             if (!bundleDestFileName) {
                 bundleDestFileName = packageNameWithoutScope
                     ? `${packageNameWithoutScope}${formatSuffix}.js`
-                    : libConfig.mainOutFileName
-                        ? `${libConfig.mainOutFileName}${formatSuffix}.js`
+                    : libConfig.outFileName
+                        ? `${libConfig.outFileName}${formatSuffix}.js`
                         : `main${formatSuffix}.js`;
             }
 
             bundleDestFileName = bundleDestFileName.replace(/\[name\]/g,
-                packageNameWithoutScope || libConfig.mainOutFileName || 'main');
-            target.bundleOutFileName = bundleDestFileName;
+                packageNameWithoutScope || libConfig.outFileName || 'main');
+            target.outFileName = bundleDestFileName;
 
             let shouldSkipThisTarget = false;
             for (let j = 0; j < i; j++) {
-                if (bundleTargets[j].bundleOutFileName === bundleDestFileName) {
+                if ((bundleTargets[j].outFileName as string).toLowerCase() === bundleDestFileName.toLowerCase()) {
                     logger.warnLine(
                         `The same 'bundleOutFileName': ${bundleDestFileName} found and skipping this target.`);
                     shouldSkipThisTarget = true;
@@ -396,53 +388,42 @@ async function buildLib(projectRoot: string,
 
             // entry resolution
             if (target.entryResolution) {
-                if (!target.entryResolution.source) {
+                if (!target.entryResolution.entryRoot) {
                     throw new Error(
-                        `Specify 'entryResolution.source' or remove 'entryResolution' property at bundleTargets[${i
+                        `Please specify 'entryResolution.entryRoot' or remove 'entryResolution' property from bundleTargets[${i
                         }].`);
                 }
-                if (target.entryResolution.source === 'prevBundleTarget') {
-                    if (i <= 0) {
-                        throw new Error(
-                            `Can not use 'entryResolution.source'='prevBundleTarget' in the first bundleTargets[0].`);
-                    }
-                    const prevBundleTarget = bundleTargets[i - 1];
-                    if (prevBundleTarget.libraryTarget !== 'es') {
-                        throw new Error(
-                            `The reference library target must be 'es' at bundleTargets[${i}].`);
-                    }
 
-                    bundleRootDir = prevBundleTarget.outDir
-                        ? path.resolve(outDir as string, prevBundleTarget.outDir as string)
-                        : outDir as string;
-                    bundleEntryFile = prevBundleTarget.bundleOutFileName;
-                } else if (target.entryResolution.source === 'bundleTargets') {
+                if (target.entryResolution.entryRoot === 'bundleTargetOutDir') {
                     let foundBundleTarget: BundleTarget | undefined = undefined;
-                    if (target.entryResolution.sourceIndex && typeof target.entryResolution.sourceIndex === 'number') {
-                        const index = target.entryResolution.sourceIndex as number;
+                    if (target.entryResolution.bundleTargetIndex && typeof target.entryResolution.bundleTargetIndex === 'number') {
+                        const index = target.entryResolution.bundleTargetIndex as number;
                         if (index === i) {
-                            throw new Error(`The 'sourceIndex' must not be current item index at bundleTargets[${i}]`);
+                            throw new Error(`The 'bundleTargetIndex' must not be current item index at bundleTargets[${i}].`);
                         }
                         if (index < 0 || index >= bundleTargets.length) {
-                            throw new Error(`No bundleTarget found with sourceIndex: ${index} at bundleTargets[${i}]`);
+                            throw new Error(`No bundleTarget found with bundleTargetIndex: ${index} at bundleTargets[${i}].`);
                         }
                         foundBundleTarget = bundleTargets[index];
-                    } else if (target.entryResolution.sourceIndex &&
-                        typeof target.entryResolution.sourceIndex === 'string') {
-                        const bundleTargetName = target.entryResolution.sourceIndex as string;
+                    } else if (target.entryResolution.bundleTargetIndex &&
+                        typeof target.entryResolution.bundleTargetIndex === 'string') {
+                        const bundleTargetName = target.entryResolution.bundleTargetIndex as string;
                         if (bundleTargetName === target.name) {
-                            throw new Error(`The 'sourceIndex' must not be current item name at bundleTargets[${i}]`);
+                            throw new Error(`The 'bundleTargetIndex' must not be current item name at bundleTargets[${i}].`);
                         }
 
                         foundBundleTarget = bundleTargets.find(b => b.name === bundleTargetName);
                         if (!foundBundleTarget) {
                             throw new Error(
-                                `No bundleTarget found with sourceIndex: ${bundleTargetName} at bundleTargets[${i}]`);
+                                `No bundleTarget found with bundleTargetIndex: ${bundleTargetName} at bundleTargets[${i}].`);
                         }
+                    }
+                    if (typeof target.entryResolution.bundleTargetIndex === 'undefined' && i !== 0) {
+                        foundBundleTarget = bundleTargets[i - 1];
                     }
 
                     if (!foundBundleTarget) {
-                        throw new Error(`No bundleTarget found at bundleTargets[${i}]`);
+                        throw new Error(`No bundleTarget found at bundleTargets[${i}].`);
                     }
 
                     foundBundleTarget = foundBundleTarget as BundleTarget;
@@ -455,65 +436,69 @@ async function buildLib(projectRoot: string,
                     bundleRootDir = foundBundleTarget.outDir
                         ? path.resolve(outDir as string, foundBundleTarget.outDir as string)
                         : outDir as string;
-                    bundleEntryFile = foundBundleTarget.bundleOutFileName;
-                } else if (target.entryResolution.source === 'tsTranspilations') {
-                    if (!libConfig.main) {
-                        throw new Error(`The 'main' entry is required for bundling.`);
+                    bundleEntryFile = target.entry || foundBundleTarget.outFileName;
+                } else if (target.entryResolution.entryRoot === 'tsTranspilationOutDir') {
+                    if (!target.entry && !libConfig.entry) {
+                        throw new Error(`The main entry is required for bundling.`);
                     }
                     if (!processedTsTanspileInfoes.length) {
-                        throw new Error(`No tsTranspilation is configured.`);
+                        throw new Error(`No tsTranspilation is configured at lib config.`);
                     }
 
                     let foundTsTranspilationInfo: TsTranspiledInfo | undefined;
-                    if (target.entryResolution.sourceIndex && typeof target.entryResolution.sourceIndex === 'number') {
-                        const index = target.entryResolution.sourceIndex as number;
+                    if (target.entryResolution.tsTranspilationIndex &&
+                        typeof target.entryResolution.tsTranspilationIndex === 'number') {
+                        const index = target.entryResolution.tsTranspilationIndex as number;
                         if (index < 0 || index >= processedTsTanspileInfoes.length) {
                             throw new Error(
-                                `No tsTranspilation found with sourceIndex: ${index} at bundleTargets[${index}]`);
+                                `No tsTranspilation found with tsTranspilationIndex: ${index} at bundleTargets[${index
+                                }].`);
                         }
                         foundTsTranspilationInfo = processedTsTanspileInfoes[index];
-                    } else if (target.entryResolution.sourceIndex &&
-                        typeof target.entryResolution.sourceIndex === 'string') {
-                        const tsTransName = target.entryResolution.sourceIndex as string;
+                    } else if (target.entryResolution.tsTranspilationIndex &&
+                        typeof target.entryResolution.tsTranspilationIndex === 'string') {
+                        const tsTransName = target.entryResolution.tsTranspilationIndex as string;
                         foundTsTranspilationInfo = processedTsTanspileInfoes.find(t => t.name === tsTransName);
                         if (!foundTsTranspilationInfo) {
                             throw new Error(
-                                `No tsTranspilation found with sourceIndex: ${tsTransName} at bundleTargets[${i}]`);
+                                `No tsTranspilation found with tsTranspilationIndex: ${tsTransName} at bundleTargets[${i
+                                }].`);
                         }
-                    } else if (typeof target.entryResolution.sourceIndex === 'undefined') {
+                    } else if (typeof target.entryResolution.tsTranspilationIndex === 'undefined') {
                         foundTsTranspilationInfo = processedTsTanspileInfoes[0];
                     }
 
                     if (!foundTsTranspilationInfo) {
                         throw new Error(
-                            `No tsTranspilation found with at bundleTargets[${i}]`);
+                            `No tsTranspilation found with at bundleTargets[${i}].`);
                     }
+
                     foundTsTranspilationInfo = foundTsTranspilationInfo as TsTranspiledInfo;
-                    bundleEntryFile = libConfig.main;
                     bundleRootDir = foundTsTranspilationInfo.outDir;
-                    bundleEntryFile = bundleEntryFile.replace(/\.ts$/i, '.js');
-                } else if (target.entryResolution.source === 'outDir') {
-                    bundleEntryFile = libConfig.main;
+                    bundleEntryFile = target.entry || libConfig.entry;
+                    bundleEntryFile = (bundleEntryFile as string).replace(/\.ts$/i, '.js');
+                } else if (target.entryResolution.entryRoot === 'outDir') {
+                    if (!target.entry && !libConfig.entry) {
+                        throw new Error(`The main entry is required for bundling.`);
+                    }
+                    bundleEntryFile = target.entry || libConfig.entry;
                     bundleRootDir = outDir as string;
                     useNodeResolve = true;
                 }
-            } else if (libConfig.main && /\.ts$/i.test(libConfig.main) && libConfig.bundleTool !== 'webpack') {
+            } else if (!!(target.entry || libConfig.entry) && /\.ts$/i.test((target.entry || libConfig.entry) as string)) {
                 if (processedTsTanspileInfoes.length > 0) {
                     bundleRootDir = processedTsTanspileInfoes[0].outDir;
-                    if (!libConfig.main) {
-                        throw new Error(`The 'main' entry is required for bundling.`);
-                    }
-                    bundleEntryFile = libConfig.main;
-                    bundleEntryFile = bundleEntryFile.replace(/\.ts$/i, '.js');
+                    bundleEntryFile = target.entry || libConfig.entry;
+                    bundleEntryFile = (bundleEntryFile as string).replace(/\.ts$/i, '.js');
                 } else {
-                    bundleEntryFile = libConfig.main;
+                    bundleEntryFile = target.entry || libConfig.entry;
                 }
             } else {
-                bundleEntryFile = libConfig.main;
+                bundleEntryFile = target.entry || libConfig.entry;
             }
 
             if (!bundleEntryFile) {
-                throw new Error(`The 'main' entry is required for bundling.`);
+                throw new Error(`The main entry is required for bundling.`);
             }
 
             const bundleEntryFilePath = path.resolve(bundleRootDir, bundleEntryFile);
@@ -524,14 +509,16 @@ async function buildLib(projectRoot: string,
             const bundleDestFilePath = path.resolve(projectRoot,
                 libConfig.outDir,
                 target.outDir || '',
-                target.bundleOutFileName);
+                bundleDestFileName);
 
-            if (target.transformOnly) {
+            if (!(target.libraryTarget || libConfig.libraryTarget) && !target.transformScriptTargetOnly) {
+                throw new Error(`The 'libraryTarget' is required at bundleTargets[${i}].`);
+            }
+
+            if (target.transformScriptTargetOnly && target.scriptTarget && target.scriptTarget !== 'none') {
                 let scriptTarget = ts.ScriptTarget.ES5;
                 let moduleKind = ts.ModuleKind.ES2015;
-
-                target.transformTarget = target.transformTarget || 'es5';
-                if (target.transformTarget === 'es5') {
+                if (target.scriptTarget === 'es5') {
                     scriptTarget = ts.ScriptTarget.ES5;
                 }
                 if (target.libraryTarget === 'amd') {
@@ -542,7 +529,8 @@ async function buildLib(projectRoot: string,
                     moduleKind = ts.ModuleKind.UMD;
                 }
 
-                logger.logLine(`Transforming ${bundleEntryFile} to ${target.transformTarget}`);
+                target.libraryTarget = target.libraryTarget || libConfig.libraryTarget;
+                logger.logLine(`Transforming ${bundleEntryFile} to ${target.scriptTarget}`);
 
                 await transpileFile(bundleEntryFilePath,
                     bundleDestFilePath,
@@ -553,6 +541,8 @@ async function buildLib(projectRoot: string,
                         allowJs: /\.ts$/i.test(bundleEntryFilePath) === false
                     });
             } else {
+                target.libraryTarget = target.libraryTarget || libConfig.libraryTarget;
+
                 if (libConfig.bundleTool === 'webpack') {
                     logger.logLine(`Bundling ${target.name ? target.name + ' ' : ''}with webpack`);
 
@@ -566,7 +556,7 @@ async function buildLib(projectRoot: string,
                         bundleRoot: bundleRootDir,
                         bundleEntryFile: bundleEntryFile,
                         bundleOutDir: target.outDir,
-                        bundleOutFileName: target.bundleOutFileName,
+                        bundleOutFileName: target.outFileName,
                         packageName: packageNameWithoutScope,
                         inlineResources: shouldInlineResources,
 
@@ -588,7 +578,7 @@ async function buildLib(projectRoot: string,
                         bundleRoot: bundleRootDir,
                         bundleEntryFile: bundleEntryFile,
                         bundleOutDir: target.outDir,
-                        bundleOutFileName: target.bundleOutFileName,
+                        bundleOutFileName: target.outFileName,
                         packageName: packageNameWithoutScope,
                         inlineResources: shouldInlineResources,
                         useNodeResolve: useNodeResolve,
@@ -614,7 +604,7 @@ async function buildLib(projectRoot: string,
     }
 
     // packaging
-    if (libConfig.packageOptions && libConfig.packageOptions.packageConfigSource) {
+    if (libConfig.packageOptions && libConfig.packageOptions.packageConfigFile) {
         await libPackageCopy(projectRoot, libConfig, logger);
     }
 
@@ -622,7 +612,10 @@ async function buildLib(projectRoot: string,
 }
 
 
-async function cleanOutDirs(projectRoot: string, projectConfig: ProjectConfig, buildOptions: BuildOptions, logger: Logger): Promise<any> {
+async function cleanOutDirs(projectRoot: string,
+    projectConfig: ProjectConfig,
+    buildOptions: BuildOptions,
+    logger: Logger): Promise<any> {
     const srcDir = path.resolve(projectRoot, projectConfig.srcDir);
     const outDir = path.resolve(projectRoot, projectConfig.outDir);
 
@@ -649,24 +642,24 @@ async function cleanOutDirs(projectRoot: string, projectConfig: ProjectConfig, b
 }
 
 async function libPackageCopy(projectRoot: string, libConfig: LibProjectConfig, logger: Logger): Promise<any> {
-    if (!libConfig.packageOptions || !libConfig.packageOptions.packageConfigSource) {
+    if (!libConfig.packageOptions || !libConfig.packageOptions.packageConfigFile) {
         return;
     }
 
     if (!libConfig.outDir) {
-        throw new Error(`The 'outDir' property is required.`);
+        throw new Error(`The 'outDir' property is required in lib config.`);
     }
 
     const outDir = path.resolve(projectRoot, libConfig.outDir);
-    const srcDir = libConfig.srcDir ? path.resolve(projectRoot, libConfig.srcDir) : projectRoot;
+    const srcDir = path.resolve(projectRoot, libConfig.srcDir || '');
 
 
     // read package info
     let libPackageConfig: any;
     let rootPackageConfig: any;
     let libPackageNameWithoutScope: string;
-    if (libConfig.packageOptions && libConfig.packageOptions.packageConfigSource) {
-        libPackageConfig = await readJson(path.resolve(srcDir, libConfig.packageOptions.packageConfigSource));
+    if (libConfig.packageOptions && libConfig.packageOptions.packageConfigFile) {
+        libPackageConfig = await readJson(path.resolve(srcDir, libConfig.packageOptions.packageConfigFile));
     }
 
     if (await fs.exists(path.resolve(projectRoot, 'package.json'))) {

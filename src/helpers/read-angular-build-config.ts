@@ -1,11 +1,10 @@
 ﻿import * as fs from 'fs-extra';
+import * as path from 'path';
 
 import { AngularBuildConfig } from '../models';
 import { readJson, readJsonSync } from '../utils';
 
 import { formatValidationError, validateSchema } from '../utils';
-
-const schema = require('../schemas/schema.json');
 
 export function readAngularBuildConfigSync(configFilePath: string, validate: boolean = true): AngularBuildConfig {
     if (!fs.existsSync(configFilePath)) {
@@ -14,6 +13,18 @@ export function readAngularBuildConfigSync(configFilePath: string, validate: boo
     const angularBuildConfig = readJsonSync(configFilePath);
 
     if (validate !== false) {
+        let schemaPath = './schemas/schema.json';
+        if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
+            schemaPath = '../schemas/schema.json';
+        }
+        if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
+            schemaPath = '../../schemas/schema.json';
+        }
+        if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
+            schemaPath = '../../../schemas/schema.json';
+        }
+        const schema = require(schemaPath);
+
         if (schema.$schema) {
             delete schema.$schema;
         }
@@ -44,6 +55,18 @@ export async function readAngularBuildConfig(configFilePath: string, validate: b
     const angularBuildConfig = await readJson(configFilePath);
 
     if (validate !== false) {
+        let schemaPath = './schemas/schema.json';
+        if (!await fs.exists(path.resolve(__dirname, schemaPath))) {
+            schemaPath = '../schemas/schema.json';
+        }
+        if (!await fs.exists(path.resolve(__dirname, schemaPath))) {
+            schemaPath = '../../schemas/schema.json';
+        }
+        if (!await fs.exists(path.resolve(__dirname, schemaPath))) {
+            schemaPath = '../../../schemas/schema.json';
+        }
+        const schema = await fs.readJson(path.resolve(__dirname, schemaPath));
+
         if (schema.$schema) {
             delete schema.$schema;
         }

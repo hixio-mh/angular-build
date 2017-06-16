@@ -39,7 +39,7 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
     const projectConfig = webpackConfigOptions.projectConfig as ProjectConfig;
     const environment = buildOptions.environment || {};
 
-    const srcDir = projectConfig.srcDir ? path.resolve(projectRoot, projectConfig.srcDir) : projectRoot;
+    const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
     const entryPoints: { [key: string]: string[] } = {};
     const stylePlugins: any[] = [];
 

@@ -11,7 +11,7 @@
           "to": ""
         }
       ],
-      "main": "index.js",
+      "entry": "index.js",
       "tsconfig": "tsconfig.json",
       "tsTranspilations": [
         {
@@ -23,7 +23,7 @@
         {
           "name": "esm-es2015",
           "entryResolution": {
-            "source": "tsTranspilations"
+            "entryRoot": "tsTranspilationOutDir"
           },
           "libraryTarget": "es",
           "outDir": "bundles"
@@ -31,28 +31,36 @@
         {
           "name": "esm-es5",
           "entryResolution": {
-            "source": "prevBundleTarget"
+            "entryRoot": "bundleTargetOutDir",
+            "bundleTargetIndex": "esm-es2015"
           },
-          "libraryTarget": "es",
           "outDir": "bundles",
-          "transformOnly": true,
-          "transformTarget": "es5"
+          "transformScriptTargetOnly": true,
+          "scriptTarget": "es5"
         },
         {
           "name": "umd-es5",
           "entryResolution": {
-            "source": "prevBundleTarget"
+            "entryRoot": "bundleTargetOutDir"
           },
           "libraryTarget": "umd",
           "outDir": "bundles"
         }
       ],
       "packageOptions": {
-        "packageConfigSource": "package.json",
+        "packageConfigFile": "package.json",
         "main": "",
         "module": "",
         "es2015": "",
         "typings": ""
+      },
+      "envOverrides": {
+        "dev": {
+
+        },
+        "prod": {
+          
+        } 
       }
     }
   ]

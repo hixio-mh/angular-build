@@ -53,7 +53,7 @@ export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
     const logger = rollupConfigOptions.logger || new Logger();
 
     const bundleRoot = rollupConfigOptions.bundleRoot || path.resolve(projectRoot, libConfig.srcDir || '');
-    const bundleEntryFile = rollupConfigOptions.bundleEntryFile || libConfig.main || 'index.js';
+    const bundleEntryFile = rollupConfigOptions.bundleEntryFile || libConfig.entry || 'index.js';
     const bundleEntryPath = path.resolve(bundleRoot, bundleEntryFile);
 
     const libraryTarget = rollupConfigOptions.bundleLibraryTarget || libConfig.libraryTarget;
