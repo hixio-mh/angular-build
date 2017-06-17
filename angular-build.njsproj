@@ -70,6 +70,7 @@
     <Content Include="TODO.md" />
     <Content Include="TROUBLESHOOTING.md" />
     <Content Include="tsconfig.json" />
+    <Content Include="yarn.lock" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\" />
