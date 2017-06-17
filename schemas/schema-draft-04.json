@@ -1995,28 +1995,34 @@
             "additionalProperties": false,
             "description": "Packaging options for library project",
             "properties": {
-                "es2015": {
-                    "description": "The es2015 module index for package.json file.",
-                    "type": "string"
+                "mainFields": {
+                    "description": "Module main fields",
+                    "properties": {
+                        "es2015": {
+                            "description": "The es2015 module index for package.json file.",
+                            "type": "string"
+                        },
+                        "main": {
+                            "description": "The main index for package.json file.",
+                            "type": "string"
+                        },
+                        "module": {
+                            "description": "The esm module index for package.json file.",
+                            "type": "string"
+                        },
+                        "typings": {
+                            "description": "The typings index for package.json file.",
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
                 },
-                "main": {
-                    "description": "The main index for package.json file.",
-                    "type": "string"
-                },
-                "module": {
-                    "description": "The esm module index for package.json file.",
+                "outDir": {
+                    "description": "Custom destination directory for 'package.json'.",
                     "type": "string"
                 },
                 "packageConfigFile": {
                     "description": "The source package.json file to be updated and copied.",
-                    "type": "string"
-                },
-                "readMeFile": {
-                    "description": "The README file to be copied.",
-                    "type": "string"
-                },
-                "typings": {
-                    "description": "The typings index for package.json file.",
                     "type": "string"
                 },
                 "useRootPackageConfigVerion": {

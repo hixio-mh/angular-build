@@ -431,25 +431,30 @@ export interface PackageOptions {
      */
     packageConfigFile?: string;
     /**
-     * The main index for package.json file.
+     * Module main fields
      */
-    main?: string;
+    mainFields: {
+        /**
+         * The main index for package.json file.
+         */
+        main?: string;
+        /**
+         * The esm module index for package.json file.
+         */
+        module?: string;
+        /**
+         * The es2015 module index for package.json file.
+         */
+        es2015?: string;
+        /**
+         * The typings index for package.json file.
+         */
+        typings?: string;
+    } & { [key: string]: string };
     /**
-     * The esm module index for package.json file.
+     * Custom destination directory for 'package.json'.
      */
-    module?: string;
-    /**
-     * The es2015 module index for package.json file.
-     */
-    es2015?: string;
-    /**
-     * The typings index for package.json file.
-     */
-    typings?: string;
-    /**
-     * The README file to be copied.
-     */
-    readMeFile?: string;
+    outDir?: string;
     /**
      * If true, update version in package.json with project root package.json's version.
      * @default true

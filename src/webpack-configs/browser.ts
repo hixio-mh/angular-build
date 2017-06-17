@@ -436,14 +436,6 @@ export function getChunksConfigPartial(webpackConfigOptions: WebpackConfigOption
         vendorChunk = true;
     }
 
-    // inline
-    if (inlineChunk) {
-        plugins.push(new webpack.optimize.CommonsChunkPlugin({
-            minChunks: Infinity,
-            name: inlineChunkName
-        }));
-    }
-
     // vendor
     if (!appConfig.referenceDll && vendorChunk) {
         // This enables tree shaking of the vendor modules
@@ -454,6 +446,21 @@ export function getChunksConfigPartial(webpackConfigOptions: WebpackConfigOption
                 vendorChunkStartPaths.reduce(
                     (last: boolean, current: string) => module.resource.startsWith(current) || last,
                     false)
+        }));
+    }
+
+    // inline
+    if (inlineChunk) {
+        // TODO: to review
+        plugins.push(new webpack.optimize.CommonsChunkPlugin({
+            async: 'common',
+            children: true,
+            minChunks: 2
+        }));
+
+        plugins.push(new webpack.optimize.CommonsChunkPlugin({
+            minChunks: Infinity,
+            name: inlineChunkName
         }));
     }
 

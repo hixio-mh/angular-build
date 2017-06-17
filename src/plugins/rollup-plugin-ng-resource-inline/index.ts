@@ -81,6 +81,12 @@ async function processUrl(url: string | string[],
     }
 }
 
+type FoundUrlInfo = {
+    url: string|string[];
+    start: number;
+    end: number;
+};
+
 export default function (options: ResourceInlineOptions): AsyncPlugins {
     options = options || { include: [] };
 
@@ -104,30 +110,37 @@ export default function (options: ResourceInlineOptions): AsyncPlugins {
 
             // templateUrl
             let templateUrlMatch: RegExpExecArray | null;
+            const foundTemplateUrls: FoundUrlInfo[] = [];
             while ((templateUrlMatch = templateUrlRegex.exec(source)) != null) {
                 const start = templateUrlMatch.index;
                 const end = start + templateUrlMatch[0].length;
-
                 const url = templateUrlMatch[1];
-                const processedResult = await processUrl(url, id, true, options);
+                foundTemplateUrls.push({ start: start, end: end, url: url });
+            }
+            for (let foundUrl of foundTemplateUrls) {
+                const processedResult = await processUrl(foundUrl.url, id, true, options);
                 if (processedResult !== null) {
                     hasReplacements = true;
-                    magicString.overwrite(start, end, processedResult);
+                    magicString.overwrite(foundUrl.start, foundUrl.end, processedResult);
                 }
             }
 
             // styleUrls
             let styleUrlsMatch: RegExpExecArray | null;
+            const foundStyleUrls: FoundUrlInfo[] = [];
             while ((styleUrlsMatch = styleUrlsRegex.exec(source)) != null) {
                 const start = styleUrlsMatch.index;
                 const end = start + styleUrlsMatch[0].length;
                 const rawStr = styleUrlsMatch[1];
                 // tslint:disable-next-line:no-eval
                 const urls: string[] = eval(rawStr);
-                const processedResult = await processUrl(urls, id, false, options);
+                foundStyleUrls.push({ start: start, end: end, url: urls });
+            }
+            for (let foundUrl of foundStyleUrls) {
+                const processedResult = await processUrl(foundUrl.url, id, false, options);
                 if (processedResult !== null) {
                     hasReplacements = true;
-                    magicString.overwrite(start, end, processedResult);
+                    magicString.overwrite(foundUrl.start, foundUrl.end, processedResult);
                 }
             }
 

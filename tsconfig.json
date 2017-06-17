@@ -32,5 +32,5 @@
     "templates/**/*",
     "tools/**/*"
   ],
-  "compileOnSave": false
+  "compileOnSave": true
 }

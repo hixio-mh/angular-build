@@ -12,7 +12,6 @@ const postcss = require('postcss');
 const postcssUrl = require('postcss-url');
 
 const nodeResolve = require('rollup-plugin-node-resolve');
-const typescript = require('rollup-plugin-typescript2');
 // ReSharper restore CommonJsExternalModule
 
 // internal plugins
@@ -182,9 +181,9 @@ export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
                     return minifyHtml(templateContent,
                         {
                             caseSensitive: true,
-                            // collapseWhitespace: true,
+                            collapseWhitespace: true,
                             removeComments: true,
-
+                            keepClosingSlash: true,
                             removeAttributeQuotes: false
                         });
                 }
@@ -194,24 +193,24 @@ export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
             processStyleUrls: async (urls: string[], resourceId: string) => {
                 const processPostCss = async (css: string, from: string): Promise<string> => {
                     const result = await postcss([
-                            postcssUrl({
-                                url: 'inline'
-                            }),
-                            autoprefixer,
-                            cssnano({
-                                // autoprefixer: false,
-                                safe: true,
-                                mergeLonghand: false,
-                                discardComments: {
-                                    removeAll: true
-                                }
-                            })
-                        ])
+                        postcssUrl({
+                            url: 'inline'
+                        }),
+                        autoprefixer,
+                        cssnano({
+                            // autoprefixer: false,
+                            safe: true,
+                            mergeLonghand: false,
+                            discardComments: {
+                                removeAll: true
+                            }
+                        })
+                    ])
                         .process(css,
-                            {
-                                from: from
+                        {
+                            from: from
 
-                            });
+                        });
                     return result.css;
                 };
 
@@ -241,6 +240,8 @@ export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
     }
 
     if (isTsEntry) {
+        const typescript = require('rollup-plugin-typescript2');
+
         const tsConfigPath = path.resolve(projectRoot, libConfig.srcDir || '', libConfig.tsconfig || 'tsconfig.json');
         // rollup-plugin-typescript@0.8.1 doesn't support custom tsconfig path
         // so we use rollup-plugin-typescript2

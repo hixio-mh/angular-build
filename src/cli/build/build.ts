@@ -224,6 +224,12 @@ async function buildLib(projectRoot: string,
             libConfig.stylePreprocessorOptions.includePaths.map(p => path.resolve(srcDir, p));
     }
 
+    const mainFields: { [key: string]: string } = {};
+    const packageConfigOutDir = path.resolve(outDir,
+        libConfig.packageOptions && libConfig.packageOptions.outDir
+            ? libConfig.packageOptions.outDir
+            : '');
+
     // typescript transpilations
     const processedTsTanspileInfoes: TsTranspiledInfo[] = [];
     if (tsTranspilations.length) {
@@ -254,11 +260,47 @@ async function buildLib(projectRoot: string,
             }
 
             logger.logLine(
-                `Typescript compiling with ${tsTanspileInfo.name ? tsTanspileInfo.name + ' ' : ''}target: ${
+                `Typescript compiling with ${tsTanspileInfo.name ? tsTanspileInfo.name + ', ' : ''}target: ${
                 tsTanspileInfo.target}, module: ${tsTanspileInfo.module}`);
 
             await tsTranspile(pathToWriteFile || tsTanspileInfo.sourceTsConfigPath);
             processedTsTanspileInfoes.push(tsTanspileInfo);
+
+            // add to main fields
+            if (packageConfigOutDir) {
+                let expectedEntryFile = '';
+                if (await fs.exists(path.resolve(tsTanspileInfo.outDir, 'index.js'))) {
+                    expectedEntryFile = 'index.js';
+                } else {
+                    if (libConfig.entry &&
+                        await fs.exists(path.resolve(tsTanspileInfo.outDir,
+                            libConfig.entry.replace(/\.ts$/i, '.js')))) {
+                        expectedEntryFile = libConfig.entry.replace(/\.ts$/i, '.js');
+                    } else {
+                        const foundBundleTarget = bundleTargets.find(t => !!t.entry &&
+                            !!t.entryResolution &&
+                            t.entryResolution.entryRoot === 'tsTranspilationOutDir');
+                        if (foundBundleTarget && foundBundleTarget.entry) {
+                            expectedEntryFile = foundBundleTarget.entry;
+                        }
+                    }
+                }
+                const expectedTypingEntryFile = expectedEntryFile.replace(/\.js$/i, '.d.ts');
+
+                if (expectedEntryFile && tsTanspileInfo.module === 'es2015' && tsTanspileInfo.target === 'es2015') {
+                    mainFields.es2015 = path.relative(packageConfigOutDir,
+                        path.join(tsTanspileInfo.outDir, expectedEntryFile)).replace(/\\/g, '/');
+                } else if (expectedEntryFile && tsTanspileInfo.module === 'es2015' && tsTanspileInfo.target === 'es5') {
+                    mainFields.module = path.relative(packageConfigOutDir,
+                        path.join(tsTanspileInfo.outDir, expectedEntryFile)).replace(/\\/g, '/');
+                }
+                if (expectedEntryFile &&
+                    tsTanspileInfo.declaration &&
+                    await fs.exists(path.resolve(tsTanspileInfo.outDir, expectedTypingEntryFile))) {
+                    mainFields.typings = path.relative(packageConfigOutDir,
+                        path.join(tsTanspileInfo.outDir, expectedTypingEntryFile)).replace(/\\/g, '/');
+                }
+            }
 
             if (pathToWriteFile && pathToWriteFile !== tsTanspileInfo.sourceTsConfigPath) {
                 await clean(pathToWriteFile);
@@ -343,8 +385,10 @@ async function buildLib(projectRoot: string,
             throw new Error(`The 'outDir' property is required in lib config.`);
         }
 
+        const skipBundleIds: number[] = [];
         for (let i = 0; i < bundleTargets.length; i++) {
             const target = bundleTargets[i];
+            let expectedScriptTarget: string | undefined = undefined;
 
             let bundleRootDir = srcDir || projectRoot;
             let bundleEntryFile: string | undefined = undefined;
@@ -360,26 +404,27 @@ async function buildLib(projectRoot: string,
             // bundleDestFileName
             let bundleDestFileName = target.outFileName;
             if (!bundleDestFileName) {
-                bundleDestFileName = packageNameWithoutScope
-                    ? `${packageNameWithoutScope}${formatSuffix}.js`
-                    : libConfig.outFileName
-                        ? `${libConfig.outFileName}${formatSuffix}.js`
-                        : `main${formatSuffix}.js`;
+                bundleDestFileName = libConfig.outFileName
+                    ? `${libConfig.outFileName}${formatSuffix}.js`
+                    : packageNameWithoutScope
+                        ? `${packageNameWithoutScope}${formatSuffix}.js` : `main${formatSuffix}.js`;
             }
 
             bundleDestFileName = bundleDestFileName.replace(/\[name\]/g,
-                packageNameWithoutScope || libConfig.outFileName || 'main');
+                packageNameWithoutScope || 'main');
             target.outFileName = bundleDestFileName;
 
             let shouldSkipThisTarget = false;
             for (let j = 0; j < i; j++) {
                 if ((bundleTargets[j].outFileName as string).toLowerCase() === bundleDestFileName.toLowerCase()) {
                     logger.warnLine(
-                        `The same 'bundleOutFileName': ${bundleDestFileName} found and skipping this target.`);
+                        `The same bundle 'outFileName': ${bundleDestFileName} found and skipping this target.`);
                     shouldSkipThisTarget = true;
+                    break;
                 }
             }
             if (shouldSkipThisTarget) {
+                skipBundleIds.push(i);
                 continue;
             }
 
@@ -396,10 +441,12 @@ async function buildLib(projectRoot: string,
 
                 if (target.entryResolution.entryRoot === 'bundleTargetOutDir') {
                     let foundBundleTarget: BundleTarget | undefined = undefined;
-                    if (target.entryResolution.bundleTargetIndex && typeof target.entryResolution.bundleTargetIndex === 'number') {
+                    if (typeof target.entryResolution.bundleTargetIndex === 'number') {
                         const index = target.entryResolution.bundleTargetIndex as number;
                         if (index === i) {
-                            throw new Error(`The 'bundleTargetIndex' must not be current item index at bundleTargets[${i}].`);
+                            throw new Error(
+                                `The 'bundleTargetIndex' must not be the same as current item index at bundleTargets[${i
+                                }].`);
                         }
                         if (index < 0 || index >= bundleTargets.length) {
                             throw new Error(`No bundleTarget found with bundleTargetIndex: ${index} at bundleTargets[${i}].`);
@@ -409,7 +456,9 @@ async function buildLib(projectRoot: string,
                         typeof target.entryResolution.bundleTargetIndex === 'string') {
                         const bundleTargetName = target.entryResolution.bundleTargetIndex as string;
                         if (bundleTargetName === target.name) {
-                            throw new Error(`The 'bundleTargetIndex' must not be current item name at bundleTargets[${i}].`);
+                            throw new Error(
+                                `The 'bundleTargetIndex' must not be the same as current item name at bundleTargets[${i
+                                }].`);
                         }
 
                         foundBundleTarget = bundleTargets.find(b => b.name === bundleTargetName);
@@ -418,7 +467,10 @@ async function buildLib(projectRoot: string,
                                 `No bundleTarget found with bundleTargetIndex: ${bundleTargetName} at bundleTargets[${i}].`);
                         }
                     }
-                    if (typeof target.entryResolution.bundleTargetIndex === 'undefined' && i !== 0) {
+                    if (typeof target.entryResolution.bundleTargetIndex === 'undefined' &&
+                        i !== 0 &&
+                        skipBundleIds.indexOf(i - 1) === -1) {
+
                         foundBundleTarget = bundleTargets[i - 1];
                     }
 
@@ -436,7 +488,14 @@ async function buildLib(projectRoot: string,
                     bundleRootDir = foundBundleTarget.outDir
                         ? path.resolve(outDir as string, foundBundleTarget.outDir as string)
                         : outDir as string;
-                    bundleEntryFile = target.entry || foundBundleTarget.outFileName;
+                    bundleEntryFile = foundBundleTarget.outFileName;
+                    if (foundBundleTarget.scriptTarget !== 'es5' &&
+                        /\.es2015\.js$/i.test(foundBundleTarget.outFileName as string)) {
+                        expectedScriptTarget = 'es2015';
+                    } else if (foundBundleTarget.scriptTarget === 'es5' ||
+                        /\.es5\.js$/i.test(foundBundleTarget.outFileName as string)) {
+                        expectedScriptTarget = 'es5';
+                    }
                 } else if (target.entryResolution.entryRoot === 'tsTranspilationOutDir') {
                     if (!target.entry && !libConfig.entry) {
                         throw new Error(`The main entry is required for bundling.`);
@@ -446,8 +505,7 @@ async function buildLib(projectRoot: string,
                     }
 
                     let foundTsTranspilationInfo: TsTranspiledInfo | undefined;
-                    if (target.entryResolution.tsTranspilationIndex &&
-                        typeof target.entryResolution.tsTranspilationIndex === 'number') {
+                    if (typeof target.entryResolution.tsTranspilationIndex === 'number') {
                         const index = target.entryResolution.tsTranspilationIndex as number;
                         if (index < 0 || index >= processedTsTanspileInfoes.length) {
                             throw new Error(
@@ -477,6 +535,7 @@ async function buildLib(projectRoot: string,
                     bundleRootDir = foundTsTranspilationInfo.outDir;
                     bundleEntryFile = target.entry || libConfig.entry;
                     bundleEntryFile = (bundleEntryFile as string).replace(/\.ts$/i, '.js');
+                    expectedScriptTarget = foundTsTranspilationInfo.target;
                 } else if (target.entryResolution.entryRoot === 'outDir') {
                     if (!target.entry && !libConfig.entry) {
                         throw new Error(`The main entry is required for bundling.`);
@@ -484,14 +543,28 @@ async function buildLib(projectRoot: string,
                     bundleEntryFile = target.entry || libConfig.entry;
                     bundleRootDir = outDir as string;
                     useNodeResolve = true;
+                    if (/\.es2015\.js$/i.test(bundleEntryFile as string)) {
+                        expectedScriptTarget = 'es2015';
+                    } else if (/\.es5\.js$/i.test(bundleEntryFile as string)) {
+                        expectedScriptTarget = 'es5';
+                    }
                 }
-            } else if (!!(target.entry || libConfig.entry) && /\.ts$/i.test((target.entry || libConfig.entry) as string)) {
+            } else if (!!(target.entry || libConfig.entry) &&
+                /\.ts$/i.test((target.entry || libConfig.entry) as string)) {
                 if (processedTsTanspileInfoes.length > 0) {
                     bundleRootDir = processedTsTanspileInfoes[0].outDir;
                     bundleEntryFile = target.entry || libConfig.entry;
                     bundleEntryFile = (bundleEntryFile as string).replace(/\.ts$/i, '.js');
+                    expectedScriptTarget = processedTsTanspileInfoes[0].target;
                 } else {
                     bundleEntryFile = target.entry || libConfig.entry;
+                    if (libConfig.tsconfig) {
+                        const tempTsConfig =
+                            await readJson(path.resolve(projectRoot, libConfig.srcDir || '', libConfig.tsconfig));
+                        if (tempTsConfig.compilerOptions && tempTsConfig.compilerOptions.target) {
+                            expectedScriptTarget = tempTsConfig.compilerOptions.target;
+                        }
+                    }
                 }
             } else {
                 bundleEntryFile = target.entry || libConfig.entry;
@@ -516,17 +589,22 @@ async function buildLib(projectRoot: string,
             }
 
             if (target.transformScriptTargetOnly && target.scriptTarget && target.scriptTarget !== 'none') {
-                let scriptTarget = ts.ScriptTarget.ES5;
-                let moduleKind = ts.ModuleKind.ES2015;
+                let scriptTarget: ts.ScriptTarget;
+                let moduleKind: ts.ModuleKind;
                 if (target.scriptTarget === 'es5') {
                     scriptTarget = ts.ScriptTarget.ES5;
+                } else {
+                    scriptTarget = ts.ScriptTarget.ES5;
                 }
+
                 if (target.libraryTarget === 'amd') {
                     moduleKind = ts.ModuleKind.UMD;
                 } else if (target.libraryTarget === 'commonjs' || target.libraryTarget === 'commonjs2') {
                     moduleKind = ts.ModuleKind.CommonJS;
                 } else if (target.libraryTarget === 'umd') {
                     moduleKind = ts.ModuleKind.UMD;
+                } else {
+                    moduleKind = ts.ModuleKind.ES2015;
                 }
 
                 target.libraryTarget = target.libraryTarget || libConfig.libraryTarget;
@@ -540,8 +618,25 @@ async function buildLib(projectRoot: string,
                         module: moduleKind,
                         allowJs: /\.ts$/i.test(bundleEntryFilePath) === false
                     });
+
+                if (moduleKind === ts.ModuleKind.ES2015 && scriptTarget === ts.ScriptTarget.ES5) {
+                    mainFields.module = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
+                } else if (moduleKind === ts.ModuleKind.UMD && scriptTarget === ts.ScriptTarget.ES5) {
+                    mainFields.main = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
+                }
             } else {
                 target.libraryTarget = target.libraryTarget || libConfig.libraryTarget;
+                if (target.libraryTarget === 'es' &&
+                    expectedScriptTarget === 'es2015' &&
+                    target.scriptTarget !== 'es5') {
+                    mainFields.es2015 = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
+                } else if (target.libraryTarget === 'es' &&
+                    (!expectedScriptTarget || expectedScriptTarget === 'es5' || target.scriptTarget === 'es5')) {
+                    mainFields.module = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
+                } else if (target.libraryTarget === 'umd' &&
+                    (!expectedScriptTarget || expectedScriptTarget === 'es5' || target.scriptTarget === 'es5')) {
+                    mainFields.main = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
+                }
 
                 if (libConfig.bundleTool === 'webpack') {
                     logger.logLine(`Bundling ${target.name ? target.name + ' ' : ''}with webpack`);
@@ -589,6 +684,47 @@ async function buildLib(projectRoot: string,
                     const bundle = await rollup.rollup(rollupOptions.options);
                     await bundle.write(rollupOptions.writeOptions);
                 }
+
+                if (!target.transformScriptTargetOnly &&
+                    target.scriptTarget &&
+                    target.scriptTarget !== 'none' &&
+                    expectedScriptTarget !== target.scriptTarget) {
+                    let scriptTarget: ts.ScriptTarget;
+                    let moduleKind: ts.ModuleKind;
+                    if (target.scriptTarget === 'es5') {
+                        scriptTarget = ts.ScriptTarget.ES5;
+                    } else {
+                        scriptTarget = ts.ScriptTarget.ES5;
+                    }
+
+                    if (target.libraryTarget === 'amd') {
+                        moduleKind = ts.ModuleKind.UMD;
+                    } else if (target.libraryTarget === 'commonjs' || target.libraryTarget === 'commonjs2') {
+                        moduleKind = ts.ModuleKind.CommonJS;
+                    } else if (target.libraryTarget === 'umd') {
+                        moduleKind = ts.ModuleKind.UMD;
+                    } else {
+                        moduleKind = ts.ModuleKind.ES2015;
+                    }
+
+                    logger.logLine(`Transforming ${bundleEntryFile} to ${target.scriptTarget}`);
+
+                    // TODO: to review
+                    await transpileFile(bundleDestFilePath,
+                        bundleDestFilePath,
+                        {
+                            importHelpers: true,
+                            target: scriptTarget,
+                            module: moduleKind,
+                            allowJs: true
+                        });
+
+                    if (moduleKind === ts.ModuleKind.ES2015 && scriptTarget === ts.ScriptTarget.ES5) {
+                        mainFields.module = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
+                    } else if (moduleKind === ts.ModuleKind.UMD && scriptTarget === ts.ScriptTarget.ES5) {
+                        mainFields.main = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
+                    }
+                }
             }
 
             if (libConfig.sourceMap && bundleRootDir !== srcDir) {
@@ -605,7 +741,7 @@ async function buildLib(projectRoot: string,
 
     // packaging
     if (libConfig.packageOptions && libConfig.packageOptions.packageConfigFile) {
-        await libPackageCopy(projectRoot, libConfig, logger);
+        await libPackageCopy(projectRoot, libConfig, mainFields, logger);
     }
 
     logger.logLine(`Build completed.`);
@@ -641,7 +777,10 @@ async function cleanOutDirs(projectRoot: string,
     }
 }
 
-async function libPackageCopy(projectRoot: string, libConfig: LibProjectConfig, logger: Logger): Promise<any> {
+async function libPackageCopy(projectRoot: string,
+    libConfig: LibProjectConfig,
+    mainFields: { [key: string]: string },
+    logger: Logger): Promise<any> {
     if (!libConfig.packageOptions || !libConfig.packageOptions.packageConfigFile) {
         return;
     }
@@ -650,26 +789,14 @@ async function libPackageCopy(projectRoot: string, libConfig: LibProjectConfig, 
         throw new Error(`The 'outDir' property is required in lib config.`);
     }
 
-    const outDir = path.resolve(projectRoot, libConfig.outDir);
+    const outDir = path.resolve(projectRoot, libConfig.outDir, libConfig.packageOptions.outDir || '');
     const srcDir = path.resolve(projectRoot, libConfig.srcDir || '');
 
-
     // read package info
-    let libPackageConfig: any;
-    let rootPackageConfig: any;
-    let libPackageNameWithoutScope: string;
-    if (libConfig.packageOptions && libConfig.packageOptions.packageConfigFile) {
-        libPackageConfig = await readJson(path.resolve(srcDir, libConfig.packageOptions.packageConfigFile));
-    }
-
+    let libPackageConfig = await readJson(path.resolve(srcDir, libConfig.packageOptions.packageConfigFile));
+    let rootPackageConfig: any = null;
     if (await fs.exists(path.resolve(projectRoot, 'package.json'))) {
         rootPackageConfig = await readJson(path.resolve(projectRoot, 'package.json'));
-    }
-
-    const libPackageName = libPackageConfig ? libPackageConfig.name : rootPackageConfig ? rootPackageConfig.name : '';
-    libPackageNameWithoutScope = libPackageName;
-    if (libPackageNameWithoutScope && libPackageNameWithoutScope.indexOf('/') > -1) {
-        libPackageNameWithoutScope = libPackageNameWithoutScope.split('/')[1];
     }
 
     logger.logLine(`Copying package.json`);
@@ -681,39 +808,11 @@ async function libPackageCopy(projectRoot: string, libConfig: LibProjectConfig, 
         delete libPackageConfig.srcipts;
     }
 
-    if (libConfig.packageOptions.useRootPackageConfigVerion && rootPackageConfig) {
+    if (libConfig.packageOptions.useRootPackageConfigVerion !== false && !!rootPackageConfig) {
         libPackageConfig.version = rootPackageConfig.version;
     }
 
-    if (libConfig.packageOptions.main) {
-        libPackageConfig.main = libConfig.packageOptions.main.replace(/\[name\]/g, libPackageNameWithoutScope || 'main');
-    }
-    if (libConfig.packageOptions.module) {
-        libPackageConfig.module =
-            libConfig.packageOptions.module.replace(/\[name\]/g, libPackageNameWithoutScope || 'main');
-    }
-    if (libConfig.packageOptions.es2015) {
-        libPackageConfig.es2015 =
-            libConfig.packageOptions.es2015.replace(/\[name\]/g, libPackageNameWithoutScope || 'main');
-    }
-    if (libConfig.packageOptions.typings) {
-        libPackageConfig.typings =
-            libConfig.packageOptions.typings.replace(/\[name\]/g, libPackageNameWithoutScope || 'main');
-    }
-    if (libConfig.packageOptions.readMeFile) {
-        logger.logLine(`Copying README file`);
-        let readMeSourcePath = path.resolve(srcDir, libConfig.packageOptions.readMeFile);
-        if (!await fs.exists(readMeSourcePath)) {
-            const tempPath = path.resolve(projectRoot, libConfig.packageOptions.readMeFile);
-            if (await fs.exists(tempPath)) {
-                readMeSourcePath = tempPath;
-            }
-        }
-
-        const extName = path.extname(readMeSourcePath);
-        await fs.copy(readMeSourcePath, path.join(outDir, `README${extName}`));
-    }
-
+    libPackageConfig = Object.assign(libPackageConfig, mainFields, libConfig.packageOptions.mainFields);
     await fs.writeFile(path.resolve(outDir, 'package.json'), JSON.stringify(libPackageConfig, null, 2));
 }
 

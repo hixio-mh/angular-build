@@ -51,6 +51,7 @@
     <Content Include="bin\angular-build" />
     <Content Include="bin\ngb" />
     <Content Include="CHANGELOG.md" />
+    <Content Include="REGULARCHECKLIST.md" />
     <Content Include="schemas\favicon-config-schema-draft-04.json" />
     <Content Include="schemas\favicon-config-schema.json" />
     <Content Include="schemas\schema-draft-04.json" />
@@ -67,8 +68,8 @@
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="TODO.md" />
+    <Content Include="TROUBLESHOOTING.md" />
     <Content Include="tsconfig.json" />
-    <Content Include="yarn.lock" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\" />

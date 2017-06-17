@@ -1,5 +1,5 @@
 ﻿import * as path from 'path';
-import { main as tscWrappedMain } from '@angular/tsc-wrapped';
+import { main as tscWrappedMain } from '@angular/compiler-cli';
 import * as fs from 'fs-extra';
 import * as ts from 'typescript';
 
@@ -11,6 +11,7 @@ export type TsTranspiledInfo = {
     outDir: string;
     target: string;
     module: string;
+    declaration: boolean;
     sourceTsConfigPath: any;
     tsConfigJson: any;
     shouldCreateTempTsConfig?: boolean;
@@ -19,10 +20,10 @@ export type TsTranspiledInfo = {
 
 export async function getTsTranspileInfo(projectRoot: string,
     projectConfig: ProjectConfig,
-    tsTranspileOptions: TsTranspilation): Promise<TsTranspiledInfo> {
+    tsTranspileOption: TsTranspilation): Promise<TsTranspiledInfo> {
     const srcDir = projectConfig.srcDir ? path.resolve(projectRoot, projectConfig.srcDir) : projectRoot;
     const rootTsConfigPath = path.resolve(projectRoot, projectConfig.tsconfig || 'tsconfig.json');
-    const sourceTsConfig = tsTranspileOptions.tsconfig || projectConfig.tsconfig || 'tsconfig.json';
+    const sourceTsConfig = tsTranspileOption.tsconfig || projectConfig.tsconfig || 'tsconfig.json';
     let sourceTsConfigPath = path.resolve(srcDir, sourceTsConfig);
 
     if (!await fs.exists(sourceTsConfigPath)) {
@@ -43,15 +44,15 @@ export async function getTsTranspileInfo(projectRoot: string,
     if (projectConfig.outDir) {
         rootOutDir = path.resolve(projectRoot, projectConfig.outDir);
     }
-    if (tsTranspileOptions.outDir) {
-        transpileOutDir = path.resolve(rootOutDir || projectRoot, tsTranspileOptions.outDir);
+    if (tsTranspileOption.outDir) {
+        transpileOutDir = path.resolve(rootOutDir || projectRoot, tsTranspileOption.outDir);
     }
 
     const tempTsConfigInfo = await getTempTsConfig(sourceTsConfigPath,
-        tsTranspileOptions.target,
-        tsTranspileOptions.module,
-        tsTranspileOptions.declaration,
-        tsTranspileOptions.noEmit,
+        tsTranspileOption.target,
+        tsTranspileOption.module,
+        tsTranspileOption.declaration,
+        tsTranspileOption.noEmit,
         transpileOutDir,
         projectConfig.sourceMap);
 
@@ -64,10 +65,13 @@ export async function getTsTranspileInfo(projectRoot: string,
     if (!transpileOutDir) {
         transpileOutDir = path.dirname(sourceTsConfigPath);
     }
+
+    const declaration = tempTsConfigInfo.tsConfig.compilerOptions.declaration || tsTranspileOption.declaration;
     return {
-        tsTranspilation: tsTranspileOptions,
-        name: tsTranspileOptions.name,
+        tsTranspilation: tsTranspileOption,
+        name: tsTranspileOption.name,
         outDir: transpileOutDir,
+        declaration: declaration,
         target: target,
         module: module,
         tsConfigJson: tempTsConfigInfo.tsConfig,

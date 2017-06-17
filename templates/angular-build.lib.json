@@ -5,18 +5,24 @@
     {
       "srcDir": "src",
       "outDir": "dist",
-      "styles": [
-        {
-          "from": "",
-          "to": ""
-        }
+      "assets": [
+        "README.md",
+        "LICENSE"
       ],
-      "entry": "index.js",
+      "styles": [
+        //{
+        //  "from": "core/theming/prebuilt/styles.scss",
+        //  "to": "prebuilt-themes/styles.css"
+        //}
+      ],
+      // "entry": "index.ts",
       "tsconfig": "tsconfig.json",
       "tsTranspilations": [
         {
-          "tsconfig": "tsconfig.json",
-          "copyTemplateAndStyleUrls": true
+          //"name": "es2015-es2015",
+          "tsconfig": "tsconfig.json"
+          // default true
+          //"copyTemplateAndStyleUrls": true
         }
       ],
       "bundleTargets": [
@@ -24,6 +30,8 @@
           "name": "esm-es2015",
           "entryResolution": {
             "entryRoot": "tsTranspilationOutDir"
+            // default to first item index
+            //"tsTranspilationIndex": 0
           },
           "libraryTarget": "es",
           "outDir": "bundles"
@@ -31,10 +39,13 @@
         {
           "name": "esm-es5",
           "entryResolution": {
-            "entryRoot": "bundleTargetOutDir",
-            "bundleTargetIndex": "esm-es2015"
+            "entryRoot": "bundleTargetOutDir"
+            // default to previous bundle target
+            // "bundleTargetIndex": "esm-es2015"
           },
+          "libraryTarget": "es",
           "outDir": "bundles",
+          "addPureAnnotations": true,
           "transformScriptTargetOnly": true,
           "scriptTarget": "es5"
         },
@@ -42,25 +53,25 @@
           "name": "umd-es5",
           "entryResolution": {
             "entryRoot": "bundleTargetOutDir"
+            // default to previous bundle target
+            // "bundleTargetIndex": "esm-es5"
           },
           "libraryTarget": "umd",
-          "outDir": "bundles"
+          "outDir": "bundles",
+          "inlineResources": false
         }
       ],
       "packageOptions": {
-        "packageConfigFile": "package.json",
-        "main": "",
-        "module": "",
-        "es2015": "",
-        "typings": ""
+        "packageConfigFile": "package.json"
       },
+      "banner": "banner.txt",
       "envOverrides": {
         "dev": {
 
         },
         "prod": {
-          
-        } 
+
+        }
       }
     }
   ]

@@ -5,7 +5,7 @@ import * as path from 'path';
 
 import { sassPromise } from '../utils';
 
-const templateUrlRegex = /templateUrl:\s*['"`]([^'"`]+?\.[a-zA-Z]+)['"`]/gm;
+const templateUrlRegex = /templateUrl:\s*['"`]([^'"`]+?\.[a-zA-Z]+)['"`]/g;
 const styleUrlsRegex = /styleUrls:\s*(\[[^\]]*?\])/gm;
 
 export async function copyTemplateAndStyleUrls(srcDir: string,
@@ -23,7 +23,7 @@ export async function copyTemplateAndStyleUrls(srcDir: string,
         }
 
         let files = await globPromise(pattern, { cwd: rootOutDir, nodir: true, dot: true });
-        files = files.filter(name => /\.(js|ts)$/i.test(name)); // Matches only javaScript/typescript files.
+        files = files.filter(name => /\.js$/i.test(name)); // Matches only javaScript/typescript files.
 
         // Generate all files content with inlined templates.
         await Promise.all(files.map(async (resourceId: string) => {
@@ -60,10 +60,19 @@ async function findResourcePath(url: string, resourceId: string, srcDir: string,
 }
 
 async function copyTemplateUrl(source: string,
-    resourceId: string, srcDir: string, rootOutDir: string): Promise<void> {
+    resourceId: string,
+    srcDir: string,
+    rootOutDir: string): Promise<void> {
     let templateUrlMatch: RegExpExecArray | null;
+    const foundUrls: string[] = [];
     while ((templateUrlMatch = templateUrlRegex.exec(source)) != null) {
-        const templateUrl = templateUrlMatch[1];
+        const url = templateUrlMatch[1];
+        if (foundUrls.indexOf(url) === -1) {
+            foundUrls.push(url);
+        }
+    }
+
+    for (let templateUrl of foundUrls) {
         const templateSourceFilePath = await findResourcePath(templateUrl, resourceId, srcDir, rootOutDir);
         const templateDestFilePath = path.resolve(path.dirname(resourceId), templateUrl);
         await fs.copy(templateSourceFilePath, templateDestFilePath);
@@ -75,26 +84,33 @@ async function copyStyleUrls(source: string,
     srcDir: string,
     rootOutDir: string,
     includePaths: string[], ): Promise<void> {
+    const foundUrls: string[] = [];
     let styleUrlsMatch: RegExpExecArray | null;
     while ((styleUrlsMatch = styleUrlsRegex.exec(source)) != null) {
         const rawStr = styleUrlsMatch[1];
         // tslint:disable-next-line:no-eval
         const urls: string[] = eval(rawStr);
-        await Promise.all(urls.map(async (styleUrl: string) => {
-            const styleSourceFilePath = await findResourcePath(styleUrl, resourceId, srcDir, rootOutDir);
-            const styleDestFilePath = path.resolve(path.dirname(resourceId), styleUrl);
-
-            if (/\.scss$|\.sass$/i.test(styleSourceFilePath)) {
-                const result = await sassPromise({ file: styleSourceFilePath, includePaths: includePaths });
-                await fs.writeFile(styleDestFilePath, result.css);
-            } else if (/\.less$/i.test(styleSourceFilePath)) {
-                const styleContent = await fs.readFile(styleSourceFilePath, 'utf-8');
-                const result = await less.render(styleContent, { filename: styleSourceFilePath });
-                await fs.writeFile(styleDestFilePath, result.css);
-            } else {
-                await fs.copy(styleSourceFilePath, styleDestFilePath);
+        urls.forEach(url => {
+            if (foundUrls.indexOf(url) === -1) {
+                foundUrls.push(url);
             }
-        }));
+        });
+    }
+
+    for (let styleUrl of foundUrls) {
+        const styleSourceFilePath = await findResourcePath(styleUrl, resourceId, srcDir, rootOutDir);
+        const styleDestFilePath = path.resolve(path.dirname(resourceId), styleUrl);
+
+        if (/\.scss$|\.sass$/i.test(styleSourceFilePath)) {
+            const result = await sassPromise({ file: styleSourceFilePath, includePaths: includePaths });
+            await fs.writeFile(styleDestFilePath, result.css);
+        } else if (/\.less$/i.test(styleSourceFilePath)) {
+            const styleContent = await fs.readFile(styleSourceFilePath, 'utf-8');
+            const result = await less.render(styleContent, { filename: styleSourceFilePath });
+            await fs.writeFile(styleDestFilePath, result.css);
+        } else {
+            await fs.copy(styleSourceFilePath, styleDestFilePath);
+        }
     }
 }
 

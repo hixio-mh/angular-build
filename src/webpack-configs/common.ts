@@ -243,16 +243,18 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         !environment.test &&
         (projectConfig.platformTarget === 'web' ||
             projectConfig.projectType === 'lib')) {
-        devtool = 'source-map';
-        // const relOutDir = path.relative(projectRoot, path.resolve(projectRoot, appConfig.outDir));
-        // commonPlugins.push(new webpack.SourceMapDevToolPlugin({
-        //    // if no value is provided the sourcemap is inlined
-        //    filename: '[file].map',
-        //    test: /\.(ts|js)($|\?)/i, // process .js and .ts files only
-        //    moduleFilenameTemplate:
-        //        path.relative(relOutDir,
-        //            '[resourcePath]') // Point sourcemap entries to the original file locations on disk
-        // }));
+        // devtool = 'source-map';
+        // TODO: to review
+        devtool = undefined;
+        // TODO: to review it works?
+        commonPlugins.push(new webpack.SourceMapDevToolPlugin({
+            // if no value is provided the sourcemap is inlined
+            filename: '[file].map[query]',
+            // test: /\.(ts|js)($|\?)/i, // process .js and .ts files only
+            moduleFilenameTemplate: '[resource-path]',
+            fallbackModuleFilenameTemplate: '[resource-path]?[hash]',
+            sourceRoot: 'webpack:///'
+        }));
     } else if (typeof projectConfig.sourceMapDevTool === 'undefined' || environment.test) {
         devtool = 'inline-source-map';
     }
@@ -365,6 +367,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     // webpack config
     const webpackSharedConfig: webpack.Configuration = {
         target: (projectConfig.platformTarget as any),
+        // TODO: to review to commment?
         devtool: (devtool as any),
         profile: profile === false ? false : profile,
         resolve: {
