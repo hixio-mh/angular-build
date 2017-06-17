@@ -28,7 +28,7 @@ export function getAppWebpackConfigs(projectRoot: string,
 
     buildOptions = buildOptions || {};
 
-    // Merge buildOptions
+    // merge buildOptions
     if (angularBuildConfig.buildOptions) {
         Object.keys(angularBuildConfig.buildOptions)
             .filter((key: string) => !(key in (buildOptions as BuildOptions)) &&

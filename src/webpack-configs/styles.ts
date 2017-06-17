@@ -1,4 +1,6 @@
-﻿import * as path from 'path';
+﻿// Ref: https://github.com/angular/angular-cli
+
+import * as path from 'path';
 import * as webpack from 'webpack';
 
 import * as autoprefixer from 'autoprefixer';
@@ -32,7 +34,6 @@ import { WebpackConfigOptions } from './webpack-config-options';
  * require('to-string-loader')
  */
 
-// Ref: https://github.com/angular/angular-cli
 export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const projectRoot = webpackConfigOptions.projectRoot;
     const buildOptions = webpackConfigOptions.buildOptions;
@@ -70,8 +71,6 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
     const lessLoader = webpackIsGlobal ? require.resolve('less-loader') : 'less-loader';
     const postcssLoader = webpackIsGlobal ? require.resolve('postcss-loader') : 'postcss-loader';
     const exportsLoader = webpackIsGlobal ? require.resolve('exports-loader') : 'exports-loader';
-    //const ngTemplateLoader = webpackIsGlobal ? require.resolve('angular2-template-loader') : 'angular2-template-loader';
-    //const ngRouterLoader = webpackIsGlobal ? require.resolve('ng-router-loader') : 'ng-router-loader';
 
     // set base rules to derive final rules from
     const baseRules: any[] = [
@@ -110,7 +109,12 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
 
         return [
             postcssUrl({
-                url: (u: string) => {
+                url: (asset: any) => {
+                    const u = typeof asset === 'string' ? asset : asset.url;
+                    if (!u || typeof u !== 'string') {
+                        return u;
+                    }
+
                     // Only convert root relative URLs, which CSS-Loader won't process into require().
                     if (!u.startsWith('/') || u.startsWith('//')) {
                         return u;
