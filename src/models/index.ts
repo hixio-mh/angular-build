@@ -127,7 +127,7 @@ export interface ProjectConfigBase {
      * Typescript loader for webpack.
      * This is only used by webpack.
      */
-    tsLoader?: 'auto' | 'ngtools/webpack';
+    tsLoader?: 'auto' | '@ngtools/webpack';
     /**
      * The webpack stats option lets you precisely control what bundle information gets displayed.
      * This is only used by webpack.

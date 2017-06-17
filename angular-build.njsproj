@@ -113,6 +113,9 @@
     <Folder Include="src\webpack-configs\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\cli\build\build-lib.ts" />
+    <TypeScriptCompile Include="src\cli\build\copy-package-config.ts" />
+    <TypeScriptCompile Include="src\cli\build\webpack-bundle.ts" />
     <TypeScriptCompile Include="src\cli\init\index.ts" />
     <TypeScriptCompile Include="src\cli\init\init-command-module.ts" />
     <TypeScriptCompile Include="src\cli\init\init.ts" />

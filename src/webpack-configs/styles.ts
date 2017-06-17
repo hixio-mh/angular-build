@@ -64,12 +64,21 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
             includePaths.push(path.resolve(srcDir, includePath)));
     }
 
+    const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
+    const cssLoader = webpackIsGlobal ? require.resolve('css-loader') : 'css-loader';
+    const sassLoader = webpackIsGlobal ? require.resolve('sass-loader') : 'sass-loader';
+    const lessLoader = webpackIsGlobal ? require.resolve('less-loader') : 'less-loader';
+    const postcssLoader = webpackIsGlobal ? require.resolve('postcss-loader') : 'postcss-loader';
+    const exportsLoader = webpackIsGlobal ? require.resolve('exports-loader') : 'exports-loader';
+    //const ngTemplateLoader = webpackIsGlobal ? require.resolve('angular2-template-loader') : 'angular2-template-loader';
+    //const ngRouterLoader = webpackIsGlobal ? require.resolve('ng-router-loader') : 'ng-router-loader';
+
     // set base rules to derive final rules from
     const baseRules: any[] = [
         { test: /\.css$/, use: [] },
         {
             test: /\.scss$|\.sass$/, use: [{
-                loader: 'sass-loader',
+                loader: sassLoader,
                 options: {
                     sourceMap: cssSourceMap,
                     // bootstrap-sass requires a minimum precision of 8
@@ -80,7 +89,7 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
         },
         {
             test: /\.less$/, use: [{
-                loader: 'less-loader',
+                loader: lessLoader,
                 options: {
                     sourceMap: cssSourceMap
                 }
@@ -129,14 +138,14 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
 
     const commonLoaders: any[] = [
         {
-            loader: 'css-loader',
+            loader: cssLoader,
             options: {
                 sourceMap: cssSourceMap,
                 importLoaders: 1
             }
         },
         {
-            loader: 'postcss-loader',
+            loader: postcssLoader,
             options: {
                 // non-function property is required to workaround a webpack option handling bug
                 ident: 'postcss',
@@ -157,7 +166,7 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
         exclude: globalStylePaths,
         test,
         use: [
-            'exports-loader?module.exports.toString()' // or raw-loader?
+            exportsLoader + '?module.exports.toString()' // or raw-loader?
         ].concat(commonLoaders).concat(use)
     }));
 

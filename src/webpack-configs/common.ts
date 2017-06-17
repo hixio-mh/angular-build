@@ -47,29 +47,36 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         ? '.[chunkhash]'
         : '';
 
+    const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
+    const fileLoader = webpackIsGlobal ? require.resolve('file-loader') : 'file-loader';
+    const jsonLoader = webpackIsGlobal ? require.resolve('json-loader') : 'json-loader';
+    const rawLoader = webpackIsGlobal ? require.resolve('raw-loader') : 'raw-loader';
+    const sourceMapLoader = webpackIsGlobal ? require.resolve('source-map-loader') : 'source-map-loader';
+    const urlLoader = webpackIsGlobal ? require.resolve('url-loader') : 'url-loader';
+
     const commonRules: any[] = [
         {
             test: /\.json$/,
-            use: 'json-loader'
+            use: jsonLoader
         },
         {
             test: /\.html$/,
-            use: 'raw-loader',
+            use: rawLoader,
             exclude: [path.resolve(projectRoot, projectConfig.srcDir, 'index.html')]
         },
         // Font files of all types
         {
             test: /\.(otf|ttf|woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
-            use: `url-loader?limit=10000&name=assets/[name]${fileHashFormat}.[ext]`
+            use: `${urlLoader}?limit=10000&name=assets/[name]${fileHashFormat}.[ext]`
         },
         {
             test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-            use: `file-loader?name=assets/[name]${fileHashFormat}.[ext]`
+            use: `${fileLoader}?name=assets/[name]${fileHashFormat}.[ext]`
         },
         // Image loaders
         {
             test: /\.(jpg|png|webp|gif|cur|ani)$/,
-            use: `url-loader?limit=25000&name=assets/[name]${fileHashFormat}.[ext]`
+            use: `${urlLoader}?limit=25000&name=assets/[name]${fileHashFormat}.[ext]`
         },
         // SVG files
         // {
@@ -78,7 +85,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         // },
         {
             test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-            use: `file-loader?name=assets/[name]${fileHashFormat}.[ext]`
+            use: `${fileLoader}?name=assets/[name]${fileHashFormat}.[ext]`
         }
         // {
         //    test: /\.(jpe?g|png|gif|svg)(\?{0}(?=\?|$))/,
@@ -112,7 +119,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         commonRules.push({
             enforce: 'pre',
             test: /\.js$/,
-            use: 'source-map-loader',
+            use: sourceMapLoader,
             exclude: sourceMapExcludes
         });
     }
@@ -267,9 +274,9 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         Object.keys(environment).filter((key: string) => key !== 'production' &&
             key !== 'prod').forEach((key: string) => {
                 let value = environment[key];
-                if (value && (value as string).toUpperCase() === 'TRUE') {
+                if (value && typeof value === 'string' && (value as string).toUpperCase() === 'TRUE') {
                     value = true;
-                } else if (value && (value as string).toUpperCase() === 'FALSE') {
+                } else if (value && typeof value === 'string' && (value as string).toUpperCase() === 'FALSE') {
                     value = false;
                 }
                 if (key === 'development' || key === 'dev') {

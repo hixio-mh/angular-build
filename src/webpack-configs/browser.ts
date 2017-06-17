@@ -17,6 +17,12 @@ import { AppProjectConfig } from '../models';
 
 import { WebpackConfigOptions } from './webpack-config-options';
 
+/**
+ * Enumerate loaders and their dependencies from this file to let the dependency validator
+ * know they are used.
+ * require('script-loader')
+ */
+
 export function getHtmlInjectConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const projectRoot = webpackConfigOptions.projectRoot;
     const buildOptions = webpackConfigOptions.buildOptions;
@@ -481,6 +487,10 @@ export function getGlobalScriptsConfigPartial(webpackConfigOptions: WebpackConfi
     const appConfig = webpackConfigOptions.projectConfig as AppProjectConfig;
     const environment = buildOptions.environment || {};
 
+    const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
+    const scriptLoader = webpackIsGlobal ? require.resolve('script-loader') : 'script-loader';
+
+
     // browser only
     if (environment.test ||
         environment.dll ||
@@ -498,7 +508,7 @@ export function getGlobalScriptsConfigPartial(webpackConfigOptions: WebpackConfi
 
         // add entry points and lazy chunks
         globalScripts.forEach((scriptParsedEntry: ScriptParsedEntry) => {
-            const scriptPath = `script-loader!${scriptParsedEntry.path}`;
+            const scriptPath = `${scriptLoader}!${scriptParsedEntry.path}`;
             entryPoints[scriptParsedEntry.entry] = (entryPoints[scriptParsedEntry.entry] || []).concat(scriptPath);
         });
     }

@@ -31,7 +31,7 @@ export function getAngularConfigPartial(webpackConfigOptions: WebpackConfigOptio
     const environment = buildOptions.environment || {};
 
     let useAoTPlugin: boolean;
-    if ((projectConfig as AppProjectConfig).tsLoader === 'ngtools/webpack') {
+    if ((projectConfig as AppProjectConfig).tsLoader === '@ngtools/webpack') {
         useAoTPlugin = true;
         if ((projectConfig as AppProjectConfig).referenceDll) {
             useAoTPlugin = false;

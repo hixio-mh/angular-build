@@ -490,8 +490,8 @@
                 "tsLoader": {
                     "description": "Typescript loader for webpack.\nThis is only used by webpack.",
                     "enum": [
-                        "auto",
-                        "ngtools/webpack"
+                        "@ngtools/webpack",
+                        "auto"
                     ],
                     "type": "string"
                 },
@@ -969,8 +969,8 @@
                 "tsLoader": {
                     "description": "Typescript loader for webpack.\nThis is only used by webpack.",
                     "enum": [
-                        "auto",
-                        "ngtools/webpack"
+                        "@ngtools/webpack",
+                        "auto"
                     ],
                     "type": "string"
                 },
@@ -1572,8 +1572,8 @@
                 "tsLoader": {
                     "description": "Typescript loader for webpack.\nThis is only used by webpack.",
                     "enum": [
-                        "auto",
-                        "ngtools/webpack"
+                        "@ngtools/webpack",
+                        "auto"
                     ],
                     "type": "string"
                 },
@@ -1928,8 +1928,8 @@
                 "tsLoader": {
                     "description": "Typescript loader for webpack.\nThis is only used by webpack.",
                     "enum": [
-                        "auto",
-                        "ngtools/webpack"
+                        "@ngtools/webpack",
+                        "auto"
                     ],
                     "type": "string"
                 },
