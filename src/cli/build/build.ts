@@ -55,6 +55,24 @@ async function buildInternal(cliOptions: CliOptions, logger: Logger = new Logger
             .forEach((key: string) => {
                 cliBuildOptions[key] = (cliOptions as any).commandOptions[key];
             });
+
+        if (typeof (cliOptions as any).commandOptions.progress === 'boolean') {
+            cliBuildOptions.progress = (cliOptions as any).commandOptions.progress;
+        }
+        if (typeof (cliOptions as any).commandOptions.profile === 'boolean') {
+            cliBuildOptions.profile = (cliOptions as any).commandOptions.profile;
+        }
+        if (typeof (cliOptions as any).commandOptions.watch === 'boolean') {
+            cliBuildOptions.watch = (cliOptions as any).commandOptions.watch;
+        }
+        if (typeof (cliOptions as any).commandOptions.env === 'object') {
+            cliBuildOptions.environment = Object.assign(cliBuildOptions.environment || {},
+                (cliOptions as any).commandOptions.env);
+        }
+        if (typeof (cliOptions as any).commandOptions.environment === 'object') {
+            cliBuildOptions.environment = Object.assign(cliBuildOptions.environment || {},
+                (cliOptions as any).commandOptions.environment);
+        }
     }
 
     cliBuildOptions.cliIsLocal = cliOptions.cliIsLocal;
@@ -129,28 +147,24 @@ async function buildInternal(cliOptions: CliOptions, logger: Logger = new Logger
             logger,
             webpackIsGlobal
         }));
+
         if (!webpackConfigs || webpackConfigs.length === 0) {
             throw new Error('No webpack config available.');
         }
         const firstConfig = Array.isArray(webpackConfigs) ? webpackConfigs[0] : webpackConfigs;
         const watch = cliOptions.commandOptions.watch || firstConfig.watch;
-        if (watch || !Array.isArray(webpackConfigs)) {
-            // clean outDir
-            if (cleanOutDir) {
-                await cleanOutDirs(projectRoot, filteredAppConfigs[0], buildOptions, logger);
+        if (cleanOutDir) {
+            for (let i = 0; i < webpackConfigs.length; i++) {
+                const mappedAppConfig = filteredAppConfigs[i];
+                await cleanOutDirs(projectRoot, mappedAppConfig, buildOptions, logger);
             }
+        }
 
+        if (watch || !Array.isArray(webpackConfigs)) {
             await webpackBundle(webpackConfigs, buildOptions, watch, webpackWatchOptions, logger);
         } else {
             for (let i = 0; i < webpackConfigs.length; i++) {
-                const mappedAppConfig = filteredAppConfigs[i];
                 const webpackConfig = webpackConfigs[i];
-
-                // clean outDir
-                if (cleanOutDir) {
-                    await cleanOutDirs(projectRoot, mappedAppConfig, buildOptions, logger);
-                }
-
                 await webpackBundle(webpackConfig, buildOptions, watch, webpackWatchOptions, logger);
             }
         }

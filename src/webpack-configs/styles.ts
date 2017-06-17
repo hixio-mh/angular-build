@@ -71,6 +71,7 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
     const lessLoader = webpackIsGlobal ? require.resolve('less-loader') : 'less-loader';
     const postcssLoader = webpackIsGlobal ? require.resolve('postcss-loader') : 'postcss-loader';
     const exportsLoader = webpackIsGlobal ? require.resolve('exports-loader') : 'exports-loader';
+    const styleLoader = webpackIsGlobal ? require.resolve('style-loader') : 'style-loader';
 
     // set base rules to derive final rules from
     const baseRules: any[] = [
@@ -206,7 +207,7 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
                     test,
                     use: (projectConfig as AppProjectConfig).extractCss
                         ? ExtractTextPlugin.extract(extractTextPlugin)
-                        : ['style-loader', ...extractTextPlugin.use]
+                        : [styleLoader, ...extractTextPlugin.use]
                 };
 
                 return ret;

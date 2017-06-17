@@ -30,7 +30,9 @@ export function getAppWebpackConfig(webpackConfigOptions: WebpackConfigOptions):
         if (appConfig.platformTarget) {
             msg += `, platform target - ${appConfig.platformTarget}`;
         }
-        msg += `, library format - ${appConfig.libraryTarget}`;
+        if (appConfig.libraryTarget) {
+            msg += `, library format - ${appConfig.libraryTarget}`;
+        }
         if (Object.keys(environment)) {
             msg += `, environment - ${JSON.stringify(environment)}`;
         }

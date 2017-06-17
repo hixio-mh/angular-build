@@ -55,7 +55,7 @@
                 "dlls": {
                     "default": [
                     ],
-                    "description": "The vendor module entries for dll bundle. If entry ends with .ts, path will be resolved from app root, otherwise from project root.",
+                    "description": "The vendor module entries for dll bundle. If entry ends with .ts, path will be resolved from app root,\notherwise from project root.",
                     "items": {
                         "anyOf": [
                             {
@@ -267,10 +267,6 @@
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
                 },
-                "minify": {
-                    "description": "If true, minified files will be generated.",
-                    "type": "boolean"
-                },
                 "moduleReplacements": {
                     "description": "Replaces resources with new resources.\nThis is only used by webpack.",
                     "items": {
@@ -321,7 +317,7 @@
                     ],
                     "default": [
                     ],
-                    "description": "The polyfill entries for app. If entry ends with .ts, path will be resolved from app root, otherwise from project root."
+                    "description": "The polyfill entries for app. If entry ends with .ts, path will be resolved from app root,\notherwise from project root."
                 },
                 "polyfillsChunkName": {
                     "default": "polyfills",
@@ -576,7 +572,7 @@
                 "dlls": {
                     "default": [
                     ],
-                    "description": "The vendor module entries for dll bundle. If entry ends with .ts, path will be resolved from app root, otherwise from project root.",
+                    "description": "The vendor module entries for dll bundle. If entry ends with .ts, path will be resolved from app root,\notherwise from project root.",
                     "items": {
                         "anyOf": [
                             {
@@ -750,10 +746,6 @@
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
                 },
-                "minify": {
-                    "description": "If true, minified files will be generated.",
-                    "type": "boolean"
-                },
                 "moduleReplacements": {
                     "description": "Replaces resources with new resources.\nThis is only used by webpack.",
                     "items": {
@@ -800,7 +792,7 @@
                     ],
                     "default": [
                     ],
-                    "description": "The polyfill entries for app. If entry ends with .ts, path will be resolved from app root, otherwise from project root."
+                    "description": "The polyfill entries for app. If entry ends with .ts, path will be resolved from app root,\notherwise from project root."
                 },
                 "polyfillsChunkName": {
                     "default": "polyfills",
@@ -1409,10 +1401,6 @@
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
                 },
-                "minify": {
-                    "description": "If true, minified files will be generated.",
-                    "type": "boolean"
-                },
                 "moduleReplacements": {
                     "description": "Replaces resources with new resources.\nThis is only used by webpack.",
                     "items": {
@@ -1768,10 +1756,6 @@
                 "libraryTarget": {
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
-                },
-                "minify": {
-                    "description": "If true, minified files will be generated.",
-                    "type": "boolean"
                 },
                 "moduleReplacements": {
                     "description": "Replaces resources with new resources.\nThis is only used by webpack.",

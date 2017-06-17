@@ -49,10 +49,6 @@ export interface ProjectConfigBase {
      */
     sourceMap?: boolean;
     /**
-     * If true, minified files will be generated.
-     */
-    minify?: boolean;
-    /**
      * Banner text or file name to add at the top of each generated bundle files.
      * For example, 'banner.txt'.
      */
@@ -208,7 +204,8 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     scripts?: (string | ScriptEntry)[];
     /**
-     * The polyfill entries for app. If entry ends with .ts, path will be resolved from app root, otherwise from project root.
+     * The polyfill entries for app. If entry ends with .ts, path will be resolved from app root,
+     * otherwise from project root.
      * @default []
      */
     polyfills?: string | string[];
@@ -218,7 +215,8 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     polyfillsChunkName?: string;
     /**
-     * The vendor module entries for dll bundle. If entry ends with .ts, path will be resolved from app root, otherwise from project root.
+     * The vendor module entries for dll bundle. If entry ends with .ts, path will be resolved from app root,
+     * otherwise from project root.
      * @default []
      */
     dlls?: (string | DllEntry)[];
