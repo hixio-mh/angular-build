@@ -239,7 +239,13 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
             beautify: false, // default false
             // Defaults to preserving comments containing /*!, /**!, @preserve or @license
             comments: projectConfig.preserveLicenseComments !== false ? undefined : false,
-            sourceMap: projectConfig.sourceMap
+            sourceMap: projectConfig.sourceMap,
+            warningsFilter: (source: string): boolean => {
+                if (source.startsWith(path.resolve(projectRoot, 'node_modules'))) {
+                    return false;
+                }
+                return true;
+            }
         }));
 
         commonPlugins.push(...prodPlugins);
@@ -268,13 +274,18 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
                 commonPlugins.push(new webpack.SourceMapDevToolPlugin({
                     // if no value is provided the sourcemap is inlined
                     filename: '[file].map[query]',
+                    // default: "webpack:///[resourcePath]"
                     moduleFilenameTemplate: projectConfig.sourceMapModuleFilenameTemplate || '[absolute-resource-path]',
+                    // default: "webpack:///[resourcePath]?[hash]"
                     fallbackModuleFilenameTemplate: projectConfig.sourceMapFallbackModuleFilenameTemplate ||
                         '[absolute-resource-path]',
                     sourceRoot: projectConfig.sourceMapSourceRoot // 'webpack:///'
                 }));
             } else {
-                devtool = 'source-map';
+                devtool = undefined;
+                commonPlugins.push(new webpack.SourceMapDevToolPlugin({
+                    filename: '[file].map[query]'
+                }));
             }
 
         } else if (environment.test) {
