@@ -19,12 +19,14 @@ export function getLibWebpackConfig(webpackConfigOptions: WebpackConfigOptions):
     const logger = webpackConfigOptions.logger || new Logger();
 
     if (!webpackConfigOptions.silent) {
-        let msg = 'Using rollup lib config:';
+        let msg = 'Using webpack lib config:';
         msg += ` main entry - ${webpackConfigOptions.bundleEntryFile || libConfig.entry || 'index.js'}`;
         if (libConfig.platformTarget) {
             msg += `, platform target - ${libConfig.platformTarget}`;
         }
-        msg += `, library format - ${libConfig.libraryTarget}`;
+        if (libConfig.libraryTarget) {
+            msg += `, library format - ${libConfig.libraryTarget}`;
+        }
         if (Object.keys(environment)) {
             msg += `, environment - ${JSON.stringify(environment)}`;
         }

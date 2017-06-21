@@ -298,8 +298,8 @@ function mergeProjectConfigWithDefaults(projectRoot: string,
         projectConfig.entry &&
         fs.existsSync(path.resolve(projectRoot, projectConfig.entry)) &&
         fs.existsSync(path.resolve(projectRoot, path.dirname(projectConfig.entry)))) {
-        const mathDir = path.relative(projectRoot, path.dirname(projectConfig.entry));
-        projectConfig.srcDir = mathDir.replace(/\\/, '/');
+        const tempSrcDir = path.relative(projectRoot, path.dirname(projectConfig.entry));
+        projectConfig.srcDir = tempSrcDir.replace(/\\/, '/');
     }
     projectConfig.srcDir = projectConfig.srcDir || '';
     if (projectConfig.srcDir && !path.isAbsolute(projectConfig.srcDir)) {

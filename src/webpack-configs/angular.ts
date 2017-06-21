@@ -74,7 +74,7 @@ function getTypescriptAoTPluginConfigPartial(webpackConfigOptions: WebpackConfig
         exclude = ['**/*.spec.ts', '**/*.e2e.ts', '**/*.e2e-spec.ts', '**/test.ts', '**/*.test.ts', '**/*-test.ts'];
     }
 
-    const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
+    const webpackIsGlobal = (buildOptions as any).webpackIsGlobal || !(buildOptions as any).cliIsLocal;
     // IMPORTANT: To solve 'Cannot read property 'newLine' of undefined' error.
     const ngToolsWebpackLoader = webpackIsGlobal ? require.resolve('@ngtools/webpack') : '@ngtools/webpack';
 
@@ -126,7 +126,7 @@ function getTypescriptDefaultPluginConfigPartial(webpackConfigOptions: WebpackCo
     const testExcludes = [/\.(spec|e2e|e2e-spec)\.ts$/];
     // const moduleIdReplaceSearchPattern = '\\s*moduleId:\\s*module\\.id\\s*,?\\s*';
 
-    const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
+    const webpackIsGlobal = (buildOptions as any).webpackIsGlobal || !(buildOptions as any).cliIsLocal;
     // IMPORTANT: To solve 'Cannot read property 'newLine' of undefined' error.
     const tsLoader = webpackIsGlobal ? require.resolve('awesome-typescript-loader') : 'awesome-typescript-loader';
     const ngTemplateLoader = webpackIsGlobal ? require.resolve('angular2-template-loader') : 'angular2-template-loader';
@@ -313,7 +313,7 @@ function createAotPlugin(webpackConfigOptions: WebpackConfigOptions, aotOptions:
     const projectRoot = webpackConfigOptions.projectRoot;
     const buildOptions = webpackConfigOptions.buildOptions;
     const projectConfig = webpackConfigOptions.projectConfig;
-    const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
+    const webpackIsGlobal = (buildOptions as any).webpackIsGlobal || !(buildOptions as any).cliIsLocal;
 
     if (!projectConfig.entry) {
         throw new Error(`The 'projectConfig.entry' property is required.`);

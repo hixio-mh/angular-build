@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\" />
+    <Folder Include="example-configs\" />
     <Folder Include="schemas\" />
     <Folder Include="src\plugins\rollup-plugin-ng-resource-inline\" />
     <Folder Include="src\rollup-configs\" />
@@ -114,12 +115,13 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="src\cli\build\build-lib.ts" />
-    <TypeScriptCompile Include="src\cli\build\copy-package-config.ts" />
     <TypeScriptCompile Include="src\cli\build\webpack-bundle.ts" />
     <TypeScriptCompile Include="src\cli\init\index.ts" />
     <TypeScriptCompile Include="src\cli\init\init-command-module.ts" />
     <TypeScriptCompile Include="src\cli\init\init.ts" />
+    <TypeScriptCompile Include="src\utils\glob-copy-files.ts" />
     <TypeScriptCompile Include="src\models\index.ts" />
+    <TypeScriptCompile Include="src\models\public-models.ts" />
     <TypeScriptCompile Include="src\plugins\rollup-plugin-ng-resource-inline\index.ts" />
     <TypeScriptCompile Include="src\rollup-configs\index.ts" />
     <TypeScriptCompile Include="templates\empty.ts">
@@ -138,14 +140,14 @@
     <TypeScriptCompile Include="src\helpers\copy-assets.ts" />
     <TypeScriptCompile Include="src\helpers\copy-styles.ts" />
     <TypeScriptCompile Include="src\helpers\get-aot-gen-dir.ts" />
-    <TypeScriptCompile Include="src\helpers\copy-template-style-urls.ts" />
+    <TypeScriptCompile Include="src\helpers\process-ng-resources.ts" />
     <TypeScriptCompile Include="src\helpers\normalize-env-name.ts" />
     <TypeScriptCompile Include="src\helpers\parse-icon-options.ts" />
     <TypeScriptCompile Include="src\helpers\parse-style-entry.ts" />
     <TypeScriptCompile Include="src\helpers\prepare-banner.ts" />
     <TypeScriptCompile Include="src\helpers\ts-transpile.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\plugin-models.ts" />
-    <TypeScriptCompile Include="src\utils\minify-sources.ts" />
+    <TypeScriptCompile Include="src\helpers\minify-file.ts" />
     <TypeScriptCompile Include="src\helpers\pure-annotations.ts" />
     <TypeScriptCompile Include="src\utils\sass-promise.ts" />
     <TypeScriptCompile Include="src\utils\sourcemap-remap.ts" />

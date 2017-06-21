@@ -22,7 +22,7 @@ export function parseAssetEntry(baseDir: string, assetEntries: string | (string 
         typeof entry === 'object' ? JSON.parse(JSON.stringify(entry)) : entry
     );
 
-    const prepareGlobFromFn = (p: string) => {
+    const prepareFromGlobFn = (p: string) => {
         if (!p) {
             return '';
         }
@@ -38,14 +38,14 @@ export function parseAssetEntry(baseDir: string, assetEntries: string | (string 
 
     return clonedEntries.map((asset: string | AssetEntry) => {
         if (typeof asset === 'string') {
-            const fromGlob: string = prepareGlobFromFn(asset);
-            if (fromGlob === asset && path.isAbsolute(fromGlob)) {
+            if (path.isAbsolute(asset)) {
                 return {
                     from: asset,
                     context: baseDir
                 };
             }
 
+            const fromGlob: string = prepareFromGlobFn(asset);
             return {
                 from: {
                     glob: fromGlob,
@@ -60,11 +60,10 @@ export function parseAssetEntry(baseDir: string, assetEntries: string | (string 
             }
             const from = (asset as AssetEntry).from;
             if (typeof from === 'string') {
-                const fromGlob = prepareGlobFromFn(from);
-
-                if (fromGlob === from && path.isAbsolute(fromGlob)) {
+                if (path.isAbsolute(from)) {
                     assetParsedEntry.from = from;
                 } else {
+                    const fromGlob = prepareFromGlobFn(from);
                     assetParsedEntry.from = {
                         glob: fromGlob,
                         dot: true

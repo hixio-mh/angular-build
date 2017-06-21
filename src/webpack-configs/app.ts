@@ -25,7 +25,7 @@ export function getAppWebpackConfig(webpackConfigOptions: WebpackConfigOptions):
     const logger = webpackConfigOptions.logger || new Logger();
 
     if (!webpackConfigOptions.silent) {
-        let msg = 'Using webpack lib config:';
+        let msg = 'Using webpack app config:';
         msg += ` main entry - ${webpackConfigOptions.bundleEntryFile || appConfig.entry}`;
         if (appConfig.platformTarget) {
             msg += `, platform target - ${appConfig.platformTarget}`;

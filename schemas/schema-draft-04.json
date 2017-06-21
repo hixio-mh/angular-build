@@ -7,13 +7,13 @@
             "description": "The application project config",
             "properties": {
                 "appendOutputHash": {
-                    "description": "Appends version hash to the output bundled files.",
+                    "description": "Appends version hash to the output bundled files if 'platformTarget' value is web.",
                     "type": "boolean"
                 },
                 "assets": {
                     "default": [
                     ],
-                    "description": "List of assets to be copied to 'outDir'.",
+                    "description": "List of assets to be copied to bundle output location.",
                     "items": {
                         "anyOf": [
                             {
@@ -23,7 +23,7 @@
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root.",
+                                        "description": "Custom output file name if from is a single file (not glob), otherwise output directory.",
                                         "type": "string"
                                     }
                                 },
@@ -37,7 +37,7 @@
                     "type": "array"
                 },
                 "banner": {
-                    "description": "Banner text or file name to add at the top of each generated bundle files.\nFor example, 'banner.txt'.",
+                    "description": "Banner text to add at the top of each generated bundle files.\nIt can be file name or banner raw text.\nFor example, 'banner.txt'.",
                     "type": "string"
                 },
                 "baseHref": {
@@ -46,7 +46,7 @@
                 },
                 "bundleAnalyzerOptions": {
                     "$ref": "#/definitions/BundleAnalyzerOptions",
-                    "description": "Webpack Bundle analyzer options.\nThis is only used by webpack."
+                    "description": "Webpack Bundle analyzer options.\nThis option is only used by webpack."
                 },
                 "disableDefaultWebpackConfigs": {
                     "description": "If true, only custom webpack config is processed.",
@@ -268,7 +268,7 @@
                     "description": "Bundle module format."
                 },
                 "moduleReplacements": {
-                    "description": "Replaces resources with new resources.\nThis is only used by webpack.",
+                    "description": "Replaces resources with new resources.\nThis option is only used by webpack.",
                     "items": {
                         "$ref": "#/definitions/ModuleReplacementEntry"
                     },
@@ -279,7 +279,7 @@
                     "type": "string"
                 },
                 "outDir": {
-                    "description": "The output directory for build results.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
+                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
                     "type": "string"
                 },
                 "outFileName": {
@@ -291,7 +291,7 @@
                     "description": "Performance options for application project."
                 },
                 "platformTarget": {
-                    "description": "Tells the build system which platform environment the application is targeting.\nThis is only used by webpack.",
+                    "description": "Tells the build system which platform environment the application is targeting.\nThis option is only used by webpack.",
                     "enum": [
                         "async-node",
                         "electron-main",
@@ -324,17 +324,14 @@
                     "description": "The output chunk name for polyfills.",
                     "type": "string"
                 },
-                "preserveSymlinks": {
-                    "description": "Whether to resolve symlinks to their symlinked location.\nThis is only used by webpack.",
+                "preserveLicenseComments": {
+                    "default": true,
+                    "description": "If true, preserve license comments when minfying.",
                     "type": "boolean"
                 },
-                "projectType": {
-                    "description": "The project type.",
-                    "enum": [
-                        "app",
-                        "lib"
-                    ],
-                    "type": "string"
+                "preserveSymlinks": {
+                    "description": "Whether to resolve symlinks to their symlinked location.\nThis option is only used by webpack.",
+                    "type": "boolean"
                 },
                 "publicPath": {
                     "default": "/",
@@ -384,7 +381,7 @@
                     "type": "boolean"
                 },
                 "sourceMapDevTool": {
-                    "description": "This option controls if and how source maps are generated.\nThis is only used by webpack's devTool.",
+                    "description": "This option controls if and how source maps are generated.\nThis option is only used by webpack.",
                     "enum": [
                         "#@cheap-eval-source-map",
                         "#@cheap-module-eval-source-map",
@@ -430,8 +427,20 @@
                         true
                     ]
                 },
+                "sourceMapFallbackModuleFilenameTemplate": {
+                    "description": "A fallback used when the template string of 'sourceMapFilenameTemplate' yields duplicates.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
+                "sourceMapModuleFilenameTemplate": {
+                    "description": "Customize the names used in each source map.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
+                "sourceMapSourceRoot": {
+                    "description": "Source map source root.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
                 "srcDir": {
-                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and main entry is present, default to directory of main entry,\notherwise, current working directory is used.",
+                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nBy default project root is cwd in cli, or it can be passed as a parameter to javascript api.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root is used.",
                     "type": "string"
                 },
                 "stats": {
@@ -451,7 +460,7 @@
                             ]
                         }
                     ],
-                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis is only used by webpack."
+                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis option is only used by webpack."
                 },
                 "stylePreprocessorOptions": {
                     "$ref": "#/definitions/StylePreprocessorOptions",
@@ -460,7 +469,7 @@
                 "styles": {
                     "default": [
                     ],
-                    "description": "List of global style entries to be transpiled and copied to 'outDir'.\nDefault supported styles are .css, .scss/.sass and .less.",
+                    "description": "List of global style entries to be transpiled and copied to bundle output location.\nDefault supported styles are .css, .scss/.sass and .less.",
                     "items": {
                         "anyOf": [
                             {
@@ -484,7 +493,7 @@
                     "type": "array"
                 },
                 "tsLoader": {
-                    "description": "Typescript loader for webpack.\nThis is only used by webpack.",
+                    "description": "Typescript loader for webpack.\nThis option is only used by webpack.",
                     "enum": [
                         "@ngtools/webpack",
                         "auto"
@@ -524,13 +533,13 @@
             "description": "The application project config base",
             "properties": {
                 "appendOutputHash": {
-                    "description": "Appends version hash to the output bundled files.",
+                    "description": "Appends version hash to the output bundled files if 'platformTarget' value is web.",
                     "type": "boolean"
                 },
                 "assets": {
                     "default": [
                     ],
-                    "description": "List of assets to be copied to 'outDir'.",
+                    "description": "List of assets to be copied to bundle output location.",
                     "items": {
                         "anyOf": [
                             {
@@ -540,7 +549,7 @@
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root.",
+                                        "description": "Custom output file name if from is a single file (not glob), otherwise output directory.",
                                         "type": "string"
                                     }
                                 },
@@ -554,7 +563,7 @@
                     "type": "array"
                 },
                 "banner": {
-                    "description": "Banner text or file name to add at the top of each generated bundle files.\nFor example, 'banner.txt'.",
+                    "description": "Banner text to add at the top of each generated bundle files.\nIt can be file name or banner raw text.\nFor example, 'banner.txt'.",
                     "type": "string"
                 },
                 "baseHref": {
@@ -563,7 +572,7 @@
                 },
                 "bundleAnalyzerOptions": {
                     "$ref": "#/definitions/BundleAnalyzerOptions",
-                    "description": "Webpack Bundle analyzer options.\nThis is only used by webpack."
+                    "description": "Webpack Bundle analyzer options.\nThis option is only used by webpack."
                 },
                 "disableDefaultWebpackConfigs": {
                     "description": "If true, only custom webpack config is processed.",
@@ -747,14 +756,14 @@
                     "description": "Bundle module format."
                 },
                 "moduleReplacements": {
-                    "description": "Replaces resources with new resources.\nThis is only used by webpack.",
+                    "description": "Replaces resources with new resources.\nThis option is only used by webpack.",
                     "items": {
                         "$ref": "#/definitions/ModuleReplacementEntry"
                     },
                     "type": "array"
                 },
                 "outDir": {
-                    "description": "The output directory for build results.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
+                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
                     "type": "string"
                 },
                 "outFileName": {
@@ -766,7 +775,7 @@
                     "description": "Performance options for application project."
                 },
                 "platformTarget": {
-                    "description": "Tells the build system which platform environment the application is targeting.\nThis is only used by webpack.",
+                    "description": "Tells the build system which platform environment the application is targeting.\nThis option is only used by webpack.",
                     "enum": [
                         "async-node",
                         "electron-main",
@@ -799,17 +808,14 @@
                     "description": "The output chunk name for polyfills.",
                     "type": "string"
                 },
-                "preserveSymlinks": {
-                    "description": "Whether to resolve symlinks to their symlinked location.\nThis is only used by webpack.",
+                "preserveLicenseComments": {
+                    "default": true,
+                    "description": "If true, preserve license comments when minfying.",
                     "type": "boolean"
                 },
-                "projectType": {
-                    "description": "The project type.",
-                    "enum": [
-                        "app",
-                        "lib"
-                    ],
-                    "type": "string"
+                "preserveSymlinks": {
+                    "description": "Whether to resolve symlinks to their symlinked location.\nThis option is only used by webpack.",
+                    "type": "boolean"
                 },
                 "publicPath": {
                     "default": "/",
@@ -859,7 +865,7 @@
                     "type": "boolean"
                 },
                 "sourceMapDevTool": {
-                    "description": "This option controls if and how source maps are generated.\nThis is only used by webpack's devTool.",
+                    "description": "This option controls if and how source maps are generated.\nThis option is only used by webpack.",
                     "enum": [
                         "#@cheap-eval-source-map",
                         "#@cheap-module-eval-source-map",
@@ -905,8 +911,20 @@
                         true
                     ]
                 },
+                "sourceMapFallbackModuleFilenameTemplate": {
+                    "description": "A fallback used when the template string of 'sourceMapFilenameTemplate' yields duplicates.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
+                "sourceMapModuleFilenameTemplate": {
+                    "description": "Customize the names used in each source map.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
+                "sourceMapSourceRoot": {
+                    "description": "Source map source root.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
                 "srcDir": {
-                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and main entry is present, default to directory of main entry,\notherwise, current working directory is used.",
+                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nBy default project root is cwd in cli, or it can be passed as a parameter to javascript api.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root is used.",
                     "type": "string"
                 },
                 "stats": {
@@ -926,7 +944,7 @@
                             ]
                         }
                     ],
-                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis is only used by webpack."
+                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis option is only used by webpack."
                 },
                 "stylePreprocessorOptions": {
                     "$ref": "#/definitions/StylePreprocessorOptions",
@@ -935,7 +953,7 @@
                 "styles": {
                     "default": [
                     ],
-                    "description": "List of global style entries to be transpiled and copied to 'outDir'.\nDefault supported styles are .css, .scss/.sass and .less.",
+                    "description": "List of global style entries to be transpiled and copied to bundle output location.\nDefault supported styles are .css, .scss/.sass and .less.",
                     "items": {
                         "anyOf": [
                             {
@@ -959,7 +977,7 @@
                     "type": "array"
                 },
                 "tsLoader": {
-                    "description": "Typescript loader for webpack.\nThis is only used by webpack.",
+                    "description": "Typescript loader for webpack.\nThis option is only used by webpack.",
                     "enum": [
                         "@ngtools/webpack",
                         "auto"
@@ -1216,7 +1234,7 @@
                 "assets": {
                     "default": [
                     ],
-                    "description": "List of assets to be copied to 'outDir'.",
+                    "description": "List of assets to be copied to bundle output location.",
                     "items": {
                         "anyOf": [
                             {
@@ -1226,7 +1244,7 @@
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root.",
+                                        "description": "Custom output file name if from is a single file (not glob), otherwise output directory.",
                                         "type": "string"
                                     }
                                 },
@@ -1240,12 +1258,12 @@
                     "type": "array"
                 },
                 "banner": {
-                    "description": "Banner text or file name to add at the top of each generated bundle files.\nFor example, 'banner.txt'.",
+                    "description": "Banner text to add at the top of each generated bundle files.\nIt can be file name or banner raw text.\nFor example, 'banner.txt'.",
                     "type": "string"
                 },
                 "bundleAnalyzerOptions": {
                     "$ref": "#/definitions/BundleAnalyzerOptions",
-                    "description": "Webpack Bundle analyzer options.\nThis is only used by webpack."
+                    "description": "Webpack Bundle analyzer options.\nThis option is only used by webpack."
                 },
                 "bundleTargets": {
                     "anyOf": [
@@ -1269,6 +1287,13 @@
                         "webpack"
                     ],
                     "type": "string"
+                },
+                "cleanFiles": {
+                    "description": "Files to clean after all build tasks.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 },
                 "disableDefaultWebpackConfigs": {
                     "description": "If true, only custom webpack config is processed.",
@@ -1402,7 +1427,7 @@
                     "description": "Bundle module format."
                 },
                 "moduleReplacements": {
-                    "description": "Replaces resources with new resources.\nThis is only used by webpack.",
+                    "description": "Replaces resources with new resources.\nThis option is only used by webpack.",
                     "items": {
                         "$ref": "#/definitions/ModuleReplacementEntry"
                     },
@@ -1413,7 +1438,7 @@
                     "type": "string"
                 },
                 "outDir": {
-                    "description": "The output directory for build results.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
+                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
                     "type": "string"
                 },
                 "outFileName": {
@@ -1425,7 +1450,7 @@
                     "description": "Packaging options for library project."
                 },
                 "platformTarget": {
-                    "description": "Tells the build system which platform environment the application is targeting.\nThis is only used by webpack.",
+                    "description": "Tells the build system which platform environment the application is targeting.\nThis option is only used by webpack.",
                     "enum": [
                         "async-node",
                         "electron-main",
@@ -1437,17 +1462,14 @@
                     ],
                     "type": "string"
                 },
-                "preserveSymlinks": {
-                    "description": "Whether to resolve symlinks to their symlinked location.\nThis is only used by webpack.",
+                "preserveLicenseComments": {
+                    "default": true,
+                    "description": "If true, preserve license comments when minfying.",
                     "type": "boolean"
                 },
-                "projectType": {
-                    "description": "The project type.",
-                    "enum": [
-                        "app",
-                        "lib"
-                    ],
-                    "type": "string"
+                "preserveSymlinks": {
+                    "description": "Whether to resolve symlinks to their symlinked location.\nThis option is only used by webpack.",
+                    "type": "boolean"
                 },
                 "skip": {
                     "description": "If true, this config will be skipped by the build process.",
@@ -1458,7 +1480,7 @@
                     "type": "boolean"
                 },
                 "sourceMapDevTool": {
-                    "description": "This option controls if and how source maps are generated.\nThis is only used by webpack's devTool.",
+                    "description": "This option controls if and how source maps are generated.\nThis option is only used by webpack.",
                     "enum": [
                         "#@cheap-eval-source-map",
                         "#@cheap-module-eval-source-map",
@@ -1504,8 +1526,20 @@
                         true
                     ]
                 },
+                "sourceMapFallbackModuleFilenameTemplate": {
+                    "description": "A fallback used when the template string of 'sourceMapFilenameTemplate' yields duplicates.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
+                "sourceMapModuleFilenameTemplate": {
+                    "description": "Customize the names used in each source map.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
+                "sourceMapSourceRoot": {
+                    "description": "Source map source root.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
                 "srcDir": {
-                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and main entry is present, default to directory of main entry,\notherwise, current working directory is used.",
+                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nBy default project root is cwd in cli, or it can be passed as a parameter to javascript api.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root is used.",
                     "type": "string"
                 },
                 "stats": {
@@ -1525,7 +1559,7 @@
                             ]
                         }
                     ],
-                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis is only used by webpack."
+                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis option is only used by webpack."
                 },
                 "stylePreprocessorOptions": {
                     "$ref": "#/definitions/StylePreprocessorOptions",
@@ -1534,7 +1568,7 @@
                 "styles": {
                     "default": [
                     ],
-                    "description": "List of global style entries to be transpiled and copied to 'outDir'.\nDefault supported styles are .css, .scss/.sass and .less.",
+                    "description": "List of global style entries to be transpiled and copied to bundle output location.\nDefault supported styles are .css, .scss/.sass and .less.",
                     "items": {
                         "anyOf": [
                             {
@@ -1558,7 +1592,7 @@
                     "type": "array"
                 },
                 "tsLoader": {
-                    "description": "Typescript loader for webpack.\nThis is only used by webpack.",
+                    "description": "Typescript loader for webpack.\nThis option is only used by webpack.",
                     "enum": [
                         "@ngtools/webpack",
                         "auto"
@@ -1598,7 +1632,7 @@
                 "assets": {
                     "default": [
                     ],
-                    "description": "List of assets to be copied to 'outDir'.",
+                    "description": "List of assets to be copied to bundle output location.",
                     "items": {
                         "anyOf": [
                             {
@@ -1608,7 +1642,7 @@
                                         "type": "string"
                                     },
                                     "to": {
-                                        "description": "The output root.",
+                                        "description": "Custom output file name if from is a single file (not glob), otherwise output directory.",
                                         "type": "string"
                                     }
                                 },
@@ -1622,12 +1656,12 @@
                     "type": "array"
                 },
                 "banner": {
-                    "description": "Banner text or file name to add at the top of each generated bundle files.\nFor example, 'banner.txt'.",
+                    "description": "Banner text to add at the top of each generated bundle files.\nIt can be file name or banner raw text.\nFor example, 'banner.txt'.",
                     "type": "string"
                 },
                 "bundleAnalyzerOptions": {
                     "$ref": "#/definitions/BundleAnalyzerOptions",
-                    "description": "Webpack Bundle analyzer options.\nThis is only used by webpack."
+                    "description": "Webpack Bundle analyzer options.\nThis option is only used by webpack."
                 },
                 "bundleTargets": {
                     "anyOf": [
@@ -1651,6 +1685,13 @@
                         "webpack"
                     ],
                     "type": "string"
+                },
+                "cleanFiles": {
+                    "description": "Files to clean after all build tasks.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 },
                 "disableDefaultWebpackConfigs": {
                     "description": "If true, only custom webpack config is processed.",
@@ -1758,14 +1799,14 @@
                     "description": "Bundle module format."
                 },
                 "moduleReplacements": {
-                    "description": "Replaces resources with new resources.\nThis is only used by webpack.",
+                    "description": "Replaces resources with new resources.\nThis option is only used by webpack.",
                     "items": {
                         "$ref": "#/definitions/ModuleReplacementEntry"
                     },
                     "type": "array"
                 },
                 "outDir": {
-                    "description": "The output directory for build results.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
+                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified, default to ./dist folder.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.",
                     "type": "string"
                 },
                 "outFileName": {
@@ -1777,7 +1818,7 @@
                     "description": "Packaging options for library project."
                 },
                 "platformTarget": {
-                    "description": "Tells the build system which platform environment the application is targeting.\nThis is only used by webpack.",
+                    "description": "Tells the build system which platform environment the application is targeting.\nThis option is only used by webpack.",
                     "enum": [
                         "async-node",
                         "electron-main",
@@ -1789,17 +1830,14 @@
                     ],
                     "type": "string"
                 },
-                "preserveSymlinks": {
-                    "description": "Whether to resolve symlinks to their symlinked location.\nThis is only used by webpack.",
+                "preserveLicenseComments": {
+                    "default": true,
+                    "description": "If true, preserve license comments when minfying.",
                     "type": "boolean"
                 },
-                "projectType": {
-                    "description": "The project type.",
-                    "enum": [
-                        "app",
-                        "lib"
-                    ],
-                    "type": "string"
+                "preserveSymlinks": {
+                    "description": "Whether to resolve symlinks to their symlinked location.\nThis option is only used by webpack.",
+                    "type": "boolean"
                 },
                 "skip": {
                     "description": "If true, this config will be skipped by the build process.",
@@ -1810,7 +1848,7 @@
                     "type": "boolean"
                 },
                 "sourceMapDevTool": {
-                    "description": "This option controls if and how source maps are generated.\nThis is only used by webpack's devTool.",
+                    "description": "This option controls if and how source maps are generated.\nThis option is only used by webpack.",
                     "enum": [
                         "#@cheap-eval-source-map",
                         "#@cheap-module-eval-source-map",
@@ -1856,8 +1894,20 @@
                         true
                     ]
                 },
+                "sourceMapFallbackModuleFilenameTemplate": {
+                    "description": "A fallback used when the template string of 'sourceMapFilenameTemplate' yields duplicates.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
+                "sourceMapModuleFilenameTemplate": {
+                    "description": "Customize the names used in each source map.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
+                "sourceMapSourceRoot": {
+                    "description": "Source map source root.\nThis option is only used by webpack.",
+                    "type": "string"
+                },
                 "srcDir": {
-                    "description": "The root src folder of your project. E.g. 'src' or 'lib' or 'client' or 'packages/core'.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified and main entry is present, default to directory of main entry,\notherwise, current working directory is used.",
+                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nBy default project root is cwd in cli, or it can be passed as a parameter to javascript api.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root is used.",
                     "type": "string"
                 },
                 "stats": {
@@ -1877,7 +1927,7 @@
                             ]
                         }
                     ],
-                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis is only used by webpack."
+                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis option is only used by webpack."
                 },
                 "stylePreprocessorOptions": {
                     "$ref": "#/definitions/StylePreprocessorOptions",
@@ -1886,7 +1936,7 @@
                 "styles": {
                     "default": [
                     ],
-                    "description": "List of global style entries to be transpiled and copied to 'outDir'.\nDefault supported styles are .css, .scss/.sass and .less.",
+                    "description": "List of global style entries to be transpiled and copied to bundle output location.\nDefault supported styles are .css, .scss/.sass and .less.",
                     "items": {
                         "anyOf": [
                             {
@@ -1910,7 +1960,7 @@
                     "type": "array"
                 },
                 "tsLoader": {
-                    "description": "Typescript loader for webpack.\nThis is only used by webpack.",
+                    "description": "Typescript loader for webpack.\nThis option is only used by webpack.",
                     "enum": [
                         "@ngtools/webpack",
                         "auto"
@@ -2009,6 +2059,27 @@
                     "description": "The source package.json file to be updated and copied.",
                     "type": "string"
                 },
+                "typingsAndMetaDataReExport": {
+                    "description": "Typings and meta-data packaging options.",
+                    "properties": {
+                        "entry": {
+                            "description": "Typing index file.",
+                            "type": "string"
+                        },
+                        "outFileName": {
+                            "description": "Custom output file anme. Can use [package-name] as a package name placeholder.",
+                            "type": "string"
+                        },
+                        "tsTranspilationIndex": {
+                            "description": "If 'tsTranspilations' is array, name or array index can be specified.\nIf not specified, first item will be used.",
+                            "type": [
+                                "string",
+                                "number"
+                            ]
+                        }
+                    },
+                    "type": "object"
+                },
                 "useRootPackageConfigVerion": {
                     "default": true,
                     "description": "If true, update version in package.json with project root package.json's version.",
@@ -2068,6 +2139,11 @@
                 },
                 "declaration": {
                     "description": "Generate corresponding d.ts file.",
+                    "type": "boolean"
+                },
+                "inlineMetaDataResources": {
+                    "default": false,
+                    "description": "If true, templateUrl and styleUrls resources of .metadata.json are inlined.",
                     "type": "boolean"
                 },
                 "module": {

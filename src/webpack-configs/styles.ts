@@ -1,5 +1,4 @@
 ﻿// Ref: https://github.com/angular/angular-cli
-
 import * as path from 'path';
 import * as webpack from 'webpack';
 
@@ -65,7 +64,7 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
             includePaths.push(path.resolve(srcDir, includePath)));
     }
 
-    const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
+    const webpackIsGlobal = (buildOptions as any).webpackIsGlobal || !(buildOptions as any).cliIsLocal;
     const cssLoader = webpackIsGlobal ? require.resolve('css-loader') : 'css-loader';
     const sassLoader = webpackIsGlobal ? require.resolve('sass-loader') : 'sass-loader';
     const lessLoader = webpackIsGlobal ? require.resolve('less-loader') : 'less-loader';
@@ -100,12 +99,12 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
     // ReSharper disable once Lambda
     const postcssPluginFactory = function (): any[] {
         // safe settings based on: https://github.com/ben-eb/cssnano/issues/358#issuecomment-283696193
-        const importantCommentRe = /@preserve|@license|[@#]\s*source(?:Mapping)?URL|^!/i;
+        const importantCommentRegex = /@preserve|@license|[@#]\s*source(?:Mapping)?URL|^!/i;
         const minimizeOptions = {
             autoprefixer: false, // full pass with autoprefixer is run separately
             safe: true,
             mergeLonghand: false, // version 3+ should be safe; cssnano currently uses 2.x
-            discardComments: { remove: (comment: string) => !importantCommentRe.test(comment) }
+            discardComments: { remove: (comment: string) => !importantCommentRegex.test(comment) }
         };
 
         return [

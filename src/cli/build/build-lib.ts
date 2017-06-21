@@ -4,17 +4,17 @@ import * as rollup from 'rollup';
 import * as ts from 'typescript';
 
 import {
-    addPureAnnotationsToFile, copyAssets, copyStyles, copyTemplateAndStyleUrls, defaultAngularAndRxJsExternals,
-    tsTranspile, getTsTranspileInfo, TsTranspiledInfo, transpileFile
-} from '../../helpers';
-import { AngularBuildConfig, BuildOptions, BundleTarget, LibProjectConfig, TsTranspilation } from
+    addPureAnnotationsToFile, copyAssets, copyStyles, defaultAngularAndRxJsExternals,
+    getTsTranspileInfo, prepareBannerSync, processNgResources, transpileFile, tsTranspile, TsTranspiledInfo, writeMinifyFile
+} from
+    '../../helpers';
+import { AngularBuildConfig, BundleTarget, BuildOptions, LibProjectConfig, TsTranspilation, TypingsAndMetaDataReExport } from
     '../../models';
 import { clean, Logger, readJson, remapSourcemap } from '../../utils';
 import { getWebpackConfig, WebpackConfigOptions } from '../../webpack-configs';
 import { getRollupConfig, RollupConfigOptions } from '../../rollup-configs';
 
 import { webpackBundle } from './webpack-bundle';
-import { copyPackageConfig } from './copy-package-config';
 
 export async function buildLib(projectRoot: string,
     libConfig: LibProjectConfig,
@@ -57,12 +57,6 @@ export async function buildLib(projectRoot: string,
 
     if (libConfig.outDir) {
         outDir = path.resolve(projectRoot, libConfig.outDir);
-        if (outDir === projectRoot) {
-            throw new Error(`The 'outDir' and 'projectRoot' must NOT be the same folder.`);
-        }
-        if (outDir === srcDir) {
-            throw new Error(`The 'outDir' and 'srcDir' must NOT be the same folder.`);
-        }
     }
 
     let stylePreprocessorIncludePaths: string[] = [];
@@ -76,6 +70,29 @@ export async function buildLib(projectRoot: string,
         libConfig.packageOptions && libConfig.packageOptions.outDir
             ? libConfig.packageOptions.outDir
             : '');
+
+    // copy assets
+    if (libConfig.assets && libConfig.assets.length) {
+        if (!outDir) {
+            throw new Error(`The 'outDir' property is required in lib config.`);
+        }
+        logger.logLine(`Copying assets to ${path.relative(projectRoot, outDir as string)}`);
+        await copyAssets(srcDir, outDir as string, libConfig.assets);
+    }
+
+    // process global styles
+    if (libConfig.styles && libConfig.styles.length) {
+        if (!outDir) {
+            throw new Error(`The 'outDir' property is required in lib config.`);
+        }
+
+        logger.logLine(`Copying global styles to ${path.relative(projectRoot, outDir as string)}`);
+        await copyStyles(srcDir,
+            outDir as string,
+            libConfig.styles,
+            stylePreprocessorIncludePaths,
+            libConfig.sourceMap);
+    }
 
     // typescript transpilations
     const processedTsTanspileInfoes: TsTranspiledInfo[] = [];
@@ -107,11 +124,16 @@ export async function buildLib(projectRoot: string,
             }
 
             logger.logLine(
-                `Typescript compiling with ${tsTanspileInfo.name ? tsTanspileInfo.name + ', ' : ''}target: ${
+                `Typescript compiling with ngc, ${tsTanspileInfo.name ? `name: ${tsTanspileInfo.name}, ` : ''
+                }tsconfig: ${path.relative(projectRoot,
+                    tsTanspileInfo.sourceTsConfigPath
+                )}, target: ${
                 tsTanspileInfo.target}, module: ${tsTanspileInfo.module}`);
 
             await tsTranspile(pathToWriteFile || tsTanspileInfo.sourceTsConfigPath);
             processedTsTanspileInfoes.push(tsTanspileInfo);
+
+            let expectedTypingEntryFile = '';
 
             // add to main fields
             if (packageConfigOutDir) {
@@ -129,10 +151,18 @@ export async function buildLib(projectRoot: string,
                             t.entryResolution.entryRoot === 'tsTranspilationOutDir');
                         if (foundBundleTarget && foundBundleTarget.entry) {
                             expectedEntryFile = foundBundleTarget.entry;
+                        } else if (tsTanspileInfo.tsConfigJson.files &&
+                            tsTanspileInfo.tsConfigJson.files.length &&
+                            tsTanspileInfo.tsConfigJson.files.length <= 2) {
+                            let firstFile = (tsTanspileInfo.tsConfigJson.files[0] as string).replace(/\.ts$/i, '.js');
+                            if (!/\.d\.js$/i.test(firstFile) &&
+                                await fs.exists(path.resolve(tsTanspileInfo.outDir, firstFile))) {
+                                expectedEntryFile = firstFile;
+                            }
                         }
                     }
                 }
-                const expectedTypingEntryFile = expectedEntryFile.replace(/\.js$/i, '.d.ts');
+                expectedTypingEntryFile = expectedEntryFile.replace(/\.js$/i, '.d.ts');
 
                 if (expectedEntryFile && tsTanspileInfo.module === 'es2015' && tsTanspileInfo.target === 'es2015') {
                     mainFields.es2015 = path.relative(packageConfigOutDir,
@@ -142,6 +172,7 @@ export async function buildLib(projectRoot: string,
                         path.join(tsTanspileInfo.outDir, expectedEntryFile)).replace(/\\/g, '/');
                 }
                 if (expectedEntryFile &&
+                    expectedTypingEntryFile &&
                     tsTanspileInfo.declaration &&
                     await fs.exists(path.resolve(tsTanspileInfo.outDir, expectedTypingEntryFile))) {
                     mainFields.typings = path.relative(packageConfigOutDir,
@@ -153,13 +184,20 @@ export async function buildLib(projectRoot: string,
                 await clean(pathToWriteFile);
             }
 
-            if (tsTranspilation.copyTemplateAndStyleUrls !== false) {
-                logger.logLine(`Copying template and styles`);
-                await copyTemplateAndStyleUrls(
+            if (tsTranspilation.copyTemplateAndStyleUrls !== false || tsTranspilation.inlineMetaDataResources) {
+                logger.logLine(`Copying/inlining angular template and styles`);
+
+                await processNgResources(
                     srcDir,
                     tsTanspileInfo.outDir,
                     `${path.join(tsTanspileInfo.outDir, '**/*.js')}`,
-                    stylePreprocessorIncludePaths);
+                    stylePreprocessorIncludePaths,
+                    tsTanspileInfo.aotGenDir,
+                    tsTranspilation.copyTemplateAndStyleUrls !== false,
+                    tsTranspilation.inlineMetaDataResources,
+                    tsTanspileInfo.flatModuleOutFile
+                        ? tsTanspileInfo.flatModuleOutFile.replace(/\.js$/i, '.metadata.json')
+                        : '');
             }
         }
     }
@@ -181,30 +219,6 @@ export async function buildLib(projectRoot: string,
     let packageNameWithoutScope = packageName;
     if (packageNameWithoutScope && packageNameWithoutScope.indexOf('/') > -1) {
         packageNameWithoutScope = packageNameWithoutScope.split('/')[1];
-    }
-
-    // copy assets
-    if (libConfig.assets && libConfig.assets.length) {
-        if (!outDir) {
-            throw new Error(`The 'outDir' property is required in lib config.`);
-        }
-        logger.logLine(`Copying assets to ${path.relative(projectRoot, outDir as string)}`);
-        await copyAssets(srcDir, outDir as string, libConfig.assets);
-    }
-
-    // process global styles
-    if (libConfig.styles && libConfig.styles.length) {
-        if (!outDir) {
-            throw new Error(`The 'outDir' property is required in lib config.`);
-        }
-
-        logger.logLine(`Copying global styles to ${path.relative(projectRoot, outDir as string)}`);
-        await copyStyles(srcDir,
-            outDir as string,
-            libConfig.styles,
-            stylePreprocessorIncludePaths,
-            packageNameWithoutScope,
-            libConfig.sourceMap);
     }
 
     // externals
@@ -235,7 +249,7 @@ export async function buildLib(projectRoot: string,
         const skipBundleIds: number[] = [];
         for (let i = 0; i < bundleTargets.length; i++) {
             const target = bundleTargets[i];
-            let expectedScriptTarget: string | undefined = undefined;
+            let expectedSourceScriptTarget: string | undefined = undefined;
 
             let bundleRootDir = srcDir || projectRoot;
             let bundleEntryFile: string | undefined = undefined;
@@ -282,7 +296,8 @@ export async function buildLib(projectRoot: string,
             if (target.entryResolution) {
                 if (!target.entryResolution.entryRoot) {
                     throw new Error(
-                        `Please specify 'entryResolution.entryRoot' or remove 'entryResolution' property from bundleTargets[${i
+                        `Please specify 'entryResolution.entryRoot' or remove 'entryResolution' property from bundleTargets[${
+                        i
                         }].`);
                 }
 
@@ -296,7 +311,8 @@ export async function buildLib(projectRoot: string,
                                 }].`);
                         }
                         if (index < 0 || index >= bundleTargets.length) {
-                            throw new Error(`No bundleTarget found with bundleTargetIndex: ${index} at bundleTargets[${i}].`);
+                            throw new Error(
+                                `No bundleTarget found with bundleTargetIndex: ${index} at bundleTargets[${i}].`);
                         }
                         foundBundleTarget = bundleTargets[index];
                     } else if (target.entryResolution.bundleTargetIndex &&
@@ -338,10 +354,10 @@ export async function buildLib(projectRoot: string,
                     bundleEntryFile = foundBundleTarget.outFileName;
                     if (foundBundleTarget.scriptTarget !== 'es5' &&
                         /\.es2015\.js$/i.test(foundBundleTarget.outFileName as string)) {
-                        expectedScriptTarget = 'es2015';
+                        expectedSourceScriptTarget = 'es2015';
                     } else if (foundBundleTarget.scriptTarget === 'es5' ||
                         /\.es5\.js$/i.test(foundBundleTarget.outFileName as string)) {
-                        expectedScriptTarget = 'es5';
+                        expectedSourceScriptTarget = 'es5';
                     }
                 } else if (target.entryResolution.entryRoot === 'tsTranspilationOutDir') {
                     if (!target.entry && !libConfig.entry) {
@@ -356,8 +372,7 @@ export async function buildLib(projectRoot: string,
                         const index = target.entryResolution.tsTranspilationIndex as number;
                         if (index < 0 || index >= processedTsTanspileInfoes.length) {
                             throw new Error(
-                                `No tsTranspilation found with tsTranspilationIndex: ${index} at bundleTargets[${index
-                                }].`);
+                                `No tsTranspilation found with tsTranspilationIndex: ${index} at bundleTargets[${i}].`);
                         }
                         foundTsTranspilationInfo = processedTsTanspileInfoes[index];
                     } else if (target.entryResolution.tsTranspilationIndex &&
@@ -382,7 +397,7 @@ export async function buildLib(projectRoot: string,
                     bundleRootDir = foundTsTranspilationInfo.outDir;
                     bundleEntryFile = target.entry || libConfig.entry;
                     bundleEntryFile = (bundleEntryFile as string).replace(/\.ts$/i, '.js');
-                    expectedScriptTarget = foundTsTranspilationInfo.target;
+                    expectedSourceScriptTarget = foundTsTranspilationInfo.target;
                 } else if (target.entryResolution.entryRoot === 'outDir') {
                     if (!target.entry && !libConfig.entry) {
                         throw new Error(`The main entry is required for bundling.`);
@@ -391,9 +406,9 @@ export async function buildLib(projectRoot: string,
                     bundleRootDir = outDir as string;
                     useNodeResolve = true;
                     if (/\.es2015\.js$/i.test(bundleEntryFile as string)) {
-                        expectedScriptTarget = 'es2015';
+                        expectedSourceScriptTarget = 'es2015';
                     } else if (/\.es5\.js$/i.test(bundleEntryFile as string)) {
-                        expectedScriptTarget = 'es5';
+                        expectedSourceScriptTarget = 'es5';
                     }
                 }
             } else if (!!(target.entry || libConfig.entry) &&
@@ -402,14 +417,14 @@ export async function buildLib(projectRoot: string,
                     bundleRootDir = processedTsTanspileInfoes[0].outDir;
                     bundleEntryFile = target.entry || libConfig.entry;
                     bundleEntryFile = (bundleEntryFile as string).replace(/\.ts$/i, '.js');
-                    expectedScriptTarget = processedTsTanspileInfoes[0].target;
+                    expectedSourceScriptTarget = processedTsTanspileInfoes[0].target;
                 } else {
                     bundleEntryFile = target.entry || libConfig.entry;
                     if (libConfig.tsconfig) {
                         const tempTsConfig =
                             await readJson(path.resolve(projectRoot, libConfig.srcDir || '', libConfig.tsconfig));
                         if (tempTsConfig.compilerOptions && tempTsConfig.compilerOptions.target) {
-                            expectedScriptTarget = tempTsConfig.compilerOptions.target;
+                            expectedSourceScriptTarget = tempTsConfig.compilerOptions.target;
                         }
                     }
                 }
@@ -474,14 +489,18 @@ export async function buildLib(projectRoot: string,
             } else {
                 target.libraryTarget = target.libraryTarget || libConfig.libraryTarget;
                 if (target.libraryTarget === 'es' &&
-                    expectedScriptTarget === 'es2015' &&
+                    expectedSourceScriptTarget === 'es2015' &&
                     target.scriptTarget !== 'es5') {
                     mainFields.es2015 = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
                 } else if (target.libraryTarget === 'es' &&
-                    (!expectedScriptTarget || expectedScriptTarget === 'es5' || target.scriptTarget === 'es5')) {
+                    (!expectedSourceScriptTarget ||
+                        expectedSourceScriptTarget === 'es5' ||
+                        target.scriptTarget === 'es5')) {
                     mainFields.module = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
                 } else if (target.libraryTarget === 'umd' &&
-                    (!expectedScriptTarget || expectedScriptTarget === 'es5' || target.scriptTarget === 'es5')) {
+                    (!expectedSourceScriptTarget ||
+                        expectedSourceScriptTarget === 'es5' ||
+                        target.scriptTarget === 'es5')) {
                     mainFields.main = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
                 }
 
@@ -502,8 +521,7 @@ export async function buildLib(projectRoot: string,
                         packageName: packageNameWithoutScope,
                         inlineResources: shouldInlineResources,
 
-                        logger: logger,
-                        webpackIsGlobal: !cliIsLocal
+                        logger: logger
                     };
                     const webpackConfig = getWebpackConfig(webpackConfigOptions);
                     await webpackBundle(webpackConfig, buildOptions, false, undefined, logger);
@@ -532,10 +550,11 @@ export async function buildLib(projectRoot: string,
                     await bundle.write(rollupOptions.writeOptions);
                 }
 
+                // transform script version
                 if (!target.transformScriptTargetOnly &&
                     target.scriptTarget &&
                     target.scriptTarget !== 'none' &&
-                    expectedScriptTarget !== target.scriptTarget) {
+                    expectedSourceScriptTarget !== target.scriptTarget) {
                     let scriptTarget: ts.ScriptTarget;
                     let moduleKind: ts.ModuleKind;
                     if (target.scriptTarget === 'es5') {
@@ -555,8 +574,6 @@ export async function buildLib(projectRoot: string,
                     }
 
                     logger.logLine(`Transforming ${bundleEntryFile} to ${target.scriptTarget}`);
-
-                    // TODO: to review
                     await transpileFile(bundleDestFilePath,
                         bundleDestFilePath,
                         {
@@ -574,22 +591,167 @@ export async function buildLib(projectRoot: string,
                 }
             }
 
+            // Remapping sourcemaps
             if (libConfig.sourceMap && bundleRootDir !== srcDir) {
                 logger.logLine(`Remapping sourcemaps`);
                 await remapSourcemap(bundleDestFilePath);
             }
 
-            if (target.addPureAnnotations) {
-                logger.logLine(`Inserting pure annotations`);
+            // minify umd es5 files
+            if (target.libraryTarget === 'umd' &&
+                (!expectedSourceScriptTarget ||
+                    expectedSourceScriptTarget === 'es5' ||
+                    target.scriptTarget === 'es5')) {
+                const minFilePath = bundleDestFilePath.replace(/\.js$/i, '.min.js');
+                logger.logLine(`Minifying ${path.parse(bundleDestFilePath).base}`);
+                await writeMinifyFile(bundleDestFilePath,
+                    minFilePath,
+                    libConfig.sourceMap,
+                    libConfig.preserveLicenseComments,
+                    buildOptions.verbose,
+                    logger);
+            }
+
+            // add pure annotations
+            if (target.addPureAnnotations &&
+                target.libraryTarget === 'es' &&
+                (target.scriptTarget === 'es5' ||
+                    !expectedSourceScriptTarget ||
+                    expectedSourceScriptTarget === 'es5')) {
+                logger.logLine(`Adding pure annotations to ${path.parse(bundleDestFilePath).base}`);
                 await addPureAnnotationsToFile(bundleDestFilePath);
             }
+
         }
     }
 
     // packaging
     if (libConfig.packageOptions && libConfig.packageOptions.packageConfigFile) {
-        await copyPackageConfig(projectRoot, libConfig, mainFields, logger);
+        if (!libConfig.outDir) {
+            throw new Error(`The 'outDir' property is required by lib config -> 'packageOptions'.`);
+        }
+
+        // read package info
+        let libPackageConfig = await readJson(path.resolve(srcDir, libConfig.packageOptions.packageConfigFile));
+        let rootPackageConfig: any = null;
+        if (await fs.exists(path.resolve(projectRoot, 'package.json'))) {
+            rootPackageConfig = await readJson(path.resolve(projectRoot, 'package.json'));
+        }
+
+        if (libPackageConfig.devDependencies) {
+            delete libPackageConfig.devDependencies;
+        }
+        if (libPackageConfig.srcipts) {
+            delete libPackageConfig.srcipts;
+        }
+
+        if (libConfig.packageOptions.useRootPackageConfigVerion !== false &&
+            !!rootPackageConfig &&
+            !!rootPackageConfig.version) {
+            libPackageConfig.version = rootPackageConfig.version;
+        }
+
+        // typing and meta-data re-exports
+        if (libConfig.packageOptions.typingsAndMetaDataReExport &&
+            (libConfig.packageOptions.typingsAndMetaDataReExport.entry ||
+                libConfig.packageOptions.typingsAndMetaDataReExport.outFileName)) {
+            const typingsAndMetaDataReExport =
+                libConfig.packageOptions.typingsAndMetaDataReExport as TypingsAndMetaDataReExport;
+            if (!processedTsTanspileInfoes.length) {
+                throw new Error(
+                    `No proper typescript transpilation output found. The lib config -> 'packageOptions.typingsAndMetaDataReExport' ` +
+                    `requires typescript transpilation.`);
+            }
+
+            let foundTsTranspilationInfo: TsTranspiledInfo | undefined;
+            if (typeof typingsAndMetaDataReExport.tsTranspilationIndex === 'number') {
+                const index = typingsAndMetaDataReExport.tsTranspilationIndex as number;
+                if (index < 0 || index >= processedTsTanspileInfoes.length) {
+                    throw new Error(
+                        `No proper typescript transpilation output found with tsTranspilationIndex: ${index}. ` +
+                        `Please correct 'tsTranspilationIndex' in lib config -> 'packageOptions.typingsAndMetaData.tsTranspilationIndex'.`);
+                }
+                foundTsTranspilationInfo = processedTsTanspileInfoes[index];
+            } else if (typingsAndMetaDataReExport.tsTranspilationIndex &&
+                typeof typingsAndMetaDataReExport.tsTranspilationIndex === 'string') {
+                const tsTransName = typingsAndMetaDataReExport.tsTranspilationIndex as string;
+                foundTsTranspilationInfo = processedTsTanspileInfoes.find(t => t.name === tsTransName);
+                if (!foundTsTranspilationInfo) {
+                    throw new Error(
+                        `No proper typescript transpilation output found with tsTranspilationIndex: ${tsTransName}. ` +
+                        `Please correct 'tsTranspilationIndex' in lib config -> 'packageOptions.typingsAndMetaData.tsTranspilationIndex'.`);
+                }
+            } else if (typeof typingsAndMetaDataReExport.tsTranspilationIndex === 'undefined') {
+                foundTsTranspilationInfo = processedTsTanspileInfoes[0];
+            }
+            if (!foundTsTranspilationInfo) {
+                throw new Error(
+                    `No proper typescript transpilation output found. The lib config -> 'packageOptions.typingsAndMetaData' ` +
+                    `requires typescript transpilation.`);
+            }
+
+            foundTsTranspilationInfo = foundTsTranspilationInfo as TsTranspiledInfo;
+
+            // typings d.ts entry
+            let typingsEntryFile = typingsAndMetaDataReExport.entry;
+            if (typingsEntryFile) {
+                mainFields.typings = path.relative(packageConfigOutDir,
+                    path.join(foundTsTranspilationInfo.outDir, typingsEntryFile)).replace(/\\/g, '/');
+            } else {
+                typingsEntryFile = libConfig.entry ? libConfig.entry.replace(/\.(ts|js)$/, '.d.ts') : '';
+            }
+
+            if (!typingsEntryFile) {
+                throw new Error(`The typings entry file is required for for 'typingsAndMetaDataReExport' options.`);
+            }
+
+            if (typingsAndMetaDataReExport.outFileName) {
+                // add banner to index
+                let bannerContent = '';
+                if (libConfig.banner) {
+                    bannerContent = prepareBannerSync(projectRoot, srcDir, libConfig.banner);
+                    if (bannerContent) {
+                        bannerContent += '\n';
+                    } else {
+                        bannerContent = '';
+                    }
+                }
+
+                const relativeTypingsOutDir = path.relative(packageConfigOutDir, foundTsTranspilationInfo.outDir);
+                const typingsOutFileName = typingsAndMetaDataReExport.outFileName
+                    .replace(/\[package-name\]/g, packageNameWithoutScope)
+                    .replace(/\[packagename\]/g, packageNameWithoutScope);
+
+                // typings re-exports
+                const typingsIndexContent =
+                    `${bannerContent}export * from './${relativeTypingsOutDir}/${typingsEntryFile}';\n`;
+                const typingOutFilePath = path.resolve(packageConfigOutDir, typingsOutFileName);
+                await fs.writeFile(typingOutFilePath, typingsIndexContent);
+
+                // metadata re-exports
+                const metaDataOutFilePath = path.resolve(packageConfigOutDir,
+                    typingsOutFileName.replace(/\.d\.ts$/i, '.metadata.json'));
+                const metaDataIndexContent =
+                    `{"__symbolic":"module","version":3,"metadata":{},"exports":[{"from":"./${relativeTypingsOutDir}/${
+                    typingsEntryFile.replace(/\.d\.ts$/i, '')}"}]}`;
+                await fs.writeFile(metaDataOutFilePath, metaDataIndexContent);
+
+                mainFields.typings = typingsOutFileName;
+            }
+        }
+
+        libPackageConfig = Object.assign(libPackageConfig, mainFields, libConfig.packageOptions.mainFields);
+
+        logger.logLine(`Copying and updating package.json`);
+        await fs.writeFile(path.resolve(packageConfigOutDir, 'package.json'), JSON.stringify(libPackageConfig, null, 2));
     }
 
-    logger.logLine(`Build completed.`);
+    if (libConfig.cleanFiles && libConfig.cleanFiles.length && outDir) {
+        logger.logLine(`Cleaning`);
+        await Promise.all(libConfig.cleanFiles.map(async (fileToClean: string) => {
+            await clean(path.join(outDir as string, fileToClean));
+        }));
+    }
+
+    logger.logLine(`Build completed.\n`);
 }

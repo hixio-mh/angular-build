@@ -17,5 +17,4 @@ export type WebpackConfigOptions = {
 
     logger?: Logger;
     silent?: boolean;
-    webpackIsGlobal?: boolean;
 };

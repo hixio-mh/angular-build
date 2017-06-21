@@ -240,6 +240,7 @@ export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
     }
 
     if (isTsEntry) {
+// ReSharper disable once CommonJsExternalModule
         const typescript = require('rollup-plugin-typescript2');
 
         const tsConfigPath = path.resolve(projectRoot, libConfig.srcDir || '', libConfig.tsconfig || 'tsconfig.json');

@@ -8,12 +8,14 @@ import { readJson } from '../utils';
 
 export type TsTranspiledInfo = {
     name?: string;
-    outDir: string;
     target: string;
     module: string;
     declaration: boolean;
     sourceTsConfigPath: any;
     tsConfigJson: any;
+    outDir: string;
+    aotGenDir: string;
+    flatModuleOutFile?: string;
     shouldCreateTempTsConfig?: boolean;
     tsTranspilation: TsTranspilation;
 };
@@ -59,6 +61,9 @@ export async function getTsTranspileInfo(projectRoot: string,
     const target = tempTsConfigInfo.tsConfig.compilerOptions.target;
     const module = tempTsConfigInfo.tsConfig.compilerOptions.module;
     if (tempTsConfigInfo.tsConfig.compilerOptions.outDir) {
+        if (path.isAbsolute(tempTsConfigInfo.tsConfig.compilerOptions.outDir)) {
+            throw new Error(`The 'compilerOptions.outDir' must be relative path in tsconfig file ${sourceTsConfigPath}.`);
+        }
         transpileOutDir = path.resolve(path.dirname(sourceTsConfigPath),
             tempTsConfigInfo.tsConfig.compilerOptions.outDir);
     }
@@ -66,11 +71,23 @@ export async function getTsTranspileInfo(projectRoot: string,
         transpileOutDir = path.dirname(sourceTsConfigPath);
     }
 
+    let aotGenDir = transpileOutDir;
+    if (tempTsConfigInfo.tsConfig.angularCompilerOptions && tempTsConfigInfo.tsConfig.angularCompilerOptions.genDir) {
+        aotGenDir = path.resolve(path.dirname(sourceTsConfigPath),
+            tempTsConfigInfo.tsConfig.angularCompilerOptions.genDir);
+    }
+    let flatModuleOutFile: string | undefined = undefined;
+    if (tempTsConfigInfo.tsConfig.angularCompilerOptions) {
+        flatModuleOutFile = tempTsConfigInfo.tsConfig.angularCompilerOptions.flatModuleOutFile;
+    }
+
     const declaration = tempTsConfigInfo.tsConfig.compilerOptions.declaration || tsTranspileOption.declaration;
     return {
         tsTranspilation: tsTranspileOption,
         name: tsTranspileOption.name,
         outDir: transpileOutDir,
+        aotGenDir: aotGenDir,
+        flatModuleOutFile: flatModuleOutFile,
         declaration: declaration,
         target: target,
         module: module,
@@ -131,7 +148,7 @@ async function getTempTsConfig(pathToReadFile: string,
     declaration?: boolean,
     noEmit?: boolean,
     outDir?: string,
-    sourceMap?: boolean): Promise<{shouldCreate: boolean; tsConfig: any}> {
+    sourceMap?: boolean): Promise<{ shouldCreate: boolean; tsConfig: any }> {
     let shouldCreateTempFile = false;
     const config: any = await readJson(pathToReadFile);
     if (!config.compilerOptions) {

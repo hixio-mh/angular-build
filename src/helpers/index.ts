@@ -2,7 +2,7 @@
 export * from './get-aot-gen-dir';
 export * from './copy-assets';
 export * from './copy-styles';
-export * from './copy-template-style-urls';
+export * from './minify-file';
 export * from './normalize-env-name';
 export * from './parse-asset-entry';
 export * from './parse-dll-entry';
@@ -12,6 +12,7 @@ export * from './parse-style-entry';
 export * from './prepare-banner';
 export * from './prepare-configs';
 export * from './process-helpers';
+export * from './process-ng-resources';
 export * from './pure-annotations';
 export * from './read-angular-build-config';
 export * from './ts-transpile';

@@ -4,9 +4,12 @@ import * as webpack from 'webpack';
 // plugins
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 
-// ReSharper disable once InconsistentNaming
-// ReSharper disable once CommonJsExternalModule
+// ReSharper disable InconsistentNaming
+// ReSharper disable CommonJsExternalModule
 const OptimizeJsPlugin = require('optimize-js-plugin');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+// ReSharper restore InconsistentNaming
+// ReSharper restore CommonJsExternalModule
 
 // internal plugins
 import { BundleAnalyzerPlugin } from '../plugins';
@@ -42,18 +45,20 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         ? '.[hash]'
         : '';
     const chunkHashFormat = projectConfig.projectType === 'app' &&
+        !environment.lib &&
         projectConfig.platformTarget === 'web' &&
         (projectConfig as AppProjectConfig).appendOutputHash
         ? '.[chunkhash]'
         : '';
 
-    const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
+    const webpackIsGlobal = (buildOptions as any).webpackIsGlobal || !(buildOptions as any).cliIsLocal;
     const fileLoader = webpackIsGlobal ? require.resolve('file-loader') : 'file-loader';
     const jsonLoader = webpackIsGlobal ? require.resolve('json-loader') : 'json-loader';
     const rawLoader = webpackIsGlobal ? require.resolve('raw-loader') : 'raw-loader';
     const sourceMapLoader = webpackIsGlobal ? require.resolve('source-map-loader') : 'source-map-loader';
     const urlLoader = webpackIsGlobal ? require.resolve('url-loader') : 'url-loader';
 
+    // rules
     const commonRules: any[] = [
         {
             test: /\.json$/,
@@ -62,7 +67,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         {
             test: /\.html$/,
             use: rawLoader,
-            exclude: [path.resolve(projectRoot, projectConfig.srcDir, 'index.html')]
+            exclude: [path.resolve(srcDir, 'index.html')]
         },
         // Font files of all types
         {
@@ -103,6 +108,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         // }
     ];
 
+    // source-map-loader
     if (projectConfig.projectType === 'app' && !environment.dll) {
         const sourceMapExcludes: string[] = [];
         const appJsSourceMapExcludes = (projectConfig as AppProjectConfig).jsSourceMapExcludes || [];
@@ -124,39 +130,41 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         });
     }
 
+    // plugins
     const commonPlugins: any[] = [
         new webpack.NoEmitOnErrorsPlugin()
     ];
 
-    // TODO: to review necessary?
-    if (projectConfig.projectType === 'app') {
-        // es6-promise
-        // Workaround for https://github.com/stefanpenner/es6-promise/issues/100
-        commonPlugins.push(new webpack.IgnorePlugin(/^vertx$/));
+    const statOptions: webpack.Options.Stats = getWebpackToStringStatsOptions(projectConfig.stats, buildOptions.verbose);
+    let profile = (buildOptions as any).profile;
+    const hot = environment.hot || environment.devServer;
 
-        // Workaround for https://github.com/andris9/encoding/issues/16
-        // commonPlugins.push(new webpack.NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop'))));
-    }
+    // TODO: to review still necessary? Please define in moduleReplacements!
+    // if (projectConfig.projectType === 'app') {
+    //    // es6-promise
+    //    // Workaround for https://github.com/stefanpenner/es6-promise/issues/100
+    //    commonPlugins.push(new webpack.IgnorePlugin(/^vertx$/));
+
+    //    // Workaround for https://github.com/andris9/encoding/issues/16
+    //    // commonPlugins.push(new webpack.NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop'))));
+    // }
 
     // BannerPlugin
+    let banner: string | null = null;
     if (projectConfig.banner) {
-        const banner = prepareBannerSync(projectRoot, srcDir, projectConfig.banner);
+        banner = prepareBannerSync(projectRoot, srcDir, projectConfig.banner);
         const bannerOptions: webpack.BannerPlugin.Options = {
             banner: banner,
-            raw: true
+            raw: true,
+            entryOnly: true
         };
         commonPlugins.push(new webpack.BannerPlugin(bannerOptions));
     }
 
     // ProgressPlugin
-    if ((buildOptions as any).progress) {
+    if (!hot && (buildOptions as any).progress) {
         commonPlugins.push(new (webpack as any).ProgressPlugin({ profile: buildOptions.verbose }));
     }
-
-    const statOptions: webpack.Options.Stats = getWebpackToStringStatsOptions(projectConfig.stats, buildOptions.verbose);
-
-    let profile = (buildOptions as any).profile;
-    const hot = environment.hot || environment.devServer;
 
     // BundleAnalyzerPlugin
     if (!hot && projectConfig.bundleAnalyzerOptions &&
@@ -170,11 +178,13 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     }
 
     // copy assets
-    const skipCopyAssets = projectConfig.projectType !== 'lib' &&
-        !environment.dll &&
+    const skipCopyAssets = !environment.dll &&
         !buildOptions.production &&
         (projectConfig as AppProjectConfig).referenceDll;
-    if (projectConfig.assets && projectConfig.assets.length > 0 && !skipCopyAssets) {
+    if (projectConfig.assets &&
+        projectConfig.assets.length > 0 &&
+        projectConfig.projectType !== 'lib' &&
+        !skipCopyAssets) {
         const copyAssetOptions = parseAssetEntry(srcDir, projectConfig.assets);
         if (copyAssetOptions && copyAssetOptions.length > 0) {
             commonPlugins.push(new CopyWebpackPlugin(copyAssetOptions,
@@ -185,21 +195,14 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         }
     }
 
-    // if (appConfig.compressAssets) {
-    //    commonPlugins.push(new CompressionPlugin({
-    //        asset: '[path].gz[query]',
-    //        algorithm: 'gzip',
-    //        test: /\.js$|\.html$|\.css$/,
-    //        threshold: 10240
-    //    }));
-    // }
-
     // production plugins
     if (buildOptions.production) {
         const prodPlugins: any[] = [
+            // webpack 3
+            new (webpack as any).optimize.ModuleConcatenationPlugin(),
             // webpack.LoaderOptionsPlugin({ debug: false, minimize: true }) -> debug will be removed as of webpack 3.
-            new webpack.LoaderOptionsPlugin({ minimize: true }),
-            new (webpack as any).HashedModuleIdsPlugin()
+            new webpack.LoaderOptionsPlugin({ minimize: true })
+            // new (webpack as any).HashedModuleIdsPlugin()
         ];
 
         if (projectConfig.projectType === 'app' &&
@@ -210,28 +213,35 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
             }));
         }
 
-        prodPlugins.push(new webpack.optimize.UglifyJsPlugin({
-            beautify: false,
-            mangle: {
-                screw_ie8: true
-                // keep_fnames: true
-            },
+        // new webpack.optimize.UglifyJsPlugin
+        // we use standaline plugin
+        // ReSharper disable once InconsistentNaming
+        prodPlugins.push(new UglifyJSPlugin({
+            warnings: buildOptions.verbose, // default false
+            ie8: true, // default false
             compress: {
-                screw_ie8: true,
-                warnings: buildOptions.verbose,
-                conditionals: true,
-                unused: true,
-                comparisons: true,
-                sequences: true,
-                dead_code: true,
-                evaluate: true,
-                if_return: true,
-                join_vars: true,
+                passes: 3, // default 1,
                 negate_iife: false // we need this for lazy v8
             },
-            comments: false,
-            sourceMap: projectConfig.sourceMap
 
+            // plugin's output is different with original.
+            // output: {
+            //    beautify: false, // default true
+            //    preamble: banner
+            // },
+            // plugin's sourceMap is different with original.
+            // sourceMap: projectConfig.sourceMap
+            //    ? {
+            //        // filename: outputFileName,
+            //        url: outputFileName + '.map'
+            //    }
+            //    : null,
+
+            // plugin specific
+            beautify: false, // default false
+            // Defaults to preserving comments containing /*!, /**!, @preserve or @license
+            comments: projectConfig.preserveLicenseComments !== false ? undefined : false,
+            sourceMap: projectConfig.sourceMap
         }));
 
         commonPlugins.push(...prodPlugins);
@@ -239,6 +249,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         const devPlugins: any[] = [
             new webpack.NamedModulesPlugin()
         ];
+
         commonPlugins.push(...devPlugins);
     }
 
@@ -248,22 +259,27 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         devtool = environment.test ? 'eval' : false;
     } else if (typeof projectConfig.sourceMapDevTool === 'undefined' &&
         !environment.test &&
-        (projectConfig.platformTarget === 'web' ||
-            projectConfig.projectType === 'lib')) {
-        // devtool = 'source-map';
-        // TODO: to review
+        projectConfig.projectType === 'lib') {
+        devtool = 'source-map';
+    } else if (typeof projectConfig.sourceMapDevTool === 'undefined' &&
+        !buildOptions.production &&
+        !environment.test &&
+        projectConfig.projectType === 'app' &&
+        !environment.dll &&
+        (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
         devtool = undefined;
-        // TODO: to review it works?
         commonPlugins.push(new webpack.SourceMapDevToolPlugin({
             // if no value is provided the sourcemap is inlined
             filename: '[file].map[query]',
-            // test: /\.(ts|js)($|\?)/i, // process .js and .ts files only
-            moduleFilenameTemplate: '[resource-path]',
-            fallbackModuleFilenameTemplate: '[resource-path]?[hash]',
-            sourceRoot: 'webpack:///'
+            moduleFilenameTemplate: projectConfig.sourceMapModuleFilenameTemplate || '[absolute-resource-path]',
+            fallbackModuleFilenameTemplate: projectConfig.sourceMapFallbackModuleFilenameTemplate ||
+            '[absolute-resource-path]',
+            sourceRoot: projectConfig.sourceMapSourceRoot // 'webpack:///'
         }));
-    } else if (typeof projectConfig.sourceMapDevTool === 'undefined' || environment.test) {
+    } else if (environment.test) {
         devtool = 'inline-source-map';
+    } else {
+        devtool = false;
     }
 
     if (projectConfig.projectType === 'app' && !environment.dll) {
@@ -323,23 +339,14 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     // performance options
     let performanceOptions =
         (projectConfig as AppProjectConfig).performanceOptions as (webpack.PerformanceOptions | undefined);
-    if ((!performanceOptions || Object.keys(performanceOptions).length === 0) &&
-        projectConfig.projectType === 'app' &&
-        !environment.dll &&
-        !environment.test &&
-        buildOptions.production &&
-        projectConfig.platformTarget === 'web') {
-        performanceOptions = {
-            hints: 'warning'
-        };
-    }
     if (performanceOptions) {
-        performanceOptions.assetFilter = (assetFilename: string) => {
-            // Function predicate that provides asset filenames
-            return assetFilename.endsWith('.css') || assetFilename.endsWith('.js');
-        };
-        if (performanceOptions.hints === false) {
+        if (!performanceOptions.hints) {
             performanceOptions = undefined;
+        } else {
+            performanceOptions.assetFilter = (assetFilename: string) => {
+                // Function predicate that provides asset filenames
+                return assetFilename.endsWith('.css') || assetFilename.endsWith('.js');
+            };
         }
     }
 
@@ -347,20 +354,9 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         projectConfig.platformTarget);
 
     let libraryName = projectConfig.libraryName;
-    if (!libraryName && projectConfig.projectType === 'lib') {
+    if (!libraryName && projectConfig.projectType === 'lib' && webpackConfigOptions.packageName) {
         libraryName = webpackConfigOptions.packageName;
     }
-
-    // if ((projectConfig.platformTarget === 'node' ||
-    //    projectConfig.platformTarget === 'async-node' ||
-    //        projectConfig.platformTarget === 'node-webkit')) {
-    //    if (environment.dll) {
-    //        libraryTarget = 'commonjs2';
-    //    } else {
-    //        // TODO: should use commonjs2?
-    //        libraryTarget = 'commonjs';
-    //    }
-    // }
 
     const bundleOutDir = path.resolve(projectRoot, projectConfig.outDir, webpackConfigOptions.bundleOutDir || '');
     const bundleOutFileName = webpackConfigOptions.bundleOutFileName || `[name]${chunkHashFormat}.js`;
@@ -374,9 +370,8 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     // webpack config
     const webpackSharedConfig: webpack.Configuration = {
         target: (projectConfig.platformTarget as any),
-        // TODO: to review to commment?
         devtool: (devtool as any),
-        profile: profile === false ? false : profile,
+        profile: profile,
         resolve: {
             extensions: ['.ts', '.js', '.json'],
             symlinks: projectConfig.preserveSymlinks,
@@ -390,9 +385,6 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
             path: bundleOutDir,
             filename: bundleOutFileName,
             publicPath: (projectConfig as AppProjectConfig).publicPath,
-            // sourceMapFilename: appConfig.appendOutputHash
-            //    ? `[name].[chunkhash].map`
-            //    : '[name].map',
             chunkFilename: `[id]${chunkHashFormat}.chunk.js`,
             libraryTarget: libraryTarget,
             library: libraryName
@@ -441,7 +433,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         projectConfig.platformTarget === 'node') {
         webpackSharedConfig.resolve = webpackSharedConfig.resolve || {};
         // (webpackSharedConfig as any).resolve.mainFields = ["module", "main"];
-        // TODO: to review
+        // TODO: to review to remove
         (webpackSharedConfig as any).resolve.mainFields = ['main'];
     }
 

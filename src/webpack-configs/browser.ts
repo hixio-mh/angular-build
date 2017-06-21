@@ -487,7 +487,7 @@ export function getGlobalScriptsConfigPartial(webpackConfigOptions: WebpackConfi
     const appConfig = webpackConfigOptions.projectConfig as AppProjectConfig;
     const environment = buildOptions.environment || {};
 
-    const webpackIsGlobal = webpackConfigOptions.webpackIsGlobal || !(buildOptions as any).cliIsLocal;
+    const webpackIsGlobal = (buildOptions as any).webpackIsGlobal || !(buildOptions as any).cliIsLocal;
     const scriptLoader = webpackIsGlobal ? require.resolve('script-loader') : 'script-loader';
 
 

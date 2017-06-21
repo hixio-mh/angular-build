@@ -1,13 +1,17 @@
-﻿import * as path from 'path';
+﻿import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as yargs from 'yargs';
 
 import { CliOptions } from './cli-options';
 import { init, getInitCommandModule } from './init';
-import { build, getBuildCommandModule } from './build';
+import { cliBuild, getBuildCommandModule } from './build';
 
 import { Logger, colorize } from '../utils';
 
-function initYargs(cliVersion: string, args: any[]): yargs.Argv {
+function initYargs(cliVersion: string, schema: Object, args: any[]): yargs.Argv {
+
+    const buildOptionsSchema = (schema as any).definitions.BuildOptions.properties;
+
     const cliUsage = `\n${colorize(`angular-build ${cliVersion}`, 'green')}\n
 Usage:
   ngb command [options...]
@@ -34,7 +38,7 @@ Usage:
             global: false
         })
         .command(getInitCommandModule(cliVersion))
-        .command(getBuildCommandModule(cliVersion));
+        .command(getBuildCommandModule(cliVersion, buildOptionsSchema));
     return yargsInstance;
 }
 
@@ -54,8 +58,18 @@ module.exports = (options: {
     const cliVersion = options.cliVersion;
     const logger = new Logger(options.outputStream, options.errorStream);
 
+    // schema
+    let schemaPath = './schemas/schema.json';
+    if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
+        schemaPath = '../schemas/schema.json';
+    }
+    if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
+        schemaPath = '../../schemas/schema.json';
+    }
+    const schema = require(schemaPath);
+
     // init yargs
-    const yargsInstance = initYargs(cliVersion, options.cliArgs);
+    const yargsInstance = initYargs(cliVersion, schema, options.cliArgs);
     const command = yargsInstance.argv._[0] ? yargsInstance.argv._[0].toLowerCase() : undefined;
     const commandOptions = yargsInstance.argv;
 
@@ -70,7 +84,7 @@ module.exports = (options: {
     if (command === 'init') {
         return init(cliOptions, logger);
     } else if (command === 'build') {
-        return build(cliOptions, logger);
+        return cliBuild(cliOptions, logger);
     } else if (commandOptions.version) {
         return Promise.resolve(cliOptions)
             .then(() => {

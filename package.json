@@ -67,7 +67,7 @@
     "loader-utils": "^1.1.0",
     "magic-string": "^0.21.3",
     "ng-router-loader": "^2.1.0",
-    "ngc-webpack": "^2.0.0",
+    "ngc-webpack": "^3.0.0",
     "node-alias": "^1.0.4",
     "node-rest-client": "^3.1.0",
     "optimize-js-plugin": "0.0.4",
@@ -93,10 +93,12 @@
     "tinycolor2": "^1.4.1",
     "to-string-loader": "^1.1.5",
     "typescript": "~2.3.4",
+    "uglify-js": "^3.0.17",
+    "uglifyjs-webpack-plugin": "^0.4.3",
     "unzip2": "^0.2.5",
     "url": "^0.11.0",
     "url-loader": "^0.5.8",
-    "webpack": "^2.5.1",
+    "webpack": "^3.0.0",
     "webpack-bundle-analyzer": "^2.8.1",
     "webpack-merge": "^4.1.0",
     "yargs": "^8.0.1",
@@ -111,7 +113,7 @@
     "@types/html-webpack-plugin": "^2.28.0",
     "@types/image-size": "0.0.28",
     "@types/less": "^0.0.32",
-    "@types/node": "^7.0.18",
+    "@types/node": "^8.0.0",
     "@types/node-sass": "^3.10.32",
     "@types/resolve": "0.0.4",
     "@types/rimraf": "0.0.28",
@@ -124,7 +126,7 @@
     "@types/webpack-merge": "^0.0.4",
     "@types/yargs": "^6.6.0",
     "ajv-cli": "^2.1.0",
-    "typescript-json-schema": "^0.13.0"
+    "typescript-json-schema": "^0.14.0"
   },
   "optionalDependencies": {
     "node-sass": "^4.5.3"

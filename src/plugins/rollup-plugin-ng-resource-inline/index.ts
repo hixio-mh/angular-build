@@ -25,8 +25,8 @@ export interface AsyncPlugins {
 }
 
 // const componentRegex = /[\s\S]*(\.|@)?\s*Component\s*(\(|(,?[\S\s]*\[))\s*{([\s\S]*)}\s*(\)|(,\]\s*\}))(,)?/gm;
-const moduleIdRegex = /moduleId:\s*module\.id\s*,?\s*/gm;
-const templateUrlRegex = /templateUrl:\s*['"`]([^'"`]+?\.[a-zA-Z]+)['"`]/gm;
+const moduleIdRegex = /moduleId:\s*module\.id\s*,?\s*/g;
+const templateUrlRegex = /templateUrl:\s*['"`]([^'"`]+?\.[a-zA-Z]+)['"`]/g;
 const styleUrlsRegex = /styleUrls:\s*(\[[^\]]*?\])/gm;
 
 async function processUrl(url: string | string[],

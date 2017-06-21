@@ -52,8 +52,6 @@ export function getAppWebpackConfigs(projectRoot: string,
         throw new Error('No app project config is available.');
     }
 
-    const webpackIsGlobal = !!(buildOptions as any).webpackIsGlobal || !(buildOptions as any).cliIsLocal;
-
     const webpackConfigs = appConfigs.filter((projectConfig: ProjectConfig) =>
             !projectConfig.skip &&
             (filterProjects.length === 0 ||
@@ -65,8 +63,7 @@ export function getAppWebpackConfigs(projectRoot: string,
             projectConfig: projectConfig as ProjectConfig,
             buildOptions: buildOptions as BuildOptions,
             angularBuildConfig: angularBuildConfig as AngularBuildConfig,
-            logger,
-            webpackIsGlobal
+            logger
         }));
 
     if (webpackConfigs.length === 0) {

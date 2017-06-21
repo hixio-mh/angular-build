@@ -30,8 +30,12 @@ export function parseStyleEntry(styleEntries: string | (string | StyleEntry)[],
                 styleEntry);
             styleParsedEntry.path = path.resolve(baseDir, styleParsedEntry.from);
             styleParsedEntry.entry = styleParsedEntry.to
-                ? styleParsedEntry.to.replace(/\.(js|css)$/i, '')
+                ? styleParsedEntry.to.replace(/\.(js|css)$/i, '').replace(/(\\|\/)$/, '')
                 : defaultEntry;
+            if (styleParsedEntry.to && /(\\|\/)$/.test(styleParsedEntry.to)) {
+                styleParsedEntry.to = styleParsedEntry.to +
+                    path.basename(styleParsedEntry.path).replace(/\.(less|sass|scss|styl|css)$/i, '.css');
+            }
             return styleParsedEntry;
         });
 }

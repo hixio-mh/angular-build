@@ -1,10 +1,8 @@
-﻿import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as yargs from 'yargs';
+﻿import * as yargs from 'yargs';
 
 import { chageDashCase, colorize, yargsTypeMap } from '../../utils';
 
-export function getBuildCommandModule(cliVersion: string): yargs.CommandModule {
+export function getBuildCommandModule(cliVersion: string, schemaPart?: Object): yargs.CommandModule {
     const buildCommandUsage = `\n${colorize(`angular-build ${cliVersion}`, 'green')}\n
 Usage:
   ngb build [options...]`;
@@ -55,28 +53,19 @@ Usage:
                     describe: 'Additional build target environment'
                 });
 
-            let schemaPath = './schemas/schema.json';
-            if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
-                schemaPath = '../schemas/schema.json';
+            if (schemaPart) {
+                const buildOptionsSchema = schemaPart as any;
+                Object.keys(buildOptionsSchema).filter((key: string) => key !== 'env' && key !== 'environment')
+                    .forEach(
+                    (key: string) => {
+                        yargvObj = yargvObj.options(chageDashCase(key),
+                            {
+                                describe: buildOptionsSchema[key].description || key,
+                                type: yargsTypeMap(buildOptionsSchema[key].type),
+                                default: undefined
+                            });
+                    });
             }
-            if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
-                schemaPath = '../../schemas/schema.json';
-            }
-            if (!fs.existsSync(path.resolve(__dirname, schemaPath))) {
-                schemaPath = '../../../schemas/schema.json';
-            }
-            const schema = require(schemaPath);
-
-            const buildOptionsSchema = schema.definitions.BuildOptions.properties;
-            Object.keys(buildOptionsSchema).filter((key: string) => key !== 'test' && key !== 'environment').forEach(
-                (key: string) => {
-                    yargvObj = yargvObj.options(chageDashCase(key),
-                        {
-                            describe: buildOptionsSchema[key].description || key,
-                            type: yargsTypeMap(buildOptionsSchema[key].type),
-                            default: undefined
-                        });
-                });
 
             return yargvObj;
         },

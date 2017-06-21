@@ -7,7 +7,7 @@ const rimraf = require('rimraf');
 const spawn = require('cross-spawn');
 
 const schemaOutDir = path.resolve(__dirname, '../schemas');
-const angularBuildConfigModelInput = path.resolve(__dirname, '../src/models/index.ts');
+const angularBuildConfigModelInput = path.resolve(__dirname, '../src/models/public-models.ts');
 const angularBuildConfigSchemaOutput = path.resolve(schemaOutDir, 'schema-draft-04.json');
 const angularBuildConfigSchemav6Output = path.resolve(schemaOutDir, 'schema.json');
 const angularBuildConfigSymbol = 'AngularBuildConfig';

@@ -1,4 +1,5 @@
-﻿import * as path from 'path';
+﻿import * as fs from 'fs-extra';
+import * as path from 'path';
 import { CliOptions } from '../cli-options';
 
 import { getAoTGenDir, prepareBuildOptions, prepareAngularBuildConfig, readAngularBuildConfig } from '../../helpers';
@@ -9,9 +10,55 @@ import { getWebpackConfig } from '../../webpack-configs';
 import { buildLib } from './build-lib';
 import { webpackBundle } from './webpack-bundle';
 
-export async function build(cliOptions: CliOptions, logger: Logger = new Logger()): Promise<number> {
+export async function cliBuild(cliOptions: CliOptions, logger: Logger = new Logger()): Promise<number> {
     try {
-        await buildInternal(cliOptions, logger);
+        logger.logLine(`\n${colorize(
+            `angular-build ${cliOptions.cliVersion} [${cliOptions.cliIsLocal ? 'Local' : 'Global'}]`,
+            'green')}`);
+
+        cliOptions.cwd = cliOptions.cwd ? path.resolve(cliOptions.cwd) : process.cwd();
+        let projectRoot = cliOptions.cwd;
+        const buildOptions: any = {};
+
+        if (cliOptions.commandOptions && cliOptions.commandOptions.p) {
+            projectRoot = path.isAbsolute(cliOptions.commandOptions.p)
+                ? path.resolve(cliOptions.commandOptions.p)
+                : path.resolve(cliOptions.cwd, cliOptions.commandOptions.p);
+        }
+
+        if (cliOptions.commandOptions && typeof cliOptions.commandOptions === 'object') {
+            const commandOptions = cliOptions.commandOptions as any;
+
+            // const buildOptionsSchema = schema.definitions.BuildOptions.properties;
+            Object.keys(cliOptions.commandOptions)
+                .filter((key: string) => typeof commandOptions[key] !== 'undefined' &&
+                    commandOptions[key] !== null)
+                .forEach((key: string) => {
+                    buildOptions[key] = commandOptions[key];
+                });
+
+            if (typeof commandOptions.clean === 'boolean') {
+                buildOptions.clean = commandOptions.clean;
+            }
+            if (typeof commandOptions.progress === 'boolean') {
+                buildOptions.progress = commandOptions.progress;
+            }
+            if (typeof commandOptions.profile === 'boolean') {
+                buildOptions.profile = commandOptions.profile;
+            }
+            if (typeof commandOptions.watch === 'boolean') {
+                buildOptions.watch = commandOptions.watch;
+            }
+            if (typeof commandOptions.env === 'object') {
+                buildOptions.environment = Object.assign(buildOptions.environment || {}, commandOptions.env);
+            }
+            if (typeof commandOptions.environment === 'object') {
+                buildOptions.environment = Object.assign(buildOptions.environment || {}, commandOptions.environment);
+            }
+        }
+
+        buildOptions.cliIsLocal = cliOptions.cliIsLocal;
+        await build(projectRoot, buildOptions, logger);
     } catch (err) {
         if (err) {
             logger.errorLine(`An error occured during the build:\n${(err.stack) || err}${err.details
@@ -23,62 +70,13 @@ export async function build(cliOptions: CliOptions, logger: Logger = new Logger(
     return 0;
 }
 
-async function buildInternal(cliOptions: CliOptions, logger: Logger = new Logger()): Promise<any> {
-    logger.logLine(`\n${colorize(
-        `angular-build ${cliOptions.cliVersion} [${cliOptions.cliIsLocal ? 'Local' : 'Global'}]`,
-        'green')}`);
-
-    cliOptions.cwd = cliOptions.cwd ? path.resolve(cliOptions.cwd) : process.cwd();
-    let cleanOutDir = false;
-    const projectRoot = cliOptions.cwd;
+export async function build(projectRoot: string,
+    buildOptions: BuildOptions,
+    logger: Logger = new Logger()): Promise<any> {
     let angularBuildConfigPath = path.resolve(projectRoot, 'angular-build.json');
-    const cliBuildOptions: any = {};
-
-    if (cliOptions.commandOptions && cliOptions.commandOptions.p) {
-        angularBuildConfigPath = path.isAbsolute(cliOptions.commandOptions.p)
-            ? path.resolve(cliOptions.commandOptions.p)
-            : path.resolve(projectRoot, cliOptions.commandOptions.p);
-    }
-
     const angularBuildConfig = await readAngularBuildConfig(angularBuildConfigPath);
+    buildOptions = buildOptions || {};
 
-    if (cliOptions.commandOptions && typeof cliOptions.commandOptions === 'object') {
-        cleanOutDir = (cliOptions.commandOptions as any).clean;
-
-        const buildOptionsSchema = (angularBuildConfig as any).schema.definitions.BuildOptions.properties;
-        Object.keys(cliOptions.commandOptions)
-            .filter((key: string) => buildOptionsSchema[key] &&
-                typeof (cliOptions as any).commandOptions[key] !== 'undefined' &&
-                (cliOptions as any).commandOptions[key] !== 'clean' &&
-                (cliOptions as any).commandOptions[key] !== null &&
-                (cliOptions as any).commandOptions[key] !== '')
-            .forEach((key: string) => {
-                cliBuildOptions[key] = (cliOptions as any).commandOptions[key];
-            });
-
-        if (typeof (cliOptions as any).commandOptions.progress === 'boolean') {
-            cliBuildOptions.progress = (cliOptions as any).commandOptions.progress;
-        }
-        if (typeof (cliOptions as any).commandOptions.profile === 'boolean') {
-            cliBuildOptions.profile = (cliOptions as any).commandOptions.profile;
-        }
-        if (typeof (cliOptions as any).commandOptions.watch === 'boolean') {
-            cliBuildOptions.watch = (cliOptions as any).commandOptions.watch;
-        }
-        if (typeof (cliOptions as any).commandOptions.env === 'object') {
-            cliBuildOptions.environment = Object.assign(cliBuildOptions.environment || {},
-                (cliOptions as any).commandOptions.env);
-        }
-        if (typeof (cliOptions as any).commandOptions.environment === 'object') {
-            cliBuildOptions.environment = Object.assign(cliBuildOptions.environment || {},
-                (cliOptions as any).commandOptions.environment);
-        }
-    }
-
-    cliBuildOptions.cliIsLocal = cliOptions.cliIsLocal;
-
-
-    const buildOptions: BuildOptions = Object.assign({}, cliBuildOptions);
     // merge buildOptions
     if (angularBuildConfig.buildOptions) {
         Object.keys(angularBuildConfig.buildOptions)
@@ -110,24 +108,34 @@ async function buildInternal(cliOptions: CliOptions, logger: Logger = new Logger
             .filter((projectConfig: ProjectConfig) =>
                 !projectConfig.skip &&
                 (filterProjects.length === 0 ||
-                    (filterProjects.length > 0 &&
-                        projectConfig.name &&
-                        filterProjects.indexOf(projectConfig.name) > -1)));
+                (filterProjects.length > 0 &&
+                    projectConfig.name &&
+                    filterProjects.indexOf(projectConfig.name) > -1)));
 
         for (let libConfig of filteredLibConfigs) {
+            // validation
+            await validateProjectConfig(projectRoot, libConfig);
+
             // clean outDir
-            if (cleanOutDir) {
+            if ((buildOptions as any).clean) {
                 await cleanOutDirs(projectRoot, libConfig, buildOptions, logger);
             }
 
             // bundle
-            await buildLib(projectRoot, libConfig, buildOptions, angularBuildConfig, cliOptions.cliIsLocal, logger);
+            await buildLib(projectRoot,
+                libConfig,
+                buildOptions,
+                angularBuildConfig,
+                (buildOptions as any).cliIsLocal,
+                logger);
         }
     }
 
     // build apps
     if (appConfigs.length) {
-        const webpackIsGlobal = !cliOptions.cliIsLocal;
+        const webpackIsGlobal = !(buildOptions as any).cliIsLocal;
+        (buildOptions as any).webpackIsGlobal = webpackIsGlobal;
+
         const webpackWatchOptions = angularBuildConfig && angularBuildConfig.webpackWatchOptions
             ? angularBuildConfig.webpackWatchOptions
             : {};
@@ -136,30 +144,36 @@ async function buildInternal(cliOptions: CliOptions, logger: Logger = new Logger
             .filter((projectConfig: ProjectConfig) =>
                 !projectConfig.skip &&
                 (filterProjects.length === 0 ||
-                    (filterProjects.length > 0 &&
-                        projectConfig.name &&
-                        filterProjects.indexOf(projectConfig.name) > -1)));
+                (filterProjects.length > 0 &&
+                    projectConfig.name &&
+                    filterProjects.indexOf(projectConfig.name) > -1)));
+
+        for (let appConfig of filteredAppConfigs) {
+            // validation
+            await validateProjectConfig(projectRoot, appConfig);
+        }
+
         const webpackConfigs = filteredAppConfigs.map((projectConfig: ProjectConfig) => getWebpackConfig({
             projectRoot,
             projectConfig,
             buildOptions,
             angularBuildConfig,
-            logger,
-            webpackIsGlobal
+            logger
         }));
 
         if (!webpackConfigs || webpackConfigs.length === 0) {
             throw new Error('No webpack config available.');
         }
-        const firstConfig = Array.isArray(webpackConfigs) ? webpackConfigs[0] : webpackConfigs;
-        const watch = cliOptions.commandOptions.watch || firstConfig.watch;
-        if (cleanOutDir) {
-            for (let i = 0; i < webpackConfigs.length; i++) {
-                const mappedAppConfig = filteredAppConfigs[i];
-                await cleanOutDirs(projectRoot, mappedAppConfig, buildOptions, logger);
+
+        for (let appConfig of filteredAppConfigs) {
+            // clean outDir
+            if ((buildOptions as any).clean) {
+                await cleanOutDirs(projectRoot, appConfig, buildOptions, logger);
             }
         }
 
+        const firstConfig = Array.isArray(webpackConfigs) ? webpackConfigs[0] : webpackConfigs;
+        const watch = (buildOptions as any).watch || firstConfig.watch;
         if (watch || !Array.isArray(webpackConfigs)) {
             await webpackBundle(webpackConfigs, buildOptions, watch, webpackWatchOptions, logger);
         } else {
@@ -171,30 +185,126 @@ async function buildInternal(cliOptions: CliOptions, logger: Logger = new Logger
     }
 }
 
+async function validateProjectConfig(projectRoot: string, projectConfig: ProjectConfig): Promise<any> {
+    if (projectConfig.srcDir && path.isAbsolute(projectConfig.srcDir)) {
+        throw new Error(`The 'srcDir' must be relative path to project root.`);
+    }
+    if (projectConfig.outDir && path.isAbsolute(projectConfig.outDir)) {
+        throw new Error(`The 'outDir' must be relative path to project root.`);
+    }
+
+    const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
+    if (!await fs.exists(srcDir)) {
+        throw new Error(`The 'srcDir' - ${srcDir} doesn't exist.`);
+    }
+
+    if (projectConfig.entry && path.isAbsolute(projectConfig.entry)) {
+        throw new Error(`The 'entry' must be relative path to 'srcDir' in project config.`);
+    }
+
+    if (projectConfig.outDir) {
+        const outDir = path.isAbsolute(projectConfig.outDir)
+            ? projectConfig.outDir
+            : path.resolve(projectRoot, projectConfig.outDir);
+
+        if (outDir === projectRoot) {
+            throw new Error(`The 'outDir' and 'projectRoot' must NOT be the same folder.`);
+        }
+        if (outDir === srcDir) {
+            throw new Error(`The 'outDir' and 'srcDir' must NOT be the same folder.`);
+        }
+        if (outDir === path.parse(outDir).root || outDir === '.') {
+            throw new Error(`The 'outDir' must NOT be root folder: ${path.parse(outDir).root}.`);
+        }
+
+        const srcDirHomeRoot = path.parse(srcDir).root;
+        if (outDir === srcDirHomeRoot) {
+            throw new Error(`The 'outDir' must NOT be 'srcDir''s root folder: ${srcDirHomeRoot}.`);
+        }
+
+        let tempSrcDir = srcDir;
+        let prevTempSrcDir = '';
+        while (tempSrcDir && tempSrcDir !== srcDirHomeRoot && tempSrcDir !== '.' && tempSrcDir !== prevTempSrcDir) {
+            prevTempSrcDir = tempSrcDir;
+            tempSrcDir = path.dirname(tempSrcDir);
+            if (outDir === tempSrcDir) {
+                throw new Error(`The 'srcDir' must NOT be inside 'outDir'.`);
+            }
+        }
+    }
+}
+
 async function cleanOutDirs(projectRoot: string,
     projectConfig: ProjectConfig,
     buildOptions: BuildOptions,
     logger: Logger): Promise<any> {
-    const srcDir = path.resolve(projectRoot, projectConfig.srcDir);
-    const outDir = path.resolve(projectRoot, projectConfig.outDir);
+    if (!projectConfig.outDir) {
+        return;
+    }
 
-    if (outDir !== srcDir && outDir !== projectRoot) {
-        logger.logLine(`\nCleaning ${outDir}`);
-        if (/wwwroot$/g.test(outDir)) {
-            await clean(outDir + '/**/*');
-        } else {
-            await clean(outDir);
+    const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
+    const outDir = path.isAbsolute(projectConfig.outDir)
+        ? projectConfig.outDir
+        : path.resolve(projectRoot, projectConfig.outDir);
+
+    if (outDir === projectRoot) {
+        throw new Error(`The 'outDir' and 'projectRoot' must NOT be the same folder.`);
+    }
+    if (outDir === srcDir) {
+        throw new Error(`The 'outDir' and 'srcDir' must NOT be the same folder.`);
+    }
+    if (outDir === path.parse(outDir).root || outDir === '.') {
+        throw new Error(`The 'outDir' must NOT be root folder: ${path.parse(outDir).root}.`);
+    }
+
+    const srcDirHomeRoot = path.parse(srcDir).root;
+    if (outDir === srcDirHomeRoot) {
+        throw new Error(`The 'outDir' must NOT be 'srcDir''s root folder: ${srcDirHomeRoot}.`);
+    }
+
+    let tempSrcDir = srcDir;
+    let prevTempSrcDir = '';
+    while (tempSrcDir && tempSrcDir !== srcDirHomeRoot && tempSrcDir !== '.' && tempSrcDir !== prevTempSrcDir) {
+        prevTempSrcDir = tempSrcDir;
+        tempSrcDir = path.dirname(tempSrcDir);
+        if (outDir === tempSrcDir) {
+            throw new Error(`The 'srcDir' must NOT be inside 'outDir'.`);
         }
+    }
+
+    logger.logLine(`Cleaning ${outDir}`);
+    if (/wwwroot$/g.test(outDir)) {
+        await clean(path.join(outDir, '**/*'));
+    } else {
+        await clean(outDir);
     }
 
     if (projectConfig.tsconfig) {
         const tsConfigPath = path.resolve(projectRoot, projectConfig.srcDir || '', projectConfig.tsconfig);
+        if (!await fs.exists(tsConfigPath)) {
+            return;
+        }
+
         const aotGenDir = await getAoTGenDir(tsConfigPath);
         if (buildOptions.environment &&
             buildOptions.environment.aot &&
             aotGenDir &&
             aotGenDir !== srcDir &&
             aotGenDir !== projectRoot) {
+
+            if (aotGenDir === path.parse(aotGenDir).root || aotGenDir === '.') {
+                throw new Error(`The aot 'genDir' must NOT be root folder: ${path.parse(aotGenDir).root}.`);
+            }
+
+            tempSrcDir = srcDir;
+            prevTempSrcDir = '';
+            while (tempSrcDir && tempSrcDir !== srcDirHomeRoot && tempSrcDir !== '.' && tempSrcDir !== prevTempSrcDir) {
+                prevTempSrcDir = tempSrcDir;
+                tempSrcDir = path.dirname(tempSrcDir);
+                if (aotGenDir === tempSrcDir) {
+                    throw new Error(`The 'srcDir' must NOT be inside aot 'genDir'.`);
+                }
+            }
             await clean(aotGenDir);
         }
     }
