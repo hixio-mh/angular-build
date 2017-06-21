@@ -1,18 +1,14 @@
 ﻿import * as path from 'path';
 import * as webpack from 'webpack';
 
-// internal plugins
 import { TryBundleDllWebpackPlugin } from '../plugins/try-bundle-dll-webpack-plugin';
-
 
 import { AppProjectConfig } from '../models';
 import { mergeProjectConfigWithEnvOverrides } from '../helpers';
 
-// configs
 import { getAppDllConfig } from './dll';
 
 import { WebpackConfigOptions } from './webpack-config-options';
-
 
 export function getAppReferenceDllConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const projectRoot = webpackConfigOptions.projectRoot;

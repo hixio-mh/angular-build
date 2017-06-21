@@ -2,10 +2,8 @@
 import * as fs from 'fs-extra';
 import * as webpack from 'webpack';
 
-// plugins
 import * as HtmlWebpackPlugin from 'html-webpack-plugin';
 
-// internal plugins
 import { CustomizeAssetsHtmlWebpackPlugin } from '../plugins/customize-assets-html-webpack-plugin';
 import { IconWebpackPlugin } from '../plugins/icon-webpack-plugin';
 

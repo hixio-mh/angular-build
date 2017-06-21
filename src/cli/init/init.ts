@@ -11,12 +11,7 @@ const pkgConfig = require('../../../package.json');
 
 export interface CommandOptions {
     /**
-     * Overrides angular-build.json file.
-     */
-    overrideAngularBuildConfigFile?: boolean;
-    /**
      * Package manager to use while installing dependencies.
-     * @default npm
      */
     packageManager?: 'npm' | 'yarn';
     /**
@@ -24,31 +19,25 @@ export interface CommandOptions {
      * @default false
      */
     link?: boolean;
+    /**
+     * Install webpack loaders and dependencies.
+     */
+    installDeps?: boolean;
+    projectType?: 'app' | 'lib' | 'both';
 }
 
 
 export interface InitConfig {
     logger: Logger;
     cwd: string;
-    cliIsLocal?: boolean;
+    cliIsLocal: boolean;
+    commandOptions: CommandOptions;
 
-    commandOptions?: CommandOptions;
-
-    tsConfigMaster?: any;
-    tsConfigBrowserMaster?: any;
-    tsConfigServerMaster?: any;
-    tsConfigTestMaster?: any;
-
-    angularBuildConfigMaster?: AngularBuildConfig;
-    userAngularBuildConfig?: AngularBuildConfig;
-
-    userAngularCliConfig?: any;
-
-
-    faviconConfigMaster?: any;
-    userFaviconConfig?: any;
-
-    userPackageConfig?: any;
+    shouldWriteAngularBuildConfig?: boolean;
+    angularBuildConfigToWrite?: AngularBuildConfig;
+    shouldWriteFaviconConfig?: boolean;
+    faviconConfigSrcDir?: string;
+    faviconConfigToWrite?: any;
 }
 
 export async function init(cliOptions: CliOptions, logger: Logger = new Logger()): Promise<number> {
@@ -58,49 +47,70 @@ export async function init(cliOptions: CliOptions, logger: Logger = new Logger()
     const cfg: InitConfig = {
         logger: logger,
         cwd: projectRoot,
-        cliIsLocal: cliOptions.cliIsLocal,
+        cliIsLocal: cliOptions.cliIsLocal as boolean,
         commandOptions: Object.assign({}, cliOptions.commandOptions || {})
     };
 
-    // let progress = 0;
-    await installWebpackLoaders(cfg);
+    if (typeof cfg.commandOptions.packageManager === 'undefined') {
+        const yarnLockFileExists = await fs.exists(path.resolve(cfg.cwd, 'yarn.lock'));
+        cfg.commandOptions.packageManager = yarnLockFileExists ? 'yarn' : 'npm';
+    }
+
+    await createOrUpdteAngularBuildConfig(cfg);
+
+    if (cfg.commandOptions.installDeps || cfg.commandOptions.link) {
+        await installWebpackLoaders(cfg);
+    }
+
+    if (cfg.commandOptions.link) {
+        await linkCli(cfg);
+    }
 
     cfg.logger.logLine('Done.');
     return 0;
 }
 
-async function installWebpackLoaders(cfg: InitConfig): Promise<void> {
-    const commandOptions = cfg.commandOptions || {} as CommandOptions;
+async function createOrUpdteAngularBuildConfig(cfg: InitConfig): Promise<void> {
+    const projectRoot = cfg.cwd;
+    const logger = cfg.logger;
 
-    const loaderPeerDeps = [
-        // '@angular/compiler-cli',
-        // '@angular/compiler',
-        // '@angular/core',
-        // '@ngtools/webpack',
+    if (cfg.shouldWriteFaviconConfig && cfg.faviconConfigSrcDir) {
+        logger.logLine(`Saving 'favicon-config.json' file`);
+        await fs.writeFile(path.join(cfg.faviconConfigSrcDir, 'favicon-config.json'), cfg.faviconConfigToWrite);
+    }
+    if (cfg.shouldWriteAngularBuildConfig) {
+        logger.logLine(`Saving 'angular-build.json' file`);
+        await fs.writeFile(path.join(projectRoot, 'angular-build.json'), cfg.angularBuildConfigToWrite);
+    }
+}
+
+async function installWebpackLoaders(cfg: InitConfig): Promise<void> {
+    const loaderDeps = [
+        '@angular/compiler-cli',
+        '@angular/compiler',
+        '@angular/core',
+        '@ngtools/webpack',
+        'rxjs',
+        'zone.js',
         'less',
         'node-sass',
         'typescript',
-        'webpack'
+        'tslib',
+        'webpack',
+        'webpack-dev-server',
+        'webpack-hot-middleware',
+        '@types/node'
     ];
 
-    const loaderDeps = Object.keys(pkgConfig.dependencies)
-        .filter((key: string) => loaderPeerDeps.indexOf(key) > -1 || key.match(/\-loader$/));
-    if (loaderDeps.indexOf('node-sass') === -1) {
-        loaderDeps.push('node-sass');
-    }
-    if (loaderDeps.indexOf('@types/node') === -1) {
-        loaderDeps.push('@types/node');
-    }
+    Object.keys(pkgConfig.dependencies)
+        .filter((key: string) => loaderDeps.indexOf(key) > -1 && key.match(/\-loader$/)).forEach((dep: string) => {
+            loaderDeps.push(dep);
+        });
 
-    if (typeof commandOptions.packageManager === 'undefined') {
-        const yarnLockFileExists = await fs.exists(path.resolve(cfg.cwd, 'yarn.lock'));
-        commandOptions.packageManager = yarnLockFileExists ? 'yarn' : 'npm';
-    }
-
-    cfg.logger.logLine(`\nInstalling tooling dependencies via ${commandOptions.packageManager}...`);
+    cfg.logger.logLine(`Installing tooling dependencies via ${cfg.commandOptions.packageManager}`);
 
     const errorFilter = /^warning\sfsevents/g;
-    if (commandOptions.packageManager === 'yarn') {
+    if (cfg.commandOptions.packageManager === 'yarn') {
         await spawnPromise('yarn',
             ['add', '--silent', '--no-progress', '--non-interactive', '-D'].concat(loaderDeps),
             false,
@@ -113,5 +123,21 @@ async function installWebpackLoaders(cfg: InitConfig): Promise<void> {
             false,
             true,
             errorFilter);
+    }
+}
+
+async function linkCli(cfg: InitConfig): Promise<void> {
+    cfg.logger.logLine(`Linking @bizappframework/angular-build`);
+    if (cfg.commandOptions.packageManager === 'yarn') {
+        await spawnPromise('yarn',
+            ['link', '@bizappframework/angular-build'],
+            false,
+            true);
+
+    } else {
+        await spawnPromise('npm',
+            ['link', '@bizappframework/angular-build'],
+            false,
+            true);
     }
 }

@@ -11,7 +11,6 @@ import { getStylesConfigPartial } from './styles';
 
 import { WebpackConfigOptions } from './webpack-config-options';
 
-
 export function getLibWebpackConfig(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const buildOptions = webpackConfigOptions.buildOptions;
     const environment = buildOptions.environment || {};

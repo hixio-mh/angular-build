@@ -1,28 +1,25 @@
 {
   "$schema": "node_modules/@bizappframework/angular-build/schemas/schema-draft-04.json#",
-  "apps": [],
   "libs": [
     {
       "srcDir": "src",
       "outDir": "dist",
       "assets": [
-        "README.md",
-        "LICENSE"
+        "../LICENSE",
+        "../README.md"
       ],
       "styles": [
         //{
-        //  "from": "core/theming/prebuilt/styles.scss",
-        //  "to": "prebuilt-themes/styles.css"
+        //  "from": "theming/prebuilt/styles.scss",
+        //  "to": "prebuilt-themes/"
         //}
       ],
-      // "entry": "index.ts",
-      "tsconfig": "tsconfig.json",
       "tsTranspilations": [
         {
           //"name": "es2015-es2015",
-          "tsconfig": "tsconfig.json"
-          // default true
-          //"copyTemplateAndStyleUrls": true
+          "tsconfig": "tsconfig.json",
+          "inlineMetaDataResources": true,
+          "outDir": "typings"
         }
       ],
       "bundleTargets": [
@@ -33,6 +30,7 @@
             // default to first item index
             //"tsTranspilationIndex": 0
           },
+          "entry": "index.js",
           "libraryTarget": "es",
           "outDir": "bundles"
         },
@@ -45,6 +43,7 @@
           },
           "libraryTarget": "es",
           "outDir": "bundles",
+          "inlineResources": false,
           "addPureAnnotations": true,
           "transformScriptTargetOnly": true,
           "scriptTarget": "es5"
@@ -62,9 +61,19 @@
         }
       ],
       "packageOptions": {
-        "packageConfigFile": "package.json"
+        "packageConfigFile": "package.json",
+        "typingsAndMetaDataReExport": {
+          "entry": "index.d.ts",
+          "outFileName": "[package-name].d.ts"
+        }
       },
       "banner": "banner.txt",
+      "cleanFiles": [
+        "typings/**/*.js",
+        "typings/**/*.map",
+        "typings/**/*.html",
+        "typings/**/*.css"
+      ],
       "envOverrides": {
         "dev": {
 

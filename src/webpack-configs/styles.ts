@@ -10,7 +10,6 @@ const cssnano = require('cssnano');
 const postcssUrl = require('postcss-url');
 // ReSharper restore CommonJsExternalModule
 
-// internal plugins
 import { SuppressEntryChunksWebpackPlugin } from '../plugins/suppress-entry-chunks-webpack-plugin';
 
 import { parseStyleEntry, StyleParsedEntry } from '../helpers';
@@ -30,7 +29,6 @@ import { WebpackConfigOptions } from './webpack-config-options';
  * require('postcss-loader')
  * require('sass-loader')
  * require('style-loader')
- * require('to-string-loader')
  */
 
 export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {

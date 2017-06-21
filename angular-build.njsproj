@@ -56,6 +56,7 @@
     <Content Include="schemas\favicon-config-schema.json" />
     <Content Include="schemas\schema-draft-04.json" />
     <Content Include="schemas\schema.json" />
+    <Content Include="templates\angular-build.app.json" />
     <Content Include="templates\angular-build.lib.json" />
     <Content Include="templates\angular-build.universal-app.json" />
     <Content Include="templates\favicon-config.json">

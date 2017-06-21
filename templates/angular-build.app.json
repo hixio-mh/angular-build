@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/@bizappframework/angular-build/schemas/schema-draft-04.json#",
+  "apps": [
+    {
+      "srcDir": "src",
+      "outDir": "dist",
+      "entry": "main.ts",
+      "assets": [
+        {
+          "from": "assets/**/*",
+          "to":  "assets" 
+        }
+      ],
+      "styles": [],
+      "polyfills": [
+        "polyfills.ts"
+      ],
+      "tsconfig": "tsconfig.json",
+      "publicPath": "/",
+      "htmlInjectOptions": {
+        "index": "index.html"
+      },
+      "envOverrides": {
+        // Last order wins!
+        "dev": {
+          // Default - true
+          "referenceDll": false
+        },
+        "prod": {
+          "environmentFile": "environments/environment.prod.ts"
+        }
+      }
+    }
+  ]
+}

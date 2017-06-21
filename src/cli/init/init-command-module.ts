@@ -17,18 +17,6 @@ Usage:
                 .example('ngb init --package-manager=yarn',
                 'Create angular-build config files with yarn package manager option')
                 .help('h')
-                .option('override-angular-build-config-file',
-                {
-                    describe: 'Override existing angular-build.json file',
-                    type: 'boolean',
-                    default: undefined
-                })
-                .option('include-test-configs',
-                {
-                    describe: 'Include test configs',
-                    type: 'boolean',
-                    default: false
-                })
                 .option('package-manager',
                 {
                     describe: 'Package manager to use while installing dependencies',

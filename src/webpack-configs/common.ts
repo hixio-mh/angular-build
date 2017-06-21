@@ -1,7 +1,6 @@
 ﻿import * as path from 'path';
 import * as webpack from 'webpack';
 
-// plugins
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 
 // ReSharper disable InconsistentNaming
@@ -11,7 +10,6 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 // ReSharper restore InconsistentNaming
 // ReSharper restore CommonJsExternalModule
 
-// internal plugins
 import { BundleAnalyzerPlugin } from '../plugins';
 
 import { getWebpackToStringStatsOptions, parseAssetEntry, prepareBannerSync } from '../helpers';
@@ -255,31 +253,35 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
 
     // source-maps
     let devtool: any = projectConfig.sourceMapDevTool;
-    if (!projectConfig.sourceMap) {
-        devtool = environment.test ? 'eval' : false;
-    } else if (typeof projectConfig.sourceMapDevTool === 'undefined' &&
-        !environment.test &&
-        projectConfig.projectType === 'lib') {
-        devtool = 'source-map';
-    } else if (typeof projectConfig.sourceMapDevTool === 'undefined' &&
-        !buildOptions.production &&
-        !environment.test &&
-        projectConfig.projectType === 'app' &&
-        !environment.dll &&
-        (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
-        devtool = undefined;
-        commonPlugins.push(new webpack.SourceMapDevToolPlugin({
-            // if no value is provided the sourcemap is inlined
-            filename: '[file].map[query]',
-            moduleFilenameTemplate: projectConfig.sourceMapModuleFilenameTemplate || '[absolute-resource-path]',
-            fallbackModuleFilenameTemplate: projectConfig.sourceMapFallbackModuleFilenameTemplate ||
-            '[absolute-resource-path]',
-            sourceRoot: projectConfig.sourceMapSourceRoot // 'webpack:///'
-        }));
-    } else if (environment.test) {
-        devtool = 'inline-source-map';
-    } else {
-        devtool = false;
+    if (typeof projectConfig.sourceMapDevTool === 'undefined') {
+        if (!projectConfig.sourceMap) {
+            devtool = environment.test ? 'eval' : false;
+        } else if (!environment.test && projectConfig.projectType === 'lib') {
+            devtool = 'source-map';
+        } else if (!environment.test &&
+            !buildOptions.production &&
+            projectConfig.projectType === 'app' &&
+            !environment.dll &&
+            (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
+            if (projectConfig.sourceMapModuleFilenameTemplate) {
+                devtool = undefined;
+                commonPlugins.push(new webpack.SourceMapDevToolPlugin({
+                    // if no value is provided the sourcemap is inlined
+                    filename: '[file].map[query]',
+                    moduleFilenameTemplate: projectConfig.sourceMapModuleFilenameTemplate || '[absolute-resource-path]',
+                    fallbackModuleFilenameTemplate: projectConfig.sourceMapFallbackModuleFilenameTemplate ||
+                        '[absolute-resource-path]',
+                    sourceRoot: projectConfig.sourceMapSourceRoot // 'webpack:///'
+                }));
+            } else {
+                devtool = 'source-map';
+            }
+
+        } else if (environment.test) {
+            devtool = 'inline-source-map';
+        } else {
+            devtool = false;
+        }
     }
 
     if (projectConfig.projectType === 'app' && !environment.dll) {
@@ -363,7 +365,6 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
 
     let externals = projectConfig.externals as any;
     if (externals && typeof projectConfig.externals === 'string') {
-        // TODO: to review
         externals = new RegExp(externals, 'i');
     }
 
@@ -387,7 +388,11 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
             publicPath: (projectConfig as AppProjectConfig).publicPath,
             chunkFilename: `[id]${chunkHashFormat}.chunk.js`,
             libraryTarget: libraryTarget,
-            library: libraryName
+            library: libraryName,
+            devtoolModuleFilenameTemplate: devtool ? projectConfig.sourceMapModuleFilenameTemplate : undefined,
+            devtoolFallbackModuleFilenameTemplate: devtool
+                ? projectConfig.sourceMapFallbackModuleFilenameTemplate
+                : undefined
         },
         externals: externals,
         module: {

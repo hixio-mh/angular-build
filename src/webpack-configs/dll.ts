@@ -1,10 +1,8 @@
 ﻿import * as path from 'path';
 import * as webpack from 'webpack';
 
-// plugins
 import * as webpackMerge from 'webpack-merge';
 
-// internal plugins
 import { CustomizeAssetsHtmlWebpackPlugin } from '../plugins/customize-assets-html-webpack-plugin';
 import { IconWebpackPlugin } from '../plugins/icon-webpack-plugin';
 
@@ -132,9 +130,8 @@ export function getAppDllConfigPartial(webpackConfigOptions: WebpackConfigOption
         })
     ];
 
-    // browser specific
+    // favicons plugins
     if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
-        // favicons plugins
         const iconOptions = parseIconOptions(projectRoot, appConfig);
         if (iconOptions && iconOptions.masterPicture) {
             plugins.push(new IconWebpackPlugin(iconOptions));
