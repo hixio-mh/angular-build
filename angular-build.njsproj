@@ -71,6 +71,7 @@
     <Content Include="TODO.md" />
     <Content Include="TROUBLESHOOTING.md" />
     <Content Include="tsconfig.json" />
+    <Content Include="tslint.json" />
     <Content Include="yarn.lock" />
   </ItemGroup>
   <ItemGroup>
@@ -120,6 +121,7 @@
     <TypeScriptCompile Include="src\cli\init\index.ts" />
     <TypeScriptCompile Include="src\cli\init\init-command-module.ts" />
     <TypeScriptCompile Include="src\cli\init\init.ts" />
+    <TypeScriptCompile Include="src\helpers\get-node-modules-start-paths.ts" />
     <TypeScriptCompile Include="src\utils\glob-copy-files.ts" />
     <TypeScriptCompile Include="src\models\index.ts" />
     <TypeScriptCompile Include="src\models\public-models.ts" />
@@ -217,8 +219,6 @@
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\index.ts" />
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\models.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\utils.ts" />
     <TypeScriptCompile Include="src\webpack-configs\webpack-config-options.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

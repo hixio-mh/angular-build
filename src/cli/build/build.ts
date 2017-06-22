@@ -2,7 +2,7 @@
 import * as path from 'path';
 import { CliOptions } from '../cli-options';
 
-import { getAoTGenDir, prepareBuildOptions, prepareAngularBuildConfig, readAngularBuildConfig } from '../../helpers';
+import { getAoTGenDir, prepareAngularBuildConfig, prepareBuildOptions, readAngularBuildConfig } from '../../helpers';
 import { BuildOptions, ProjectConfig } from '../../models';
 import { clean, colorize, Logger } from '../../utils';
 import { getWebpackConfig } from '../../webpack-configs';
@@ -58,6 +58,8 @@ export async function cliBuild(cliOptions: CliOptions, logger: Logger = new Logg
         }
 
         buildOptions.cliIsLocal = cliOptions.cliIsLocal;
+        buildOptions.isAngularBuildCli = true;
+
         await build(projectRoot, buildOptions, logger);
     } catch (err) {
         if (err) {
@@ -65,8 +67,10 @@ export async function cliBuild(cliOptions: CliOptions, logger: Logger = new Logg
                 ? `\n\nError details:\n${err.details}`
                 : ''}`);
         }
+
         return -1;
     }
+
     return 0;
 }
 
@@ -108,9 +112,9 @@ export async function build(projectRoot: string,
             .filter((projectConfig: ProjectConfig) =>
                 !projectConfig.skip &&
                 (filterProjects.length === 0 ||
-                (filterProjects.length > 0 &&
-                    projectConfig.name &&
-                    filterProjects.indexOf(projectConfig.name) > -1)));
+                    (filterProjects.length > 0 &&
+                        projectConfig.name &&
+                        filterProjects.indexOf(projectConfig.name) > -1)));
 
         for (let libConfig of filteredLibConfigs) {
             // validation
@@ -133,9 +137,6 @@ export async function build(projectRoot: string,
 
     // build apps
     if (appConfigs.length) {
-        const webpackIsGlobal = !(buildOptions as any).cliIsLocal;
-        (buildOptions as any).webpackIsGlobal = webpackIsGlobal;
-
         const webpackWatchOptions = angularBuildConfig && angularBuildConfig.webpackWatchOptions
             ? angularBuildConfig.webpackWatchOptions
             : {};
@@ -144,13 +145,18 @@ export async function build(projectRoot: string,
             .filter((projectConfig: ProjectConfig) =>
                 !projectConfig.skip &&
                 (filterProjects.length === 0 ||
-                (filterProjects.length > 0 &&
-                    projectConfig.name &&
-                    filterProjects.indexOf(projectConfig.name) > -1)));
+                    (filterProjects.length > 0 &&
+                        projectConfig.name &&
+                        filterProjects.indexOf(projectConfig.name) > -1)));
 
         for (let appConfig of filteredAppConfigs) {
             // validation
             await validateProjectConfig(projectRoot, appConfig);
+
+            // clean outDir
+            if ((buildOptions as any).clean) {
+                await cleanOutDirs(projectRoot, appConfig, buildOptions, logger);
+            }
         }
 
         const webpackConfigs = filteredAppConfigs.map((projectConfig: ProjectConfig) => getWebpackConfig({
@@ -163,13 +169,6 @@ export async function build(projectRoot: string,
 
         if (!webpackConfigs || webpackConfigs.length === 0) {
             throw new Error('No webpack config available.');
-        }
-
-        for (let appConfig of filteredAppConfigs) {
-            // clean outDir
-            if ((buildOptions as any).clean) {
-                await cleanOutDirs(projectRoot, appConfig, buildOptions, logger);
-            }
         }
 
         const firstConfig = Array.isArray(webpackConfigs) ? webpackConfigs[0] : webpackConfigs;

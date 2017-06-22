@@ -435,10 +435,6 @@
                     "description": "Customize the names used in each source map.\nThis option is only used by webpack.",
                     "type": "string"
                 },
-                "sourceMapSourceRoot": {
-                    "description": "Source map source root.\nThis option is only used by webpack.",
-                    "type": "string"
-                },
                 "srcDir": {
                     "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nBy default project root is cwd in cli, or it can be passed as a parameter to javascript api.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root is used.",
                     "type": "string"
@@ -917,10 +913,6 @@
                 },
                 "sourceMapModuleFilenameTemplate": {
                     "description": "Customize the names used in each source map.\nThis option is only used by webpack.",
-                    "type": "string"
-                },
-                "sourceMapSourceRoot": {
-                    "description": "Source map source root.\nThis option is only used by webpack.",
                     "type": "string"
                 },
                 "srcDir": {
@@ -1534,10 +1526,6 @@
                     "description": "Customize the names used in each source map.\nThis option is only used by webpack.",
                     "type": "string"
                 },
-                "sourceMapSourceRoot": {
-                    "description": "Source map source root.\nThis option is only used by webpack.",
-                    "type": "string"
-                },
                 "srcDir": {
                     "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nBy default project root is cwd in cli, or it can be passed as a parameter to javascript api.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root is used.",
                     "type": "string"
@@ -1900,10 +1888,6 @@
                 },
                 "sourceMapModuleFilenameTemplate": {
                     "description": "Customize the names used in each source map.\nThis option is only used by webpack.",
-                    "type": "string"
-                },
-                "sourceMapSourceRoot": {
-                    "description": "Source map source root.\nThis option is only used by webpack.",
                     "type": "string"
                 },
                 "srcDir": {

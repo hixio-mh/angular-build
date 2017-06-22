@@ -62,13 +62,14 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
             includePaths.push(path.resolve(srcDir, includePath)));
     }
 
-    const webpackIsGlobal = (buildOptions as any).webpackIsGlobal || !(buildOptions as any).cliIsLocal;
-    const cssLoader = webpackIsGlobal ? require.resolve('css-loader') : 'css-loader';
-    const sassLoader = webpackIsGlobal ? require.resolve('sass-loader') : 'sass-loader';
-    const lessLoader = webpackIsGlobal ? require.resolve('less-loader') : 'less-loader';
-    const postcssLoader = webpackIsGlobal ? require.resolve('postcss-loader') : 'postcss-loader';
-    const exportsLoader = webpackIsGlobal ? require.resolve('exports-loader') : 'exports-loader';
-    const styleLoader = webpackIsGlobal ? require.resolve('style-loader') : 'style-loader';
+    const cliIsLocal = (buildOptions as any).cliIsLocal !== false;
+
+    const cssLoader = cliIsLocal ? 'css-loader' : require.resolve('css-loader');
+    const sassLoader = cliIsLocal ? 'sass-loader' : require.resolve('sass-loader');
+    const lessLoader = cliIsLocal ? 'less-loader' : require.resolve('less-loader');
+    const postcssLoader = cliIsLocal ? 'postcss-loader' : require.resolve('postcss-loader');
+    const exportsLoader = cliIsLocal ? 'exports-loader' : require.resolve('exports-loader');
+    const styleLoader = cliIsLocal ? 'style-loader' : require.resolve('style-loader');
 
     // set base rules to derive final rules from
     const baseRules: any[] = [
@@ -174,7 +175,7 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
 
     // app only
     if (projectConfig.projectType === 'app' &&
-        projectConfig.platformTarget === 'web' &&
+        (!projectConfig.platformTarget || projectConfig.platformTarget === 'web') &&
         !environment.dll && !environment.test) {
         // determine hashing format
         const hashFormat = (projectConfig as AppProjectConfig).appendOutputHash ? `.[contenthash:${20}]` : '';

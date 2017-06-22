@@ -6,7 +6,7 @@
     "noEmitOnError": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    //"noUnusedLocals": true,
+    "noUnusedLocals": true,
     "strictNullChecks": true,
     "sourceMap": true,
     "inlineSources": true,
@@ -32,5 +32,5 @@
     "templates/**/*",
     "tools/**/*"
   ],
-  "compileOnSave": true
+  "compileOnSave": false
 }

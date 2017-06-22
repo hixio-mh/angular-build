@@ -1,18 +1,20 @@
-﻿import * as path from 'path';
+﻿import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as webpack from 'webpack';
 
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable CommonJsExternalModule
-const OptimizeJsPlugin = require('optimize-js-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+// const OptimizeJsPlugin = require('optimize-js-plugin');
 // ReSharper restore InconsistentNaming
 // ReSharper restore CommonJsExternalModule
 
 import { BundleAnalyzerPlugin } from '../plugins';
 
-import { getWebpackToStringStatsOptions, parseAssetEntry, prepareBannerSync } from '../helpers';
+import { getWebpackToStringStatsOptions, getNodeModuleStartPaths, parseAssetEntry, prepareBannerSync } from
+    '../helpers';
 import { AppProjectConfig } from '../models';
 
 import { WebpackConfigOptions } from './webpack-config-options';
@@ -32,29 +34,29 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     const buildOptions = webpackConfigOptions.buildOptions;
     const projectConfig = webpackConfigOptions.projectConfig;
     const environment = buildOptions.environment || {};
+    const isAngularBuildCli = (buildOptions as any).isAngularBuildCli;
+    const cliIsLocal = (buildOptions as any).cliIsLocal !== false;
 
     const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
     const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
+    const nodeModuleStartPaths = getNodeModuleStartPaths(projectRoot, projectConfig);
 
     const fileHashFormat = projectConfig.projectType === 'app' &&
-        !environment.lib &&
         projectConfig.platformTarget === 'web' &&
         (projectConfig as AppProjectConfig).appendOutputHash
         ? '.[hash]'
         : '';
     const chunkHashFormat = projectConfig.projectType === 'app' &&
-        !environment.lib &&
         projectConfig.platformTarget === 'web' &&
         (projectConfig as AppProjectConfig).appendOutputHash
         ? '.[chunkhash]'
         : '';
 
-    const webpackIsGlobal = (buildOptions as any).webpackIsGlobal || !(buildOptions as any).cliIsLocal;
-    const fileLoader = webpackIsGlobal ? require.resolve('file-loader') : 'file-loader';
-    const jsonLoader = webpackIsGlobal ? require.resolve('json-loader') : 'json-loader';
-    const rawLoader = webpackIsGlobal ? require.resolve('raw-loader') : 'raw-loader';
-    const sourceMapLoader = webpackIsGlobal ? require.resolve('source-map-loader') : 'source-map-loader';
-    const urlLoader = webpackIsGlobal ? require.resolve('url-loader') : 'url-loader';
+    const fileLoader = cliIsLocal ? 'file-loader' : require.resolve('file-loader');
+    const jsonLoader = cliIsLocal ? 'json-loader' : require.resolve('json-loader');
+    const rawLoader = cliIsLocal ? 'raw-loader' : require.resolve('raw-loader');
+    const sourceMapLoader = cliIsLocal ? 'source-map-loader' : require.resolve('source-map-loader');
+    const urlLoader = cliIsLocal ? 'url-loader' : require.resolve('url-loader');
 
     // rules
     const commonRules: any[] = [
@@ -134,8 +136,11 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     ];
 
     const statOptions: webpack.Options.Stats = getWebpackToStringStatsOptions(projectConfig.stats, buildOptions.verbose);
-    let profile = (buildOptions as any).profile;
     const hot = environment.hot || environment.devServer;
+    let profile = (buildOptions as any).profile;
+    if (hot) {
+        profile = false;
+    }
 
     // TODO: to review still necessary? Please define in moduleReplacements!
     // if (projectConfig.projectType === 'app') {
@@ -160,7 +165,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     }
 
     // ProgressPlugin
-    if (!hot && (buildOptions as any).progress) {
+    if (!hot && (buildOptions as any).progress && isAngularBuildCli) {
         commonPlugins.push(new (webpack as any).ProgressPlugin({ profile: buildOptions.verbose }));
     }
 
@@ -199,52 +204,35 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
             // webpack 3
             new (webpack as any).optimize.ModuleConcatenationPlugin(),
             // webpack.LoaderOptionsPlugin({ debug: false, minimize: true }) -> debug will be removed as of webpack 3.
-            new webpack.LoaderOptionsPlugin({ minimize: true })
-            // new (webpack as any).HashedModuleIdsPlugin()
+            new webpack.LoaderOptionsPlugin({ minimize: true }),
+            new (webpack as any).HashedModuleIdsPlugin()
         ];
 
-        if (projectConfig.projectType === 'app' &&
-            projectConfig.platformTarget === 'web' &&
-            !environment.dll) {
-            prodPlugins.push(new OptimizeJsPlugin({
-                sourceMap: projectConfig.sourceMap
-            }));
-        }
+        // TODO: to review
+         // if (projectConfig.projectType === 'app' &&
+         //    projectConfig.platformTarget === 'web' && !projectConfig.sourceMap) {
+         //   prodPlugins.push(new OptimizeJsPlugin({
+         //       sourceMap: projectConfig.sourceMap
+         //   }));
+         // }
 
         // new webpack.optimize.UglifyJsPlugin
         // we use standaline plugin
         // ReSharper disable once InconsistentNaming
         prodPlugins.push(new UglifyJSPlugin({
             warnings: buildOptions.verbose, // default false
-            ie8: true, // default false
-            compress: {
-                passes: 3, // default 1,
-                negate_iife: false // we need this for lazy v8
-            },
-
-            // plugin's output is different with original.
-            // output: {
-            //    beautify: false, // default true
-            //    preamble: banner
-            // },
-            // plugin's sourceMap is different with original.
-            // sourceMap: projectConfig.sourceMap
-            //    ? {
-            //        // filename: outputFileName,
-            //        url: outputFileName + '.map'
-            //    }
-            //    : null,
-
+            // ie8: true, // default false
             // plugin specific
             beautify: false, // default false
             // Defaults to preserving comments containing /*!, /**!, @preserve or @license
-            comments: projectConfig.preserveLicenseComments !== false ? undefined : false,
+            comments: projectConfig.preserveLicenseComments !== false ? /^\**!|@preserve|@license/ : false,
+            extractComments: true,
             sourceMap: projectConfig.sourceMap,
-            warningsFilter: (source: string): boolean => {
-                if (source.startsWith(path.resolve(projectRoot, 'node_modules'))) {
-                    return false;
-                }
-                return true;
+            warningsFilter: (resourceId: string): boolean => {
+                const isNodeModule = nodeModuleStartPaths.reduce(
+                    (last: boolean, current: string) => resourceId.startsWith(current) || last,
+                    false);
+                return buildOptions.verbose || !isNodeModule;
             }
         }));
 
@@ -258,40 +246,32 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     }
 
     // source-maps
+    // TODO: to test platformTarget = 'node'
     let devtool: any = projectConfig.sourceMapDevTool;
     if (typeof projectConfig.sourceMapDevTool === 'undefined') {
         if (!projectConfig.sourceMap) {
             devtool = environment.test ? 'eval' : false;
-        } else if (!environment.test && projectConfig.projectType === 'lib') {
-            devtool = 'source-map';
-        } else if (!environment.test &&
-            !buildOptions.production &&
-            projectConfig.projectType === 'app' &&
-            !environment.dll &&
-            (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
-            if (projectConfig.sourceMapModuleFilenameTemplate) {
-                devtool = undefined;
-                commonPlugins.push(new webpack.SourceMapDevToolPlugin({
-                    // if no value is provided the sourcemap is inlined
-                    filename: '[file].map[query]',
-                    // default: "webpack:///[resourcePath]"
-                    moduleFilenameTemplate: projectConfig.sourceMapModuleFilenameTemplate || '[absolute-resource-path]',
-                    // default: "webpack:///[resourcePath]?[hash]"
-                    fallbackModuleFilenameTemplate: projectConfig.sourceMapFallbackModuleFilenameTemplate ||
-                        '[absolute-resource-path]',
-                    sourceRoot: projectConfig.sourceMapSourceRoot // 'webpack:///'
-                }));
-            } else {
-                devtool = undefined;
-                commonPlugins.push(new webpack.SourceMapDevToolPlugin({
-                    filename: '[file].map[query]'
-                }));
-            }
-
         } else if (environment.test) {
             devtool = 'inline-source-map';
-        } else {
-            devtool = false;
+        } else if (projectConfig.projectType === 'lib' || environment.dll) {
+            devtool = 'source-map';
+        } else if (projectConfig.projectType === 'app' &&
+            (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
+            devtool = undefined;
+            let defaultModuleFilenameTemplate: string | undefined = undefined;
+            if (!fs.existsSync(path.resolve(projectRoot, 'webpack.config.js')) && !buildOptions.production) {
+                defaultModuleFilenameTemplate = '[absolute-resource-path]';
+            }
+
+            commonPlugins.push(new webpack.SourceMapDevToolPlugin({
+                // if no value is provided the sourcemap is inlined
+                filename: '[file].map[query]',
+                // default: "webpack:///[resourcePath]"
+                moduleFilenameTemplate: projectConfig.sourceMapModuleFilenameTemplate || defaultModuleFilenameTemplate,
+                // default: "webpack:///[resourcePath]?[hash]"
+                fallbackModuleFilenameTemplate: projectConfig.sourceMapFallbackModuleFilenameTemplate ||
+                    defaultModuleFilenameTemplate
+            }));
         }
     }
 

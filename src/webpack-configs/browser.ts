@@ -1,5 +1,4 @@
 ﻿import * as path from 'path';
-import * as fs from 'fs-extra';
 import * as webpack from 'webpack';
 
 import * as HtmlWebpackPlugin from 'html-webpack-plugin';
@@ -8,7 +7,7 @@ import { CustomizeAssetsHtmlWebpackPlugin } from '../plugins/customize-assets-ht
 import { IconWebpackPlugin } from '../plugins/icon-webpack-plugin';
 
 import {
-    DllParsedEntry, getAoTGenDirSync, parseDllEntry, parseIconOptions, parseScriptEntry, parseStyleEntry,
+    DllParsedEntry, getNodeModuleStartPaths, parseDllEntry, parseIconOptions, parseScriptEntry, parseStyleEntry,
     ScriptParsedEntry, StyleParsedEntry
 } from '../helpers';
 import { AppProjectConfig } from '../models';
@@ -30,7 +29,6 @@ export function getHtmlInjectConfigPartial(webpackConfigOptions: WebpackConfigOp
     // browser only
     if (environment.test ||
         environment.dll ||
-        environment.lib ||
         appConfig.projectType !== 'app' ||
         (appConfig.platformTarget && appConfig.platformTarget !== 'web')) {
         return {};
@@ -348,47 +346,11 @@ export function getChunksConfigPartial(webpackConfigOptions: WebpackConfigOption
         return {};
     }
 
-    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
     let entryPoints: { [key: string]: string[] } = {};
     const rules: any[] = [];
     const plugins: any[] = [];
 
-    // Separate modules from node_modules into a vendor chunk.
-    const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
-    // Resolves all symlink to get the actual node modules folder.
-    const realNodeModules = fs.realpathSync(nodeModulesPath);
-
-    // --aot puts the generated *.ngfactory.ts in src/$$_gendir/node_modules.
-    const vendorChunkStartPaths: string[] = [
-        nodeModulesPath,
-        realNodeModules,
-
-        path.resolve(srcDir, '$$_gendir', 'node_modules'),
-        path.resolve(projectRoot, '$$_gendir', 'node_modules'),
-
-        path.resolve(srcDir, 'aot-browser-compiled', 'node_modules'),
-        path.resolve(projectRoot, 'aot-browser-compiled', 'node_modules'),
-
-        path.resolve(srcDir, 'browser-aot-compiled', 'node_modules'),
-        path.resolve(projectRoot, 'browser-aot-compiled', 'node_modules'),
-
-        path.resolve(srcDir, 'aot-compiled', 'node_modules'),
-        path.resolve(projectRoot, 'aot-compiled', 'node_modules')
-    ];
-
-    let tsConfigPath = path.resolve(projectRoot, appConfig.srcDir || '', appConfig.tsconfig || 'tsconfig.json');
-    const aotGenDirAbs = getAoTGenDirSync(tsConfigPath);
-    if (tsConfigPath && aotGenDirAbs) {
-        vendorChunkStartPaths.push(path.resolve(aotGenDirAbs, 'node_modules'));
-    }
-    if (appConfig.vendorChunkPaths && appConfig.vendorChunkPaths.length) {
-        appConfig.vendorChunkPaths.forEach(p => {
-            const resolvedPath = path.resolve(srcDir, p);
-            if (vendorChunkStartPaths.indexOf(resolvedPath) === -1) {
-                vendorChunkStartPaths.push(resolvedPath);
-            }
-        });
-    }
+    const vendorChunkStartPaths = getNodeModuleStartPaths(projectRoot, appConfig);
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
     const polyfillsChunkName = appConfig.polyfillsChunkName || 'polyfills';
@@ -429,14 +391,15 @@ export function getChunksConfigPartial(webpackConfigOptions: WebpackConfigOption
     let inlineChunk = appConfig.inlineChunk;
     if ((typeof inlineChunk === 'undefined' || inlineChunk == null) &&
         !environment.test &&
-        appConfig.platformTarget === 'web') {
+        (!appConfig.platformTarget || appConfig.platformTarget === 'web')) {
         inlineChunk = true;
     }
 
     let vendorChunk = appConfig.vendorChunk;
     if ((typeof vendorChunk === 'undefined' || vendorChunk == null) &&
         !environment.test &&
-        appConfig.platformTarget === 'web' && !appConfig.referenceDll) {
+        !appConfig.referenceDll &&
+        (!appConfig.platformTarget || appConfig.platformTarget === 'web')) {
         vendorChunk = true;
     }
 
@@ -484,10 +447,9 @@ export function getGlobalScriptsConfigPartial(webpackConfigOptions: WebpackConfi
     const buildOptions = webpackConfigOptions.buildOptions;
     const appConfig = webpackConfigOptions.projectConfig as AppProjectConfig;
     const environment = buildOptions.environment || {};
+    const cliIsLocal = (buildOptions as any).cliIsLocal !== false;
 
-    const webpackIsGlobal = (buildOptions as any).webpackIsGlobal || !(buildOptions as any).cliIsLocal;
-    const scriptLoader = webpackIsGlobal ? require.resolve('script-loader') : 'script-loader';
-
+    const scriptLoader = cliIsLocal ? 'script-loader' : require.resolve('script-loader');
 
     // browser only
     if (environment.test ||
@@ -510,7 +472,6 @@ export function getGlobalScriptsConfigPartial(webpackConfigOptions: WebpackConfi
             entryPoints[scriptParsedEntry.entry] = (entryPoints[scriptParsedEntry.entry] || []).concat(scriptPath);
         });
     }
-
 
     const webpackNonDllConfig: webpack.Configuration = {
         entry: entryPoints

@@ -210,7 +210,7 @@ function getSchemaPartText(sourceSchema: Object, schemaPart: any, additionalPath
     return schemaText;
 }
 
-const getSchemaPart = (sourceSchema: Object, path: string, parents?: number, additionalPath?: string): any => {
+function getSchemaPart(sourceSchema: Object, path: string, parents?: number, additionalPath?: string): any {
     parents = parents || 0;
     let pathArrary = path.split('/');
     pathArrary = pathArrary.slice(0, pathArrary.length - parents);
@@ -225,4 +225,4 @@ const getSchemaPart = (sourceSchema: Object, path: string, parents?: number, add
         }
     }
     return schemaPart;
-};
+}

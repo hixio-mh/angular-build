@@ -7,6 +7,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+// ReSharper disable once CommonJsExternalModule
 const loaderUtils = require('loader-utils');
 import { IconLoaderOptions, IconGenerateResult, IconFileInfo, IconLoaderResult } from './plugin-models';
 import { IconGenerator } from './icon-generator';
@@ -40,90 +41,6 @@ export interface LoaderCachedResult {
     version: string;
     optionHash?: string;
     result: IconLoaderResult;
-}
-
-function faviconProcessor(loader: Loader, content: Buffer): void {
-    if (!loader.emitFile) {
-        throw new Error('emitFile is required from module system');
-    }
-    if (!loader.async) {
-        throw new Error('async is required');
-    }
-
-    if (loader.cacheable) {
-        loader.cacheable();
-    }
-
-    const callback = loader.async();
-    const nullError: any = undefined;
-
-    const options = <QueryOptions>loaderUtils.getOptions(loader);
-    const pathPrefix = loaderUtils.interpolateName(loader, options.iconsPath, {
-        context: options.context || loader.options.context,
-        content: content,
-        regExp: options.regExp
-    });
-
-    const fileHash = loaderUtils.interpolateName(loader, '[hash]', {
-        context: options.context || loader.options.context,
-        content: content,
-        regExp: options.regExp
-    });
-
-    const cacheFile = pathPrefix + '.cache';
-    const faviconPersitenceCacheService = new FaviconPersitenceCacheService();
-    // const publicPath = getPublicPath(loader._compilation);
-
-    faviconPersitenceCacheService.loadIconsFromDiskCache(loader,
-        options,
-        cacheFile,
-        fileHash,
-        (err: Error, loaderResult: IconLoaderResult) => {
-            if (err) {
-                callback(err);
-                return;
-            }
-
-            if (loaderResult) {
-                callback(nullError, `module.exports = ${JSON.stringify(loaderResult)}`);
-                return;
-            }
-
-            const faviconsGenerator = new IconGenerator();
-            // Generate icons
-            faviconsGenerator.generateIcons(content,
-                pathPrefix,
-                options.online as boolean,
-                options.preferOnline as boolean,
-                options,
-                (genErr: any, iconStreamResult: IconGenerateResult) => {
-                    if (genErr) {
-                        callback(genErr);
-                        return;
-                    }
-
-                    const mappedLoaderResult: IconLoaderResult = {
-                        iconsPath: iconStreamResult.iconsPath,
-                        html: iconStreamResult.html,
-                        files: iconStreamResult.files.map((f: IconFileInfo) => iconStreamResult.iconsPath + f.name)
-                    };
-
-                    iconStreamResult.files.forEach((file: any) => {
-                        if (options.emitFaviconIcoToOutDirRoot && file.name === 'favicon.ico') {
-                            loader.emitFile(file.name, file.contents);
-                        }
-
-                        loader.emitFile(pathPrefix + file.name, file.contents);
-                    });
-
-                    faviconPersitenceCacheService.emitCacheInformationFile(loader,
-                        options,
-                        cacheFile,
-                        fileHash,
-                        mappedLoaderResult);
-                    callback(nullError, `module.exports = ${JSON.stringify(mappedLoaderResult)}`);
-                });
-        });
 }
 
 export class FaviconPersitenceCacheService {
@@ -211,8 +128,92 @@ export class FaviconPersitenceCacheService {
     // }
 }
 
+function faviconProcessor(loader: Loader, content: Buffer): void {
+    if (!loader.emitFile) {
+        throw new Error('emitFile is required from module system');
+    }
+    if (!loader.async) {
+        throw new Error('async is required');
+    }
+
+    if (loader.cacheable) {
+        loader.cacheable();
+    }
+
+    const callback = loader.async();
+    const nullError: any = undefined;
+
+    const options = <QueryOptions>loaderUtils.getOptions(loader);
+    const pathPrefix = loaderUtils.interpolateName(loader, options.iconsPath, {
+        context: options.context || loader.options.context,
+        content: content,
+        regExp: options.regExp
+    });
+
+    const fileHash = loaderUtils.interpolateName(loader, '[hash]', {
+        context: options.context || loader.options.context,
+        content: content,
+        regExp: options.regExp
+    });
+
+    const cacheFile = pathPrefix + '.cache';
+    const faviconPersitenceCacheService = new FaviconPersitenceCacheService();
+    // const publicPath = getPublicPath(loader._compilation);
+
+    faviconPersitenceCacheService.loadIconsFromDiskCache(loader,
+        options,
+        cacheFile,
+        fileHash,
+        (err: Error, loaderResult: IconLoaderResult) => {
+            if (err) {
+                callback(err);
+                return;
+            }
+
+            if (loaderResult) {
+                callback(nullError, `module.exports = ${JSON.stringify(loaderResult)}`);
+                return;
+            }
+
+            const faviconsGenerator = new IconGenerator();
+            // Generate icons
+            faviconsGenerator.generateIcons(content,
+                pathPrefix,
+                options.online as boolean,
+                options.preferOnline as boolean,
+                options,
+                (genErr: any, iconStreamResult: IconGenerateResult) => {
+                    if (genErr) {
+                        callback(genErr);
+                        return;
+                    }
+
+                    const mappedLoaderResult: IconLoaderResult = {
+                        iconsPath: iconStreamResult.iconsPath,
+                        html: iconStreamResult.html,
+                        files: iconStreamResult.files.map((f: IconFileInfo) => iconStreamResult.iconsPath + f.name)
+                    };
+
+                    iconStreamResult.files.forEach((file: any) => {
+                        if (options.emitFaviconIcoToOutDirRoot && file.name === 'favicon.ico') {
+                            loader.emitFile(file.name, file.contents);
+                        }
+
+                        loader.emitFile(pathPrefix + file.name, file.contents);
+                    });
+
+                    faviconPersitenceCacheService.emitCacheInformationFile(loader,
+                        options,
+                        cacheFile,
+                        fileHash,
+                        mappedLoaderResult);
+                    callback(nullError, `module.exports = ${JSON.stringify(mappedLoaderResult)}`);
+                });
+        });
+}
+
 // ReSharper disable once CommonJsExternalModule
-module.exports = function(content: any): any {
+module.exports = function (content: any): any {
     try {
         faviconProcessor.call(undefined, this, content);
     } catch (e) {

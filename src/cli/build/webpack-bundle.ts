@@ -2,7 +2,7 @@
 
 import {BuildOptions} from '../../models';
 import {Logger} from '../../utils';
-import {getWebpackToStringStatsOptions} from '../../helpers';
+import { getWebpackToStringStatsOptions } from '../../helpers';
 
 export function webpackBundle(wpConfig: webpack.Configuration | webpack.Configuration[],
     buildOptions: BuildOptions,

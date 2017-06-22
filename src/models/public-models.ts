@@ -116,11 +116,6 @@ export interface ProjectConfigBase {
      */
     sourceMapFallbackModuleFilenameTemplate?: '[absolute-resource-path]' | '[resource]' | '[resource-path' | string;
     /**
-     * Source map source root.
-     * This option is only used by webpack.
-     */
-    sourceMapSourceRoot?: string;
-    /**
      * Whether to resolve symlinks to their symlinked location.
      * This option is only used by webpack.
      */

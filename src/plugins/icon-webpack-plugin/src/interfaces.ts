@@ -70,7 +70,7 @@ export interface IconDesign {
         backgroundColor?: string;
         margin?: number | string;
         ratio?: string;
-    },
+    };
 
     firefoxApp?: {
         pictureAspect?: string;
@@ -150,12 +150,12 @@ export interface FaviconConfig {
 
     versioning?: boolean | {
         paramName: string;
-        paramValue:string;
+        paramValue: string;
     };
 
     /**
-    * Your source logo
-    */
+     * Your source logo
+     */
     masterPicture?: string;
 
     /**

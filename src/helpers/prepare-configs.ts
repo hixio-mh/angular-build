@@ -145,11 +145,6 @@ function mergeBuildOptionsWithDefaults(buildOptions: BuildOptions): BuildOptions
         buildOptions.filter = environment.app as any;
         delete environment.app;
     }
-    if (environment.lib &&
-        (typeof environment.lib === 'string' || Array.isArray(environment.lib))) {
-        buildOptions.filter = environment.lib as any;
-        delete environment.lib;
-    }
     if (environment.project &&
         (typeof environment.project === 'string' || Array.isArray(environment.project))) {
         buildOptions.filter = environment.project as any;

@@ -2,6 +2,7 @@
 export * from './get-aot-gen-dir';
 export * from './copy-assets';
 export * from './copy-styles';
+export * from './get-node-modules-start-paths';
 export * from './minify-file';
 export * from './normalize-env-name';
 export * from './parse-asset-entry';
