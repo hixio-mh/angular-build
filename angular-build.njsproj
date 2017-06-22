@@ -122,6 +122,7 @@
     <TypeScriptCompile Include="src\cli\init\init-command-module.ts" />
     <TypeScriptCompile Include="src\cli\init\init.ts" />
     <TypeScriptCompile Include="src\helpers\get-node-modules-start-paths.ts" />
+    <TypeScriptCompile Include="src\utils\path-helpers.ts" />
     <TypeScriptCompile Include="src\utils\glob-copy-files.ts" />
     <TypeScriptCompile Include="src\models\index.ts" />
     <TypeScriptCompile Include="src\models\public-models.ts" />

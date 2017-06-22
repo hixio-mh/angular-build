@@ -23,6 +23,10 @@ export function getAppWebpackConfig(webpackConfigOptions: WebpackConfigOptions):
     const environment = buildOptions.environment || {};
     const logger = webpackConfigOptions.logger || new Logger();
 
+    if (appConfig.projectType !== 'app') {
+        throw new Error(`The 'appConfig.projectType' must be 'app'.`);
+    }
+
     if (!webpackConfigOptions.silent) {
         let msg = 'Using webpack app config:';
         msg += ` main entry - ${webpackConfigOptions.bundleEntryFile || appConfig.entry}`;

@@ -500,6 +500,7 @@ export type TypingsAndMetaDataReExport = {
      * Typing index file.
      */
     entry?: string;
+    outDir?: string;
     /**
      * Custom output file anme. Can use [package-name] as a package name placeholder.
      */

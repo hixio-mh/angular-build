@@ -125,12 +125,11 @@ export async function build(projectRoot: string,
                 await cleanOutDirs(projectRoot, libConfig, buildOptions, logger);
             }
 
-            // bundle
+            // build lib
             await buildLib(projectRoot,
                 libConfig,
                 buildOptions,
                 angularBuildConfig,
-                (buildOptions as any).cliIsLocal,
                 logger);
         }
     }

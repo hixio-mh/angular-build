@@ -5,12 +5,14 @@ import * as ts from 'typescript';
 
 import {
     addPureAnnotationsToFile, copyAssets, copyStyles, defaultAngularAndRxJsExternals,
-    getTsTranspileInfo, prepareBannerSync, processNgResources, transpileFile, tsTranspile, TsTranspiledInfo, writeMinifyFile
-} from
+    getTsTranspileInfo, prepareBannerSync, processNgResources, transpileFile, tsTranspile, TsTranspiledInfo,
+    writeMinifyFile
+    } from
     '../../helpers';
-import { AngularBuildConfig, BundleTarget, BuildOptions, LibProjectConfig, TsTranspilation, TypingsAndMetaDataReExport } from
+import { AngularBuildConfig, BundleTarget, BuildOptions, LibProjectConfig, TsTranspilation, TypingsAndMetaDataReExport }
+    from
     '../../models';
-import { clean, Logger, readJson, remapSourcemap } from '../../utils';
+import { clean, globCopyFiles, isInFolder, isSamePaths, Logger, normalizeRelativePath, readJson, remapSourcemap } from '../../utils';
 import { getWebpackConfig, WebpackConfigOptions } from '../../webpack-configs';
 import { getRollupConfig, RollupConfigOptions } from '../../rollup-configs';
 
@@ -20,10 +22,18 @@ export async function buildLib(projectRoot: string,
     libConfig: LibProjectConfig,
     buildOptions: BuildOptions,
     angularBuildConfig: AngularBuildConfig,
-    cliIsLocal?: boolean,
     logger: Logger = new Logger()): Promise<any> {
     if (!projectRoot) {
         throw new Error(`The 'projectRoot' is required.`);
+    }
+    if (!libConfig) {
+        throw new Error(`The 'libConfig' is required.`);
+    }
+    if (!buildOptions) {
+        throw new Error(`The 'buildOptions' is required.`);
+    }
+    if (libConfig.projectType !== 'lib') {
+        throw new Error(`The 'libConfig.projectType' must be 'lib'.`);
     }
 
     let tsTranspilations: TsTranspilation[] = [];
@@ -271,8 +281,10 @@ export async function buildLib(projectRoot: string,
                         ? `${packageNameWithoutScope}${formatSuffix}.js` : `main${formatSuffix}.js`;
             }
 
-            bundleDestFileName = bundleDestFileName.replace(/\[name\]/g,
-                packageNameWithoutScope || 'main');
+            bundleDestFileName = bundleDestFileName
+                .replace(/\[name\]/g, packageNameWithoutScope || 'main')
+                .replace(/\[package-name\]/g, packageNameWithoutScope || 'main')
+                .replace(/\[packagename\]/g, packageNameWithoutScope || 'main');
             target.outFileName = bundleDestFileName;
 
             let shouldSkipThisTarget = false;
@@ -342,11 +354,6 @@ export async function buildLib(projectRoot: string,
                     }
 
                     foundBundleTarget = foundBundleTarget as BundleTarget;
-
-                    if (foundBundleTarget.libraryTarget !== 'es') {
-                        throw new Error(
-                            `The reference library target must be 'es' at bundleTargets[${i}].`);
-                    }
 
                     bundleRootDir = foundBundleTarget.outDir
                         ? path.resolve(outDir as string, foundBundleTarget.outDir as string)
@@ -486,6 +493,13 @@ export async function buildLib(projectRoot: string,
                 } else if (moduleKind === ts.ModuleKind.UMD && scriptTarget === ts.ScriptTarget.ES5) {
                     mainFields.main = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
                 }
+
+                // Remapping sourcemaps
+                if (libConfig.sourceMap && bundleRootDir !== srcDir) {
+                    logger.logLine(`Remapping sourcemaps`);
+                    await remapSourcemap(bundleDestFilePath);
+                }
+
             } else {
                 target.libraryTarget = target.libraryTarget || libConfig.libraryTarget;
                 if (target.libraryTarget === 'es' &&
@@ -504,6 +518,21 @@ export async function buildLib(projectRoot: string,
                     mainFields.main = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
                 }
 
+                let reTransformScriptTarget = false;
+                let tempBundleDestFileName = bundleDestFileName;
+
+                if (!target.transformScriptTargetOnly &&
+                    target.scriptTarget &&
+                    target.scriptTarget !== 'none' &&
+                    expectedSourceScriptTarget !== target.scriptTarget) {
+                    reTransformScriptTarget = true;
+                    tempBundleDestFileName = bundleDestFileName.replace(/\.js$/i, '') + '.temp.js';
+                }
+                const tempBundleDestFilePath = path.resolve(projectRoot,
+                    libConfig.outDir,
+                    target.outDir || '',
+                    tempBundleDestFileName);
+
                 if (libConfig.bundleTool === 'webpack') {
                     logger.logLine(`Bundling ${target.name ? target.name + ' ' : ''}with webpack`);
 
@@ -517,7 +546,7 @@ export async function buildLib(projectRoot: string,
                         bundleRoot: bundleRootDir,
                         bundleEntryFile: bundleEntryFile,
                         bundleOutDir: target.outDir,
-                        bundleOutFileName: target.outFileName,
+                        bundleOutFileName: tempBundleDestFileName,
                         packageName: packageNameWithoutScope,
                         inlineResources: shouldInlineResources,
 
@@ -538,7 +567,7 @@ export async function buildLib(projectRoot: string,
                         bundleRoot: bundleRootDir,
                         bundleEntryFile: bundleEntryFile,
                         bundleOutDir: target.outDir,
-                        bundleOutFileName: target.outFileName,
+                        bundleOutFileName: tempBundleDestFileName,
                         packageName: packageNameWithoutScope,
                         inlineResources: shouldInlineResources,
                         useNodeResolve: useNodeResolve,
@@ -550,11 +579,14 @@ export async function buildLib(projectRoot: string,
                     await bundle.write(rollupOptions.writeOptions);
                 }
 
+                // Remapping sourcemaps
+                if (libConfig.sourceMap && bundleRootDir !== srcDir) {
+                    logger.logLine(`Remapping sourcemaps`);
+                    await remapSourcemap(tempBundleDestFilePath);
+                }
+
                 // transform script version
-                if (!target.transformScriptTargetOnly &&
-                    target.scriptTarget &&
-                    target.scriptTarget !== 'none' &&
-                    expectedSourceScriptTarget !== target.scriptTarget) {
+                if (reTransformScriptTarget) {
                     let scriptTarget: ts.ScriptTarget;
                     let moduleKind: ts.ModuleKind;
                     if (target.scriptTarget === 'es5') {
@@ -574,7 +606,7 @@ export async function buildLib(projectRoot: string,
                     }
 
                     logger.logLine(`Transforming ${bundleEntryFile} to ${target.scriptTarget}`);
-                    await transpileFile(bundleDestFilePath,
+                    await transpileFile(tempBundleDestFilePath,
                         bundleDestFilePath,
                         {
                             importHelpers: true,
@@ -582,6 +614,15 @@ export async function buildLib(projectRoot: string,
                             module: moduleKind,
                             allowJs: true
                         });
+
+                    // Remapping sourcemaps
+                    if (libConfig.sourceMap) {
+                        logger.logLine(`Remapping sourcemaps`);
+                        await remapSourcemap(bundleDestFilePath);
+                    }
+                    if (!isSamePaths(tempBundleDestFilePath, bundleDestFilePath)) {
+                        await clean(tempBundleDestFilePath.replace(/\.js/i, '') + '.*');
+                    }
 
                     if (moduleKind === ts.ModuleKind.ES2015 && scriptTarget === ts.ScriptTarget.ES5) {
                         mainFields.module = path.relative(packageConfigOutDir, bundleDestFilePath).replace(/\\/g, '/');
@@ -591,16 +632,9 @@ export async function buildLib(projectRoot: string,
                 }
             }
 
-            // Remapping sourcemaps
-            if (libConfig.sourceMap && bundleRootDir !== srcDir) {
-                logger.logLine(`Remapping sourcemaps`);
-                await remapSourcemap(bundleDestFilePath);
-            }
-
             // minify umd es5 files
             if (target.libraryTarget === 'umd' &&
-                (!expectedSourceScriptTarget ||
-                    expectedSourceScriptTarget === 'es5' ||
+                (expectedSourceScriptTarget === 'es5' ||
                     target.scriptTarget === 'es5')) {
                 const minFilePath = bundleDestFilePath.replace(/\.js$/i, '.min.js');
                 logger.logLine(`Minifying ${path.parse(bundleDestFilePath).base}`);
@@ -610,6 +644,13 @@ export async function buildLib(projectRoot: string,
                     libConfig.preserveLicenseComments,
                     buildOptions.verbose,
                     logger);
+
+                // Remapping sourcemaps
+                // TODO: to review
+                if (libConfig.sourceMap) {
+                    logger.logLine(`Remapping sourcemaps`);
+                    await remapSourcemap(bundleDestFilePath);
+                }
             }
 
             // add pure annotations
@@ -621,7 +662,6 @@ export async function buildLib(projectRoot: string,
                 logger.logLine(`Adding pure annotations to ${path.parse(bundleDestFilePath).base}`);
                 await addPureAnnotationsToFile(bundleDestFilePath);
             }
-
         }
     }
 
@@ -692,18 +732,41 @@ export async function buildLib(projectRoot: string,
 
             foundTsTranspilationInfo = foundTsTranspilationInfo as TsTranspiledInfo;
 
-            // typings d.ts entry
-            let typingsEntryFile = typingsAndMetaDataReExport.entry;
-            if (typingsEntryFile) {
-                mainFields.typings = path.relative(packageConfigOutDir,
-                    path.join(foundTsTranspilationInfo.outDir, typingsEntryFile)).replace(/\\/g, '/');
-            } else {
-                typingsEntryFile = libConfig.entry ? libConfig.entry.replace(/\.(ts|js)$/, '.d.ts') : '';
+            let typingsOutDirRelative = libConfig.packageOptions.typingsAndMetaDataReExport.outDir;
+            if (!typingsOutDirRelative &&
+                foundTsTranspilationInfo.tsTranspilation.outDir &&
+                isInFolder(packageConfigOutDir, foundTsTranspilationInfo.outDir)) {
+                typingsOutDirRelative = path.relative(packageConfigOutDir, foundTsTranspilationInfo.outDir);
+            }
+            if (!typingsOutDirRelative) {
+                throw new Error(`The 'typingsAndMetaDataReExport.outDir' is required.`);
+            }
+            if (!isInFolder(packageConfigOutDir, path.resolve(packageConfigOutDir, typingsOutDirRelative))) {
+                throw new Error(`The typings re-export 'outDir' must be inside the package folder: ${packageConfigOutDir}`);
+            }
+            typingsOutDirRelative = normalizeRelativePath(typingsOutDirRelative);
+            if (!isSamePaths(path.resolve(packageConfigOutDir, typingsOutDirRelative),
+                foundTsTranspilationInfo.outDir)) {
+                // copy d.ts and metadta.json files
+                await globCopyFiles(foundTsTranspilationInfo.outDir,
+                    '**/*.+(d.ts|metadata.json)',
+                    path.resolve(packageConfigOutDir, typingsOutDirRelative));
             }
 
+            // typings d.ts entry
+            let typingsEntryFile = typingsAndMetaDataReExport.entry;
+            if (!typingsEntryFile && mainFields.typings) {
+                typingsEntryFile = path.parse(mainFields.typings).base;
+            } else if (!typingsEntryFile && libConfig.entry) {
+                typingsEntryFile = path.parse(libConfig.entry.replace(/\.(ts|js)$/, '.d.ts')).base;
+            }
             if (!typingsEntryFile) {
                 throw new Error(`The typings entry file is required for for 'typingsAndMetaDataReExport' options.`);
             }
+            if (!/\.d\.ts$/i.test(typingsEntryFile)) {
+                typingsEntryFile = typingsEntryFile + '.d.ts';
+            }
+            mainFields.typings = normalizeRelativePath(path.join(typingsOutDirRelative, typingsEntryFile));
 
             if (typingsAndMetaDataReExport.outFileName) {
                 // add banner to index
@@ -717,26 +780,30 @@ export async function buildLib(projectRoot: string,
                     }
                 }
 
-                const relativeTypingsOutDir = path.relative(packageConfigOutDir, foundTsTranspilationInfo.outDir);
-                const typingsOutFileName = typingsAndMetaDataReExport.outFileName
+                let typingsOutFileName = typingsAndMetaDataReExport.outFileName
+                    .replace(/\[name\]/g, typingsEntryFile.replace(/\.d\.ts$/i, ''))
+                    .replace(/\[pkg-name\]/g, packageNameWithoutScope)
                     .replace(/\[package-name\]/g, packageNameWithoutScope)
                     .replace(/\[packagename\]/g, packageNameWithoutScope);
+                if (!/\.d\.ts$/i.test(typingsOutFileName)) {
+                    typingsOutFileName = typingsOutFileName + '.d.ts';
+                }
 
                 // typings re-exports
                 const typingsIndexContent =
-                    `${bannerContent}export * from './${relativeTypingsOutDir}/${typingsEntryFile}';\n`;
+                    `${bannerContent}export * from './${typingsOutDirRelative}/${typingsEntryFile.replace(/\.d\.ts$/i,
+                        '')}';\n`;
                 const typingOutFilePath = path.resolve(packageConfigOutDir, typingsOutFileName);
                 await fs.writeFile(typingOutFilePath, typingsIndexContent);
+                mainFields.typings = typingsOutFileName;
 
                 // metadata re-exports
                 const metaDataOutFilePath = path.resolve(packageConfigOutDir,
                     typingsOutFileName.replace(/\.d\.ts$/i, '.metadata.json'));
                 const metaDataIndexContent =
-                    `{"__symbolic":"module","version":3,"metadata":{},"exports":[{"from":"./${relativeTypingsOutDir}/${
+                    `{"__symbolic":"module","version":3,"metadata":{},"exports":[{"from":"./${typingsOutDirRelative}/${
                     typingsEntryFile.replace(/\.d\.ts$/i, '')}"}]}`;
                 await fs.writeFile(metaDataOutFilePath, metaDataIndexContent);
-
-                mainFields.typings = typingsOutFileName;
             }
         }
 

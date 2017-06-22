@@ -17,6 +17,10 @@ export function getLibWebpackConfig(webpackConfigOptions: WebpackConfigOptions):
     const libConfig = webpackConfigOptions.projectConfig as LibProjectConfig;
     const logger = webpackConfigOptions.logger || new Logger();
 
+    if (libConfig.projectType !== 'lib') {
+        throw new Error(`The 'libConfig.projectType' must be 'lib'.`);
+    }
+
     if (!webpackConfigOptions.silent) {
         let msg = 'Using webpack lib config:';
         msg += ` main entry - ${webpackConfigOptions.bundleEntryFile || libConfig.entry || 'index.js'}`;
@@ -53,15 +57,14 @@ export function getLibConfigPartial(webpackConfigOptions: WebpackConfigOptions):
         throw new Error(`The 'webpackConfigOptions.bundleOutFileName' is required.`);
     }
 
-    const bundleEntryPath = path.resolve(bundleRoot, bundleEntryFile);
-    const entryName = webpackConfigOptions.bundleOutFileName.replace(/\.(ts|tsx|js|jsx|css|scss|sass|less|styl)$/i, '');
-    const mainChunkName = path.join(webpackConfigOptions.bundleOutDir || '', entryName);
-
-    const entryPoints: { [key: string]: string[] } = {};
-    entryPoints[mainChunkName] = [bundleEntryPath];
-
     const webpackNonDllConfig: webpack.Configuration = {
-        entry: entryPoints
+        entry: path.resolve(bundleRoot, bundleEntryFile),
+        output: {
+            path: path.resolve(projectRoot,
+                libConfig.outDir,
+                webpackConfigOptions.bundleOutDir || ''),
+            filename: webpackConfigOptions.bundleOutFileName
+        }
     };
 
     return webpackNonDllConfig;

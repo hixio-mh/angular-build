@@ -38,22 +38,26 @@ export function prepareAngularBuildConfig(projectRoot: string,
     angularBuildConfig.apps = applyProjectConfigExtends(angularBuildConfig.apps);
 
     angularBuildConfig.libs.forEach((libConfig: LibProjectConfig) => {
+        libConfig.projectType = 'lib';
         mergeProjectConfigWithEnvOverrides(libConfig, buildOptions);
         mergeProjectConfigWithDefaults(projectRoot, libConfig, buildOptions);
         mergeLibConfigWithDefaults(projectRoot, libConfig);
     });
 
     angularBuildConfig.apps.forEach((appConfig: AppProjectConfig) => {
+        appConfig.projectType = 'app';
         mergeProjectConfigWithEnvOverrides(appConfig, buildOptions);
         mergeProjectConfigWithDefaults(projectRoot, appConfig, buildOptions);
         mergeAppConfigWithDefaults(projectRoot, appConfig, buildOptions);
     });
 }
 
-export function mergeProjectConfigWithEnvOverrides(projectConfig: AppProjectConfig | LibProjectConfig, buildOptions: BuildOptions): void {
+export function mergeProjectConfigWithEnvOverrides(projectConfig: AppProjectConfig | LibProjectConfig,
+    buildOptions: BuildOptions): void {
     if (!projectConfig || !projectConfig.envOverrides || Object.keys(projectConfig.envOverrides).length === 0) {
         return;
     }
+
     const environment = buildOptions.environment || {};
 
     const buildTargets: string[] = [];
@@ -106,20 +110,23 @@ function applyProjectConfigExtends(projectConfigs: ProjectConfig[]): ProjectConf
 
     return projectConfigs.map((projectConfig: ProjectConfig) => {
         const extendName = projectConfig.extends;
-        if (extendName) {
-            const baseProject = projectConfigs.find((app: ProjectConfig) => app.name === extendName);
-            if (baseProject) {
-                const cloneBaseProject = JSON.parse(JSON.stringify(baseProject));
-                delete cloneBaseProject.name;
-                if (cloneBaseProject.extends) {
-                    delete cloneBaseProject.extends;
-                }
-                let cloneProjectConfig = JSON.parse(JSON.stringify(projectConfig));
-                cloneProjectConfig = Object.assign({}, cloneBaseProject, cloneProjectConfig);
-                return cloneProjectConfig;
-            }
+        if (!extendName) {
+            return projectConfig;
         }
-        return projectConfig;
+
+        const baseProject = projectConfigs.find((app: ProjectConfig) => app.name === extendName);
+        if (!baseProject) {
+            return projectConfig;
+        }
+
+        const cloneBaseProject = JSON.parse(JSON.stringify(baseProject));
+        delete cloneBaseProject.name;
+        if (cloneBaseProject.extends) {
+            delete cloneBaseProject.extends;
+        }
+        let cloneProjectConfig = JSON.parse(JSON.stringify(projectConfig));
+        cloneProjectConfig = Object.assign({}, cloneBaseProject, cloneProjectConfig);
+        return cloneProjectConfig;
     });
 }
 
@@ -324,12 +331,12 @@ function mergeProjectConfigWithDefaults(projectRoot: string,
         projectConfig.outDir = projectConfig.outDir.substr(0, projectConfig.outDir.length - 1);
     }
 
-
     projectConfig.assets = projectConfig.assets || ([] as string[]);
     projectConfig.styles = projectConfig.styles || ([] as string[]);
 
     if (typeof projectConfig.sourceMap === 'undefined') {
-        if (projectConfig.platformTarget === 'web') {
+        if (projectConfig.projectType === 'app' &&
+            (!projectConfig.platformTarget || projectConfig.platformTarget !== 'web')) {
             projectConfig.sourceMap = !buildOptions.production;
         } else {
             projectConfig.sourceMap = true;
@@ -343,9 +350,8 @@ function mergeAppConfigWithDefaults(projectRoot: string,
     appConfig.projectType = 'app';
 
     appConfig.scripts = appConfig.scripts || ([] as string[]);
-
-    appConfig.platformTarget = appConfig.platformTarget || 'web';
-    if (appConfig.platformTarget === 'web') {
+    
+    if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
         appConfig.publicPath = appConfig.publicPath ||
             (appConfig as any).deployUrl ||
             (buildOptions as any).publicPath ||
@@ -394,21 +400,17 @@ function mergeAppConfigWithDefaults(projectRoot: string,
     }
 
     if (typeof appConfig.appendOutputHash === 'undefined') {
-        if (!environment.test) {
-            if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
-                // is asp.net
-                if (appConfig.htmlInjectOptions &&
-                    appConfig.htmlInjectOptions.customTagAttributes &&
-                    appConfig.htmlInjectOptions.customTagAttributes
-                    .find(c => (c.tagName === 'link' || c.tagName === 'script') &&
-                        c.attribute &&
-                        c.attribute['asp-append-version'] === true)) {
-                    appConfig.appendOutputHash = false;
-                } else {
-                    appConfig.appendOutputHash = buildOptions.production;
-                }
-            } else {
+        if (!environment.test && (!appConfig.platformTarget || appConfig.platformTarget === 'web')) {
+            // is asp.net
+            if (appConfig.htmlInjectOptions &&
+                appConfig.htmlInjectOptions.customTagAttributes &&
+                appConfig.htmlInjectOptions.customTagAttributes
+                .find(c => (c.tagName === 'link' || c.tagName === 'script') &&
+                    c.attribute &&
+                    c.attribute['asp-append-version'] === true)) {
                 appConfig.appendOutputHash = false;
+            } else {
+                appConfig.appendOutputHash = buildOptions.production;
             }
         } else {
             appConfig.appendOutputHash = false;

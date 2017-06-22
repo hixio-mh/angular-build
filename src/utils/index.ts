@@ -5,6 +5,7 @@ export * from './glob-copy-files';
 export * from './glob-promise';
 export * from './logger';
 export * from './package-json-version';
+export * from './path-helpers';
 export * from './read-json';
 export * from './sass-promise';
 export * from './sourcemap-remap';

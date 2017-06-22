@@ -2050,6 +2050,9 @@
                             "description": "Typing index file.",
                             "type": "string"
                         },
+                        "outDir": {
+                            "type": "string"
+                        },
                         "outFileName": {
                             "description": "Custom output file anme. Can use [package-name] as a package name placeholder.",
                             "type": "string"
