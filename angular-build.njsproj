@@ -117,6 +117,10 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="src\cli\build\build-lib.ts" />
+    <TypeScriptCompile Include="src\cli\build\bundle-task.ts" />
+    <TypeScriptCompile Include="src\cli\build\lib-build-pipe-info.ts" />
+    <TypeScriptCompile Include="src\cli\build\packaging-task.ts" />
+    <TypeScriptCompile Include="src\cli\build\ts-transpilation-task.ts" />
     <TypeScriptCompile Include="src\cli\build\webpack-bundle.ts" />
     <TypeScriptCompile Include="src\cli\init\index.ts" />
     <TypeScriptCompile Include="src\cli\init\init-command-module.ts" />

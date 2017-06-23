@@ -20,8 +20,8 @@ export interface ProjectConfigBase {
     /**
      * The output directory for build results.
      * Path must be relative path to project root.
-     * If not specified, default to ./dist folder.
-     * If not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core.
+     * If not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core, otherwise
+     * default to ./dist.
      */
     outDir?: string;
     /**
@@ -489,20 +489,23 @@ export interface PackageOptions {
     /**
      * Typings and meta-data packaging options.
      */
-    typingsAndMetaDataReExport?: TypingsAndMetaDataReExport;
+    typingsAndMetaData?: TypingsAndMetaData;
 }
 
 /**
  * Typings and meta-data packaging options.
  */
-export type TypingsAndMetaDataReExport = {
+export type TypingsAndMetaData = {
     /**
-     * Typing index file.
+     * Typing d.ts index file.
      */
     entry?: string;
+    /**
+     * Destination directory for copying typing files.
+     */
     outDir?: string;
     /**
-     * Custom output file anme. Can use [package-name] as a package name placeholder.
+     * Custom output file anme. Can use [packagename] as a package name placeholder.
      */
     outFileName?: string;
     /**

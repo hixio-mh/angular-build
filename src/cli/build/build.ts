@@ -4,7 +4,7 @@ import { CliOptions } from '../cli-options';
 
 import { getAoTGenDir, prepareAngularBuildConfig, prepareBuildOptions, readAngularBuildConfig } from '../../helpers';
 import { BuildOptions, ProjectConfig } from '../../models';
-import { clean, colorize, Logger } from '../../utils';
+import { clean, colorize, isInFolder, isSamePaths, Logger } from '../../utils';
 import { getWebpackConfig } from '../../webpack-configs';
 
 import { buildLib } from './build-lib';
@@ -201,33 +201,27 @@ async function validateProjectConfig(projectRoot: string, projectConfig: Project
     }
 
     if (projectConfig.outDir) {
-        const outDir = path.isAbsolute(projectConfig.outDir)
-            ? projectConfig.outDir
-            : path.resolve(projectRoot, projectConfig.outDir);
+        const outDir = path.resolve(projectRoot, projectConfig.outDir);
 
-        if (outDir === projectRoot) {
+        if (isSamePaths(projectRoot, outDir)) {
             throw new Error(`The 'outDir' and 'projectRoot' must NOT be the same folder.`);
         }
-        if (outDir === srcDir) {
+        if (isSamePaths(srcDir, outDir)) {
             throw new Error(`The 'outDir' and 'srcDir' must NOT be the same folder.`);
         }
         if (outDir === path.parse(outDir).root || outDir === '.') {
-            throw new Error(`The 'outDir' must NOT be root folder: ${path.parse(outDir).root}.`);
+            throw new Error(`The 'outDir' must NOT be root folder.`);
         }
 
         const srcDirHomeRoot = path.parse(srcDir).root;
         if (outDir === srcDirHomeRoot) {
             throw new Error(`The 'outDir' must NOT be 'srcDir''s root folder: ${srcDirHomeRoot}.`);
         }
-
-        let tempSrcDir = srcDir;
-        let prevTempSrcDir = '';
-        while (tempSrcDir && tempSrcDir !== srcDirHomeRoot && tempSrcDir !== '.' && tempSrcDir !== prevTempSrcDir) {
-            prevTempSrcDir = tempSrcDir;
-            tempSrcDir = path.dirname(tempSrcDir);
-            if (outDir === tempSrcDir) {
-                throw new Error(`The 'srcDir' must NOT be inside 'outDir'.`);
-            }
+        if (isInFolder(outDir, projectRoot)) {
+            throw new Error(`The project root folder must NOT be inside 'outDir'.`);
+        }
+        if (isInFolder(outDir, srcDir)) {
+            throw new Error(`The 'srcDir' must NOT be inside 'outDir'.`);
         }
     }
 }
@@ -241,33 +235,27 @@ async function cleanOutDirs(projectRoot: string,
     }
 
     const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
-    const outDir = path.isAbsolute(projectConfig.outDir)
-        ? projectConfig.outDir
-        : path.resolve(projectRoot, projectConfig.outDir);
+    const outDir = path.resolve(projectRoot, projectConfig.outDir);
 
-    if (outDir === projectRoot) {
-        throw new Error(`The 'outDir' and 'projectRoot' must NOT be the same folder.`);
+    if (isSamePaths(projectRoot, outDir)) {
+        throw new Error(`The 'outDir' and project root folder must NOT be the same folder.`);
     }
-    if (outDir === srcDir) {
+    if (isSamePaths(srcDir, outDir)) {
         throw new Error(`The 'outDir' and 'srcDir' must NOT be the same folder.`);
     }
     if (outDir === path.parse(outDir).root || outDir === '.') {
-        throw new Error(`The 'outDir' must NOT be root folder: ${path.parse(outDir).root}.`);
+        throw new Error(`The 'outDir' must NOT be root folder.`);
     }
 
     const srcDirHomeRoot = path.parse(srcDir).root;
     if (outDir === srcDirHomeRoot) {
         throw new Error(`The 'outDir' must NOT be 'srcDir''s root folder: ${srcDirHomeRoot}.`);
     }
-
-    let tempSrcDir = srcDir;
-    let prevTempSrcDir = '';
-    while (tempSrcDir && tempSrcDir !== srcDirHomeRoot && tempSrcDir !== '.' && tempSrcDir !== prevTempSrcDir) {
-        prevTempSrcDir = tempSrcDir;
-        tempSrcDir = path.dirname(tempSrcDir);
-        if (outDir === tempSrcDir) {
-            throw new Error(`The 'srcDir' must NOT be inside 'outDir'.`);
-        }
+    if (isInFolder(outDir, projectRoot)) {
+        throw new Error(`The project root folder must NOT be inside 'outDir'.`);
+    }
+    if (isInFolder(outDir, srcDir)) {
+        throw new Error(`The 'srcDir' must NOT be inside 'outDir'.`);
     }
 
     logger.logLine(`Cleaning ${outDir}`);
@@ -290,19 +278,24 @@ async function cleanOutDirs(projectRoot: string,
             aotGenDir !== srcDir &&
             aotGenDir !== projectRoot) {
 
+            if (isSamePaths(projectRoot, aotGenDir)) {
+                throw new Error(`The aot 'genDir' and project root folder must NOT be the same folder.`);
+            }
+            if (isSamePaths(srcDir, aotGenDir)) {
+                throw new Error(`The aot 'genDir' and 'srcDir' must NOT be the same folder.`);
+            }
+
             if (aotGenDir === path.parse(aotGenDir).root || aotGenDir === '.') {
                 throw new Error(`The aot 'genDir' must NOT be root folder: ${path.parse(aotGenDir).root}.`);
             }
 
-            tempSrcDir = srcDir;
-            prevTempSrcDir = '';
-            while (tempSrcDir && tempSrcDir !== srcDirHomeRoot && tempSrcDir !== '.' && tempSrcDir !== prevTempSrcDir) {
-                prevTempSrcDir = tempSrcDir;
-                tempSrcDir = path.dirname(tempSrcDir);
-                if (aotGenDir === tempSrcDir) {
-                    throw new Error(`The 'srcDir' must NOT be inside aot 'genDir'.`);
-                }
+            if (isInFolder(aotGenDir, projectRoot)) {
+                throw new Error(`The project root folder must NOT be inside aot 'genDir'.`);
             }
+            if (isInFolder(aotGenDir, srcDir)) {
+                throw new Error(`The 'srcDir' must NOT be inside aot 'genDir'.`);
+            }
+
             await clean(aotGenDir);
         }
     }

@@ -1,7 +1,10 @@
 ﻿import * as path from 'path';
 import * as fs from 'fs';
-import { AngularBuildConfig, AppProjectConfig, BuildOptions, LibProjectConfig, ProjectConfig } from '../models';
 
+import { AngularBuildConfig, AppProjectConfig, BuildOptions, LibProjectConfig, ProjectConfig } from '../models';
+import { normalizeRelativePath } from '../utils';
+
+import { defaultAngularAndRxJsExternals } from './angular-rxjs-externals';
 import { isDllBuildFromNpmEvent, isAoTBuildFromNpmEvent, hasProdFlag, hasDevFlag, isUniversalBuildFromNpmEvent,
     isWebpackDevServer, hasProcessFlag } from './process-helpers';
 
@@ -296,25 +299,19 @@ function overrideProjectConfig(oldConfig: any, newConfig: any): void {
 function mergeProjectConfigWithDefaults(projectRoot: string,
     projectConfig: ProjectConfig,
     buildOptions: BuildOptions): void {
+    // srcDir
     if (!projectConfig.srcDir &&
         projectConfig.entry &&
         fs.existsSync(path.resolve(projectRoot, projectConfig.entry)) &&
         fs.existsSync(path.resolve(projectRoot, path.dirname(projectConfig.entry)))) {
-        const tempSrcDir = path.relative(projectRoot, path.dirname(projectConfig.entry));
-        projectConfig.srcDir = tempSrcDir.replace(/\\/, '/');
+        projectConfig.srcDir = path.relative(projectRoot, path.dirname(projectConfig.entry));
     }
     projectConfig.srcDir = projectConfig.srcDir || '';
-    if (projectConfig.srcDir && !path.isAbsolute(projectConfig.srcDir)) {
-        projectConfig.srcDir = projectConfig.srcDir.replace(/\\/g, '/');
-    }
-    // remove ending slash
-    while (projectConfig.srcDir && projectConfig.srcDir.endsWith('/')) {
-        projectConfig.srcDir = projectConfig.srcDir.substr(0, projectConfig.srcDir.length - 1);
-    }
+    projectConfig.srcDir = normalizeRelativePath(projectConfig.srcDir);
 
+    // outDir
     if (!projectConfig.outDir) {
         if (projectConfig.srcDir &&
-            !path.isAbsolute(projectConfig.srcDir) &&
             projectConfig.srcDir.indexOf('/') > 0 &&
             projectConfig.srcDir.indexOf('/') + 1 < projectConfig.srcDir.length) {
             const srcSubDir = projectConfig.srcDir.substr(projectConfig.srcDir.indexOf('/') + 1);
@@ -323,13 +320,7 @@ function mergeProjectConfigWithDefaults(projectRoot: string,
             projectConfig.outDir = 'dist';
         }
     }
-    if (projectConfig.outDir && !path.isAbsolute(projectConfig.outDir)) {
-        projectConfig.outDir = projectConfig.outDir.replace(/\\/g, '/');
-    }
-    // remove ending slash
-    while (projectConfig.outDir && projectConfig.outDir.endsWith('/')) {
-        projectConfig.outDir = projectConfig.outDir.substr(0, projectConfig.outDir.length - 1);
-    }
+    projectConfig.outDir = normalizeRelativePath(projectConfig.outDir);
 
     projectConfig.assets = projectConfig.assets || ([] as string[]);
     projectConfig.styles = projectConfig.styles || ([] as string[]);
@@ -350,7 +341,7 @@ function mergeAppConfigWithDefaults(projectRoot: string,
     appConfig.projectType = 'app';
 
     appConfig.scripts = appConfig.scripts || ([] as string[]);
-    
+
     if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
         appConfig.publicPath = appConfig.publicPath ||
             (appConfig as any).deployUrl ||
@@ -380,7 +371,10 @@ function mergeAppConfigWithDefaults(projectRoot: string,
             !environment.dll &&
             environment.dev &&
             appConfig.dlls &&
-            appConfig.dlls.length > 0;
+            appConfig.dlls.length > 0 &&
+            appConfig.tsLoader !== '@ngtools/webpack' &&
+            !!appConfig.entry &&
+            !/\.aot\.ts$/i.test(appConfig.entry);
     }
 
     if (appConfig.referenceDll && environment.aot) {
@@ -426,5 +420,15 @@ function mergeLibConfigWithDefaults(projectRoot: string,
     }
     if (typeof libConfig.bundleTool === 'undefined') {
         libConfig.bundleTool = 'rollup';
+    }
+
+    // externals
+    if (libConfig.includeAngularAndRxJsExternals !== false) {
+        if (libConfig.externals && Array.isArray(libConfig.externals)) {
+            const externals = Object.assign({}, defaultAngularAndRxJsExternals);
+            (libConfig.externals as Array<any>).push(externals);
+        } else {
+            libConfig.externals = Object.assign({}, defaultAngularAndRxJsExternals, libConfig.externals || {});
+        }
     }
 }
