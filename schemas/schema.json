@@ -264,6 +264,13 @@
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
                 },
+                "mainFields": {
+                    "description": "When importing from an npm package, e.g. import * as D3 from \"d3\", this option will determine\nwhich fields in it's package.json are checked. The default values will vary based upon the target specified\nin your webpack configuration.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
                 "moduleReplacements": {
                     "description": "Replaces resources with new resources.\nThis option is only used by webpack.",
                     "items": {
@@ -742,6 +749,13 @@
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
                 },
+                "mainFields": {
+                    "description": "When importing from an npm package, e.g. import * as D3 from \"d3\", this option will determine\nwhich fields in it's package.json are checked. The default values will vary based upon the target specified\nin your webpack configuration.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
                 "moduleReplacements": {
                     "description": "Replaces resources with new resources.\nThis option is only used by webpack.",
                     "items": {
@@ -1087,6 +1101,15 @@
                     "description": "Adds `@__PURE__` annotation comments to IIFEs for library bundle with es5 target and umd format.",
                     "type": "boolean"
                 },
+                "bundleTool": {
+                    "default": "rollup",
+                    "description": "Bundling tool.",
+                    "enum": [
+                        "rollup",
+                        "webpack"
+                    ],
+                    "type": "string"
+                },
                 "entry": {
                     "description": "Custom main entry file name, if not present, main entry will be used.\nIf 'entryResolution' is present, path will be resolved from 'entryResolution.entryRoot'.",
                     "type": "string"
@@ -1260,7 +1283,7 @@
                 },
                 "bundleTool": {
                     "default": "rollup",
-                    "description": "Bundle tool used for .",
+                    "description": "Bundling tool.",
                     "enum": [
                         "rollup",
                         "webpack"
@@ -1404,6 +1427,13 @@
                 "libraryTarget": {
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
+                },
+                "mainFields": {
+                    "description": "When importing from an npm package, e.g. import * as D3 from \"d3\", this option will determine\nwhich fields in it's package.json are checked. The default values will vary based upon the target specified\nin your webpack configuration.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 },
                 "moduleReplacements": {
                     "description": "Replaces resources with new resources.\nThis option is only used by webpack.",
@@ -1652,7 +1682,7 @@
                 },
                 "bundleTool": {
                     "default": "rollup",
-                    "description": "Bundle tool used for .",
+                    "description": "Bundling tool.",
                     "enum": [
                         "rollup",
                         "webpack"
@@ -1770,6 +1800,13 @@
                 "libraryTarget": {
                     "$ref": "#/definitions/LibraryTarget",
                     "description": "Bundle module format."
+                },
+                "mainFields": {
+                    "description": "When importing from an npm package, e.g. import * as D3 from \"d3\", this option will determine\nwhich fields in it's package.json are checked. The default values will vary based upon the target specified\nin your webpack configuration.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 },
                 "moduleReplacements": {
                     "description": "Replaces resources with new resources.\nThis option is only used by webpack.",

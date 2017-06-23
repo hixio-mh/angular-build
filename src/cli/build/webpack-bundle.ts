@@ -34,7 +34,7 @@ export function webpackBundle(wpConfig: webpack.Configuration | webpack.Configur
                 return reject();
             } else {
                 if (!!statsOptions) {
-                    logger.logLine(stats.toString(statsOptions));    
+                    logger.logLine(stats.toString(statsOptions));
                 }
                 resolve();
             }

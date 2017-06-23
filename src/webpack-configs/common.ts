@@ -251,7 +251,6 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     }
 
     // source-maps
-    // TODO: to test platformTarget = 'node'
     let devtool: any = projectConfig.sourceMapDevTool;
     if (typeof projectConfig.sourceMapDevTool === 'undefined') {
         if (!projectConfig.sourceMap) {
@@ -261,14 +260,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
             (projectConfig.platformTarget === 'node' || projectConfig.platformTarget === 'async-node'))) {
             devtool = 'inline-source-map';
         } else if (projectConfig.projectType === 'lib') {
-            // devtool = 'source-map';
-            devtool = undefined;
-            commonPlugins.push(new webpack.SourceMapDevToolPlugin({
-                // if no value is provided the sourcemap is inlined
-                filename: '[file].map',
-                // Point sourcemap entries to the original file locations on disk
-                moduleFilenameTemplate: path.relative(bundleOutDir, '[resourcePath]')
-            }));
+            devtool = 'source-map';
         } else if (projectConfig.projectType === 'app' &&
             (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
             devtool = undefined;
@@ -440,8 +432,8 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         projectConfig.platformTarget === 'node') {
         webpackSharedConfig.resolve = webpackSharedConfig.resolve || {};
         // (webpackSharedConfig as any).resolve.mainFields = ["module", "main"];
-        // TODO: to review to remove
-        (webpackSharedConfig as any).resolve.mainFields = ['main'];
+        (webpackSharedConfig as any).resolve.mainFields =
+            projectConfig.mainFields && projectConfig.mainFields.length ? projectConfig.mainFields : ['main'];
     }
 
     if (libraryTarget === 'umd' && webpackSharedConfig.output) {

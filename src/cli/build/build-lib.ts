@@ -102,7 +102,6 @@ export async function buildLib(projectRoot: string,
         logger: logger
     };
 
-
     // copy assets
     if (libConfig.assets && libConfig.assets.length) {
         if (!outDir) {

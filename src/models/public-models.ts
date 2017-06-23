@@ -80,6 +80,12 @@ export interface ProjectConfigBase {
      */
     externals?: ExternalsEntry | ExternalsEntry[];
     /**
+     * When importing from an npm package, e.g. import * as D3 from "d3", this option will determine
+     * which fields in it's package.json are checked. The default values will vary based upon the target specified
+     * in your webpack configuration.
+     */
+    mainFields?: string[];
+    /**
      * Tells the build system which platform environment the application is targeting.
      * This option is only used by webpack.
      */
@@ -188,7 +194,7 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
      */
     bundleTargets?: BundleTarget | BundleTarget[];
     /**
-     * Bundle tool used for .
+     * Bundling tool.
      * @default rollup
      */
     bundleTool?: 'rollup' | 'webpack';
@@ -445,6 +451,11 @@ export interface BundleTarget {
      * @default true
      */
     inlineResources?: boolean;
+    /**
+     * Bundling tool.
+     * @default rollup
+     */
+    bundleTool?: 'rollup' | 'webpack';
 }
 
 /**
