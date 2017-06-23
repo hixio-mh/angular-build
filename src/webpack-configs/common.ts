@@ -52,6 +52,9 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         ? '.[chunkhash]'
         : '';
 
+    const bundleOutDir = path.resolve(projectRoot, projectConfig.outDir, webpackConfigOptions.bundleOutDir || '');
+    const bundleOutFileName = webpackConfigOptions.bundleOutFileName || `[name]${chunkHashFormat}.js`;
+
     const fileLoader = cliIsLocal ? 'file-loader' : require.resolve('file-loader');
     const jsonLoader = cliIsLocal ? 'json-loader' : require.resolve('json-loader');
     const rawLoader = cliIsLocal ? 'raw-loader' : require.resolve('raw-loader');
@@ -109,17 +112,19 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     ];
 
     // source-map-loader
-    if (projectConfig.projectType === 'app' && !environment.dll) {
+    if (projectConfig.sourceMap) {
         const sourceMapExcludes: string[] = [];
-        const appJsSourceMapExcludes = (projectConfig as AppProjectConfig).jsSourceMapExcludes || [];
-        if (typeof (projectConfig as AppProjectConfig).jsSourceMapExcludes !== 'undefined' &&
-            appJsSourceMapExcludes.length) {
-            appJsSourceMapExcludes.forEach((e: string) => {
-                const p = path.resolve(projectRoot, e);
-                sourceMapExcludes.push(p);
-            });
-        } else {
-            sourceMapExcludes.push(nodeModulesPath);
+        if (projectConfig.projectType === 'app') {
+            const appJsSourceMapExcludes = (projectConfig as AppProjectConfig).jsSourceMapExcludes || [];
+            if (typeof (projectConfig as AppProjectConfig).jsSourceMapExcludes !== 'undefined' &&
+                appJsSourceMapExcludes.length) {
+                appJsSourceMapExcludes.forEach((e: string) => {
+                    const p = path.resolve(projectRoot, e);
+                    sourceMapExcludes.push(p);
+                });
+            } else {
+                sourceMapExcludes.push(nodeModulesPath);
+            }
         }
 
         commonRules.push({
@@ -209,12 +214,12 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         ];
 
         // TODO: to review
-         // if (projectConfig.projectType === 'app' &&
-         //    projectConfig.platformTarget === 'web' && !projectConfig.sourceMap) {
-         //   prodPlugins.push(new OptimizeJsPlugin({
-         //       sourceMap: projectConfig.sourceMap
-         //   }));
-         // }
+        // if (projectConfig.projectType === 'app' &&
+        //    projectConfig.platformTarget === 'web' && !projectConfig.sourceMap) {
+        //   prodPlugins.push(new OptimizeJsPlugin({
+        //       sourceMap: projectConfig.sourceMap
+        //   }));
+        // }
 
         // new webpack.optimize.UglifyJsPlugin
         // we use standaline plugin
@@ -251,10 +256,19 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     if (typeof projectConfig.sourceMapDevTool === 'undefined') {
         if (!projectConfig.sourceMap) {
             devtool = environment.test ? 'eval' : false;
-        } else if (environment.test) {
+        } else if (environment.test ||
+        (projectConfig.projectType === 'app' &&
+            (projectConfig.platformTarget === 'node' || projectConfig.platformTarget === 'async-node'))) {
             devtool = 'inline-source-map';
-        } else if (projectConfig.projectType === 'lib' || environment.dll) {
-            devtool = 'source-map';
+        } else if (projectConfig.projectType === 'lib') {
+            // devtool = 'source-map';
+            devtool = undefined;
+            commonPlugins.push(new webpack.SourceMapDevToolPlugin({
+                // if no value is provided the sourcemap is inlined
+                filename: '[file].map',
+                // Point sourcemap entries to the original file locations on disk
+                moduleFilenameTemplate: path.relative(bundleOutDir, '[resourcePath]')
+            }));
         } else if (projectConfig.projectType === 'app' &&
             (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
             devtool = undefined;
@@ -350,9 +364,6 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
     if (!libraryName && projectConfig.projectType === 'lib' && webpackConfigOptions.packageName) {
         libraryName = webpackConfigOptions.packageName;
     }
-
-    const bundleOutDir = path.resolve(projectRoot, projectConfig.outDir, webpackConfigOptions.bundleOutDir || '');
-    const bundleOutFileName = webpackConfigOptions.bundleOutFileName || `[name]${chunkHashFormat}.js`;
 
     let externals = projectConfig.externals as any;
     if (externals && typeof projectConfig.externals === 'string') {

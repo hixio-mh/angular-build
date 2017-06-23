@@ -2,28 +2,15 @@
 
 import {BuildOptions} from '../../models';
 import {Logger} from '../../utils';
-import { getWebpackToStringStatsOptions } from '../../helpers';
 
 export function webpackBundle(wpConfig: webpack.Configuration | webpack.Configuration[],
     buildOptions: BuildOptions,
+    statsOptions?: any,
     watch?: boolean,
     watchOptions?: webpack.WatchOptions,
     logger: Logger = new Logger()): Promise<any> {
     const firstConfig = Array.isArray(wpConfig) ? wpConfig[0] : wpConfig;
     const webpackCompiler = webpack(wpConfig);
-    const statsOptions = getWebpackToStringStatsOptions(firstConfig.stats, buildOptions.verbose);
-
-    if (Array.isArray(wpConfig) && !statsOptions.children) {
-        statsOptions.children = wpConfig.map((o: webpack.Configuration) => o.stats) as any;
-    }
-    if (typeof statsOptions.context === 'undefined') {
-        statsOptions.context = firstConfig.context;
-    }
-    if (typeof statsOptions.colors === 'undefined') {
-        // ReSharper disable once CommonJsExternalModule
-        statsOptions.colors = require('supports-color');
-    }
-
     watchOptions = watchOptions || firstConfig.watchOptions || {};
 
     return new Promise((resolve, reject) => {
@@ -46,7 +33,9 @@ export function webpackBundle(wpConfig: webpack.Configuration | webpack.Configur
                 logger.errorLine(stats.toString('errors-only'));
                 return reject();
             } else {
-                logger.logLine(stats.toString(statsOptions));
+                if (!!statsOptions) {
+                    logger.logLine(stats.toString(statsOptions));    
+                }
                 resolve();
             }
         };

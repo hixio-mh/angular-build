@@ -1,8 +1,11 @@
 ﻿import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as webpack from 'webpack';
+
 import { CliOptions } from '../cli-options';
 
-import { getAoTGenDir, prepareAngularBuildConfig, prepareBuildOptions, readAngularBuildConfig } from '../../helpers';
+import { getAoTGenDir, getWebpackToStringStatsOptions, prepareAngularBuildConfig, prepareBuildOptions,
+    readAngularBuildConfig } from '../../helpers';
 import { BuildOptions, ProjectConfig } from '../../models';
 import { clean, colorize, isInFolder, isSamePaths, Logger } from '../../utils';
 import { getWebpackConfig } from '../../webpack-configs';
@@ -171,13 +174,25 @@ export async function build(projectRoot: string,
         }
 
         const firstConfig = Array.isArray(webpackConfigs) ? webpackConfigs[0] : webpackConfigs;
+        const statsOptions = getWebpackToStringStatsOptions(firstConfig.stats, buildOptions.verbose);
+        if (Array.isArray(webpackConfigs) && !statsOptions.children) {
+            statsOptions.children = webpackConfigs.map((o: webpack.Configuration) => o.stats) as any;
+        }
+        if (typeof statsOptions.context === 'undefined') {
+            statsOptions.context = firstConfig.context;
+        }
+        if (typeof statsOptions.colors === 'undefined') {
+            // ReSharper disable once CommonJsExternalModule
+            statsOptions.colors = require('supports-color');
+        }
+
         const watch = (buildOptions as any).watch || firstConfig.watch;
         if (watch || !Array.isArray(webpackConfigs)) {
-            await webpackBundle(webpackConfigs, buildOptions, watch, webpackWatchOptions, logger);
+            await webpackBundle(webpackConfigs, buildOptions, statsOptions, watch, webpackWatchOptions, logger);
         } else {
             for (let i = 0; i < webpackConfigs.length; i++) {
                 const webpackConfig = webpackConfigs[i];
-                await webpackBundle(webpackConfig, buildOptions, watch, webpackWatchOptions, logger);
+                await webpackBundle(webpackConfig, buildOptions, statsOptions, watch, webpackWatchOptions, logger);
             }
         }
     }
