@@ -10,17 +10,16 @@ export interface ProjectConfigBase {
     projectType?: 'app' | 'lib';
     /**
      * The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.
-     * Path must be relative path to project root.
-     * By default project root is cwd in cli, or it can be passed as a parameter to javascript api.
-     * Usually 'srcDir' is refer to a folder containing your typescript source files.
+     * Path must be relative path to project root.     
+     * Usually 'srcDir' is refer to a root folder containing your typescript source files.
      * If not specified, and main 'entry' is present, default to the directory of main entry,
-     * otherwise, project root is used.
+     * otherwise, project root will be used.
      */
     srcDir?: string;
     /**
      * The output directory for build results.
      * Path must be relative path to project root.
-     * If not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core, otherwise
+     * If not specified and 'srcDir' is libs/core, then 'outDir' will be dist/packages/core, otherwise
      * default to ./dist.
      */
     outDir?: string;
@@ -470,7 +469,7 @@ export interface PackageOptions {
     /**
      * Module main fields
      */
-    mainFields: {
+    mainFields?: {
         /**
          * The main index for package.json file.
          */
@@ -727,6 +726,10 @@ export type DllEntry = {
     entry: string | string[];
     importToMain?: boolean;
     excludes?: string[];
+    /**
+     * @default true
+     */
+    includeDefaultExcludes?: boolean;
 };
 
 /**

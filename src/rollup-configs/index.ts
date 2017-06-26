@@ -11,7 +11,7 @@ const cssnano = require('cssnano');
 const postcss = require('postcss');
 const postcssUrl = require('postcss-url');
 
-const nodeResolve = require('rollup-plugin-node-resolve');
+const rollupNodeResolve = require('rollup-plugin-node-resolve');
 // ReSharper restore CommonJsExternalModule
 
 // internal plugins
@@ -252,7 +252,15 @@ export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
     }
 
     if (format === 'umd' || rollupConfigOptions.useNodeResolve) {
-        plugins.push(nodeResolve());
+        plugins.push(rollupNodeResolve({
+            jsnext: true
+        }));
+
+        // plugins.push(rollupInject({
+        //    exclude: 'node_modules/**',
+        //    modules: _.mapValues(tslib,
+        //        (value: any, key: string) => ['tslib', key])
+        // }));
     }
 
     const bundleOptions: rollup.Options = {

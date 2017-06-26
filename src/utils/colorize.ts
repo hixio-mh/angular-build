@@ -14,7 +14,9 @@ const defaultColors: {[key: string]: string} = {
     magenta: '\u001b[1m\u001b[35m'
 };
 
-export function colorize(str: string, colorKey: string, supported: boolean = supportsColor): string {
+export type ColorKeys = 'black' | 'white' | 'bold' | 'yellow' | 'red' | 'green' | 'cyan' | 'magenta';
+
+export function colorize(str: string, colorKey: ColorKeys, supported: boolean = supportsColor): string {
     if (supported === false || !colorKey || !(colorKey in defaultColors)) {
         return str;
     }

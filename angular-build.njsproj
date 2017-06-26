@@ -76,7 +76,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\" />
-    <Folder Include="example-configs\" />
     <Folder Include="schemas\" />
     <Folder Include="src\plugins\rollup-plugin-ng-resource-inline\" />
     <Folder Include="src\rollup-configs\" />
@@ -123,7 +122,10 @@
     <TypeScriptCompile Include="src\cli\build\ts-transpilation-task.ts" />
     <TypeScriptCompile Include="src\cli\build\webpack-bundle.ts" />
     <TypeScriptCompile Include="src\cli\init\index.ts" />
+    <TypeScriptCompile Include="src\cli\init\init-app.ts" />
     <TypeScriptCompile Include="src\cli\init\init-command-module.ts" />
+    <TypeScriptCompile Include="src\cli\init\init-info.ts" />
+    <TypeScriptCompile Include="src\cli\init\init-lib.ts" />
     <TypeScriptCompile Include="src\cli\init\init.ts" />
     <TypeScriptCompile Include="src\helpers\get-node-modules-start-paths.ts" />
     <TypeScriptCompile Include="src\utils\path-helpers.ts" />

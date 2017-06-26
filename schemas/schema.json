@@ -79,6 +79,10 @@
                                     },
                                     "importToMain": {
                                         "type": "boolean"
+                                    },
+                                    "includeDefaultExcludes": {
+                                        "default": true,
+                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -283,7 +287,7 @@
                     "type": "string"
                 },
                 "outDir": {
-                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core, otherwise\ndefault to ./dist.",
+                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/packages/core, otherwise\ndefault to ./dist.",
                     "type": "string"
                 },
                 "outFileName": {
@@ -438,7 +442,7 @@
                     "type": "string"
                 },
                 "srcDir": {
-                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nBy default project root is cwd in cli, or it can be passed as a parameter to javascript api.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root is used.",
+                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.     \nUsually 'srcDir' is refer to a root folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root will be used.",
                     "type": "string"
                 },
                 "stats": {
@@ -602,6 +606,10 @@
                                     },
                                     "importToMain": {
                                         "type": "boolean"
+                                    },
+                                    "includeDefaultExcludes": {
+                                        "default": true,
+                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -764,7 +772,7 @@
                     "type": "array"
                 },
                 "outDir": {
-                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core, otherwise\ndefault to ./dist.",
+                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/packages/core, otherwise\ndefault to ./dist.",
                     "type": "string"
                 },
                 "outFileName": {
@@ -919,7 +927,7 @@
                     "type": "string"
                 },
                 "srcDir": {
-                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nBy default project root is cwd in cli, or it can be passed as a parameter to javascript api.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root is used.",
+                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.     \nUsually 'srcDir' is refer to a root folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root will be used.",
                     "type": "string"
                 },
                 "stats": {
@@ -1447,7 +1455,7 @@
                     "type": "string"
                 },
                 "outDir": {
-                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core, otherwise\ndefault to ./dist.",
+                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/packages/core, otherwise\ndefault to ./dist.",
                     "type": "string"
                 },
                 "outFileName": {
@@ -1544,7 +1552,7 @@
                     "type": "string"
                 },
                 "srcDir": {
-                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nBy default project root is cwd in cli, or it can be passed as a parameter to javascript api.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root is used.",
+                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.     \nUsually 'srcDir' is refer to a root folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root will be used.",
                     "type": "string"
                 },
                 "stats": {
@@ -1816,7 +1824,7 @@
                     "type": "array"
                 },
                 "outDir": {
-                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/core, otherwise\ndefault to ./dist.",
+                    "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/packages/core, otherwise\ndefault to ./dist.",
                     "type": "string"
                 },
                 "outFileName": {
@@ -1913,7 +1921,7 @@
                     "type": "string"
                 },
                 "srcDir": {
-                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nBy default project root is cwd in cli, or it can be passed as a parameter to javascript api.\nUsually 'srcDir' is refer to a folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root is used.",
+                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.     \nUsually 'srcDir' is refer to a root folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root will be used.",
                     "type": "string"
                 },
                 "stats": {

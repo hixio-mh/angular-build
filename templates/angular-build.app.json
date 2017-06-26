@@ -21,14 +21,8 @@
         "index": "index.html"
       },
       "envOverrides": {
-        // Last order wins!
-        "dev": {
-          // Default - true
-          "referenceDll": false
-        },
-        "prod": {
-          "environmentFile": "environments/environment.prod.ts"
-        }
+        "dev": {},
+        "prod": {}
       }
     }
   ]
