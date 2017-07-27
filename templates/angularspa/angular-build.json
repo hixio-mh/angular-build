@@ -1,0 +1,37 @@
+{
+  "$schema": "node_modules/@bizappframework/angular-build/schemas/schema-draft-04.json#",
+  "apps": [
+    {
+      "name": "browser-app",
+      "platformTarget": "web",
+      "srcDir": "src",
+      "outDir": "dist",
+      "assets": [
+        "favicon.ico",
+        {
+          "from": "assets/**/*",
+          "to": "assets"
+        }
+      ],
+      "styles": [
+        "styles.css"
+      ],
+      "entry": "main.ts",
+      "tsconfig": "tsconfig.app.json",
+      "polyfills": [
+        "core-js/es6/reflect",
+        "core-js/es7/reflect",
+        "zone.js/dist/zone"
+      ],
+      "publicPath": "/",
+      "htmlInjectOptions": {
+        "indexOut": "index.html"
+      },
+      "envOverrides": {
+        "dev": {
+          "referenceDll": false
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "$schema": "node_modules/@bizappframework/angular-build/schemas/schema-draft-04.json#",
+  "apps": [
+    {
+      "name": "browser-app",
+      "platformTarget": "web",
+      "srcDir": "ClientApp",
+      "outDir": "wwwroot",
+      "assets": [
+        {
+          "from": "assets/**/*",
+          "to": "assets"
+        }
+      ],
+      "styles": [
+        "styles.scss"
+      ],
+      "scripts": [],
+      "entry": "main.browser.ts",
+      "tsconfig": "tsconfig.browser.json",
+      "polyfills": [
+        "core-js/es6/reflect",
+        "core-js/es7/reflect",
+        "zone.js/dist/zone"
+      ],
+      "dlls": [
+        {
+          "entry": "../package.json",
+          "excludes": [
+            "aspnet-prerendering",
+            "isomorphic-fetch",
+            "preboot"
+          ]
+        }
+      ],
+      "publicPath": "/",
+      "faviconConfig": "favicon-config.json",
+      "htmlInjectOptions": {
+        "scriptsOut": "../Views/Shared/_ScriptsPartial.cshtml",
+        "stylesOut": "../Views/Shared/_StylesPartial.cshtml",
+        "iconsOut": "../Views/Shared/_FaviconsPartial.cshtml",
+        "resourceHintsOut": "../Views/Shared/_ResourceHintsPartial.cshtml",
+        "customLinkAttributes": {
+          "asp-append-version": "true"
+        },
+        "customScriptAttributes": {
+          "asp-append-version": "true"
+        }
+      },
+      "envOverrides": {
+        "dev": {
+          "referenceDll": true,
+          "polyfills": [
+            "core-js/es6/reflect",
+            "core-js/es7/reflect",
+            "zone.js/dist/zone",
+            "zone.js/dist/long-stack-trace-zone"
+            //"event-source-polyfill"
+          ]
+        },
+        "prod": {
+          "entry": "main.browser.prod.ts",
+          "moduleReplacements": []
+        },
+        "dll": {},
+        "aot": {},
+        "universal": {}
+      }
+    },
+    {
+      "name": "server-app",
+      "platformTarget": "node",
+      "srcDir": "ClientApp",
+      "outDir": "dist",
+      "assets": [
+        {
+          "from": "assets/**/*",
+          "to": "assets"
+        }
+      ],
+      "entry": "main.server.ts",
+      "tsconfig": "tsconfig.server.json",
+      "polyfills": [],
+      "dlls": [
+        {
+          "entry": "../package.json",
+          "excludes": [
+            "isomorphic-fetch",
+            "preboot",
+            "event-source-polyfill"
+          ]
+        }
+      ],
+      "publicPath": "/",
+      "envOverrides": {
+        "dev": {
+          "referenceDll": true
+        },
+        "dll": {},
+        "prod": {
+          "moduleReplacements": []
+        },
+        "aot": {},
+        "universal": {
+          "skip": false
+        }
+      },
+      "skip": true
+    }
+  ]
+}
