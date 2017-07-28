@@ -4,19 +4,6 @@
  */
 export interface ProjectConfigBase {
     /**
-     * The project type. Internal only.
-     * @ignore
-     */
-    projectType?: 'app' | 'lib';
-    /**
-     * The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.
-     * Path must be relative path to project root.     
-     * Usually 'srcDir' is refer to a root folder containing your typescript source files.
-     * If not specified, and main 'entry' is present, default to the directory of main entry,
-     * otherwise, project root will be used.
-     */
-    srcDir?: string;
-    /**
      * The output directory for build results.
      * Path must be relative path to project root.
      * If not specified and 'srcDir' is libs/core, then 'outDir' will be dist/packages/core, otherwise
@@ -27,10 +14,6 @@ export interface ProjectConfigBase {
      * The main entry file to be bundled.
      */
     entry?: string;
-    /**
-     * The output bundle file name for main entry.
-     */
-    outFileName?: string;
     /**
      * The typescript configuration file.
      * @default tsconfig.json
@@ -58,58 +41,29 @@ export interface ProjectConfigBase {
      */
     banner?: string;
     /**
-     * If true, preserve license comments when minfying.
-     * @default true
-     */
-    preserveLicenseComments?: boolean;
-    /**
-     * Options to pass to style preprocessors
-     */
-    stylePreprocessorOptions?: StylePreprocessorOptions;
-    /**
-     * Bundle module format.
-     */
-    libraryTarget?: LibraryTarget;
-    /**
-     * The libraryName is used depending on the value of the 'libraryTarget' options.
-     */
-    libraryName?: string;
-    /**
-     * The externals configuration option provides a way of excluding dependencies from the output bundle.
-     */
-    externals?: ExternalsEntry | ExternalsEntry[];
-    /**
      * When importing from an npm package, e.g. import * as D3 from "d3", this option will determine
      * which fields in it's package.json are checked. The default values will vary based upon the target specified
      * in your webpack configuration.
      */
     mainFields?: string[];
     /**
-     * Tells the build system which platform environment the application is targeting.
-     * This option is only used by webpack.
+     * If true, this config will be skipped by the build process.
      */
-    platformTarget?:
-    'async-node'
-    | 'electron-main'
-    | 'electron-renderer'
-    | 'node'
-    | 'node-webkit'
-    | 'web'
-    | 'webworker';
+    skip?: boolean;
     /**
      * This option controls if and how source maps are generated.
      * This option is only used by webpack.
      */
     sourceMapDevTool?: 'eval' | 'inline-source-map' | 'cheap-eval-source-map' | 'cheap-source-map' |
-                       'cheap-module-eval-source-map' | 'cheap-module-source-map' | 'eval-source-map' | 'source-map' |
-                       'nosources-source-map' | 'hidden-source-map' | 'nosources-source-map' | '@eval' | '@inline-source-map' |
-                       '@cheap-eval-source-map' | '@cheap-source-map' | '@cheap-module-eval-source-map' | '@cheap-module-source-map' |
-                       '@eval-source-map' | '@source-map' | '@nosources-source-map' | '@hidden-source-map' | '@nosources-source-map' |
-                       '#eval' | '#inline-source-map' | '#cheap-eval-source-map' | '#cheap-source-map' | '#cheap-module-eval-source-map' |
-                       '#cheap-module-source-map' | '#eval-source-map' | '#source-map' | '#nosources-source-map' | '#hidden-source-map' |
-                       '#nosources-source-map' | '#@eval' | '#@inline-source-map' | '#@cheap-eval-source-map' | '#@cheap-source-map' |
-                       '#@cheap-module-eval-source-map' | '#@cheap-module-source-map' | '#@eval-source-map' | '#@source-map' |
-                       '#@nosources-source-map' | '#@hidden-source-map' | '#@nosources-source-map' | boolean;
+    'cheap-module-eval-source-map' | 'cheap-module-source-map' | 'eval-source-map' | 'source-map' |
+    'nosources-source-map' | 'hidden-source-map' | 'nosources-source-map' | '@eval' | '@inline-source-map' |
+    '@cheap-eval-source-map' | '@cheap-source-map' | '@cheap-module-eval-source-map' | '@cheap-module-source-map' |
+    '@eval-source-map' | '@source-map' | '@nosources-source-map' | '@hidden-source-map' | '@nosources-source-map' |
+    '#eval' | '#inline-source-map' | '#cheap-eval-source-map' | '#cheap-source-map' | '#cheap-module-eval-source-map' |
+    '#cheap-module-source-map' | '#eval-source-map' | '#source-map' | '#nosources-source-map' | '#hidden-source-map' |
+    '#nosources-source-map' | '#@eval' | '#@inline-source-map' | '#@cheap-eval-source-map' | '#@cheap-source-map' |
+    '#@cheap-module-eval-source-map' | '#@cheap-module-source-map' | '#@eval-source-map' | '#@source-map' |
+    '#@nosources-source-map' | '#@hidden-source-map' | '#@nosources-source-map' | boolean;
     /**
      * Customize the names used in each source map.
      * This option is only used by webpack.
@@ -149,14 +103,14 @@ export interface ProjectConfigBase {
      */
     tsLoader?: 'auto' | '@ngtools/webpack';
     /**
+     * Enables experimental support for webpack's Scope Hoisting feature.
+     */
+    experimentalScopeHoisting?: boolean;
+    /**
      * The webpack stats option lets you precisely control what bundle information gets displayed.
      * This option is only used by webpack.
      */
     stats?: WebpackStatsPreset | WebpackStatsToStringOptions;
-    /**
-     * If true, this config will be skipped by the build process.
-     */
-    skip?: boolean;
 }
 
 /**
@@ -172,6 +126,47 @@ export interface ProjectConfig extends ProjectConfigBase {
      * Extends the project config from another one. Use the name property of another project config.
      */
     extends?: string;
+    /**
+     * The project type. Internal only.
+     * @ignore
+     */
+    projectType?: 'app' | 'lib';
+    /**
+     * The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.
+     * Path must be relative path to project root.
+     * Usually 'srcDir' is refer to a root folder containing your typescript source files.
+     * If not specified, and main 'entry' is present, default to the directory of main entry,
+     * otherwise, project root will be used.
+     */
+    srcDir?: string;
+    /**
+     * Options to pass to style preprocessors
+     */
+    stylePreprocessorOptions?: StylePreprocessorOptions;
+    /**
+     * Bundle module format.
+     */
+    libraryTarget?: LibraryTarget;
+    /**
+     * The libraryName is used depending on the value of the 'libraryTarget' options.
+     */
+    libraryName?: string;
+    /**
+     * The externals configuration option provides a way of excluding dependencies from the output bundle.
+     */
+    externals?: ExternalsEntry | ExternalsEntry[];
+    /**
+     * Tells the build system which platform environment the application is targeting.
+     * This option is only used by webpack.
+     */
+    platformTarget?:
+    'async-node'
+    | 'electron-main'
+    | 'electron-renderer'
+    | 'node'
+    | 'node-webkit'
+    | 'web'
+    | 'webworker';
 }
 
 /**
@@ -216,9 +211,9 @@ export interface LibProjectConfig extends LibProjectConfigBase, ProjectConfig {
      * To override properties based on build target environments.
      */
     envOverrides?: {
-                       dev?: LibProjectConfigBase;
-                       prod?: LibProjectConfigBase;
-                   } | { [name: string]: LibProjectConfigBase };
+        dev?: LibProjectConfigBase;
+        prod?: LibProjectConfigBase;
+    } | { [name: string]: LibProjectConfigBase };
 }
 
 /**
@@ -238,11 +233,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     polyfills?: string | string[];
     /**
-     * The output chunk name for polyfills.
-     * @default polyfills
-     */
-    polyfillsChunkName?: string;
-    /**
      * The vendor module entries for dll bundle. If entry ends with .ts, path will be resolved from app root,
      * otherwise from project root.
      * @default []
@@ -253,11 +243,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     vendorChunk?: boolean;
     /**
-     * The output chunk name for vendor or dll chunk.
-     * @default vendor
-     */
-    vendorChunkName?: string;
-    /**
      * Additional module paths to be chunk into vendor. Paths are relative to srcDir.
      */
     vendorChunkPaths?: string[];
@@ -266,14 +251,13 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     inlineChunk?: boolean;
     /**
-     * The output chunk name for inline.
-     * @default inline
+     * If true, chunk main into [commonChunkName].js.
      */
-    inlineChunkName?: string;
+    commonChunk?: boolean;
     /**
      *  To load global modules automatically  with alias key.
      */
-    globalProvides?: { [key: string]: string };
+    provides?: { [key: string]: string };
     /**
      * The html injection options.
      */
@@ -315,6 +299,14 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Performance options for application project.
      */
     performanceOptions?: PerformanceOptions;
+    /**
+     * Enables experimental support for angular service worker
+     */
+    experimentalServiceWorker?: boolean;
+    /**
+     * Use file name for lazy loaded chunks.
+     */
+    namedLazyChunks?: boolean;
 }
 
 /**
@@ -323,17 +315,37 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
  */
 export interface AppProjectConfig extends AppProjectConfigBase, ProjectConfig {
     /**
+     * The output chunk name for polyfills.
+     * @default polyfills
+     */
+    polyfillsChunkName?: string;
+    /**
+     * The output chunk name for vendor or dll chunk.
+     * @default vendor
+     */
+    vendorChunkName?: string;
+    /**
+     * The output chunk name for inline.
+     * @default inline
+     */
+    inlineChunkName?: string;
+    /**
+     * The output chunk name for vendor or dll chunk.
+     * @default common
+     */
+    commonChunkName?: string;
+    /**
      * To override properties based on build targets.
      */
     envOverrides?: {
-                       dll?: AppProjectConfigBase;
-                       dev?: AppProjectConfigBase;
-                       prod?: AppProjectConfigBase;
-                       aot?: AppProjectConfigBase;
-                       test?: AppProjectConfigBase;
-                       universal?: AppProjectConfigBase;
-                   } |
-                   { [name: string]: AppProjectConfigBase };
+        dll?: AppProjectConfigBase;
+        dev?: AppProjectConfigBase;
+        prod?: AppProjectConfigBase;
+        aot?: AppProjectConfigBase;
+        test?: AppProjectConfigBase;
+        universal?: AppProjectConfigBase;
+    } |
+    { [name: string]: AppProjectConfigBase };
 }
 
 /**
@@ -535,13 +547,13 @@ export type ExternalsEntry = string | ExternalsObjectElement;
  */
 export type ExternalsObjectElement = {
     [key: string]: boolean |
-                   string |
-                   {
-                       commonjs: string;
-                       amd: string;
-                       root: string;
-                       [key: string]: string | boolean;
-                   };
+    string |
+    {
+        commonjs: string;
+        amd: string;
+        root: string;
+        [key: string]: string | boolean;
+    };
 };
 
 /**
@@ -571,11 +583,11 @@ export interface StylePreprocessorOptions {
  */
 export type WebpackStatsPreset
     = boolean
-      | 'errors-only'
-      | 'minimal'
-      | 'none'
-      | 'normal'
-      | 'verbose';
+    | 'errors-only'
+    | 'minimal'
+    | 'none'
+    | 'normal'
+    | 'verbose';
 
 /**
  * Webpack Stats toJson options
@@ -726,10 +738,6 @@ export type DllEntry = {
     entry: string | string[];
     importToMain?: boolean;
     excludes?: string[];
-    /**
-     * @default true
-     */
-    includeDefaultExcludes?: boolean;
 };
 
 /**
@@ -737,19 +745,20 @@ export type DllEntry = {
  * @additionalProperties false
  */
 export interface HtmlInjectOptions {
-    /**
-     * The index html template file.
-     */
     index?: string;
     indexOut?: string;
     scriptsOut?: string;
     stylesOut?: string;
     iconsOut?: string;
-    customTagAttributes?: {
-        tagName: string;
-        attribute: { [key: string]: string | boolean };
-        skipOutFilters?: string[];
-    }[];
+    resourceHintsOut?: string;
+    /**
+     * @default true
+     */
+    resourceHintsEnabled?: boolean;
+    preloads?: string[];
+    prefetches?: string[];
+    customScriptAttributes?: { [key: string]: string | boolean };
+    customLinkAttributes?: { [key: string]: string | boolean };
 }
 
 /**
@@ -822,8 +831,35 @@ export interface BuildOptions {
         dev?: boolean;
         dll?: boolean;
         prod?: boolean;
+        universal?: boolean;
         test?: boolean;
     } & { [key: string]: string | boolean; };
+    /**
+     * Detect modules with circular dependencies when bundling with webpack.
+     * This option is only used by webpack.
+     */
+    showCircularDependencies?: boolean;
+    /**
+     * Build optimization option for production.
+     * This option is only used by webpack.
+     */
+    buildOptimizer?: boolean;
+    /**
+     * Capture a "profile" of the application, including statistics and hints,
+     * which can then be dissected using the Analyze tool.
+     * This option is only used by webpack.
+     */
+    profile?: boolean;
+    /**
+     * Display a compilation progress.
+     * This option is only used by webpack.
+     */
+    progress?: boolean;
+    /**
+     * The webpack stats option lets you precisely control what bundle information gets displayed.
+     * This option is only used by webpack.
+     */
+    stats?: WebpackStatsPreset | WebpackStatsToStringOptions;
 }
 
 /**

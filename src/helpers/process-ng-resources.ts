@@ -1,4 +1,4 @@
-﻿import * as fs from 'fs-extra';
+﻿const fs = require('fs-extra');
 import * as glob from 'glob';
 import * as less from 'less';
 import * as path from 'path';

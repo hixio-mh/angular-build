@@ -42,14 +42,14 @@ export function prepareAngularBuildConfig(projectRoot: string,
 
     angularBuildConfig.libs.forEach((libConfig: LibProjectConfig) => {
         libConfig.projectType = 'lib';
-        mergeProjectConfigWithEnvOverrides(libConfig, buildOptions);
+        // mergeProjectConfigWithEnvOverrides(libConfig, buildOptions);
         mergeProjectConfigWithDefaults(projectRoot, libConfig, buildOptions);
         mergeLibConfigWithDefaults(projectRoot, libConfig);
     });
 
     angularBuildConfig.apps.forEach((appConfig: AppProjectConfig) => {
         appConfig.projectType = 'app';
-        mergeProjectConfigWithEnvOverrides(appConfig, buildOptions);
+        // mergeProjectConfigWithEnvOverrides(appConfig, buildOptions);
         mergeProjectConfigWithDefaults(projectRoot, appConfig, buildOptions);
         mergeAppConfigWithDefaults(projectRoot, appConfig, buildOptions);
     });
@@ -79,6 +79,8 @@ export function mergeProjectConfigWithEnvOverrides(projectConfig: AppProjectConf
             buildTargets.push('dll');
         } else if (environment.aot) {
             buildTargets.push('aot');
+        } else if (environment.universal) {
+            buildTargets.push('universal');
         }
     }
 
@@ -205,6 +207,21 @@ function mergeBuildOptionsWithDefaults(buildOptions: BuildOptions): BuildOptions
         }
     }
 
+    // universal
+    if (typeof (environment.universal) !== 'undefined') {
+        const universal = !!(environment.universal as any);
+        if (universal) {
+            environment.universal = true;
+        } else {
+            delete environment.universal;
+        }
+    } else {
+        const universal = isUniversalBuildFromNpmEvent() || process.argv.indexOf('--universal') > -1;
+        if (universal) {
+            environment.universal = true;
+        }
+    }
+
     // prod
     if (typeof buildOptions.production !== 'undefined') {
         environment.prod = !!(buildOptions.production as any);
@@ -288,11 +305,7 @@ function overrideProjectConfig(oldConfig: any, newConfig: any): void {
     }
 
     Object.keys(newConfig).filter((key: string) => key !== 'envOverrides').forEach((key: string) => {
-        if (typeof newConfig[key] === 'object') {
-            oldConfig[key] = JSON.parse(JSON.stringify(newConfig[key]));
-        } else {
-            oldConfig[key] = newConfig[key];
-        }
+        oldConfig[key] = JSON.parse(JSON.stringify(newConfig[key]));
     });
 }
 
@@ -306,8 +319,7 @@ function mergeProjectConfigWithDefaults(projectRoot: string,
         fs.existsSync(path.resolve(projectRoot, path.dirname(projectConfig.entry)))) {
         projectConfig.srcDir = path.relative(projectRoot, path.dirname(projectConfig.entry));
     }
-    projectConfig.srcDir = projectConfig.srcDir || '';
-    projectConfig.srcDir = normalizeRelativePath(projectConfig.srcDir);
+    projectConfig.srcDir = normalizeRelativePath(projectConfig.srcDir || '');
 
     // outDir
     if (!projectConfig.outDir) {
@@ -327,7 +339,7 @@ function mergeProjectConfigWithDefaults(projectRoot: string,
 
     if (typeof projectConfig.sourceMap === 'undefined') {
         if (projectConfig.projectType === 'app' &&
-            (!projectConfig.platformTarget || projectConfig.platformTarget !== 'web')) {
+            (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
             projectConfig.sourceMap = !buildOptions.production;
         } else {
             projectConfig.sourceMap = true;
@@ -356,6 +368,7 @@ function mergeAppConfigWithDefaults(projectRoot: string,
     }
 
     appConfig.polyfills = appConfig.polyfills || ([] as string[]);
+    appConfig.dlls = appConfig.dlls || ([] as string[]);
     appConfig.vendorChunkName = appConfig.vendorChunkName || 'vendor';
     appConfig.polyfillsChunkName = appConfig.polyfillsChunkName || 'polyfills';
     appConfig.inlineChunkName = appConfig.inlineChunkName || 'inline';
@@ -364,20 +377,19 @@ function mergeAppConfigWithDefaults(projectRoot: string,
 
     const environment = buildOptions.environment || {};
 
-    if ((typeof appConfig.referenceDll === 'undefined') &&
-        !environment.test) {
-        appConfig.referenceDll = !buildOptions.production &&
-            !environment.aot &&
-            !environment.dll &&
-            environment.dev &&
-            appConfig.dlls &&
-            appConfig.dlls.length > 0 &&
-            appConfig.tsLoader !== '@ngtools/webpack' &&
-            !!appConfig.entry &&
-            !/\.aot\.ts$/i.test(appConfig.entry);
-    }
+    // if (typeof appConfig.referenceDll === 'undefined') {
+    //    appConfig.referenceDll = !buildOptions.production &&
+    //        !environment.aot &&
+    //        !environment.dll &&
+    //        environment.dev &&
+    //        appConfig.dlls &&
+    //        appConfig.dlls.length > 0 &&
+    //        appConfig.tsLoader !== '@ngtools/webpack' &&
+    //        !!appConfig.entry &&
+    //        !/\.aot\.ts$/i.test(appConfig.entry);
+    // }
 
-    if (appConfig.referenceDll && environment.aot) {
+    if (appConfig.referenceDll && (environment.aot || environment.dll)) {
         appConfig.referenceDll = false;
     }
 
@@ -397,11 +409,10 @@ function mergeAppConfigWithDefaults(projectRoot: string,
         if (!environment.test && (!appConfig.platformTarget || appConfig.platformTarget === 'web')) {
             // is asp.net
             if (appConfig.htmlInjectOptions &&
-                appConfig.htmlInjectOptions.customTagAttributes &&
-                appConfig.htmlInjectOptions.customTagAttributes
-                .find(c => (c.tagName === 'link' || c.tagName === 'script') &&
-                    c.attribute &&
-                    c.attribute['asp-append-version'] === true)) {
+            ((appConfig.htmlInjectOptions.customLinkAttributes &&
+                    !!appConfig.htmlInjectOptions.customLinkAttributes['asp-append-version']) ||
+                (appConfig.htmlInjectOptions.customScriptAttributes &&
+                    !!appConfig.htmlInjectOptions.customScriptAttributes['asp-append-version']))) {
                 appConfig.appendOutputHash = false;
             } else {
                 appConfig.appendOutputHash = buildOptions.production;

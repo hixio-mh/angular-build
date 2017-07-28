@@ -5,4 +5,4 @@ rollup ...
 
 
 #### Try  
-Try to typescript version
+Try to downgrade typescript version

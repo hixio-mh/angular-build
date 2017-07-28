@@ -1,4 +1,4 @@
-﻿import * as fs from 'fs-extra';
+﻿const fs = require('fs-extra');
 import * as glob from 'glob';
 import * as inquirer from 'inquirer';
 import * as denodeify from 'denodeify';
@@ -258,7 +258,8 @@ async function initLibProject(cfg: InitInfo, trackInfo: LibCreateTrackInfo): Pro
             Array.isArray(currentLibConfig.tsTranspilations) &&
             currentLibConfig.tsTranspilations.length
             ? currentLibConfig.tsTranspilations[0]
-            : currentLibConfig.tsTranspilations || { tsconfig: '' };
+            : (currentLibConfig.tsTranspilations as TsTranspilation) || { tsconfig: '' };
+
     if (!firstTsTranspilation.tsconfig &&
         currentLibConfig.tsconfig &&
         await fs.exists(path.resolve(srcDir, currentLibConfig.tsconfig))) {
@@ -401,7 +402,7 @@ async function initLibProject(cfg: InitInfo, trackInfo: LibCreateTrackInfo): Pro
             Array.isArray(currentLibConfig.bundleTargets) &&
             currentLibConfig.bundleTargets.length
             ? currentLibConfig.bundleTargets[0]
-            : currentLibConfig.bundleTargets || {};
+            : (currentLibConfig.bundleTargets as BundleTarget) || {};
 
     let libraryTarget = firstBundleTarget.libraryTarget || currentLibConfig.libraryTarget;
     if (!libraryTarget) {

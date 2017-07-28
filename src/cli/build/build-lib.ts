@@ -1,5 +1,5 @@
 ﻿import * as path from 'path';
-import * as fs from 'fs-extra';
+const fs = require('fs-extra');
 
 import { copyAssets, copyStyles } from '../../helpers';
 import { AngularBuildConfig, BundleTarget, BuildOptions, LibProjectConfig, TsTranspilation } from '../../models';
@@ -11,6 +11,7 @@ import { tsTranspilationTask } from './ts-transpilation-task';
 import { LibBuildPipeInfo } from './lib-build-pipe-info';
 
 export async function buildLib(projectRoot: string,
+    libConfigMaster: LibProjectConfig,
     libConfig: LibProjectConfig,
     buildOptions: BuildOptions,
     angularBuildConfig: AngularBuildConfig,
@@ -95,6 +96,7 @@ export async function buildLib(projectRoot: string,
 
     const buildPipeInfo: LibBuildPipeInfo = {
         projectRoot: projectRoot,
+        libConfigMaster: libConfigMaster,
         libConfig: libConfig,
         buildOptions: buildOptions,
         angularBuildConfig: angularBuildConfig,

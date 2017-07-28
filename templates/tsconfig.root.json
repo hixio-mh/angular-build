@@ -1,0 +1,31 @@
+﻿{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "es2015",
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "baseUrl": "",
+    "sourceMap": true,
+    "skipDefaultLibCheck": true,
+    "lib": [
+      "es2016",
+      "dom"
+    ],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "skipLibCheck": true,
+    //"noImplicitAny": true,
+    //"noUnusedLocals": true,
+    "noEmitOnError": true
+  },
+  "exclude": [
+    "bin",
+    "node_modules"
+  ],
+  "compileOnSave": false,
+  "atom": {
+     "rewriteTsconfig": false
+  }
+}

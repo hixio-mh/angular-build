@@ -25,11 +25,19 @@
       ],
       "publicPath": "/",
       "htmlInjectOptions": {
-        "indexOut": "index.html"
+        "index": "index.html"
       },
       "envOverrides": {
         "dev": {
           "referenceDll": false
+        },
+        "prod": {
+          "moduleReplacements": [
+            {
+              "resourcePath": "environments/environment.ts",
+              "newResourcePath": "environments/environment.prod.ts"
+            }
+          ]
         }
       }
     }

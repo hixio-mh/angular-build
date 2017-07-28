@@ -1,4 +1,6 @@
-﻿import * as fs from 'fs-extra';
+﻿const fs = require('fs-extra');
+import * as glob from 'glob';
+import * as denodeify from 'denodeify';
 import * as path from 'path';
 
 import { getTsTranspileInfo, processNgResources, tsTranspile, TsTranspiledInfo } from '../../helpers';
@@ -6,6 +8,8 @@ import { BundleTarget, TsTranspilation } from '../../models';
 import { clean, isSamePaths, normalizeRelativePath } from '../../utils';
 
 import { LibBuildPipeInfo } from './lib-build-pipe-info';
+
+const globPromise = denodeify(glob) as any;
 
 export async function tsTranspilationTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<void> {
     const projectRoot = libBuildPipeInfo.projectRoot;
@@ -121,21 +125,47 @@ export async function tsTranspilationTask(libBuildPipeInfo: LibBuildPipeInfo): P
 
             expectedTypingEntryFile = expectedMainEntryFile.replace(/\.js$/i, '.d.ts');
 
+            let filesToClean: string[] = [];
+            if (libBuildPipeInfo.libConfig.cleanFiles &&
+                libBuildPipeInfo.libConfig.cleanFiles.length &&
+                libBuildPipeInfo.libConfig.outDir) {
+                const outDir = path.resolve(projectRoot, libBuildPipeInfo.libConfig.outDir);
+                for (let pattern of libBuildPipeInfo.libConfig.cleanFiles) {
+                    const foundPaths = await globPromise(pattern, { cwd: outDir, nocase: true });
+                    const foundAbsPaths = foundPaths.map((p: string) => path.resolve(outDir, p));
+                    foundAbsPaths.forEach((p: string) => {
+                        if (filesToClean.indexOf(p) === -1) {
+                            filesToClean.push(p);
+                        }
+                    });
+                }
+
+            }
+
             if (expectedMainEntryFile && tsTanspileInfo.module === 'es2015' && tsTanspileInfo.target === 'es2015') {
-                libBuildPipeInfo.mainFields.es2015 = normalizeRelativePath(path.relative(packageConfigOutDir,
-                    path.join(tsTanspileInfo.outDir, expectedMainEntryFile)));
+                if ((!tsTranspilation.outDir || tsTranspilation.outDir !== 'typings') &&
+                    filesToClean.indexOf(path.resolve(tsTanspileInfo.outDir, expectedMainEntryFile)) === -1) {
+                    libBuildPipeInfo.mainFields.es2015 = normalizeRelativePath(path.relative(packageConfigOutDir,
+                        path.join(tsTanspileInfo.outDir, expectedMainEntryFile)));
+                }
             } else if (expectedMainEntryFile &&
                 (tsTanspileInfo.module === 'es2015') &&
                 tsTanspileInfo.target === 'es5') {
-                libBuildPipeInfo.mainFields.module = normalizeRelativePath(path.relative(packageConfigOutDir,
-                    path.join(tsTanspileInfo.outDir, expectedMainEntryFile)));
+                if ((!tsTranspilation.outDir || tsTranspilation.outDir !== 'typings') &&
+                    filesToClean.indexOf(path.resolve(tsTanspileInfo.outDir, expectedMainEntryFile)) === -1) {
+                    libBuildPipeInfo.mainFields.module = normalizeRelativePath(path.relative(packageConfigOutDir,
+                        path.join(tsTanspileInfo.outDir, expectedMainEntryFile)));
+                }
             } else if (expectedMainEntryFile &&
                 (tsTanspileInfo.module === 'umd' ||
                     tsTanspileInfo.module === 'commonjs' ||
                     tsTanspileInfo.module === 'es6') &&
                 (tsTanspileInfo.target === 'es6' || tsTanspileInfo.target === 'es5')) {
-                libBuildPipeInfo.mainFields.main = normalizeRelativePath(path.relative(packageConfigOutDir,
-                    path.join(tsTanspileInfo.outDir, expectedMainEntryFile)));
+                if ((!tsTranspilation.outDir || tsTranspilation.outDir !== 'typings') &&
+                    filesToClean.indexOf(path.resolve(tsTanspileInfo.outDir, expectedMainEntryFile)) === -1) {
+                    libBuildPipeInfo.mainFields.main = normalizeRelativePath(path.relative(packageConfigOutDir,
+                        path.join(tsTanspileInfo.outDir, expectedMainEntryFile)));
+                }
             }
 
             if (expectedMainEntryFile &&
@@ -146,8 +176,11 @@ export async function tsTranspilationTask(libBuildPipeInfo: LibBuildPipeInfo): P
                     !await fs.exists(path.resolve(tsTanspileInfo.outDir, libBuildPipeInfo.mainFields.typings)) ||
                     !libConfig.outDir ||
                     !isSamePaths(path.resolve(projectRoot, libConfig.outDir), tsTanspileInfo.outDir))) {
-                libBuildPipeInfo.mainFields.typings = normalizeRelativePath(path.relative(packageConfigOutDir,
-                    path.join(tsTanspileInfo.outDir, expectedTypingEntryFile)));
+                if ((!tsTranspilation.outDir || tsTranspilation.outDir === 'typings') &&
+                    filesToClean.indexOf(path.resolve(tsTanspileInfo.outDir, expectedTypingEntryFile)) === -1) {
+                    libBuildPipeInfo.mainFields.typings = normalizeRelativePath(path.relative(packageConfigOutDir,
+                        path.join(tsTanspileInfo.outDir, expectedTypingEntryFile)));
+                }
             }
         }
 

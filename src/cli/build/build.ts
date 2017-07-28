@@ -1,14 +1,16 @@
-﻿import * as fs from 'fs-extra';
+﻿const fs = require('fs-extra');
 import * as path from 'path';
 import * as webpack from 'webpack';
 
-import { CliOptions } from '../cli-options';
-
-import { getAoTGenDir, getWebpackToStringStatsOptions, prepareAngularBuildConfig, prepareBuildOptions,
-    readAngularBuildConfig } from '../../helpers';
+import {
+    getAoTGenDir, getWebpackToStringStatsOptions, mergeProjectConfigWithEnvOverrides, prepareAngularBuildConfig,
+    prepareBuildOptions, readAngularBuildConfig
+} from '../../helpers';
 import { BuildOptions, ProjectConfig } from '../../models';
 import { clean, colorize, isInFolder, isSamePaths, Logger } from '../../utils';
 import { getWebpackConfig } from '../../webpack-configs';
+
+import { CliOptions } from '../cli-options';
 
 import { buildLib } from './build-lib';
 import { webpackBundle } from './webpack-bundle';
@@ -113,24 +115,31 @@ export async function build(projectRoot: string,
     if (libConfigs.length) {
         const filteredLibConfigs = libConfigs
             .filter((projectConfig: ProjectConfig) =>
-                !projectConfig.skip &&
                 (filterProjects.length === 0 ||
                     (filterProjects.length > 0 &&
                         projectConfig.name &&
                         filterProjects.indexOf(projectConfig.name) > -1)));
 
         for (let libConfig of filteredLibConfigs) {
+            const clonedProjectConfig: ProjectConfig = JSON.parse(JSON.stringify(libConfig));
+            mergeProjectConfigWithEnvOverrides(clonedProjectConfig, buildOptions);
+            if (clonedProjectConfig.skip) {
+                continue;
+            }
+
+
             // validation
-            await validateProjectConfig(projectRoot, libConfig);
+            await validateProjectConfig(projectRoot, clonedProjectConfig);
 
             // clean outDir
             if ((buildOptions as any).clean) {
-                await cleanOutDirs(projectRoot, libConfig, buildOptions, logger);
+                await cleanOutDirs(projectRoot, clonedProjectConfig, buildOptions, logger);
             }
 
             // build lib
             await buildLib(projectRoot,
                 libConfig,
+                clonedProjectConfig,
                 buildOptions,
                 angularBuildConfig,
                 logger);
@@ -145,39 +154,46 @@ export async function build(projectRoot: string,
 
         const filteredAppConfigs = appConfigs
             .filter((projectConfig: ProjectConfig) =>
-                !projectConfig.skip &&
                 (filterProjects.length === 0 ||
                     (filterProjects.length > 0 &&
                         projectConfig.name &&
                         filterProjects.indexOf(projectConfig.name) > -1)));
 
+        const webpackConfigs: webpack.Configuration[] = [];
+
         for (let appConfig of filteredAppConfigs) {
+            const clonedProjectConfig: ProjectConfig = JSON.parse(JSON.stringify(appConfig));
+            mergeProjectConfigWithEnvOverrides(clonedProjectConfig, buildOptions);
+            if (clonedProjectConfig.skip) {
+                continue;
+            }
+
             // validation
-            await validateProjectConfig(projectRoot, appConfig);
+            await validateProjectConfig(projectRoot, clonedProjectConfig);
+
+            const wpConfig = getWebpackConfig({
+                projectRoot: projectRoot,
+                projectConfigMaster: appConfig,
+                projectConfig: clonedProjectConfig,
+                buildOptions: buildOptions as BuildOptions,
+                angularBuildConfig: angularBuildConfig,
+                logger
+            });
+            webpackConfigs.push(wpConfig);
 
             // clean outDir
             if ((buildOptions as any).clean) {
-                await cleanOutDirs(projectRoot, appConfig, buildOptions, logger);
+                await cleanOutDirs(projectRoot, clonedProjectConfig, buildOptions, logger);
             }
         }
-
-        const webpackConfigs = filteredAppConfigs.map((projectConfig: ProjectConfig) => getWebpackConfig({
-            projectRoot,
-            projectConfig,
-            buildOptions,
-            angularBuildConfig,
-            logger
-        }));
 
         if (!webpackConfigs || webpackConfigs.length === 0) {
             throw new Error('No webpack config available.');
         }
 
         const firstConfig = Array.isArray(webpackConfigs) ? webpackConfigs[0] : webpackConfigs;
-        const statsOptions = getWebpackToStringStatsOptions(firstConfig.stats, buildOptions.verbose);
-        if (Array.isArray(webpackConfigs) && !statsOptions.children) {
-            statsOptions.children = webpackConfigs.map((o: webpack.Configuration) => o.stats) as any;
-        }
+        const statsOptions =
+            getWebpackToStringStatsOptions(buildOptions.stats || firstConfig.stats, buildOptions.verbose);
         if (typeof statsOptions.context === 'undefined') {
             statsOptions.context = firstConfig.context;
         }

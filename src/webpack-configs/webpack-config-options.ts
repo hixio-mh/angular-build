@@ -4,6 +4,7 @@ import { Logger } from '../utils';
 export type WebpackConfigOptions = {
     projectRoot: string;
     projectConfig: ProjectConfig;
+    projectConfigMaster: ProjectConfig;
     buildOptions: BuildOptions;
     angularBuildConfig?: AngularBuildConfig;
 

@@ -6,7 +6,7 @@
     "noEmitOnError": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    // "noUnusedLocals": true,
+    "noUnusedLocals": true,
     "strictNullChecks": true,
     "sourceMap": true,
     "inlineSources": true,
@@ -14,7 +14,7 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
     "lib": [
-      "es2015"
+      "es2016"
     ],
     "typeRoots": [
       "node_modules/@types"
@@ -26,11 +26,10 @@
     "src"
   ],
   "exclude": [
-    "node_modules/**/*",
-    "bin/**/*",
-    "dist/**/*",
-    "templates/**/*",
-    "tools/**/*"
+    "bin",
+    "dist",
+    "templates",
+    "tools"
   ],
   "compileOnSave": false
 }

@@ -6,6 +6,7 @@
 // ReSharper disable once InconsistentNaming
 export interface SuppressEntryChunksPluginOptions {
     chunks?: string[];
+    excludes?: string[];
     supressPattern?: RegExp;
     targetHtmlWebpackPluginId?: string;
     assetTagsFilterFunc?: (tag: any) => boolean;
@@ -16,14 +17,12 @@ export class SuppressEntryChunksWebpackPlugin {
 
     constructor(private readonly options: SuppressEntryChunksPluginOptions) {
         if (!options) {
-            throw new ReferenceError(`'options' cannot be null or undefined.`);
+            throw new Error(`'options' cannot be null or undefined.`);
         }
     }
 
     apply(compiler: any): void {
-
         compiler.plugin('compilation', (compilation: any) => {
-
             compilation.plugin('after-seal', (callback: any) => {
                 this.supressAssets(compilation, callback);
             });
@@ -31,7 +30,6 @@ export class SuppressEntryChunksWebpackPlugin {
             if (this.options.assetTagsFilterFunc) {
                 compilation.plugin('html-webpack-plugin-alter-asset-tags',
                     (htmlPluginArgs: any, callback: any) => {
-
                         if (!this.options.targetHtmlWebpackPluginId ||
                         (this.options.targetHtmlWebpackPluginId &&
                             this.options.targetHtmlWebpackPluginId === htmlPluginArgs.plugin.options.id)) {
@@ -59,7 +57,10 @@ export class SuppressEntryChunksWebpackPlugin {
             return;
         }
         const options: SuppressEntryChunksPluginOptions = this.options || {};
-        compilation.chunks.filter((chunk: any) => options.chunks && options.chunks.indexOf(chunk.name) !== -1)
+
+        compilation.chunks.filter((chunk: any) => options.chunks &&
+                options.chunks.indexOf(chunk.name) !== -1 &&
+                (!options.excludes || options.excludes.indexOf(chunk.name) === -1))
             .forEach((chunk: any) => {
                 const newFiles: string[] = [];
                 chunk.files.forEach((file: string) => {

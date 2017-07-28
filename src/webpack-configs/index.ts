@@ -3,12 +3,12 @@ import * as webpack from 'webpack';
 
 import * as webpackMerge from 'webpack-merge';
 
-import { prepareAngularBuildConfig, prepareBuildOptions, readAngularBuildConfigSync } from '../helpers';
+import { mergeProjectConfigWithEnvOverrides, prepareAngularBuildConfig, prepareBuildOptions, readAngularBuildConfigSync } from '../helpers';
 import { AngularBuildConfig, BuildOptions, ProjectConfig } from '../models';
 import { Logger } from '../utils';
 
 import { getAppWebpackConfig } from './app';
-import { getAppDllConfig } from './dll';
+import { getDllWebpackConfig } from './dll';
 import { getLibWebpackConfig } from './lib';
 
 import { WebpackConfigOptions } from './webpack-config-options';
@@ -23,7 +23,7 @@ export function getAppWebpackConfigs(projectRoot: string,
     angularBuildConfig?: AngularBuildConfig,
     logger: Logger = new Logger()): webpack.Configuration[] {
     if (!angularBuildConfig || typeof angularBuildConfig !== 'object' || !Object.keys(angularBuildConfig).length) {
-        angularBuildConfig = readAngularBuildConfigSync(projectRoot);
+        angularBuildConfig = readAngularBuildConfigSync(path.resolve(projectRoot, 'angular-build.json'));
     }
 
     buildOptions = buildOptions || {};
@@ -52,19 +52,30 @@ export function getAppWebpackConfigs(projectRoot: string,
         throw new Error('No app project config is available.');
     }
 
-    const webpackConfigs = appConfigs.filter((projectConfig: ProjectConfig) =>
-            !projectConfig.skip &&
+    const webpackConfigs: webpack.Configuration[] = [];
+
+    appConfigs.filter((projectConfig: ProjectConfig) =>
             (filterProjects.length === 0 ||
             (filterProjects.length > 0 &&
                 projectConfig.name &&
                 filterProjects.indexOf(projectConfig.name) > -1)))
-        .map((projectConfig: ProjectConfig) => getWebpackConfig({
-            projectRoot: projectRoot as string,
-            projectConfig: projectConfig as ProjectConfig,
-            buildOptions: buildOptions as BuildOptions,
-            angularBuildConfig: angularBuildConfig as AngularBuildConfig,
-            logger
-        }));
+        .forEach((projectConfig: ProjectConfig) => {
+            const clonedProjectConfig: ProjectConfig = JSON.parse(JSON.stringify(projectConfig));
+            mergeProjectConfigWithEnvOverrides(clonedProjectConfig, buildOptions as BuildOptions);
+            if (clonedProjectConfig.skip) {
+                return;
+            }
+
+            const wpConfig = getWebpackConfig({
+                projectRoot: projectRoot as string,
+                projectConfigMaster: projectConfig as ProjectConfig,
+                projectConfig: clonedProjectConfig,
+                buildOptions: buildOptions as BuildOptions,
+                angularBuildConfig: angularBuildConfig as AngularBuildConfig,
+                logger
+            });
+            webpackConfigs.push(wpConfig);
+        });
 
     if (webpackConfigs.length === 0) {
         throw new Error('No webpack config is available.');
@@ -121,8 +132,8 @@ export function getWebpackConfig(webpackConfigOptions: WebpackConfigOptions): we
 
         if (environment.dll) {
             return customWebpackConfig
-                ? webpackMerge(getAppDllConfig(webpackConfigOptions), customWebpackConfig)
-                : getAppDllConfig(webpackConfigOptions);
+                ? webpackMerge(getDllWebpackConfig(webpackConfigOptions), customWebpackConfig)
+                : getDllWebpackConfig(webpackConfigOptions);
         } else {
             return customWebpackConfig
                 ? webpackMerge(getAppWebpackConfig(webpackConfigOptions), customWebpackConfig)

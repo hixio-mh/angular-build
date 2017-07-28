@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>BizAppFramework.AspNetCore.AngularStarterTemplate</id>
+    <version>1.0.0-preview-1</version>
+    <authors>BizAppFramework Team</authors>
+    <description>A project template for creating an ASP.NET Core Angular Universal starter application.</description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/BizAppFramework/angular-build</projectUrl>
+    <licenseUrl>https://github.com/BizAppFramework/angular-build/blob/master/LICENSE</licenseUrl>
+    <packageTypes>
+      <packageType name="Template" />
+    </packageTypes>
+  </metadata>
+  <files>
+    <file src="content/**" target="" />
+  </files>
+</package>

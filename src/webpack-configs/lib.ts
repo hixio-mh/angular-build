@@ -5,9 +5,9 @@ import * as webpackMerge from 'webpack-merge';
 import { LibProjectConfig } from '../models';
 import { Logger } from '../utils';
 
-import { getAngularConfigPartial } from './angular';
-import { getCommonConfigPartial } from './common';
-import { getStylesConfigPartial } from './styles';
+import { getAngularTypescriptWebpackConfigPartial } from './angular';
+import { getCommonWebpackConfigPartial } from './common';
+import { getStylesWebpackConfigPartial } from './styles';
 
 import { WebpackConfigOptions } from './webpack-config-options';
 
@@ -36,14 +36,14 @@ export function getLibWebpackConfig(webpackConfigOptions: WebpackConfigOptions):
         logger.logLine(msg);
     }
 
-    const configs: any[] = [
-        getCommonConfigPartial(webpackConfigOptions),
-        getAngularConfigPartial(webpackConfigOptions),
-        getStylesConfigPartial(webpackConfigOptions),
+    const configs = [
+        getCommonWebpackConfigPartial(webpackConfigOptions),
+        getStylesWebpackConfigPartial(webpackConfigOptions),
+        getAngularTypescriptWebpackConfigPartial(webpackConfigOptions),
         getLibConfigPartial(webpackConfigOptions)
     ];
 
-    return webpackMerge(configs);
+    return webpackMerge(configs as any);
 }
 
 export function getLibConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {

@@ -1,8 +1,9 @@
-﻿import * as fs from 'fs-extra';
+﻿const fs = require('fs-extra');
 import * as path from 'path';
 import * as yargs from 'yargs';
 
 import { CliOptions } from './cli-options';
+import { newApp, getNewCommandModule } from './new';
 import { init, getInitCommandModule } from './init';
 import { cliBuild, getBuildCommandModule } from './build';
 
@@ -37,6 +38,7 @@ Usage:
             type: 'boolean',
             global: false
         })
+        .command(getNewCommandModule(cliVersion))
         .command(getInitCommandModule(cliVersion))
         .command(getBuildCommandModule(cliVersion, buildOptionsSchema));
     return yargsInstance;
@@ -81,7 +83,9 @@ module.exports = (options: {
         cliIsLocal: options.cliIsLocal
     };
 
-    if (command === 'init') {
+    if (command === 'new') {
+        return newApp(cliOptions, logger);
+    } else if (command === 'init') {
         return init(cliOptions, logger);
     } else if (command === 'build') {
         return cliBuild(cliOptions, logger);

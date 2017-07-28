@@ -8,10 +8,10 @@ export function isWebpackDevServer(): boolean {
 
 export function hasProdFlag(): boolean {
     const hasFlag =
-        (process.env.ASPNETCORE_ENVIRONMENT && process.env.ASPNETCORE_ENVIRONMENT.toLowerCase() === 'production') ||
-        (process.env.NODE_ENV &&
-            (process.env.NODE_ENV.toLowerCase() === 'prod' ||
-                process.env.NODE_ENV.toLowerCase() === 'production')) ||
+        (!!process.env.ASPNETCORE_ENVIRONMENT && process.env.ASPNETCORE_ENVIRONMENT === 'Production') ||
+        (!!process.env.NODE_ENV &&
+            (process.env.NODE_ENV === 'prod' ||
+                process.env.NODE_ENV === 'production')) ||
         process.argv.indexOf('--env.prod') > -1 ||
         process.argv.indexOf('--env.production') > -1 ||
         process.argv.indexOf('--env.Production') > -1 ||
@@ -24,18 +24,18 @@ export function hasProdFlag(): boolean {
 }
 
 export function hasDevFlag(): boolean {
-    const hasFlag = (process.env.ASPNETCORE_ENVIRONMENT &&
-        process.env.ASPNETCORE_ENVIRONMENT.toLowerCase() === 'development') ||
+    const hasFlag = (!!process.env.ASPNETCORE_ENVIRONMENT &&
+        process.env.ASPNETCORE_ENVIRONMENT === 'Development') ||
         process.argv.indexOf('--env.dev') > -1 ||
         process.argv.indexOf('--env.development') > -1 ||
         process.argv.indexOf('--env.Development') > -1 ||
         (process.argv.indexOf('--dev') > -1 && process.argv[process.argv.indexOf('--dev')] === 'true') ||
         (process.argv.indexOf('--development') > -1 && process.argv[process.argv.indexOf('--development')] === 'true') ||
         (process.argv.indexOf('--Development') > -1 && process.argv[process.argv.indexOf('--Development')] === 'true') ||
-        (process.env.NODE_ENV &&
-            (process.env.NODE_ENV.toLowerCase() === 'dev' ||
-                process.env.NODE_ENV.toLowerCase() === 'development'));
-    return typeof hasFlag === 'undefined' ? false : hasFlag;
+        (!!process.env.NODE_ENV &&
+            (process.env.NODE_ENV === 'dev' ||
+                process.env.NODE_ENV === 'development'));
+    return hasFlag;
 }
 
 export function isDllBuildFromNpmEvent(eventName?: string): boolean {

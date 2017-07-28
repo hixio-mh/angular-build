@@ -1,0 +1,172 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "BizAppFramework Team",
+  "classifications": [ "Web", "MVC", "Angular", "SPA" ],
+  "name": "ASP.NET Core Angular Universal Starter",
+  "description": "A project template for creating an ASP.NET Core Angular Universal starter application.",
+  "groupIdentity": "BizAppFramework.AspNetCore.AngularStarterTemplate",
+  "identity": "BizAppFramework.AspNetCore.AngularStarterTemplate.CSharp",
+  "shortName": "angularstarter",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "Company.AspNetCoreNgStarter1",
+  "preferNameDirectory": true,
+  "guids": [
+    "09732173-2cef-46b7-83db-1334bcb079d3", // Tenant ID
+    "53bc9b9d-9d6a-45d4-8429-2a2761773502" // Client ID
+  ],
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "condition": "(!IncludeLaunchSettings)",
+          "exclude": [
+            "Properties/launchSettings.json"
+          ]
+        }
+      ]
+    }
+  ],
+  "symbols": {
+    "IncludeLaunchSettings": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Whether to include launchSettings.json in the generated template."
+    },
+    "HttpsPort": {
+      "type": "parameter",
+      "datatype": "integer",
+      "description": "Port number to use to configure SSL in launchSettings.json."
+    },
+    "HttpsPortGenerated": {
+      "type": "generated",
+      "generator": "port"
+    },
+    "HttpsPortReplacer": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "HttpsPort",
+        "fallbackVariableName": "HttpsPortGenerated"
+      },
+      "replaces": "43434"
+    },
+    "KestrelPort": {
+      "type": "parameter",
+      "datatype": "integer",
+      "description": "Port number to use to configure Kestrel in launchSettings.json."
+    },
+    "KestrelPortGenerated": {
+      "type": "generated",
+      "generator": "port"
+    },
+    "KestrelPortReplacer": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "KestrelPort",
+        "fallbackVariableName": "KestrelPortGenerated"
+      },
+      "replaces": "5000"
+    },
+    "IISExpressPort": {
+      "type": "parameter",
+      "datatype": "integer",
+      "description": "Port number to use to configure IIS Express in launchSettings.json."
+    },
+    "IISExpressPortGenerated": {
+      "type": "generated",
+      "generator": "port"
+    },
+    "IISExpressPortReplacer": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "IISExpressPort",
+        "fallbackVariableName": "IISExpressPortGenerated"
+      },
+      "replaces": "55555"
+    },
+    "TargetFrameworkOverride": {
+      "type": "parameter",
+      "description": "Overrides the target framework",
+      "replaces": "TargetFrameworkOverride",
+      "datatype": "string",
+      "defaultValue": ""
+    },
+    "Framework": {
+      "type": "parameter",
+      "description": "The target framework for the project.",
+      "datatype": "choice",
+      "choices": [
+        {
+          "choice": "netcoreapp2.0",
+          "description": "Target netcoreapp2.0"
+        }
+      ],
+      "replaces": "netcoreapp2.0",
+      "defaultValue": "netcoreapp2.0"
+    },
+    "copyrightYear": {
+      "type": "generated",
+      "generator": "now",
+      "replaces": "1975",
+      "parameters": {
+        "format": "yyyy"
+      }
+    },
+    "NoTools": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false"
+    },
+    "skipRestore": {
+      "type": "parameter",
+      "datatype": "bool",
+      "description": "If specified, skips the automatic restore of the project on create.",
+      "defaultValue": "false"
+    }
+  },
+  "primaryOutputs": [ { "path": "Company.AspNetCoreNgStarter1.csproj" } ],
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [
+        { "text": "Run 'dotnet restore'" }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+    /*
+    // Currently it doesn't appear to be possible to run `npm install` from a
+    // postAction, due to https://github.com/dotnet/templating/issues/849
+    // We will re-enable this when that bug is fixed.
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restores NPM packages required by this project.",
+      "manualInstructions": [ { "text": "Run 'yarn install'" } ],
+      "actionId": "3A7C4B45-1F5D-4A30-959A-51B88E82B5D2",
+      "args": {
+        "executable": "yarn",
+        "args": "install"
+      },
+      "continueOnError": true
+    },
+    */
+    /*
+    {
+      // For the preview2 release, just display manual instructions instead.
+      // This is only applicable on the command line, because VS will restore
+      // NPM packages automatically by default.
+      "condition": "(HostIdentifier == \"dotnetcli\" || HostIdentifier == \"dotnetcli-preview\")",
+      "actionId": "AC1156F7-BB77-4DB8-B28F-24EEBCCA1E5C",
+      "description": "\n\n-------------------------------------------------------------------\nIMPORTANT: Before running this project on the command line,\n           you must restore NPM packages by running \"npm install\"\n-------------------------------------------------------------------\n",
+      "manualInstructions": [ { "text": "Run \"npm install\"" } ]
+    }
+    */
+  ]
+}

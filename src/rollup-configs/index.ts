@@ -1,4 +1,4 @@
-﻿import * as fs from 'fs-extra';
+﻿const fs = require('fs-extra');
 import * as less from 'less';
 import * as rollup from 'rollup';
 import * as path from 'path';
@@ -17,29 +17,12 @@ const rollupNodeResolve = require('rollup-plugin-node-resolve');
 // internal plugins
 import ngResourceInline from '../plugins/rollup-plugin-ng-resource-inline';
 
-import { AngularBuildConfig, BuildOptions, ProjectConfig } from '../models';
 import { Logger, sassPromise } from '../utils';
 import { LibProjectConfig } from '../models';
 import { prepareBannerSync } from '../helpers/prepare-banner';
+import { RollupConfigOptions } from './rollup-config-options';
 
-export type RollupConfigOptions = {
-    projectRoot: string;
-    projectConfig: ProjectConfig;
-    buildOptions: BuildOptions;
-    angularBuildConfig?: AngularBuildConfig;
-
-    bundleRoot?: string;
-    bundleEntryFile?: string;
-    bundleOutFileName?: string;
-    bundleOutDir?: string;
-    bundleLibraryTarget?: string;
-    packageName?: string;
-    inlineResources?: boolean;
-    useNodeResolve?: boolean;
-
-    logger?: Logger;
-    silent?: boolean;
-};
+export * from './rollup-config-options';
 
 export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
     options: rollup.Options;

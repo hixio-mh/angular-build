@@ -1,8 +1,8 @@
 ﻿import * as yargs from 'yargs';
 
-import { chageDashCase, colorize, yargsTypeMap } from '../../utils';
+import { colorize } from '../../utils';
 
-export function getInitCommandModule(cliVersion: string, schemaPart?: Object): yargs.CommandModule {
+export function getInitCommandModule(cliVersion: string): yargs.CommandModule {
     const initCommandUsage = `\n${colorize(`angular-build ${cliVersion}`, 'green')}\n
 Usage:
   ngb init [options...]`;
@@ -11,38 +11,28 @@ Usage:
         command: 'init',
         describe: 'Create angular-build config files',
         builder: (yargv: yargs.Argv) => {
-            let yargvObj = yargv
+            const yargvObj = yargv
                 .reset()
                 .usage(initCommandUsage)
                 .example('ngb init --package-manager=yarn',
-                'Create angular-build config files with yarn package manager option')
+                    'Create angular-build config files with yarn package manager option')
                 .help('h')
                 .option('package-manager',
-                {
-                    describe: 'Package manager to use while installing dependencies',
-                    type: 'string'
-                })
+                    {
+                        describe: 'Package manager for installing dependencies',
+                        type: 'string'
+                    })
                 .option('l',
-                {
-                    alias: 'link',
-                    describe: 'Link angular-build cli to current project',
-                    type: 'boolean',
-                    default: false
-                });
-
-            if (schemaPart) {
-                const initSchema = schemaPart as any;
-                Object.keys(initSchema)
-                    .forEach(
-                    (key: string) => {
-                        yargvObj = yargvObj.options(chageDashCase(key),
-                            {
-                                describe: initSchema[key].description || key,
-                                type: yargsTypeMap(initSchema[key].type),
-                                default: undefined
-                            });
+                    {
+                        alias: 'link',
+                        describe: 'Link angular-build cli to current project',
+                        type: 'boolean'
+                    })
+                .option('project-type',
+                    {
+                        describe: 'Your angular project type - lib or app',
+                        type: 'string'
                     });
-            }
 
             return yargvObj;
         },

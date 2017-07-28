@@ -1,4 +1,4 @@
-﻿import * as fs from 'fs-extra';
+﻿const fs = require('fs-extra');
 import * as less from 'less';
 import * as path from 'path';
 
@@ -33,9 +33,9 @@ export async function copyStyles(baseDir: string,
                 precision: 8
             });
             await fs.ensureDir(path.dirname(dest));
-            await fs.writeFile(dest, result.css, 'utf-8');
+            await fs.writeFile(dest, result.css);
             if (sourceMap && result.map) {
-                await fs.writeFile(dest + '.map', result.map, 'utf-8');
+                await fs.writeFile(dest + '.map', result.map);
             }
         } else if (/\.less$/i.test(styleParsedEntry.path) && !/\.less$/i.test(dest)) {
             const content = await fs.readFile(styleParsedEntry.path, 'utf-8');
@@ -49,9 +49,9 @@ export async function copyStyles(baseDir: string,
                         : undefined
                 });
             await fs.ensureDir(path.dirname(dest));
-            await fs.writeFile(dest, result.css, 'utf-8');
+            await fs.writeFile(dest, result.css);
             if (sourceMap && result.map) {
-                await fs.writeFile(dest + '.map', result.map, 'utf-8');
+                await fs.writeFile(dest + '.map', result.map);
             }
         } else {
             await fs.copy(styleParsedEntry.path, dest);
@@ -61,9 +61,9 @@ export async function copyStyles(baseDir: string,
         const styleContent = await fs.readFile(dest, 'utf-8');
         const minifiedResult = await processPostCss(styleContent, dest);
         const minDest = path.resolve(path.dirname(dest), path.parse(dest).name + '.min.css');
-        await fs.writeFile(minDest, minifiedResult.css, 'utf-8');
+        await fs.writeFile(minDest, minifiedResult.css);
         if (minifiedResult.map) {
-            await fs.writeFile(minDest + '.map', minifiedResult.map, 'utf-8');
+            await fs.writeFile(minDest + '.map', minifiedResult.map);
         }
     }));
 }

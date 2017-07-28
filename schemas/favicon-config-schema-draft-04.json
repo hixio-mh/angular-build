@@ -261,13 +261,16 @@
             "type": "string"
         },
         "appName": {
+            "description": "see https://github.com/haydenbleasel/favicons#usage",
             "type": "string"
         },
         "background": {
+            "description": "see https://github.com/haydenbleasel/favicons#usage",
             "type": "string"
         },
         "design": {
-            "$ref": "#/definitions/IconDesign"
+            "$ref": "#/definitions/IconDesign",
+            "description": "see https://github.com/haydenbleasel/favicons#usage"
         },
         "developerName": {
             "type": "string"
@@ -279,6 +282,7 @@
             "type": "string"
         },
         "display": {
+            "description": "Android display: \"browser\" or \"standalone\".",
             "type": "string"
         },
         "emitFaviconIcoToOutDirRoot": {
@@ -306,6 +310,7 @@
             "type": "boolean"
         },
         "orientation": {
+            "description": "Android orientation: \"portrait\" or \"landscape\".",
             "type": "string"
         },
         "persistentCache": {
@@ -330,6 +335,7 @@
             "type": "object"
         },
         "startUrl": {
+            "description": "Android start application's Url.",
             "type": "string"
         },
         "statsFilename": {
@@ -337,6 +343,7 @@
             "type": "string"
         },
         "version": {
+            "description": "Your application's version number.",
             "type": "string"
         },
         "versioning": {

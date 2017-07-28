@@ -1,4 +1,4 @@
-﻿import * as fs from 'fs-extra';
+﻿const fs = require('fs-extra');
 import * as path from 'path';
 import * as resolve from 'resolve';
 
@@ -9,7 +9,7 @@ export type DllParsedEntry = {
 } & DllEntry;
 
 export function parseDllEntry(projectRoot: string,
-    appRootName: string,
+    srcDir: string,
     dlls: string | (string | DllEntry)[],
     env: { [key: string]: any }): DllParsedEntry[] {
     const resultEntries: DllParsedEntry[] = [];
@@ -43,41 +43,32 @@ export function parseDllEntry(projectRoot: string,
     }
 
     const parsedModules: string[] = [];
-    const appRoot = path.resolve(projectRoot, appRootName);
 
     filteredDllEntries
         .filter((dllEntry: DllEntry) => dllEntry.entry && dllEntry.entry.length)
         .forEach((dllEntry: DllEntry) => {
             const entries = Array.isArray(dllEntry.entry) ? dllEntry.entry.slice() : [dllEntry.entry];
-            entries.filter((entryName: string) => !entryName.match(/package\.json/i)).forEach((entryName: string) => {
-                const appDllPath = path.resolve(appRoot, entryName);
-                if (entryName.match(/\.(ts|js)$/i) && fs.existsSync(appDllPath) && fs.statSync(appDllPath).isFile()) {
-                    // const source = fs.readFileSync(dllPath).toString();
-                    // const result = ts
-                    //    .transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } });
-                    // const dataArray = evalContent(result.outputText, env, dllPath);
-
+            entries.filter((entryName: string) => !entryName.match(/package\.json$/i)).forEach((entryName: string) => {
+                const dllPathInSrcDir = path.resolve(srcDir, entryName);
+                if (entryName.match(/\.ts$/i) &&
+                    (entryName.startsWith('./') || entryName.startsWith('/')) &&
+                    fs.existsSync(dllPathInSrcDir) &&
+                    fs.statSync(dllPathInSrcDir).isFile()) {
+                    resultEntries.push(Object.assign({}, dllEntry, { entry: null, tsPath: dllPathInSrcDir }));
+                } else if (entryName.match(/\.js$/i) &&
+                    (entryName.startsWith('./') || entryName.startsWith('/')) &&
+                    fs.existsSync(dllPathInSrcDir) &&
+                    fs.statSync(dllPathInSrcDir).isFile()) {
                     let dllModule: any;
                     try {
-                        dllModule = require(appDllPath);
+                        dllModule = require(dllPathInSrcDir);
                     } catch (err) {
-                        if (entryName.match(/\.ts$/i)) {
-                            resultEntries.push(Object.assign({}, dllEntry, { entry: null, tsPath: appDllPath }));
-                            return;
-                        } else {
-                            throw new Error(`Error in parsing dll entry. Invalid entry: ${entryName}.`);
-                        }
+                        throw new Error(`Error in parsing dll entry. Invalid entry: ${entryName}.`);
                     }
 
-                    // appDllPath
                     const entryArray = getArrayFromDllModule(dllModule, env);
                     if (!entryArray || !entryArray.length) {
-                        if (entryName.match(/\.ts$/i)) {
-                            resultEntries.push(Object.assign({}, dllEntry, { entry: null, tsPath: appDllPath }));
-                            return;
-                        } else {
-                            throw new Error(`Error in parsing dll entry. Invalid entry: ${entryName}.`);
-                        }
+                        throw new Error(`Error in parsing dll entry. Invalid entry: ${entryName}.`);
                     }
 
                     entryArray.forEach((name: string) => {
@@ -90,7 +81,6 @@ export function parseDllEntry(projectRoot: string,
                     resultEntries.push(Object.assign({}, dllEntry, { entry: entryArray }));
                 } else {
                     resultEntries.push(Object.assign({}, dllEntry, { entry: entryName }));
-
                     const moduleName = getRootModuleName(projectRoot, entryName, parsedModules);
                     if (parsedModules.indexOf(moduleName) === -1) {
                         parsedModules.push(moduleName);
@@ -99,13 +89,12 @@ export function parseDllEntry(projectRoot: string,
             });
         });
 
-
     filteredDllEntries
         .filter((dllEntry: DllEntry) => dllEntry.entry && dllEntry.entry.length)
         .forEach((dllEntry: DllEntry) => {
             const entries = Array.isArray(dllEntry.entry) ? dllEntry.entry.slice() : [dllEntry.entry];
-            entries.filter((entryName: string) => entryName.match(/package\.json/i)).forEach((entryName: string) => {
-                const packagePath = path.resolve(appRoot, entryName);
+            entries.filter((entryName: string) => entryName.match(/package\.json$/i)).forEach((entryName: string) => {
+                const packagePath = path.resolve(srcDir, entryName);
                 if (fs.existsSync(packagePath) && fs.statSync(packagePath).isFile()) {
                     const pkgConfig: any = require(packagePath);
                     const deps: any = pkgConfig.dependencies || {};

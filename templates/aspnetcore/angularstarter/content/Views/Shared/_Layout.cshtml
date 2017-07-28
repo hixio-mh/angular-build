@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+    <base href="~/" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    @Html.Raw(ViewData["Meta"])
+    @await Html.PartialAsync("_ResourceHintsPartial")
+    @Html.Raw(ViewData["Links"])
+    @await Html.PartialAsync("_FaviconsPartial")
+    @await Html.PartialAsync("_StylesPartial")
+    @Html.Raw(ViewData["Styles"])
+</head>
+<body>
+@RenderBody()
+@Html.Raw(ViewData["TransferData"])
+@RenderSection("Scripts", required: false)
+</body>
+</html>

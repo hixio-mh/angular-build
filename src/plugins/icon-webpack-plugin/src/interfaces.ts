@@ -102,46 +102,51 @@ export interface FaviconConfig {
 
     apiKey?: string;
 
-    // favicon background color (see https://github.com/haydenbleasel/favicons#usage)
+    /**
+     * see https://github.com/haydenbleasel/favicons#usage
+     */
     background?: string;
 
-    // favicon app title (see https://github.com/haydenbleasel/favicons#usage)
+    /**
+     * see https://github.com/haydenbleasel/favicons#usage
+     */
     appName?: string;
 
-    // Your application's description. `string`
     appDescription?: string;
 
-    // Your (or your developer's) URL. `string`
     developerUrl?: string;
 
     developerName?: string;
 
-    // Offline
     lang?: string;
 
-    // Offline
     dir?: string;
 
-    // Offline
-    // Your application's version number. `number`
+    /**
+     * Your application's version number.
+     */
     version?: string;
 
-    // Offline
-    // Android display: "browser" or "standalone". `string`
+    /**
+     * Android display: "browser" or "standalone".
+     */
     display?: string;
 
-    // Offline
-    // Android orientation: "portrait" or "landscape". `string`
+    /**
+     * Android orientation: "portrait" or "landscape".
+     */
     orientation?: string;
 
-    // Offline
-    // Android start application's URL. `string`
+    /**
+     * Android start application's Url.
+     */
     startUrl?: string;
 
-    // which icons should be generated (see https://github.com/haydenbleasel/favicons#usage)
+    /**
+     * see https://github.com/haydenbleasel/favicons#usage
+     */
     design?: IconDesign;
 
-    // rfg - Online
     settings?: {
         compression?: string;
         scalingAlgorithm?: string;

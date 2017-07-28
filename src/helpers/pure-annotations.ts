@@ -1,6 +1,6 @@
 ﻿// Ref: https://github.com/angular/material2
 
-import * as fs from 'fs-extra';
+const fs = require('fs-extra');
 
 /** Regex that matches downleveled class IIFE expressions. Used to add the pure annotations. */
 const classIfeeRegex =
@@ -31,5 +31,5 @@ export async function addPureAnnotationsToFile(inputFile: string): Promise<any> 
     const originalContent = await fs.readFile(inputFile, 'utf-8');
     const annotatedContent = addPureAnnotations(originalContent);
 
-    await fs.writeFile(inputFile, annotatedContent, 'utf-8');
+    await fs.writeFile(inputFile, annotatedContent);
 }

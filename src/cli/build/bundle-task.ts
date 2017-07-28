@@ -1,4 +1,4 @@
-﻿import * as fs from 'fs-extra';
+﻿const fs = require('fs-extra');
 import * as path from 'path';
 import * as rollup from 'rollup';
 import * as ts from 'typescript';
@@ -65,11 +65,9 @@ export async function bundleTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<vo
         // bundleDestFileName
         let bundleDestFileName = target.outFileName;
         if (!bundleDestFileName) {
-            bundleDestFileName = libConfig.outFileName
-                ? `${libConfig.outFileName}${formatSuffix}.js`
-                : packageName
-                    ? `${packageName}${formatSuffix}.js`
-                    : `main${formatSuffix}.js`;
+            bundleDestFileName = packageName
+                ? `${packageName}${formatSuffix}.js`
+                : `main${formatSuffix}.js`;
         }
 
         bundleDestFileName = bundleDestFileName
@@ -299,7 +297,9 @@ export async function bundleTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<vo
                     allowJs: /\.ts$/i.test(bundleEntryFilePath) === false
                 });
 
-            if (moduleKind === ts.ModuleKind.ES2015 && scriptTarget === ts.ScriptTarget.ES5) {
+            if (!libBuildPipeInfo.mainFields.module &&
+                moduleKind === ts.ModuleKind.ES2015 &&
+                scriptTarget === ts.ScriptTarget.ES5) {
                 libBuildPipeInfo.mainFields.module =
                     normalizeRelativePath(path.relative(packageConfigOutDir, bundleDestFilePath));
             } else if ((moduleKind === ts.ModuleKind.UMD || moduleKind === ts.ModuleKind.CommonJS) &&
@@ -315,6 +315,7 @@ export async function bundleTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<vo
             }
         } else {
             if (packageConfigOutDir &&
+                !libBuildPipeInfo.mainFields.es2015 &&
                 target.libraryTarget === 'es' &&
                 (expectedEntryScriptTarget === 'es2015') &&
                 (expectedEntryScriptTarget === 'es2015' || exactEntryScriptTarget === 'es2015') &&
@@ -322,6 +323,7 @@ export async function bundleTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<vo
                 libBuildPipeInfo.mainFields.es2015 =
                     normalizeRelativePath(path.relative(packageConfigOutDir, bundleDestFilePath));
             } else if (packageConfigOutDir &&
+                !libBuildPipeInfo.mainFields.module &&
                 target.libraryTarget === 'es' &&
                 (!expectedEntryScriptTarget ||
                     expectedEntryScriptTarget === 'es5' ||
@@ -361,6 +363,7 @@ export async function bundleTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<vo
 
                 const webpackConfigOptions: WebpackConfigOptions = {
                     projectRoot: projectRoot,
+                    projectConfigMaster: libBuildPipeInfo.libConfigMaster,
                     projectConfig: libConfig,
                     buildOptions: buildOptions,
                     angularBuildConfig: angularBuildConfig,
@@ -383,6 +386,7 @@ export async function bundleTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<vo
 
                 const rollupConfigOptions: RollupConfigOptions = {
                     projectRoot: projectRoot,
+                    projectConfigMaster: libBuildPipeInfo.libConfigMaster,
                     projectConfig: libConfig,
                     buildOptions: buildOptions,
                     angularBuildConfig: angularBuildConfig,
@@ -457,6 +461,7 @@ export async function bundleTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<vo
                 }
 
                 if (packageConfigOutDir &&
+                    !libBuildPipeInfo.mainFields.module &&
                     moduleKind === ts.ModuleKind.ES2015 &&
                     scriptTarget === ts.ScriptTarget.ES5) {
                     libBuildPipeInfo.mainFields.module =
@@ -484,7 +489,6 @@ export async function bundleTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<vo
             await writeMinifyFile(bundleDestFilePath,
                 minFilePath,
                 libConfig.sourceMap,
-                libConfig.preserveLicenseComments,
                 buildOptions.verbose,
                 logger);
 

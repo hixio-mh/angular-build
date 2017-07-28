@@ -2,7 +2,7 @@
 // Ref: https://github.com/angular/material2
 
 import * as path from 'path';
-import * as fs from 'fs-extra';
+const fs = require('fs-extra');
 import * as rollup from 'rollup';
 
 // ReSharper disable CommonJsExternalModule

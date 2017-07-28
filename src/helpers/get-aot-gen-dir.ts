@@ -1,4 +1,4 @@
-﻿import * as fs from 'fs';
+﻿const fs = require('fs-extra');
 import * as path from 'path';
 
 import { readJson, readJsonSync } from '../utils';

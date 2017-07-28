@@ -1,16 +1,8 @@
-// Extra variables that live on Global that will be replaced by webpack DefinePlugin
 declare var ENV: {
     PRODUCTION: boolean;
     [key: string]: string | boolean;
 };
 declare var PRODUCTION: boolean;
-//declare var STORE_DEV_TOOLS: string;
-declare var System: SystemJS;
-
-interface SystemJS {
-    import: (path?: string) => Promise<any>;
-}
-
 
 interface Es6PromiseLoader {
     (id: string): (exportName?: string) => Promise<any>;
@@ -22,9 +14,6 @@ interface GlobalEnvironment {
         [key: string]: string | boolean;
     };
     PRODUCTION: boolean;
-    //STORE_DEV_TOOLS: string;
-    SystemJS: SystemJS;
-    System: SystemJS;
 }
 
 interface WebpackModule {
@@ -43,10 +32,6 @@ interface WebpackModule {
     };
 }
 
-//interface WebpackRequire extends NodeRequireFunction {
-//    context(file: string, flag?: boolean, exp?: RegExp): any;
-//}
-// Or
 interface WebpackRequire {
     (id: string): any;
     (paths: string[], callback: (...modules: any[]) => void): void;
@@ -67,7 +52,7 @@ interface NodeRequire extends WebpackRequire { }
 interface ErrorConstructor extends ErrorStackTraceLimit { }
 interface NodeRequireFunction extends Es6PromiseLoader { }
 interface NodeModule extends WebpackModule {
-    /// SystemJS module definition
+    // SystemJS module definition
     id: string;
 }
 interface Global extends GlobalEnvironment { }

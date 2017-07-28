@@ -1,23 +1,24 @@
-﻿import * as fs from 'fs-extra';
-import * as path from 'path';
+﻿import * as path from 'path';
 import * as webpack from 'webpack';
 
-import * as CopyWebpackPlugin from 'copy-webpack-plugin';
+import { PurifyPlugin } from '@angular-devkit/build-optimizer';
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable CommonJsExternalModule
+const CircularDependencyPlugin = require('circular-dependency-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 // const OptimizeJsPlugin = require('optimize-js-plugin');
 // ReSharper restore InconsistentNaming
 // ReSharper restore CommonJsExternalModule
 
-import { BundleAnalyzerPlugin } from '../plugins';
+import { BundleAnalyzerPlugin } from '../plugins/bundle-analyzer-webpack-plugin';
+import { NamedLazyChunksWebpackPlugin } from '../plugins/named-lazy-chunks-webpack-plugin';
 
-import { getWebpackToStringStatsOptions, getNodeModuleStartPaths, parseAssetEntry, prepareBannerSync } from
-    '../helpers';
+import { getWebpackToStringStatsOptions, getNodeModuleStartPaths, prepareBannerSync } from '../helpers';
 import { AppProjectConfig } from '../models';
 
 import { WebpackConfigOptions } from './webpack-config-options';
+
 
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
@@ -27,9 +28,10 @@ import { WebpackConfigOptions } from './webpack-config-options';
  * require('raw-loader')
  * require('source-map-loader')
  * require('url-loader')
+ * require('@angular-devkit/build-optimizer')
  */
 
-export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
+export function getCommonWebpackConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const projectRoot = webpackConfigOptions.projectRoot;
     const buildOptions = webpackConfigOptions.buildOptions;
     const projectConfig = webpackConfigOptions.projectConfig;
@@ -53,19 +55,31 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         : '';
 
     const bundleOutDir = path.resolve(projectRoot, projectConfig.outDir, webpackConfigOptions.bundleOutDir || '');
-    const bundleOutFileName = webpackConfigOptions.bundleOutFileName || `[name]${chunkHashFormat}.js`;
+    const bundleOutFileName = webpackConfigOptions.bundleOutFileName ||
+        `[name]${chunkHashFormat}.js`;
 
     const fileLoader = cliIsLocal ? 'file-loader' : require.resolve('file-loader');
     const jsonLoader = cliIsLocal ? 'json-loader' : require.resolve('json-loader');
     const rawLoader = cliIsLocal ? 'raw-loader' : require.resolve('raw-loader');
     const sourceMapLoader = cliIsLocal ? 'source-map-loader' : require.resolve('source-map-loader');
     const urlLoader = cliIsLocal ? 'url-loader' : require.resolve('url-loader');
+    const buildOptimizerLoader = cliIsLocal
+        ? '@angular-devkit/build-optimizer/webpack-loader'
+        : require.resolve('@angular-devkit/build-optimizer/webpack-loader');
+
+    const isDevServer = environment.hot || environment.hmr || environment.devServer;
+    let profile = buildOptions.profile && !isDevServer;
+
+    const statOptions: webpack.Options.Stats =
+        getWebpackToStringStatsOptions(isDevServer ? 'none' : (projectConfig.stats || buildOptions.stats),
+            buildOptions.verbose);
 
     // rules
-    const commonRules: any[] = [
+    const rules: any[] = [
         {
             test: /\.json$/,
-            use: jsonLoader
+            use: jsonLoader,
+            exclude: [path.resolve(srcDir, 'appsettings.json')]
         },
         {
             test: /\.html$/,
@@ -83,7 +97,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         },
         // Image loaders
         {
-            test: /\.(jpg|png|webp|gif|cur|ani)$/,
+            test: /\.(jpg|png|webp|gif|ani)$/,
             use: `${urlLoader}?limit=25000&name=assets/[name]${fileHashFormat}.[ext]`
         },
         // SVG files
@@ -92,7 +106,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         //    use: `url-loader?limit=25000&mimetype=image/svg+xml`
         // },
         {
-            test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+            test: /\.(svg|cur)(\?v=\d+\.\d+\.\d+)?$/,
             use: `${fileLoader}?name=assets/[name]${fileHashFormat}.[ext]`
         }
         // {
@@ -127,7 +141,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
             }
         }
 
-        commonRules.push({
+        rules.push({
             enforce: 'pre',
             test: /\.js$/,
             use: sourceMapLoader,
@@ -135,83 +149,76 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         });
     }
 
+    // build-optimizer/webpack-loader
+    if (buildOptions.production && buildOptions.buildOptimizer) {
+        rules.push({
+            test: /\.js$/,
+            use: [{
+                loader: buildOptimizerLoader,
+                options: { sourceMap: projectConfig.sourceMap }
+            }]
+        });
+    }
+
     // plugins
-    const commonPlugins: any[] = [
+    const plugins: any[] = [
         new webpack.NoEmitOnErrorsPlugin()
     ];
 
-    const statOptions: webpack.Options.Stats = getWebpackToStringStatsOptions(projectConfig.stats, buildOptions.verbose);
-    const hot = environment.hot || environment.devServer;
-    let profile = (buildOptions as any).profile;
-    if (hot) {
-        profile = false;
-    }
-
-    // TODO: to review still necessary? Please define in moduleReplacements!
-    // if (projectConfig.projectType === 'app') {
-    //    // es6-promise
-    //    // Workaround for https://github.com/stefanpenner/es6-promise/issues/100
-    //    commonPlugins.push(new webpack.IgnorePlugin(/^vertx$/));
-
-    //    // Workaround for https://github.com/andris9/encoding/issues/16
-    //    // commonPlugins.push(new webpack.NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop'))));
-    // }
-
     // BannerPlugin
-    let banner: string | null = null;
-    if (projectConfig.banner) {
-        banner = prepareBannerSync(projectRoot, srcDir, projectConfig.banner);
-        const bannerOptions: webpack.BannerPlugin.Options = {
-            banner: banner,
-            raw: true,
-            entryOnly: true
-        };
-        commonPlugins.push(new webpack.BannerPlugin(bannerOptions));
+    let banner = projectConfig.banner;
+    if (banner && !isDevServer) {
+        banner = prepareBannerSync(projectRoot, srcDir, banner);
+        if (banner) {
+            const bannerOptions: webpack.BannerPlugin.Options = {
+                banner: banner,
+                raw: true,
+                entryOnly: true
+            };
+            plugins.push(new webpack.BannerPlugin(bannerOptions));
+        }
     }
 
     // ProgressPlugin
-    if (!hot && (buildOptions as any).progress && isAngularBuildCli) {
-        commonPlugins.push(new (webpack as any).ProgressPlugin({ profile: buildOptions.verbose }));
+    if (!isDevServer && buildOptions.progress && isAngularBuildCli) {
+        plugins.push(new (webpack as any).ProgressPlugin({ profile: buildOptions.verbose }));
     }
 
     // BundleAnalyzerPlugin
-    if (!hot && projectConfig.bundleAnalyzerOptions &&
+    if (!isDevServer && projectConfig.bundleAnalyzerOptions &&
         (projectConfig.bundleAnalyzerOptions.generateAnalyzerReport ||
             projectConfig.bundleAnalyzerOptions.generateStatsFile)) {
         profile = true;
         const bundleAnalyzerOptions = Object.assign({}, projectConfig.bundleAnalyzerOptions);
         bundleAnalyzerOptions.reportFilename = bundleAnalyzerOptions.reportFilename || 'stats-report.html';
-        commonPlugins.push(
+        plugins.push(
             new BundleAnalyzerPlugin(bundleAnalyzerOptions));
     }
 
-    // copy assets
-    const skipCopyAssets = !environment.dll &&
-        !buildOptions.production &&
-        (projectConfig as AppProjectConfig).referenceDll;
-    if (projectConfig.assets &&
-        projectConfig.assets.length > 0 &&
-        projectConfig.projectType !== 'lib' &&
-        !skipCopyAssets) {
-        const copyAssetOptions = parseAssetEntry(srcDir, projectConfig.assets);
-        if (copyAssetOptions && copyAssetOptions.length > 0) {
-            commonPlugins.push(new CopyWebpackPlugin(copyAssetOptions,
-                {
-                    ignore: ['**/.gitkeep']
-                    // copyUnmodified: false
-                }));
-        }
+    if ((projectConfig as AppProjectConfig).namedLazyChunks) {
+        plugins.push(new NamedLazyChunksWebpackPlugin());
     }
 
     // production plugins
     if (buildOptions.production) {
         const prodPlugins: any[] = [
-            // webpack 3
-            new (webpack as any).optimize.ModuleConcatenationPlugin(),
-            // webpack.LoaderOptionsPlugin({ debug: false, minimize: true }) -> debug will be removed as of webpack 3.
             new webpack.LoaderOptionsPlugin({ minimize: true }),
             new (webpack as any).HashedModuleIdsPlugin()
         ];
+
+        // webpack 3
+        if (projectConfig.experimentalScopeHoisting && !environment.dll) {
+            prodPlugins.push(new (webpack as any).optimize.ModuleConcatenationPlugin());
+        }
+
+        const uglifyCompressOptions: any = { };
+
+        // build-optimizer
+        if (buildOptions.buildOptimizer) {
+            // This plugin must be before webpack.optimize.UglifyJsPlugin.
+            prodPlugins.push(new PurifyPlugin());
+            uglifyCompressOptions.pure_getters = true;
+        }
 
         // TODO: to review
         // if (projectConfig.projectType === 'app' &&
@@ -221,33 +228,35 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         //   }));
         // }
 
-        // new webpack.optimize.UglifyJsPlugin
-        // we use standaline plugin
         // ReSharper disable once InconsistentNaming
         prodPlugins.push(new UglifyJSPlugin({
-            warnings: buildOptions.verbose, // default false
-            // ie8: true, // default false
-            // plugin specific
-            beautify: false, // default false
-            // Defaults to preserving comments containing /*!, /**!, @preserve or @license
-            comments: projectConfig.preserveLicenseComments !== false ? /^\**!|@preserve|@license/ : false,
             extractComments: true,
+            // Defaults to preserving comments containing /*!, /**!, @preserve or @license
+            comments: /^\**!|@preserve|@license/,
             sourceMap: projectConfig.sourceMap,
             warningsFilter: (resourceId: string): boolean => {
                 const isNodeModule = nodeModuleStartPaths.reduce(
                     (last: boolean, current: string) => resourceId.startsWith(current) || last,
                     false);
                 return buildOptions.verbose || !isNodeModule;
+            },
+            parallel: true,
+            uglifyOptions: {
+                compress: uglifyCompressOptions,
+                warnings: buildOptions.verbose, // default false
+            },
+            output: {
+                beautify: false
             }
         }));
 
-        commonPlugins.push(...prodPlugins);
+        plugins.push(...prodPlugins);
     } else if (!environment.dll) {
         const devPlugins: any[] = [
             new webpack.NamedModulesPlugin()
         ];
 
-        commonPlugins.push(...devPlugins);
+        plugins.push(...devPlugins);
     }
 
     // source-maps
@@ -256,31 +265,30 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         if (!projectConfig.sourceMap) {
             devtool = environment.test ? 'eval' : false;
         } else if (environment.test ||
-        (projectConfig.projectType === 'app' &&
-            (projectConfig.platformTarget === 'node' || projectConfig.platformTarget === 'async-node'))) {
+            (projectConfig.projectType === 'app' &&
+                (projectConfig.platformTarget === 'node' || projectConfig.platformTarget === 'async-node'))) {
             devtool = 'inline-source-map';
         } else if (projectConfig.projectType === 'lib') {
             devtool = 'source-map';
         } else if (projectConfig.projectType === 'app' &&
             (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
             devtool = undefined;
-            let defaultModuleFilenameTemplate: string | undefined = undefined;
-            if (!fs.existsSync(path.resolve(projectRoot, 'webpack.config.js')) && !buildOptions.production) {
-                defaultModuleFilenameTemplate = '[absolute-resource-path]';
-            }
-
-            commonPlugins.push(new webpack.SourceMapDevToolPlugin({
+            // '[absolute-resource-path]'
+            // Or
+            let defaultModuleFilenameTemplate = path.relative(projectConfig.srcDir || '', '[resourcePath]');
+            plugins.push(new webpack.SourceMapDevToolPlugin({
                 // if no value is provided the sourcemap is inlined
                 filename: '[file].map[query]',
                 // default: "webpack:///[resourcePath]"
-                moduleFilenameTemplate: projectConfig.sourceMapModuleFilenameTemplate || defaultModuleFilenameTemplate,
+                moduleFilenameTemplate: projectConfig.sourceMapModuleFilenameTemplate || defaultModuleFilenameTemplate
                 // default: "webpack:///[resourcePath]?[hash]"
-                fallbackModuleFilenameTemplate: projectConfig.sourceMapFallbackModuleFilenameTemplate ||
-                    defaultModuleFilenameTemplate
+                // fallbackModuleFilenameTemplate: projectConfig.sourceMapFallbackModuleFilenameTemplate ||
+                //    defaultModuleFilenameTemplate
             }));
         }
     }
 
+    // global environments
     if (projectConfig.projectType === 'app' && !environment.dll) {
         const env: any = {
             prod: buildOptions.production,
@@ -319,25 +327,25 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         }
 
         // DefinePlugin
-        commonPlugins.push(
+        plugins.push(
             // NOTE: when adding more properties make sure you include them in custom-typings.d.ts
             new webpack.DefinePlugin(globalConstants)
         );
+    }
 
-        // Provide plugin
-        if ((projectConfig as AppProjectConfig).globalProvides &&
-            typeof (projectConfig as AppProjectConfig).globalProvides === 'object' &&
-            Object.keys((projectConfig as AppProjectConfig).globalProvides).length > 0) {
-            commonPlugins.push(
-                // NOTE: when adding more properties make sure you include them in custom-typings.d.ts
-                new webpack.ProvidePlugin((projectConfig as AppProjectConfig).globalProvides as any)
-            );
-        }
+    // Provide plugin
+    if ((projectConfig as AppProjectConfig).provides &&
+        typeof (projectConfig as AppProjectConfig).provides === 'object' &&
+        Object.keys((projectConfig as AppProjectConfig).provides).length > 0) {
+        plugins.push(
+            // NOTE: when adding more properties make sure you include them in custom-typings.d.ts
+            new webpack.ProvidePlugin((projectConfig as AppProjectConfig).provides as any)
+        );
     }
 
     // performance options
     let performanceOptions =
-        (projectConfig as AppProjectConfig).performanceOptions as (webpack.PerformanceOptions | undefined);
+        (projectConfig as AppProjectConfig).performanceOptions as any;
     if (performanceOptions) {
         if (!performanceOptions.hints) {
             performanceOptions = undefined;
@@ -362,8 +370,15 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         externals = new RegExp(externals, 'i');
     }
 
+    // CircularDependencyPlugin
+    if (buildOptions.showCircularDependencies) {
+        plugins.push(new CircularDependencyPlugin({
+            exclude: /(\\|\/)node_modules(\\|\/)/
+        }));
+    }
+
     // webpack config
-    const webpackSharedConfig: webpack.Configuration = {
+    const webpackCommonConfig: webpack.Configuration = {
         target: (projectConfig.platformTarget as any),
         devtool: (devtool as any),
         profile: profile,
@@ -390,14 +405,13 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         },
         externals: externals,
         module: {
-            rules: commonRules
+            rules: rules
         },
-        plugins: commonPlugins,
+        plugins: plugins,
         performance: performanceOptions,
         node: {
             global: true, // default: true
-            process: !(environment.dll ||
-                projectConfig.projectType === 'lib'), // default: true
+            process: projectConfig.projectType !== 'lib', // default: true
             fs: 'empty', // default: 'empty'
             setImmediate: false, // default: true
             module: false,
@@ -414,7 +428,7 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
 
     // devServer
     if (!buildOptions.production && environment.devServer) {
-        webpackSharedConfig.devServer = {
+        webpackCommonConfig.devServer = {
             contentBase: path.join(projectRoot,
                 projectConfig.outDir && projectConfig.outDir.endsWith('/') ? projectConfig.outDir : projectConfig.outDir + '/'),
             historyApiFallback: true,
@@ -426,26 +440,22 @@ export function getCommonConfigPartial(webpackConfigOptions: WebpackConfigOption
         };
     }
 
-    // When the target property is set to webworker, web, or left unspecified:
-    if (environment.dll &&
-        projectConfig.projectType === 'app' &&
-        projectConfig.platformTarget === 'node') {
-        webpackSharedConfig.resolve = webpackSharedConfig.resolve || {};
-        // (webpackSharedConfig as any).resolve.mainFields = ["module", "main"];
-        (webpackSharedConfig as any).resolve.mainFields =
-            projectConfig.mainFields && projectConfig.mainFields.length ? projectConfig.mainFields : ['main'];
+    // mainFields
+    if (projectConfig.mainFields && projectConfig.mainFields.length) {
+        webpackCommonConfig.resolve = webpackCommonConfig.resolve || {};
+        (webpackCommonConfig as any).resolve.mainFields = projectConfig.mainFields;
     }
 
-    if (libraryTarget === 'umd' && webpackSharedConfig.output) {
-        webpackSharedConfig.output.umdNamedDefine = true;
+    if (libraryTarget === 'umd' && webpackCommonConfig.output) {
+        webpackCommonConfig.output.umdNamedDefine = true;
     }
 
-    return webpackSharedConfig;
+    return webpackCommonConfig;
 }
 
 export function getWebpackLibTargetName(libraryTarget?: string,
     platformTarget?: string,
-    defaultTarget?: string): string | undefined {
+    defaultTarget?: string): any {
 
     if (libraryTarget === 'iife') {
         return 'var';

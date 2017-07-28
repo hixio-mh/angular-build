@@ -10,8 +10,11 @@ export function webpackBundle(wpConfig: webpack.Configuration | webpack.Configur
     watchOptions?: webpack.WatchOptions,
     logger: Logger = new Logger()): Promise<any> {
     const firstConfig = Array.isArray(wpConfig) ? wpConfig[0] : wpConfig;
-    const webpackCompiler = webpack(wpConfig);
+    const webpackCompiler = webpack(wpConfig as any);
     watchOptions = watchOptions || firstConfig.watchOptions || {};
+    if (Array.isArray(wpConfig) && wpConfig.length > 1 && statsOptions && !statsOptions.children) {
+        statsOptions.children = true; // wpConfig.map((o: webpack.Configuration) => o.stats) as any;
+    }
 
     return new Promise((resolve, reject) => {
         const callback: webpack.compiler.CompilerCallback = (err: any, stats: webpack.compiler.Stats) => {

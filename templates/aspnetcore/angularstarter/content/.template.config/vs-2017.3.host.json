@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json.schemastore.org/vs-2017.3.host",
+  "name": {
+    "text": "Angular Starter",
+    "package": "{0CD94836-1526-4E85-87D3-FB5274C5AFC9}",
+    "id": "2000"
+  },
+  "description": {
+    "text": "A project template for creating an ASP.NET Core Angular Universal starter application.",
+    "package": "{0CD94836-1526-4E85-87D3-FB5274C5AFC9}",
+    "id": "2001"
+  },
+  "order": 700,
+  "icon": "vs-2017.3/icon.png",
+  "learnMoreLink": "https://github.com/BizAppFramework/angular-build",
+  "uiFilters": [ "oneaspnet" ],
+  "supportsDocker": true,
+  "ports": [
+    {
+      "name": "IISExpressPort",
+      "useHttps": false
+    },
+    {
+      "name": "KestrelPort",
+      "useHttps": false
+    },
+    {
+      "name": "HttpsPort",
+      "useHttps": true
+    }
+  ],
+  "includeLaunchSettings": true,
+  "minFullFrameworkVersion": "4.6.1"
+}

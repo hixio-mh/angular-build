@@ -1,5 +1,5 @@
 ﻿import * as path from 'path';
-import * as fs from 'fs-extra';
+const fs = require('fs-extra');
 import * as semver from 'semver';
 
 import { readJson } from './read-json';

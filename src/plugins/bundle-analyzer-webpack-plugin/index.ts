@@ -1,15 +1,17 @@
 ﻿// Ref: https://github.com/th0r/webpack-bundle-analyzer
 
-import * as fs from 'fs';
+const fs = require('fs-extra');
 import * as path from 'path';
 import * as webpack from 'webpack';
 
 const analyzer = require(path.join(require.resolve('webpack-bundle-analyzer'), '..', 'analyzer'));
+// ReSharper disable once InconsistentNaming
 const Logger = require(path.join(require.resolve('webpack-bundle-analyzer'), '..', 'Logger'));
 
+// ReSharper disable CommonJsExternalModule
 const ejs = require('ejs');
-const mkdir = require('mkdirp');
 const spawn = require('cross-spawn');
+// ReSharper restore CommonJsExternalModule
 
 const webpackBundleAnalyzerRoot = path.resolve(require.resolve('webpack-bundle-analyzer'), '../..');
 
@@ -102,7 +104,7 @@ export class BundleAnalyzerPlugin {
             statsFilepath = path.resolve(bundleDir, statsFilepath);
         }
 
-        mkdir.sync(path.dirname(statsFilepath));
+        fs.ensureDirSync(path.dirname(statsFilepath));
         fs.writeFileSync(
             statsFilepath,
             JSON.stringify(stats, null, 2)
@@ -162,7 +164,7 @@ export class BundleAnalyzerPlugin {
                     reportFilepath = path.resolve(bundleDir || process.cwd(), reportFilepath);
                 }
 
-                mkdir.sync(path.dirname(reportFilepath));
+                fs.ensureDirSync(path.dirname(reportFilepath));
                 fs.writeFileSync(reportFilepath, reportHtml);
                 if (options.openAnalyzer) {
                     try {

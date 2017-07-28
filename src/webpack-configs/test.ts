@@ -6,20 +6,19 @@ import * as webpackMerge from 'webpack-merge';
 
 import { Logger } from '../utils';
 
-// configs
-import { getCommonConfigPartial } from './common';
-import { getAngularConfigPartial } from './angular';
-import { getStylesConfigPartial } from './styles';
+import { getAngularFixPlugins } from './angular';
+import { getCommonWebpackConfigPartial } from './common';
+import { getStylesWebpackConfigPartial } from './styles';
 
-// models
 import { WebpackConfigOptions } from './webpack-config-options';
 
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
  * know they are used.
  *
+ * * require('angular2-template-loader')
+ * require('awesome-typescript-loader')
  * require('istanbul-instrumenter-loader')
- *
  */
 
 /**
@@ -37,7 +36,6 @@ export interface TestOptions {
         disabled?: boolean;
     };
 }
-
 
 // TODO: move to separate webpack.config.test.js file
 // export function getKarmaConfigOptions(projectRoot: string) {
@@ -199,42 +197,79 @@ export interface TestOptions {
 //    return karmaOptions;
 // }
 
-export function getTestConfig(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
+export function getTestWebpackConfig(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const buildOptions = webpackConfigOptions.buildOptions;
+    const environment = buildOptions.environment || {};
     const projectConfig = webpackConfigOptions.projectConfig;
     const logger = webpackConfigOptions.logger || new Logger();
 
-    logger.log('\n');
-    logger.infoLine(`Using test config, env: ${JSON
-        .stringify(buildOptions.environment)}, name: ${projectConfig.name}, platform target: ${projectConfig
-            .platformTarget}, test entry: ${projectConfig.entry}\n`);
+    if (!webpackConfigOptions.silent) {
+        let msg = 'Using webpack test config:';
+        if (projectConfig.platformTarget) {
+            msg += `, platform target - ${projectConfig.platformTarget}`;
+        }
+        if (projectConfig.libraryTarget) {
+            msg += `, library format - ${projectConfig.libraryTarget}`;
+        }
+        if (Object.keys(environment)) {
+            msg += `, environment - ${JSON.stringify(environment)}`;
+        }
+        logger.logLine(msg);
+    }
 
-    const configs: any[] = [
-        getCommonConfigPartial(webpackConfigOptions),
-        getAngularConfigPartial(webpackConfigOptions),
-        getStylesConfigPartial(webpackConfigOptions),
-        getTestConfigPartial(webpackConfigOptions)
+    const configs = [
+        getCommonWebpackConfigPartial(webpackConfigOptions),
+        getStylesWebpackConfigPartial(webpackConfigOptions),
+        getTestWebpackConfigPartial(webpackConfigOptions)
     ];
 
-    // TODO: necessary?
-    // if (buildOptions.forceUseNgToolsWebpack) {
-    //    configs.push(getNonDllConfigPartial(projectRoot, appConfig, angularBuildConfig.test, logger));
-    // }
-
-    return webpackMerge(configs);
+    return webpackMerge(configs as any);
 }
 
-export function getTestConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
+export function getTestWebpackConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const projectRoot = webpackConfigOptions.projectRoot;
+    const buildOptions = webpackConfigOptions.buildOptions;
     const projectConfig = webpackConfigOptions.projectConfig;
 
     const testOptions: TestOptions = (webpackConfigOptions.angularBuildConfig as any).testOptions || {};
-    const extraRules: any[] = [];
+    const rules: any[] = [];
+
+    const cliIsLocal = (buildOptions as any).cliIsLocal !== false;
+
+    const tsLoader = cliIsLocal ? 'awesome-typescript-loader' : require.resolve('awesome-typescript-loader');
+    const ngTemplateLoader = cliIsLocal ? 'angular2-template-loader' : require.resolve('angular2-template-loader');
+
+    const tsConfigPath = path.resolve(projectRoot, projectConfig.srcDir || '', projectConfig.tsconfig || 'tsconfig.json');
+
+    // rules
+    rules.push({
+        test: /\.ts$/,
+        use: [
+            {
+                loader: tsLoader,
+                options: {
+                    // use inline sourcemaps for "karma-remap-coverage" reporter
+                    sourceMap: false,
+                    inlineSourceMap: true,
+                    configFileName: tsConfigPath
+                    // compilerOptions: {
+                    //    // Remove TypeScript helpers to be injected
+                    //    // below by DefinePlugin
+                    //    removeComments: true
+                    // }
+                }
+            },
+            {
+                loader: ngTemplateLoader
+            }
+        ],
+        exclude: [/\.(e2e|e2e-spec)\.ts$/]
+    });
 
     if (testOptions.codeCoverage) {
         let codeCoverageExclude: string[] = [];
         if (typeof testOptions.codeCoverage === 'object') {
-            codeCoverageExclude = (<any>testOptions.codeCoverage).exclude || [];
+            codeCoverageExclude = (testOptions.codeCoverage as any).exclude || [];
         }
 
         let exclude: (string | RegExp)[] = [
@@ -252,7 +287,7 @@ export function getTestConfigPartial(webpackConfigOptions: WebpackConfigOptions)
         }
 
 
-        extraRules.push({
+        rules.push({
             test: /\.(js|ts)$/,
             loader: 'istanbul-instrumenter-loader',
             enforce: 'post',
@@ -261,6 +296,8 @@ export function getTestConfigPartial(webpackConfigOptions: WebpackConfigOptions)
         });
     }
 
+    const plugins: any[] = [...getAngularFixPlugins(projectRoot, projectConfig)];
+
     return {
         //   devtool: testConfig.sourcemaps ? 'inline-source-map' : 'eval',
         entry: {
@@ -268,7 +305,8 @@ export function getTestConfigPartial(webpackConfigOptions: WebpackConfigOptions)
             test: path.resolve(projectRoot, projectConfig.srcDir, projectConfig.entry)
         },
         module: {
-            rules: extraRules
-        }
+            rules: rules
+        },
+        plugins: plugins
     };
 }

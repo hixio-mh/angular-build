@@ -1,6 +1,6 @@
 ﻿import * as path from 'path';
 import { main as tscWrappedMain } from '@angular/compiler-cli';
-import * as fs from 'fs-extra';
+const fs = require('fs-extra');
 import * as ts from 'typescript';
 
 import { ProjectConfig, TsTranspilation } from '../models';

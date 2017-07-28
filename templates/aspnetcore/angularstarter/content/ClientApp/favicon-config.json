@@ -1,0 +1,77 @@
+{
+  "$schema": "../node_modules/@bizappframework/angular-build/configs/favicon-config-schema-draft-04.json#",
+  "masterPicture": "favicon.svg",
+  "iconsPath": "icons-[hash]/",
+  "design": {
+    "desktopBrowser": {},
+    "androidChrome": {
+      "pictureAspect": "noChange",
+      "manifest": {
+        "display": "standalone",
+        "orientation": "notSet",
+        "onConflict": "override",
+        "declared": true
+      },
+      "assets": {
+        "legacyIcon": false,
+        "lowResolutionIcons": false
+      }
+    },
+    "ios": {
+      "pictureAspect": "backgroundAndMargin",
+      "margin": 0,
+      "assets": {
+        "ios6AndPriorIcons": false,
+        "ios7AndLaterIcons": true,
+        "precomposedIcons": false,
+        "declareOnlyDefaultIcon": true
+      },
+      "startupImage": {}
+    },
+    "safariPinnedTab": {
+      "pictureAspect": "silhouette"
+    },
+    "windows": {
+      "pictureAspect": "noChange",
+      "onConflict": "override",
+      "assets": {
+        "windows80Ie10Tile": false,
+        "windows10Ie11EdgeTiles": {
+          "small": false,
+          "medium": true,
+          "big": false,
+          "rectangle": false
+        }
+      }
+    },
+    "firefoxApp": {
+      "pictureAspect": "circle",
+      "keepPictureInCircle": true,
+      "circleInnerMargin": "0",
+      "margin": 0,
+      "manifest": {}
+    },
+    "coast": {
+      "pictureAspect": "backgroundAndMargin",
+      "margin": 0
+    },
+    "openGraph": {
+      "pictureAspect": "backgroundAndMargin",
+      "margin": 0,
+      "ratio": "1.91:1"
+    }
+  },
+  "settings": {
+    "scalingAlgorithm": "Mitchell",
+    "errorOnImageTooSmall": true
+  },
+  "appName": "",
+  "version": "1.0",
+  "appDescription": "",
+  "developerName": "",
+  "developerUrl": "",
+  "background": "#ffffff",
+  "online": false,
+  "preferOnline": true,
+  "emitFaviconIcoToOutDirRoot": true
+}

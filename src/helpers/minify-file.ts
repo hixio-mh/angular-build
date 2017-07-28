@@ -1,4 +1,4 @@
-﻿import * as fs from 'fs-extra';
+﻿const fs = require('fs-extra');
 import * as path from 'path';
 import * as uglify from 'uglify-js';
 import { Logger } from '../utils';
@@ -6,7 +6,6 @@ import { Logger } from '../utils';
 export async function writeMinifyFile(inputPath: string,
     outputPath: string,
     sourceMap?: boolean,
-    preserveLicenseComments?: boolean,
     verbose?: boolean,
     logger: Logger = new Logger()): Promise<any> {
     const content = await fs.readFile(inputPath, 'utf-8');
@@ -34,7 +33,7 @@ export async function writeMinifyFile(inputPath: string,
                 negate_iife: false // default true, we need this for lazy v8
             },
             output: {
-                comments: preserveLicenseComments !== false ? /^\**!|@preserve|@license/ : false,
+                comments: /^\**!|@preserve|@license/,
                 beautify: false // default true
             }
         } as any);

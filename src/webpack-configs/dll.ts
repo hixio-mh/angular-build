@@ -1,25 +1,32 @@
 ﻿import * as path from 'path';
 import * as webpack from 'webpack';
 
+import * as CopyWebpackPlugin from 'copy-webpack-plugin';
 import * as webpackMerge from 'webpack-merge';
 
-import { CustomizeAssetsHtmlWebpackPlugin } from '../plugins/customize-assets-html-webpack-plugin';
+import { AssetsJsonWebpackPlugin } from '../plugins/assets-json-webpack-plugin';
 import { IconWebpackPlugin } from '../plugins/icon-webpack-plugin';
 
-import { DllParsedEntry, parseIconOptions, parseDllEntry } from '../helpers';
+import { DllParsedEntry, parseDllEntry, parseIconOptions, parseAssetEntry } from '../helpers';
 import { AppProjectConfig } from '../models';
-import { Logger } from '../utils';
+import { Logger, normalizeRelativePath } from '../utils';
 
-import { getAngularConfigPartial } from './angular';
-import { getCommonConfigPartial } from './common';
-import { getStylesConfigPartial } from './styles';
+import { getAngularFixPlugins } from './angular';
+import { getCommonWebpackConfigPartial } from './common';
+import { getStylesWebpackConfigPartial, getGlobalStyleEntries } from './styles';
 
 import { WebpackConfigOptions } from './webpack-config-options';
 
-export function getAppDllConfig(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
+/**
+ * Enumerate loaders and their dependencies from this file to let the dependency validator
+ * know they are used.
+ * require('awesome-typescript-loader')
+ */
+
+export function getDllWebpackConfig(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const buildOptions = webpackConfigOptions.buildOptions;
-    const projectConfig = webpackConfigOptions.projectConfig;
     const environment = buildOptions.environment || {};
+    const projectConfig = webpackConfigOptions.projectConfig;
     const logger = webpackConfigOptions.logger || new Logger();
 
     if (!webpackConfigOptions.silent) {
@@ -37,40 +44,40 @@ export function getAppDllConfig(webpackConfigOptions: WebpackConfigOptions): web
     }
 
     const configs = [
-        getCommonConfigPartial(webpackConfigOptions),
-        getAppDllConfigPartial(webpackConfigOptions),
-        getAngularConfigPartial(webpackConfigOptions),
-        getStylesConfigPartial(webpackConfigOptions)
+        getCommonWebpackConfigPartial(webpackConfigOptions),
+        getStylesWebpackConfigPartial(webpackConfigOptions),
+        getDllWebpackConfigPartial(webpackConfigOptions)
     ];
 
-    return webpackMerge(configs);
+    return webpackMerge(configs as any);
 }
 
-export function getAppDllConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
+export function getDllWebpackConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const projectRoot = webpackConfigOptions.projectRoot;
     const buildOptions = webpackConfigOptions.buildOptions;
-    const appConfig = webpackConfigOptions.projectConfig as AppProjectConfig;
     const environment = buildOptions.environment || {};
+    const appConfig = webpackConfigOptions.projectConfig as AppProjectConfig;
 
     if (!environment.dll) {
         return {};
     }
 
+    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
+    const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
+
     const hashLibFormat = appConfig.platformTarget === 'web' && appConfig.appendOutputHash ? `[chunkhash]` : '';
-    // TODO: to review
-    const libraryName = appConfig.libraryName || `[name]_${hashLibFormat || 'lib'}`;
+    const libraryName = `[name]_${hashLibFormat || appConfig.libraryName || 'lib'}`;
 
     const entryPoints: { [key: string]: string[] } = {};
+    const tsEntries: any[] = [];
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
-    const polyfillsChunkName = appConfig.polyfillsChunkName || 'polyfills';
-
-    const tsEntries: any[] = [];
+    const cliIsLocal = (buildOptions as any).cliIsLocal !== false;
 
     // vendor
     if (appConfig.dlls && appConfig.dlls.length) {
         const entries: string[] = [];
-        parseDllEntry(projectRoot, appConfig.srcDir || '', appConfig.dlls, environment).forEach(
+        parseDllEntry(projectRoot, srcDir, appConfig.dlls, environment).forEach(
             (dllParsedEntry: DllParsedEntry) => {
                 if (dllParsedEntry.tsPath) {
                     if (tsEntries.indexOf(dllParsedEntry.tsPath) === -1) {
@@ -88,37 +95,39 @@ export function getAppDllConfigPartial(webpackConfigOptions: WebpackConfigOption
                 }
             });
 
-        if (entries.length === 0) {
-            throw new Error(`No dll entry.`);
+        // process global styles
+        if (appConfig.styles && appConfig.styles.length > 0 && !appConfig.extractCss) {
+            let globalStyleParsedEntries = getGlobalStyleEntries(projectRoot, appConfig, buildOptions);
+            globalStyleParsedEntries.forEach(style => {
+                const styleEntryRel = normalizeRelativePath(path.relative(nodeModulesPath, style.path));
+                if (entries.indexOf(styleEntryRel) === -1) {
+                    entries.push(styleEntryRel);
+                }
+            });
         }
+
         entryPoints[vendorChunkName] = entries;
     }
 
-    // polyfills
-    if (appConfig.polyfills && appConfig.polyfills.length) {
-        const entries: string[] = [];
-        parseDllEntry(projectRoot, appConfig.srcDir || '', appConfig.polyfills, environment).forEach(
-            (e: any) => {
-                if (e.tsPath) {
-                    if (tsEntries.indexOf(e.tsPath) === -1) {
-                        tsEntries.push(e.tsPath);
-                    }
-                    if (entries.indexOf(e.tsPath) === -1) {
-                        entries.push(e.tsPath);
-                    }
-                } else {
-                    if (Array.isArray(e.entry)) {
-                        entries.push(...e.entry.filter((ee: string) => entries.indexOf(ee) === -1));
-                    } else if (entries.indexOf(e.entry) === -1) {
-                        entries.push(e.entry);
+    // rules
+    const rules: any[] = [];
+    if (tsEntries.length) {
+        const tsLoader = cliIsLocal ? 'awesome-typescript-loader' : require.resolve('awesome-typescript-loader');
+        const tsConfigPath = path.resolve(projectRoot, appConfig.srcDir || '', appConfig.tsconfig || 'tsconfig.json');
+        rules.push({
+            test: /\.ts$/,
+            use: [
+                {
+                    loader: tsLoader,
+                    options: {
+                        instance: `at-${appConfig.name || 'app'}-dll-loader`,
+                        configFileName: tsConfigPath
+                        // transpileOnly: true
                     }
                 }
-            });
-
-        if (entries.length === 0) {
-            throw new Error(`No polyfills entry.`);
-        }
-        entryPoints[polyfillsChunkName] = entries;
+            ],
+            include: tsEntries
+        });
     }
 
     // plugins
@@ -127,27 +136,53 @@ export function getAppDllConfigPartial(webpackConfigOptions: WebpackConfigOption
             context: projectRoot,
             path: path.resolve(projectRoot, appConfig.outDir, `[name]-manifest.json`),
             name: libraryName
-        })
+        }),
+        new AssetsJsonWebpackPlugin({ fileName: `${vendorChunkName}-assets.json` })
     ];
+
+    // TODO: automatacally add when ngb init?
+    // es6-promise
+    // Workaround for https://github.com/stefanpenner/es6-promise/issues/100
+    plugins.push(new webpack.IgnorePlugin(/^vertx$/));
+
+    // Workaround for https://github.com/andris9/encoding/issues/16
+    // commonPlugins.push(new webpack.NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop'))));
+
+    // angular fix plugins
+    plugins.push(...getAngularFixPlugins(projectRoot, appConfig));
+
+    // copy assets
+    if (appConfig.assets &&
+        appConfig.assets.length > 0) {
+        const copyAssetOptions = parseAssetEntry(srcDir, appConfig.assets);
+        if (copyAssetOptions && copyAssetOptions.length > 0) {
+            plugins.push(new CopyWebpackPlugin(copyAssetOptions,
+                {
+                    ignore: ['**/.gitkeep']
+                    // copyUnmodified: false
+                }));
+        }
+    }
 
     // favicons plugins
     if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
         const iconOptions = parseIconOptions(projectRoot, appConfig);
         if (iconOptions && iconOptions.masterPicture) {
             plugins.push(new IconWebpackPlugin(iconOptions));
-
-            // remove starting slash
-            plugins.push(new CustomizeAssetsHtmlWebpackPlugin({
-                removeStartingSlash: true
-            }));
         }
     }
 
     // webpack config
     const webpackDllConfig: webpack.Configuration = {
         entry: entryPoints,
+        resolve: {
+            extensions: tsEntries.length ? ['.ts', '.js'] : ['.js']
+        },
         output: {
             library: libraryName
+        },
+        module: {
+            rules: rules
         },
         plugins: plugins
     };

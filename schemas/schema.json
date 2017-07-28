@@ -47,6 +47,15 @@
                     "$ref": "#/definitions/BundleAnalyzerOptions",
                     "description": "Webpack Bundle analyzer options.\nThis option is only used by webpack."
                 },
+                "commonChunk": {
+                    "description": "If true, chunk main into [commonChunkName].js.",
+                    "type": "boolean"
+                },
+                "commonChunkName": {
+                    "default": "common",
+                    "description": "The output chunk name for vendor or dll chunk.",
+                    "type": "string"
+                },
                 "disableDefaultWebpackConfigs": {
                     "description": "If true, only custom webpack config is processed.",
                     "type": "boolean"
@@ -78,10 +87,6 @@
                                         "type": "array"
                                     },
                                     "importToMain": {
-                                        "type": "boolean"
-                                    },
-                                    "includeDefaultExcludes": {
-                                        "default": true,
                                         "type": "boolean"
                                     }
                                 },
@@ -131,6 +136,14 @@
                         }
                     ],
                     "description": "To override properties based on build targets."
+                },
+                "experimentalScopeHoisting": {
+                    "description": "Enables experimental support for webpack's Scope Hoisting feature.",
+                    "type": "boolean"
+                },
+                "experimentalServiceWorker": {
+                    "description": "Enables experimental support for angular service worker",
+                    "type": "boolean"
                 },
                 "extends": {
                     "description": "Extends the project config from another one. Use the name property of another project config.",
@@ -233,13 +246,6 @@
                     "description": "Allows you to create global constants which can be configured at compile time.",
                     "type": "object"
                 },
-                "globalProvides": {
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "description": "To load global modules automatically  with alias key.",
-                    "type": "object"
-                },
                 "htmlInjectOptions": {
                     "$ref": "#/definitions/HtmlInjectOptions",
                     "description": "The html injection options."
@@ -286,12 +292,12 @@
                     "description": "The ref name for this project config.",
                     "type": "string"
                 },
+                "namedLazyChunks": {
+                    "description": "Use file name for lazy loaded chunks.",
+                    "type": "boolean"
+                },
                 "outDir": {
                     "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/packages/core, otherwise\ndefault to ./dist.",
-                    "type": "string"
-                },
-                "outFileName": {
-                    "description": "The output bundle file name for main entry.",
                     "type": "string"
                 },
                 "performanceOptions": {
@@ -331,14 +337,16 @@
                     "description": "The output chunk name for polyfills.",
                     "type": "string"
                 },
-                "preserveLicenseComments": {
-                    "default": true,
-                    "description": "If true, preserve license comments when minfying.",
-                    "type": "boolean"
-                },
                 "preserveSymlinks": {
                     "description": "Whether to resolve symlinks to their symlinked location.\nThis option is only used by webpack.",
                     "type": "boolean"
+                },
+                "provides": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "To load global modules automatically  with alias key.",
+                    "type": "object"
                 },
                 "publicPath": {
                     "default": "/",
@@ -442,7 +450,7 @@
                     "type": "string"
                 },
                 "srcDir": {
-                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.     \nUsually 'srcDir' is refer to a root folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root will be used.",
+                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nUsually 'srcDir' is refer to a root folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root will be used.",
                     "type": "string"
                 },
                 "stats": {
@@ -574,6 +582,10 @@
                     "$ref": "#/definitions/BundleAnalyzerOptions",
                     "description": "Webpack Bundle analyzer options.\nThis option is only used by webpack."
                 },
+                "commonChunk": {
+                    "description": "If true, chunk main into [commonChunkName].js.",
+                    "type": "boolean"
+                },
                 "disableDefaultWebpackConfigs": {
                     "description": "If true, only custom webpack config is processed.",
                     "type": "boolean"
@@ -606,10 +618,6 @@
                                     },
                                     "importToMain": {
                                         "type": "boolean"
-                                    },
-                                    "includeDefaultExcludes": {
-                                        "default": true,
-                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -625,89 +633,13 @@
                     "description": "The main entry file to be bundled.",
                     "type": "string"
                 },
-                "externals": {
-                    "anyOf": [
-                        {
-                            "additionalProperties": {
-                                "anyOf": [
-                                    {
-                                        "additionalProperties": {
-                                            "type": [
-                                                "string",
-                                                "boolean"
-                                            ]
-                                        },
-                                        "properties": {
-                                            "amd": {
-                                                "type": "string"
-                                            },
-                                            "commonjs": {
-                                                "type": "string"
-                                            },
-                                            "root": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "type": "object"
-                                    },
-                                    {
-                                        "type": [
-                                            "string",
-                                            "boolean"
-                                        ]
-                                    }
-                                ]
-                            },
-                            "type": "object"
-                        },
-                        {
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "additionalProperties": {
-                                            "anyOf": [
-                                                {
-                                                    "additionalProperties": {
-                                                        "type": [
-                                                            "string",
-                                                            "boolean"
-                                                        ]
-                                                    },
-                                                    "properties": {
-                                                        "amd": {
-                                                            "type": "string"
-                                                        },
-                                                        "commonjs": {
-                                                            "type": "string"
-                                                        },
-                                                        "root": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                },
-                                                {
-                                                    "type": [
-                                                        "string",
-                                                        "boolean"
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        "type": "object"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
+                "experimentalScopeHoisting": {
+                    "description": "Enables experimental support for webpack's Scope Hoisting feature.",
+                    "type": "boolean"
+                },
+                "experimentalServiceWorker": {
+                    "description": "Enables experimental support for angular service worker",
+                    "type": "boolean"
                 },
                 "extractCss": {
                     "description": "If true, build process will extracts css specified in styles entry as styles.css.",
@@ -722,13 +654,6 @@
                     "description": "Allows you to create global constants which can be configured at compile time.",
                     "type": "object"
                 },
-                "globalProvides": {
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "description": "To load global modules automatically  with alias key.",
-                    "type": "object"
-                },
                 "htmlInjectOptions": {
                     "$ref": "#/definitions/HtmlInjectOptions",
                     "description": "The html injection options."
@@ -737,25 +662,12 @@
                     "description": "If true, chunk main into [inlineChunkName].js.",
                     "type": "boolean"
                 },
-                "inlineChunkName": {
-                    "default": "inline",
-                    "description": "The output chunk name for inline.",
-                    "type": "string"
-                },
                 "jsSourceMapExcludes": {
                     "description": "Specifies a list of files to be excluded from javascript source map loader. Paths will be resolved to project root.",
                     "items": {
                         "type": "string"
                     },
                     "type": "array"
-                },
-                "libraryName": {
-                    "description": "The libraryName is used depending on the value of the 'libraryTarget' options.",
-                    "type": "string"
-                },
-                "libraryTarget": {
-                    "$ref": "#/definitions/LibraryTarget",
-                    "description": "Bundle module format."
                 },
                 "mainFields": {
                     "description": "When importing from an npm package, e.g. import * as D3 from \"d3\", this option will determine\nwhich fields in it's package.json are checked. The default values will vary based upon the target specified\nin your webpack configuration.",
@@ -771,30 +683,17 @@
                     },
                     "type": "array"
                 },
+                "namedLazyChunks": {
+                    "description": "Use file name for lazy loaded chunks.",
+                    "type": "boolean"
+                },
                 "outDir": {
                     "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/packages/core, otherwise\ndefault to ./dist.",
-                    "type": "string"
-                },
-                "outFileName": {
-                    "description": "The output bundle file name for main entry.",
                     "type": "string"
                 },
                 "performanceOptions": {
                     "$ref": "#/definitions/PerformanceOptions",
                     "description": "Performance options for application project."
-                },
-                "platformTarget": {
-                    "description": "Tells the build system which platform environment the application is targeting.\nThis option is only used by webpack.",
-                    "enum": [
-                        "async-node",
-                        "electron-main",
-                        "electron-renderer",
-                        "node",
-                        "node-webkit",
-                        "web",
-                        "webworker"
-                    ],
-                    "type": "string"
                 },
                 "polyfills": {
                     "anyOf": [
@@ -811,19 +710,16 @@
                     "default": [],
                     "description": "The polyfill entries for app. If entry ends with .ts, path will be resolved from app root,\notherwise from project root."
                 },
-                "polyfillsChunkName": {
-                    "default": "polyfills",
-                    "description": "The output chunk name for polyfills.",
-                    "type": "string"
-                },
-                "preserveLicenseComments": {
-                    "default": true,
-                    "description": "If true, preserve license comments when minfying.",
-                    "type": "boolean"
-                },
                 "preserveSymlinks": {
                     "description": "Whether to resolve symlinks to their symlinked location.\nThis option is only used by webpack.",
                     "type": "boolean"
+                },
+                "provides": {
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "To load global modules automatically  with alias key.",
+                    "type": "object"
                 },
                 "publicPath": {
                     "default": "/",
@@ -926,10 +822,6 @@
                     "description": "Customize the names used in each source map.\nThis option is only used by webpack.",
                     "type": "string"
                 },
-                "srcDir": {
-                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.     \nUsually 'srcDir' is refer to a root folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root will be used.",
-                    "type": "string"
-                },
                 "stats": {
                     "anyOf": [
                         {
@@ -948,10 +840,6 @@
                         }
                     ],
                     "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis option is only used by webpack."
-                },
-                "stylePreprocessorOptions": {
-                    "$ref": "#/definitions/StylePreprocessorOptions",
-                    "description": "Options to pass to style preprocessors"
                 },
                 "styles": {
                     "default": [],
@@ -995,11 +883,6 @@
                     "description": "If true, requested modules started with node_modules path are chunk into [vendorChunkName].js.",
                     "type": "boolean"
                 },
-                "vendorChunkName": {
-                    "default": "vendor",
-                    "description": "The output chunk name for vendor or dll chunk.",
-                    "type": "string"
-                },
                 "vendorChunkPaths": {
                     "description": "Additional module paths to be chunk into vendor. Paths are relative to srcDir.",
                     "items": {
@@ -1018,6 +901,10 @@
             "additionalProperties": true,
             "description": "Build options",
             "properties": {
+                "buildOptimizer": {
+                    "description": "Build optimization option for production.\nThis option is only used by webpack.",
+                    "type": "boolean"
+                },
                 "environment": {
                     "description": "Build target environments.",
                     "properties": {
@@ -1034,6 +921,9 @@
                             "type": "boolean"
                         },
                         "test": {
+                            "type": "boolean"
+                        },
+                        "universal": {
                             "type": "boolean"
                         }
                     },
@@ -1056,6 +946,37 @@
                 "production": {
                     "description": "Set true for production build target.",
                     "type": "boolean"
+                },
+                "profile": {
+                    "description": "Capture a \"profile\" of the application, including statistics and hints,\nwhich can then be dissected using the Analyze tool.\nThis option is only used by webpack.",
+                    "type": "boolean"
+                },
+                "progress": {
+                    "description": "Display a compilation progress.\nThis option is only used by webpack.",
+                    "type": "boolean"
+                },
+                "showCircularDependencies": {
+                    "description": "Detect modules with circular dependencies when bundling with webpack.\nThis option is only used by webpack.",
+                    "type": "boolean"
+                },
+                "stats": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/WebpackStatsToStringOptions"
+                        },
+                        {
+                            "enum": [
+                                "errors-only",
+                                false,
+                                "minimal",
+                                "none",
+                                "normal",
+                                true,
+                                "verbose"
+                            ]
+                        }
+                    ],
+                    "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis option is only used by webpack."
                 },
                 "verbose": {
                     "default": false,
@@ -1193,40 +1114,50 @@
             "additionalProperties": false,
             "description": "Html injection options",
             "properties": {
-                "customTagAttributes": {
-                    "items": {
-                        "properties": {
-                            "attribute": {
-                                "additionalProperties": {
-                                    "type": [
-                                        "string",
-                                        "boolean"
-                                    ]
-                                },
-                                "type": "object"
-                            },
-                            "skipOutFilters": {
-                                "items": {
-                                    "type": "string"
-                                },
-                                "type": "array"
-                            },
-                            "tagName": {
-                                "type": "string"
-                            }
-                        },
-                        "type": "object"
+                "customLinkAttributes": {
+                    "additionalProperties": {
+                        "type": [
+                            "string",
+                            "boolean"
+                        ]
                     },
-                    "type": "array"
+                    "type": "object"
+                },
+                "customScriptAttributes": {
+                    "additionalProperties": {
+                        "type": [
+                            "string",
+                            "boolean"
+                        ]
+                    },
+                    "type": "object"
                 },
                 "iconsOut": {
                     "type": "string"
                 },
                 "index": {
-                    "description": "The index html template file.",
                     "type": "string"
                 },
                 "indexOut": {
+                    "type": "string"
+                },
+                "prefetches": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "preloads": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "resourceHintsEnabled": {
+                    "default": true,
+                    "type": "boolean"
+                },
+                "resourceHintsOut": {
                     "type": "string"
                 },
                 "scriptsOut": {
@@ -1334,6 +1265,10 @@
                         }
                     ],
                     "description": "To override properties based on build target environments."
+                },
+                "experimentalScopeHoisting": {
+                    "description": "Enables experimental support for webpack's Scope Hoisting feature.",
+                    "type": "boolean"
                 },
                 "extends": {
                     "description": "Extends the project config from another one. Use the name property of another project config.",
@@ -1458,10 +1393,6 @@
                     "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/packages/core, otherwise\ndefault to ./dist.",
                     "type": "string"
                 },
-                "outFileName": {
-                    "description": "The output bundle file name for main entry.",
-                    "type": "string"
-                },
                 "packageOptions": {
                     "$ref": "#/definitions/PackageOptions",
                     "description": "Packaging options for library project."
@@ -1478,11 +1409,6 @@
                         "webworker"
                     ],
                     "type": "string"
-                },
-                "preserveLicenseComments": {
-                    "default": true,
-                    "description": "If true, preserve license comments when minfying.",
-                    "type": "boolean"
                 },
                 "preserveSymlinks": {
                     "description": "Whether to resolve symlinks to their symlinked location.\nThis option is only used by webpack.",
@@ -1552,7 +1478,7 @@
                     "type": "string"
                 },
                 "srcDir": {
-                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.     \nUsually 'srcDir' is refer to a root folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root will be used.",
+                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.\nUsually 'srcDir' is refer to a root folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root will be used.",
                     "type": "string"
                 },
                 "stats": {
@@ -1712,102 +1638,14 @@
                     "description": "The main entry file to be bundled.",
                     "type": "string"
                 },
-                "externals": {
-                    "anyOf": [
-                        {
-                            "additionalProperties": {
-                                "anyOf": [
-                                    {
-                                        "additionalProperties": {
-                                            "type": [
-                                                "string",
-                                                "boolean"
-                                            ]
-                                        },
-                                        "properties": {
-                                            "amd": {
-                                                "type": "string"
-                                            },
-                                            "commonjs": {
-                                                "type": "string"
-                                            },
-                                            "root": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "type": "object"
-                                    },
-                                    {
-                                        "type": [
-                                            "string",
-                                            "boolean"
-                                        ]
-                                    }
-                                ]
-                            },
-                            "type": "object"
-                        },
-                        {
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "additionalProperties": {
-                                            "anyOf": [
-                                                {
-                                                    "additionalProperties": {
-                                                        "type": [
-                                                            "string",
-                                                            "boolean"
-                                                        ]
-                                                    },
-                                                    "properties": {
-                                                        "amd": {
-                                                            "type": "string"
-                                                        },
-                                                        "commonjs": {
-                                                            "type": "string"
-                                                        },
-                                                        "root": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                },
-                                                {
-                                                    "type": [
-                                                        "string",
-                                                        "boolean"
-                                                    ]
-                                                }
-                                            ]
-                                        },
-                                        "type": "object"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
+                "experimentalScopeHoisting": {
+                    "description": "Enables experimental support for webpack's Scope Hoisting feature.",
+                    "type": "boolean"
                 },
                 "includeAngularAndRxJsExternals": {
                     "default": true,
                     "description": "If true, default Angular and RxJs global module names are added as externals.",
                     "type": "boolean"
-                },
-                "libraryName": {
-                    "description": "The libraryName is used depending on the value of the 'libraryTarget' options.",
-                    "type": "string"
-                },
-                "libraryTarget": {
-                    "$ref": "#/definitions/LibraryTarget",
-                    "description": "Bundle module format."
                 },
                 "mainFields": {
                     "description": "When importing from an npm package, e.g. import * as D3 from \"d3\", this option will determine\nwhich fields in it's package.json are checked. The default values will vary based upon the target specified\nin your webpack configuration.",
@@ -1827,31 +1665,9 @@
                     "description": "The output directory for build results.\nPath must be relative path to project root.\nIf not specified and 'srcDir' is libs/core, then 'outDir' will be dist/packages/core, otherwise\ndefault to ./dist.",
                     "type": "string"
                 },
-                "outFileName": {
-                    "description": "The output bundle file name for main entry.",
-                    "type": "string"
-                },
                 "packageOptions": {
                     "$ref": "#/definitions/PackageOptions",
                     "description": "Packaging options for library project."
-                },
-                "platformTarget": {
-                    "description": "Tells the build system which platform environment the application is targeting.\nThis option is only used by webpack.",
-                    "enum": [
-                        "async-node",
-                        "electron-main",
-                        "electron-renderer",
-                        "node",
-                        "node-webkit",
-                        "web",
-                        "webworker"
-                    ],
-                    "type": "string"
-                },
-                "preserveLicenseComments": {
-                    "default": true,
-                    "description": "If true, preserve license comments when minfying.",
-                    "type": "boolean"
                 },
                 "preserveSymlinks": {
                     "description": "Whether to resolve symlinks to their symlinked location.\nThis option is only used by webpack.",
@@ -1920,10 +1736,6 @@
                     "description": "Customize the names used in each source map.\nThis option is only used by webpack.",
                     "type": "string"
                 },
-                "srcDir": {
-                    "description": "The root src folder of your project. Example: 'src' or 'lib' or 'client' or 'packages/core'.\nPath must be relative path to project root.     \nUsually 'srcDir' is refer to a root folder containing your typescript source files.\nIf not specified, and main 'entry' is present, default to the directory of main entry,\notherwise, project root will be used.",
-                    "type": "string"
-                },
                 "stats": {
                     "anyOf": [
                         {
@@ -1942,10 +1754,6 @@
                         }
                     ],
                     "description": "The webpack stats option lets you precisely control what bundle information gets displayed.\nThis option is only used by webpack."
-                },
-                "stylePreprocessorOptions": {
-                    "$ref": "#/definitions/StylePreprocessorOptions",
-                    "description": "Options to pass to style preprocessors"
                 },
                 "styles": {
                     "default": [],

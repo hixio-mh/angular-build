@@ -1,13 +1,13 @@
-﻿import { readFile, readFileSync } from 'fs-extra';
+﻿const fs = require('fs-extra');
 
 export async function readJson(filePath: string): Promise<any> {
-    let data = await readFile(filePath, 'utf-8');
+    let data = await fs.readFile(filePath, 'utf-8');
     data = stripComments(data.toString().replace(/^\uFEFF/, ''));
     return JSON.parse(data);
 }
 
 export function readJsonSync(filePath: string): any {
-    let data = readFileSync(filePath, 'utf-8');
+    let data = fs.readFileSync(filePath, 'utf-8');
     data = stripComments(data.toString().replace(/^\uFEFF/, ''));
     return JSON.parse(data);
 }

@@ -4,6 +4,7 @@ import {Logger} from '../../utils';
 
 export interface LibBuildPipeInfo {
     projectRoot: string;
+    libConfigMaster: LibProjectConfig;
     libConfig: LibProjectConfig;
     buildOptions: BuildOptions;
     angularBuildConfig: AngularBuildConfig;

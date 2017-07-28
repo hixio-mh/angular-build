@@ -8,9 +8,9 @@ import * as path from 'path';
 
 // ReSharper disable CommonJsExternalModule
 // ReSharper disable InconsistentNaming
-const NodeTemplatePlugin = require('webpack/lib/node/NodeTemplatePlugin');
-const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
 const LoaderTargetPlugin = require('webpack/lib/LoaderTargetPlugin');
+const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
+const NodeTemplatePlugin = require('webpack/lib/node/NodeTemplatePlugin');
 const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
 // ReSharper restore InconsistentNaming
 // ReSharper restore CommonJsExternalModule
@@ -29,7 +29,6 @@ export class ChildComplier {
     }
 
     compileTemplate(options: IconPluginOptions): Promise<IconStatsResult> {
-
         var outputOptions = {
             filename: options.statsFilename as string,
             publicPath: this.parentCompilation.outputOptions.publicPath
@@ -184,8 +183,6 @@ export class IconWebpackPlugin {
         this.options = Object.assign({}, this.defaultPluginOptions, options);
     }
 
-
-
     apply(compiler: any): void {
         const context = compiler.context || compiler.options.context;
 
@@ -207,7 +204,7 @@ export class IconWebpackPlugin {
             (compilation: any) => {
 
                 compilation.plugin('html-webpack-plugin-before-html-generation',
-                    (htmlPluginArgs: any, callback: (err?: Error, htmlPluginArgs?: any) => void) => {
+                    (htmlPluginArgs: any, cb: (err?: Error, htmlPluginArgs?: any) => void) => {
 
                         if (!this.options.targetHtmlWebpackPluginIds || !this.options.targetHtmlWebpackPluginIds.length ||
                             (this.options.targetHtmlWebpackPluginIds && this.options.targetHtmlWebpackPluginIds.length &&
@@ -217,13 +214,12 @@ export class IconWebpackPlugin {
                             this.isTargetHtmlWebpackPlugin = false;
                         }
                         if (!this.isTargetHtmlWebpackPlugin) {
-                            return callback(undefined, htmlPluginArgs);
+                            return cb(undefined, htmlPluginArgs);
                         }
 
                         if (this.iconStatsResult &&
                             this.iconStatsResult.stats.html &&
                             this.iconStatsResult.stats.html.length) {
-
                             let faviconsTags: string[] = [];
                             if (htmlPluginArgs.assets.publicPath && htmlPluginArgs.assets.publicPath !== '/') {
                                 let publicPath = htmlPluginArgs.assets.publicPath;
@@ -244,17 +240,15 @@ export class IconWebpackPlugin {
                             };
                         }
 
-                        return callback(undefined, htmlPluginArgs);
+                        return cb(undefined, htmlPluginArgs);
                     });
 
-
                 compilation.plugin('html-webpack-plugin-before-html-processing',
-                    (htmlPluginArgs: any, callback: (err?: Error, htmlPluginArgs?: any) => void) => {
-
+                    (htmlPluginArgs: any, cb: (err?: Error, htmlPluginArgs?: any) => void) => {
                         if (!this.isTargetHtmlWebpackPlugin ||
                             !htmlPluginArgs.plugin.options.favicons ||
                             !htmlPluginArgs.plugin.options.favicons.tags) {
-                            return callback(undefined, htmlPluginArgs);
+                            return cb(undefined, htmlPluginArgs);
                         }
 
                         htmlPluginArgs.html = htmlPluginArgs.html || '';
@@ -269,13 +263,13 @@ export class IconWebpackPlugin {
                             htmlPluginArgs.html = `${htmlPluginArgs.html.trim()}\n${faviconsTags.join('\n')}\n`;
                         }
 
-                        callback(undefined, htmlPluginArgs);
+                        return cb(undefined, htmlPluginArgs);
                     });
             });
 
         if (!this.options.emitStats) {
             compiler.plugin('emit',
-                (compilation: any, cb: any) => {
+                (compilation: any, cb: (err?: Error, request?: any) => void) => {
                     if (this.iconStatsResult && this.iconStatsResult.outputName) {
                         delete compilation.assets[this.iconStatsResult.outputName];
                     }

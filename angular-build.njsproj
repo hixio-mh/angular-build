@@ -56,13 +56,60 @@
     <Content Include="schemas\favicon-config-schema.json" />
     <Content Include="schemas\schema-draft-04.json" />
     <Content Include="schemas\schema.json" />
-    <Content Include="templates\angular-build.app.json" />
-    <Content Include="templates\angular-build.lib.json" />
-    <Content Include="templates\angular-build.universal-app.json" />
+    <Content Include="templates\angularspa\angular-build.json" />
+    <Content Include="templates\angularspa\package.json" />
+    <Content Include="templates\angularspa\src\app\app.component.css" />
+    <Content Include="templates\angularspa\src\app\app.component.html" />
+    <Content Include="templates\angularspa\src\assets\.gitkeep" />
+    <Content Include="templates\angularspa\src\favicon.ico" />
+    <Content Include="templates\angularspa\src\index.html" />
+    <Content Include="templates\angularspa\src\styles.css" />
+    <Content Include="templates\angularspa\src\tsconfig.app.json" />
+    <Content Include="templates\angularspa\tsconfig.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\.template.config\dotnetcli.host.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\.template.config\template.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\.template.config\vs-2017.3.host.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\.template.config\vs-2017.3\icon.png" />
+    <Content Include="templates\aspnetcore\angularstarter\content\angular-build.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\appsettings.Development.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\appsettings.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\app\app.component.css" />
+    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\app\app.component.html" />
+    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\assets\.gitkeep" />
+    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\favicon-config.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\favicon.svg" />
+    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\styles.scss" />
+    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\tsconfig.browser.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\tsconfig.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\tsconfig.server.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Company.AspNetCoreNgStarter1.csproj" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Controllers\HomeController.cs" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Models\AbstractRequest.cs" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Models\LocalizationOptions.cs" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Models\PrerenderCustomData.cs" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Models\SpaOptions.cs" />
+    <Content Include="templates\aspnetcore\angularstarter\content\package.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Program.cs" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Properties\launchSettings.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Startup.cs" />
+    <Content Include="templates\aspnetcore\angularstarter\content\tsconfig.json" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Views\Home\Index.cshtml" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\Error.cshtml" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\_FaviconsPartial.cshtml" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\_Layout.cshtml" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\_ResourceHintsPartial.cshtml" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\_ScriptsPartial.cshtml" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\_StylesPartial.cshtml" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Views\_ViewImports.cshtml" />
+    <Content Include="templates\aspnetcore\angularstarter\content\Views\_ViewStart.cshtml" />
+    <Content Include="templates\aspnetcore\angularstarter\content\wwwroot\-.-" />
+    <Content Include="templates\aspnetcore\angularstarter\Templates.nuspec" />
     <Content Include="templates\favicon-config.json">
       <SubType>Code</SubType>
     </Content>
     <Content Include="templates\styles.scss" />
+    <Content Include="templates\tsconfig.root.json" />
+    <Content Include="templates\tsconfig.json" />
     <Content Include="templates\tsconfig.server.json" />
     <Content Include="templates\tsconfig.test.json" />
     <Content Include="LICENSE" />
@@ -77,9 +124,34 @@
   <ItemGroup>
     <Folder Include="bin\" />
     <Folder Include="schemas\" />
+    <Folder Include="src\cli\new\" />
+    <Folder Include="src\plugins\assets-json-webpack-plugin\" />
+    <Folder Include="src\plugins\dll-assets-reference-webpack-plugin\" />
+    <Folder Include="src\plugins\named-lazy-chunks-webpack-plugin\" />
     <Folder Include="src\plugins\rollup-plugin-ng-resource-inline\" />
     <Folder Include="src\rollup-configs\" />
     <Folder Include="templates\" />
+    <Folder Include="templates\angularspa\src\" />
+    <Folder Include="templates\angularspa\src\app\" />
+    <Folder Include="templates\angularspa\src\assets\" />
+    <Folder Include="templates\angularspa\src\environments\" />
+    <Folder Include="templates\aspnetcore\angularstarter\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\.template.config\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\.template.config\vs-2017.3\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\ClientApp\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\ClientApp\app\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\ClientApp\app\tokens\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\ClientApp\assets\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\Controllers\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\Models\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\Views\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\Properties\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\Views\Home\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\Views\Shared\" />
+    <Folder Include="templates\aspnetcore\angularstarter\content\wwwroot\" />
+    <Folder Include="templates\aspnetcore\" />
+    <Folder Include="templates\angularspa\" />
     <Folder Include="tools\" />
     <Folder Include="src\" />
     <Folder Include="src\cli\" />
@@ -103,7 +175,7 @@
     <Folder Include="src\plugins\static-asset-webpack-plugin\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
-    <Folder Include="src\plugins\try-bundle-dll-webpack-plugin\" />
+    <Folder Include="src\plugins\bundle-dll-webpack-plugin\" />
     <Folder Include="src\plugins\try-bundle-dll-webpack-plugin\" />
     <Folder Include="src\webpack-configs\" />
     <Folder Include="src\plugins\customize-assets-html-webpack-plugin\" />
@@ -127,18 +199,24 @@
     <TypeScriptCompile Include="src\cli\init\init-info.ts" />
     <TypeScriptCompile Include="src\cli\init\init-lib.ts" />
     <TypeScriptCompile Include="src\cli\init\init.ts" />
+    <TypeScriptCompile Include="src\cli\new\index.ts" />
+    <TypeScriptCompile Include="src\cli\new\new-command-module.ts" />
+    <TypeScriptCompile Include="src\cli\new\new.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\helpers\get-node-modules-start-paths.ts" />
+    <TypeScriptCompile Include="src\plugins\assets-json-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\dll-assets-reference-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\named-lazy-chunks-webpack-plugin\index.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\rollup-configs\rollup-config-options.ts" />
     <TypeScriptCompile Include="src\utils\path-helpers.ts" />
     <TypeScriptCompile Include="src\utils\glob-copy-files.ts" />
     <TypeScriptCompile Include="src\models\index.ts" />
     <TypeScriptCompile Include="src\models\public-models.ts" />
     <TypeScriptCompile Include="src\plugins\rollup-plugin-ng-resource-inline\index.ts" />
     <TypeScriptCompile Include="src\rollup-configs\index.ts" />
-    <TypeScriptCompile Include="templates\empty.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="templates\karma-test.browser.ts" />
-    <TypeScriptCompile Include="templates\webpack.config.service-worker.ts" />
     <TypeScriptCompile Include="src\cli\build\build-command-module.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -162,9 +240,6 @@
     <TypeScriptCompile Include="src\utils\sass-promise.ts" />
     <TypeScriptCompile Include="src\utils\sourcemap-remap.ts" />
     <TypeScriptCompile Include="src\cli\index.ts" />
-    <TypeScriptCompile Include="src\cli\init\init.ts.bak.ts.bak">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
     <TypeScriptCompile Include="src\cli\cli-options.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -176,9 +251,6 @@
     <TypeScriptCompile Include="src\helpers\read-angular-build-config.ts" />
     <TypeScriptCompile Include="src\helpers\webpack-to-string-stats-options.ts" />
     <TypeScriptCompile Include="src\plugins\bundle-analyzer-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\index.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
     <TypeScriptCompile Include="src\plugins\static-asset-webpack-plugin\index.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -221,7 +293,7 @@
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\interfaces.ts" />
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\try-bundle-dll-webpack-plugin\index.ts">
+    <TypeScriptCompile Include="src\plugins\bundle-dll-webpack-plugin\index.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\index.ts" />
@@ -244,21 +316,7 @@
     <TypeScriptCompile Include="src\webpack-configs\test.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="templates\karma.conf.js">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="templates\protractor.conf.js">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="templates\webpack.config.service-worker.js">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="tools\copy-files.js" />
-    <Compile Include="tools\copy-package-json.js" />
-    <Compile Include="tools\generate-schema.js" />
-    <Compile Include="tools\run-tool.js" />
+    <TypeScriptCompile Include="src\webpack-custom-typings.d.ts" />
   </ItemGroup>
   <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />

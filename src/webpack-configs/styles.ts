@@ -13,7 +13,7 @@ const postcssUrl = require('postcss-url');
 import { SuppressEntryChunksWebpackPlugin } from '../plugins/suppress-entry-chunks-webpack-plugin';
 
 import { parseStyleEntry, StyleParsedEntry } from '../helpers';
-import { AppProjectConfig, ProjectConfig } from '../models';
+import { AppProjectConfig, BuildOptions, ProjectConfig } from '../models';
 
 import { WebpackConfigOptions } from './webpack-config-options';
 
@@ -31,35 +31,44 @@ import { WebpackConfigOptions } from './webpack-config-options';
  * require('style-loader')
  */
 
-export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
+export function getStylesWebpackConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const projectRoot = webpackConfigOptions.projectRoot;
     const buildOptions = webpackConfigOptions.buildOptions;
-    const projectConfig = webpackConfigOptions.projectConfig as ProjectConfig;
     const environment = buildOptions.environment || {};
+    const projectConfig = webpackConfigOptions.projectConfig as ProjectConfig;
 
     const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
+
     const entryPoints: { [key: string]: string[] } = {};
-    const stylePlugins: any[] = [];
+    const plugins: any[] = [];
+
+    // TODO: to review for test
+    let extractCss = (projectConfig as AppProjectConfig).extractCss;
+    if (!extractCss && environment.dll && projectConfig.projectType === 'app' &&
+        (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
+        extractCss = true;
+    }
 
     // style-loader does not support sourcemaps without absolute publicPath, so it's
     // better to disable them when not extracting css
     // https://github.com/webpack-contrib/style-loader#recommended-configuration
-    const cssSourceMap = (projectConfig as AppProjectConfig).extractCss && projectConfig.sourceMap;
+    const cssSourceMap = extractCss && projectConfig.sourceMap;
 
     const minimizeCss = buildOptions.production;
 
     // Convert absolute resource URLs to account for base-href and deploy-url.
     const publicPath = (projectConfig as AppProjectConfig).publicPath || (buildOptions as any).publicPath || '';
     const baseHref = (projectConfig as AppProjectConfig).baseHref || (buildOptions as any).baseHref || '';
-    const globalStylePaths: string[] = [];
 
     const includePaths: string[] = [];
     if (projectConfig.stylePreprocessorOptions &&
         projectConfig.stylePreprocessorOptions.includePaths &&
         projectConfig.stylePreprocessorOptions.includePaths.length > 0
     ) {
-        projectConfig.stylePreprocessorOptions.includePaths.forEach((includePath: string) =>
-            includePaths.push(path.resolve(srcDir, includePath)));
+        projectConfig.stylePreprocessorOptions.includePaths.forEach((includePath: string) => {
+            const includePathAbs = path.resolve(srcDir, includePath);
+            includePaths.push(includePathAbs);
+        });
     }
 
     const cliIsLocal = (buildOptions as any).cliIsLocal !== false;
@@ -71,27 +80,32 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
     const exportsLoader = cliIsLocal ? 'exports-loader' : require.resolve('exports-loader');
     const styleLoader = cliIsLocal ? 'style-loader' : require.resolve('style-loader');
 
-    // set base rules to derive final rules from
     const baseRules: any[] = [
         { test: /\.css$/, use: [] },
         {
-            test: /\.scss$|\.sass$/, use: [{
-                loader: sassLoader,
-                options: {
-                    sourceMap: cssSourceMap,
-                    // bootstrap-sass requires a minimum precision of 8
-                    precision: 8,
-                    includePaths
+            test: /\.scss$|\.sass$/,
+            use: [
+                {
+                    loader: sassLoader,
+                    options: {
+                        // sourceMap: cssSourceMap,
+                        // bootstrap-sass requires a minimum precision of 8
+                        precision: 8,
+                        includePaths
+                    }
                 }
-            }]
+            ]
         },
         {
-            test: /\.less$/, use: [{
-                loader: lessLoader,
-                options: {
-                    sourceMap: cssSourceMap
+            test: /\.less$/,
+            use: [
+                {
+                    loader: lessLoader,
+                    options: {
+                        // sourceMap: cssSourceMap
+                    }
                 }
-            }]
+            ]
         }
     ];
 
@@ -107,6 +121,9 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
         };
 
         return [
+            // require('postcss-import')({ root: loader.resourcePath }),
+            // require('postcss-cssnext')(),
+            //  require('stylelint')(),
             postcssUrl({
                 url: (asset: any) => {
                     const u = typeof asset === 'string' ? asset : asset.url;
@@ -150,77 +167,101 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
         {
             loader: postcssLoader,
             options: {
-                // non-function property is required to workaround a webpack option handling bug
-                ident: 'postcss',
+                // non-function property is required to workaround a webpack option handling abug
+                // ident: 'postcss',
                 plugins: postcssPluginFactory
+                // If set true, 'Previous source map found, but options.sourceMap isn't set.'
+                // will disapper, but will add absolute sourceMap
+                // sourceMap: cssSourceMap
             }
         }
     ];
 
     // process global styles
-    let globalStyleParsedEntries: StyleParsedEntry[] = [];
-    if (projectConfig.styles && projectConfig.styles.length > 0) {
-        globalStyleParsedEntries = parseStyleEntry(projectConfig.styles, srcDir, 'styles');
-        globalStylePaths.push(...globalStyleParsedEntries.map((style) => style.path));
-    }
+    let globalStyleParsedEntries = getGlobalStyleEntries(projectRoot, projectConfig, buildOptions);
+    const globalStylePaths = globalStyleParsedEntries.map(style => style.path);
 
+    // rules
+    const rules: any[] = [];
 
-    const styleRules: any[] = baseRules.map(({ test, use }) => ({
+    // inline styles
+    const componentStyleRules = baseRules.map(({ test, use }) => ({
         exclude: globalStylePaths,
         test,
         use: [
-            exportsLoader + '?module.exports.toString()' // or raw-loader?
+            exportsLoader + '?module.exports.toString()'
         ].concat(commonLoaders).concat(use)
     }));
+    rules.push(...componentStyleRules);
 
-    // app only
-    if (projectConfig.projectType === 'app' &&
+    // global styles
+    if (globalStyleParsedEntries.length > 0) {
+        rules.push(...baseRules.map(({ test, use }) => {
+            const extractTextPluginOptions = {
+                use: [
+                    ...commonLoaders,
+                    ...(use as any[])
+                ],
+                // publicPath needed as a workaround https://github.com/angular/angular-cli/issues/4035
+                publicPath: ''
+            };
+            const ret: any = {
+                include: globalStylePaths,
+                test,
+                use: extractCss
+                    ? ExtractTextPlugin.extract(extractTextPluginOptions)
+                    : (environment.dll ||
+                        projectConfig.platformTarget === 'node' ||
+                        projectConfig.platformTarget === 'async-node')
+                        ? [
+                            // TODO: to review to-string-loader?
+                            exportsLoader + '?module.exports.toString()',
+                            ...extractTextPluginOptions.use
+                        ]
+                        : [
+                            styleLoader,
+                            ...extractTextPluginOptions.use
+                        ]
+            };
+
+            return ret;
+        }));
+
+    }
+
+    // extract css
+    // TODO: to review for environment.test
+    if (globalStyleParsedEntries.length > 0 &&
+        projectConfig.projectType === 'app' &&
         (!projectConfig.platformTarget || projectConfig.platformTarget === 'web') &&
-        !environment.dll && !environment.test) {
+        (!environment.test || (environment.test && extractCss)) &&
+        (!environment.dll || (environment.dll && extractCss))) {
         // determine hashing format
         const hashFormat = (projectConfig as AppProjectConfig).appendOutputHash ? `.[contenthash:${20}]` : '';
 
-        // load global css as css files
-        if (globalStyleParsedEntries.length > 0) {
-
-            // add style entry points
-            globalStyleParsedEntries.forEach(style =>
-                entryPoints[style.entry]
-                    ? entryPoints[style.entry].push(style.path)
-                    : entryPoints[style.entry] = [style.path]
-            );
-
-
-            styleRules.push(...baseRules.map(({ test, use }) => {
-                const extractTextPlugin = {
-                    use: [
-                        ...commonLoaders,
-                        ...(use as any[])
-                    ],
-                    // publicPath needed as a workaround https://github.com/angular/angular-cli/issues/4035
-                    publicPath: ''
-                };
-                const ret: any = {
-                    include: globalStylePaths,
-                    test,
-                    use: (projectConfig as AppProjectConfig).extractCss
-                        ? ExtractTextPlugin.extract(extractTextPlugin)
-                        : [styleLoader, ...extractTextPlugin.use]
-                };
-
-                return ret;
-            }));
-        }
+        // add style entry points
+        globalStyleParsedEntries.forEach(style =>
+            entryPoints[style.entry]
+                ? entryPoints[style.entry].push(style.path)
+                : entryPoints[style.entry] = [style.path]
+        );
 
         // suppress empty .js files in css only entry points
-        if ((projectConfig as AppProjectConfig).extractCss) {
+        if (extractCss) {
+            const supressExcludes: string[] = [];
+            const vendorChunkName = (projectConfig as AppProjectConfig).vendorChunkName || 'vendor';
+            if (environment.dll) {
+                supressExcludes.push(vendorChunkName);
+            }
+
             // extract global css from js files into own css file
-            stylePlugins.push(
+            plugins.push(
                 new ExtractTextPlugin({
                     filename: `[name]${hashFormat}.css`
                 }));
-            stylePlugins.push(new SuppressEntryChunksWebpackPlugin({
+            plugins.push(new SuppressEntryChunksWebpackPlugin({
                 chunks: Object.keys(entryPoints),
+                excludes: supressExcludes,
                 supressPattern: /\.js(\.map)?$/,
                 assetTagsFilterFunc: (tag: any) => !(tag.tagName === 'script' &&
                     tag.attributes.src &&
@@ -232,7 +273,41 @@ export function getStylesConfigPartial(webpackConfigOptions: WebpackConfigOption
 
     return {
         entry: entryPoints,
-        module: { rules: styleRules },
-        plugins: stylePlugins
+        module: { rules: rules },
+        plugins: plugins
     };
+}
+
+export function getGlobalStyleEntries(projectRoot: string, projectConfig: ProjectConfig, buildOptions: BuildOptions): StyleParsedEntry[] {
+    const environment = buildOptions.environment || {};
+
+    const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
+    const nodeModulesPath = path.resolve(projectRoot, 'node_modules');
+
+    const vendorChunkName = (projectConfig as AppProjectConfig).vendorChunkName || 'vendor';
+    const defaultStyleEntryName = 'styles';
+
+    const globalStyleParsedEntries: StyleParsedEntry[] = [];
+
+    if (projectConfig.styles && projectConfig.styles.length > 0) {
+        const parsedEntries = parseStyleEntry(projectConfig.styles, srcDir, defaultStyleEntryName);
+        parsedEntries.forEach(style => {
+            if (environment.dll) {
+                if (style.path.startsWith(nodeModulesPath)) {
+                    if (style.entry === defaultStyleEntryName) {
+                        style.entry = vendorChunkName;
+                    }
+                    globalStyleParsedEntries.push(style);
+                }
+            } else if ((projectConfig as AppProjectConfig).referenceDll) {
+                if (!style.path.startsWith(nodeModulesPath)) {
+                    globalStyleParsedEntries.push(style);
+                }
+            } else {
+                globalStyleParsedEntries.push(style);
+            }
+        });
+    }
+
+    return globalStyleParsedEntries;
 }
