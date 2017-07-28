@@ -5,7 +5,7 @@
     <Name>angular-build</Name>
     <RootNamespace>angular-build</RootNamespace>
     <ToolsVersionPromptShown>0.0</ToolsVersionPromptShown>
-    <TypeScriptToolsVersion>2.3</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -56,62 +56,6 @@
     <Content Include="schemas\favicon-config-schema.json" />
     <Content Include="schemas\schema-draft-04.json" />
     <Content Include="schemas\schema.json" />
-    <Content Include="templates\angularspa\angular-build.json" />
-    <Content Include="templates\angularspa\package.json" />
-    <Content Include="templates\angularspa\src\app\app.component.css" />
-    <Content Include="templates\angularspa\src\app\app.component.html" />
-    <Content Include="templates\angularspa\src\assets\.gitkeep" />
-    <Content Include="templates\angularspa\src\favicon.ico" />
-    <Content Include="templates\angularspa\src\index.html" />
-    <Content Include="templates\angularspa\src\styles.css" />
-    <Content Include="templates\angularspa\src\tsconfig.app.json" />
-    <Content Include="templates\angularspa\tsconfig.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\.template.config\dotnetcli.host.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\.template.config\template.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\.template.config\vs-2017.3.host.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\.template.config\vs-2017.3\icon.png" />
-    <Content Include="templates\aspnetcore\angularstarter\content\angular-build.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\appsettings.Development.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\appsettings.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\app\app.component.css" />
-    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\app\app.component.html" />
-    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\assets\.gitkeep" />
-    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\favicon-config.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\favicon.svg" />
-    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\styles.scss" />
-    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\tsconfig.browser.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\tsconfig.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\ClientApp\tsconfig.server.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Company.AspNetCoreNgStarter1.csproj" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Controllers\HomeController.cs" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Models\AbstractRequest.cs" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Models\LocalizationOptions.cs" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Models\PrerenderCustomData.cs" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Models\SpaOptions.cs" />
-    <Content Include="templates\aspnetcore\angularstarter\content\package.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Program.cs" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Properties\launchSettings.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Startup.cs" />
-    <Content Include="templates\aspnetcore\angularstarter\content\tsconfig.json" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Views\Home\Index.cshtml" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\Error.cshtml" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\_FaviconsPartial.cshtml" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\_Layout.cshtml" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\_ResourceHintsPartial.cshtml" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\_ScriptsPartial.cshtml" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Views\Shared\_StylesPartial.cshtml" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Views\_ViewImports.cshtml" />
-    <Content Include="templates\aspnetcore\angularstarter\content\Views\_ViewStart.cshtml" />
-    <Content Include="templates\aspnetcore\angularstarter\content\wwwroot\-.-" />
-    <Content Include="templates\aspnetcore\angularstarter\Templates.nuspec" />
-    <Content Include="templates\favicon-config.json">
-      <SubType>Code</SubType>
-    </Content>
-    <Content Include="templates\styles.scss" />
-    <Content Include="templates\tsconfig.root.json" />
-    <Content Include="templates\tsconfig.json" />
-    <Content Include="templates\tsconfig.server.json" />
-    <Content Include="templates\tsconfig.test.json" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
@@ -131,27 +75,6 @@
     <Folder Include="src\plugins\rollup-plugin-ng-resource-inline\" />
     <Folder Include="src\rollup-configs\" />
     <Folder Include="templates\" />
-    <Folder Include="templates\angularspa\src\" />
-    <Folder Include="templates\angularspa\src\app\" />
-    <Folder Include="templates\angularspa\src\assets\" />
-    <Folder Include="templates\angularspa\src\environments\" />
-    <Folder Include="templates\aspnetcore\angularstarter\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\.template.config\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\.template.config\vs-2017.3\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\ClientApp\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\ClientApp\app\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\ClientApp\app\tokens\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\ClientApp\assets\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\Controllers\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\Models\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\Views\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\Properties\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\Views\Home\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\Views\Shared\" />
-    <Folder Include="templates\aspnetcore\angularstarter\content\wwwroot\" />
-    <Folder Include="templates\aspnetcore\" />
-    <Folder Include="templates\angularspa\" />
     <Folder Include="tools\" />
     <Folder Include="src\" />
     <Folder Include="src\cli\" />

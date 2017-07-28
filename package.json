@@ -5,10 +5,10 @@
   "keywords": [
     "ngb",
     "angular",
+    "app",
     "lib",
     "library",
     "build",
-    "bundle",
     "rollup",
     "webpack",
     "config",
@@ -18,8 +18,7 @@
     "typescript",
     "ngc",
     "html-inject",
-    "favicon",
-    "treeshake"
+    "favicon"
   ],
   "author": "BizAppFramework Authors",
   "main": "dist/index.js",
@@ -36,7 +35,7 @@
   "repository": "https://github.com/bizappframework/angular-build.git",
   "homepage": "https://github.com/bizappframework/angular-build",
   "scripts": {
-    "build": "tsc && node tools/generate-schema.js",
+    "build": "tsc && node tools/generate-schema.js && node tools/copy-files.js && node tools/copy-package-json.js",
     "tslint": "tslint \"src/**/*.ts\" -c tslint.json -p tsconfig.json --type-check"
   },
   "dependencies": {

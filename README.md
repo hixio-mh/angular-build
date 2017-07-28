@@ -1,4 +1,4 @@
-﻿# @bizappframework/angular-build
+﻿# angular-build
 
 ## What is this?
 
@@ -14,7 +14,7 @@ Build system for Angular app and lib projects. This is similar to [angular-cli](
 
 ## Prerequisites
 
-Make sure you have Node version >= 6.9.1 and npm >= 3. 
+Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9.1 and npm >= 3. 
 
 ## Table of Contents
 
