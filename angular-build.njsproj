@@ -48,6 +48,8 @@
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
     <Content Include=".npmignore" />
+    <Content Include=".nvmrc" />
+    <Content Include=".travis.yml" />
     <Content Include="bin\angular-build" />
     <Content Include="bin\ngb" />
     <Content Include="CHANGELOG.md" />
@@ -241,9 +243,6 @@
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\webpack-custom-typings.d.ts" />
   </ItemGroup>
-  
-  <!-- Appveyor -->
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe.Config" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe.Config')" />
   <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
