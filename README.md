@@ -1,5 +1,7 @@
 ﻿# angular-build
 
+![Build status](https://ci.appveyor.com/api/projects/status/3srmiuom52hs9b82?svg=true)
+
 ## What is this?
 
 Build system for Angular app and lib projects. This is similar to [angular-cli](https://github.com/angular/angular-cli) with some features and customizations. Some of those are:
