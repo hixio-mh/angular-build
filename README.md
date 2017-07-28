@@ -21,10 +21,10 @@ Make sure you have Node version >= 6.9.1 and npm >= 3.
 * [Installation](#installation)
 * [Create, build and run a new Angular Starter app](#create-build-and-run-a-new-angular-starter-app)
 * [Create, build and run a new ASP.Net Core Angular Universal Starter app](#create-build-and-run-a-new-asp-net-core-angular-universal-starter-app)
-* [Build your existing library/app project](#build-your-existing-project)
+* [Build your existing library/app project](#build-your-existing-library-app-project)
 * [More about ngb](#more-about-ngb)
-* [angular-build.json config file](#angular-build.json-config-file)
-* [favicon-config.json config file](#favicon-config.json-config-file)
+* [angular-build.json config file](#angular-buildjson-config-file)
+* [favicon-config.json config file](#favicon-configjson-config-file)
 * [License](#license)
 
 ## Installation
@@ -52,7 +52,7 @@ npm install -g @bizappframework/angular-build
 4. Go to your newly created project directory and run **ngb build**.
 5. To run the app, run '**dotnet run**'.
 
-## Build your existing project
+## Build your existing library/app project
 
 1. Go to your project directory and run **ngb init** to init configuration files.
 2. To build your project, run '**ngb build**'.
