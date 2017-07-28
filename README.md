@@ -1,6 +1,6 @@
 ﻿# angular-build
 
-![Build status](https://ci.appveyor.com/api/projects/status/3srmiuom52hs9b82?svg=true)
+[![Build Status](https://travis-ci.org/BizAppFramework/angular-build.svg?branch=master)](https://travis-ci.org/BizAppFramework/angular-build)
 
 ## What is this?
 
