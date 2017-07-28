@@ -20,11 +20,11 @@ Make sure you have Node version >= 6.9.1 and npm >= 3.
 
 * [Installation](#installation)
 * [Create, build and run a new Angular Starter app](#create-build-and-run-a-new-angular-starter-app)
-* [Create, build and run a new ASP.Net Core Angular Universal Starter app](#create-build-and-run-a-new-aspnetcore-angular-universal-starter-app)
+* [Create, build and run a new ASP.Net Core Angular Universal Starter app](#create-build-and-run-a-new-asp.net-core-angular-universal-starter-app)
 * [Build your existing project](#build-your-existing-project)
 * [More about ngb](#more-about-ngb)
-* [angular-build.json config file](#angular-build-json-config-file)
-* [favicon-config.json config file](#favicon-json-config-file)
+* [angular-build.json config file](#angular-build.json-config-file)
+* [favicon-config.json config file](#favicon.json-config-file)
 * [License](#license)
 
 ## Installation
