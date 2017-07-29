@@ -1,4 +1,11 @@
-﻿# v2.0.1  
+﻿# v4.0.0
+#### Features
+- added - build support for angular lib projects
+
+#### Bug fixes and changes
+- bug fixes, code refactoring and npm packages updates  
+
+# v2.0.1  
 #### Bug fixes
 - bug fix and update packages
   
