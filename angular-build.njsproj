@@ -45,6 +45,7 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include=".appveyor.yml" />
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
     <Content Include=".npmignore" />

@@ -1,8 +1,9 @@
 ﻿## angular-build
 
 [![Build Status](https://travis-ci.org/BizAppFramework/angular-build.svg?branch=master)](https://travis-ci.org/BizAppFramework/angular-build)
+[![npm version](https://badge.fury.io/js/%40bizappframework%2Fangular-build.svg)](https://badge.fury.io/js/%40bizappframework%2Fangular-build)
 
-### What is this?
+## What is this?
 
 Build system for Angular app and lib projects. This is similar to [angular-cli](https://github.com/angular/angular-cli) with some features and customizations. Some of those are:
 
@@ -14,11 +15,11 @@ Build system for Angular app and lib projects. This is similar to [angular-cli](
 - Can work with [Microsoft ASP.NET Core Spa Services](https://github.com/aspnet/JavaScriptServices)
 - Can use webpack config files to build directly with webpack
 
-### Prerequisites
+## Prerequisites
 
 Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9.1 and npm >= 3. 
 
-### Table of Contents
+## Table of Contents
 
 * [Installation](#installation)
 * [Create, build and run a new Angular Starter app](#create-build-and-run-a-new-angular-starter-app)
@@ -29,14 +30,14 @@ Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9.1 and 
 * [favicon-config.json config file](#favicon-configjson-config-file)
 * [License](#license)
 
-### Installation
+## Installation
 
 **BEFORE YOU INSTALL:** please read the [prerequisites](#prerequisites)
 ```bash
 npm install -g @bizappframework/angular-build
 ```
 
-### Create, build and run a new Angular Starter app
+## Create, build and run a new Angular Starter app
 
 1. In command prompt or terminal, type '**ngb new**'.
 2. Choose '**Angular Starter**' template (Use down arrow key and then press Enter/Return key).
@@ -44,7 +45,7 @@ npm install -g @bizappframework/angular-build
 4. Go to your newly created project directory and run **ngb build**.
 5. To run the app, run '**npm run http-server**'.
 
-### Create, build and run a new ASP.Net Core Angular Universal Starter app
+## Create, build and run a new ASP.Net Core Angular Universal Starter app
 
 **BEFORE YOU START:** make sure dotnet core version >= 2.0.0-preview2 is installed by typing '**dotnet --version**' in command prompt or terminal. [.Net Core Download Page](https://www.microsoft.com/net/download/core).
 
@@ -54,20 +55,20 @@ npm install -g @bizappframework/angular-build
 4. Go to your newly created project directory and run **dotnet build**.
 5. To run the app, run '**dotnet run**'.
 
-### Build your existing library/app project
+## Build your existing library/app project
 
 1. Go to your project directory and run **ngb init** to init configuration files.
 2. To build your project, run '**ngb build**'.
 
-### More about ngb
+## More about ngb
 
 ```bash
 ngb --help
 ```
 
-### angular-build.json config file
+## angular-build.json config file
 
-The main configuration file to build your angular project.
+The main configuration file to build your angular project. The following is an example config.
 
 ```<language>
 {
