@@ -2004,10 +2004,6 @@
                     "description": "Name for describing or referencing this transpilation.",
                     "type": "string"
                 },
-                "noEmit": {
-                    "description": "No emit output.",
-                    "type": "boolean"
-                },
                 "outDir": {
                     "description": "Output directory for this transpilation. Path will be relative to outDir of library project config.",
                     "type": "string"

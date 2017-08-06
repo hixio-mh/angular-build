@@ -379,10 +379,6 @@ export interface TsTranspilation {
      */
     declaration?: boolean;
     /**
-     * No emit output.
-     */
-    noEmit?: boolean;
-    /**
      * Output directory for this transpilation. Path will be relative to outDir of library project config.
      */
     outDir?: string;

@@ -54,7 +54,6 @@ export async function getTsTranspileInfo(projectRoot: string,
         tsTranspileOption.target,
         tsTranspileOption.module,
         tsTranspileOption.declaration,
-        tsTranspileOption.noEmit,
         transpileOutDir,
         projectConfig.sourceMap);
 
@@ -146,7 +145,6 @@ async function getTempTsConfig(pathToReadFile: string,
     target?: string,
     module?: string,
     declaration?: boolean,
-    noEmit?: boolean,
     outDir?: string,
     sourceMap?: boolean): Promise<{ shouldCreate: boolean; tsConfig: any }> {
     let shouldCreateTempFile = false;
@@ -183,11 +181,6 @@ async function getTempTsConfig(pathToReadFile: string,
     if (typeof declaration === 'boolean' && config.compilerOptions.declaration !== declaration) {
         shouldCreateTempFile = true;
         config.compilerOptions.declaration = declaration;
-    }
-
-    if (typeof noEmit === 'boolean' && config.compilerOptions.noEmit !== noEmit) {
-        shouldCreateTempFile = true;
-        config.compilerOptions.noEmit = noEmit;
     }
 
     if (typeof sourceMap === 'boolean') {

@@ -677,9 +677,6 @@ export async function mergeLibWithUserConfig(cfg: InitInfo, userConfig: AngularB
             if (tsTranspilation.declaration) {
                 tempTsTranspilation.declaration = !!(tsTranspilation.declaration as any);
             }
-            if (tsTranspilation.noEmit) {
-                tempTsTranspilation.declaration = !!(tsTranspilation.noEmit as any);
-            }
             if (tsTranspilation.copyTemplateAndStyleUrls) {
                 tempTsTranspilation.copyTemplateAndStyleUrls = !!(tsTranspilation.copyTemplateAndStyleUrls as any);
             }
