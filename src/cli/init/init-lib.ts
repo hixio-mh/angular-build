@@ -250,10 +250,6 @@ async function initLibProject(cfg: InitInfo, trackInfo: LibCreateTrackInfo): Pro
     if (!currentLibConfig.assets || !currentLibConfig.assets.length) {
         currentLibConfig.assets = [];
 
-        if (await fs.exists(path.resolve(srcDir, 'CHANGELOG.md'))) {
-            currentLibConfig.assets.push('CHANGELOG.md');
-        }
-
         if (await fs.exists(path.resolve(srcDir, 'LICENSE'))) {
             currentLibConfig.assets.push('LICENSE');
         } else if (await fs.exists(path.resolve(projectRoot, 'LICENSE'))) {
