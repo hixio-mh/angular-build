@@ -111,6 +111,7 @@ async function initLibProject(cfg: InitInfo, trackInfo: LibCreateTrackInfo): Pro
                 tempSrcRoot = 'packages';
             }
         }
+
         const packageJsonPaths =
             await globPromise(path.join(tempSrcRoot || projectRoot, tempSrcRoot ? '*' : '**', 'package.json'));
         if (packageJsonPaths && (packageJsonPaths as string[]).length) {
@@ -118,8 +119,9 @@ async function initLibProject(cfg: InitInfo, trackInfo: LibCreateTrackInfo): Pro
                 (packageJsonPaths as string[])
                     .filter((p: string) => processedSrcDirs.indexOf(path.dirname(path.resolve(p))) === -1)
                     .map((p: string) => path.dirname(path.resolve(p)));
-
+            foundSrcPaths.sort();
             hasOneMoreLibConfig = foundSrcPaths.length > 1;
+
             if (hasOneMoreLibConfig) {
                 nextSrcDir = normalizeRelativePath(path.relative(projectRoot, foundSrcPaths[1]));
             }
@@ -246,10 +248,23 @@ async function initLibProject(cfg: InitInfo, trackInfo: LibCreateTrackInfo): Pro
 
     // assets
     if (!currentLibConfig.assets || !currentLibConfig.assets.length) {
-        currentLibConfig.assets = [
-            normalizeRelativePath(path.relative(srcDir, 'LICENSE')),
-            normalizeRelativePath(path.relative(srcDir, 'README.md'))
-        ];
+        currentLibConfig.assets = [];
+
+        if (await fs.exists(path.resolve(srcDir, 'CHANGELOG.md'))) {
+            currentLibConfig.assets.push('CHANGELOG.md');
+        }
+
+        if (await fs.exists(path.resolve(srcDir, 'LICENSE'))) {
+            currentLibConfig.assets.push('LICENSE');
+        } else if (await fs.exists(path.resolve(projectRoot, 'LICENSE'))) {
+            currentLibConfig.assets.push(normalizeRelativePath(path.relative(srcDir, 'LICENSE')));
+        }
+
+        if (await fs.exists(path.resolve(srcDir, 'README.md'))) {
+            currentLibConfig.assets.push('README.md');
+        } else if (await fs.exists(path.resolve(projectRoot, 'README.md'))) {
+            currentLibConfig.assets.push(normalizeRelativePath(path.relative(srcDir, 'README.md')));
+        }
     }
 
     // tsTanspilations
