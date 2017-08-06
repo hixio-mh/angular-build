@@ -102,6 +102,7 @@ export function getStylesWebpackConfigPartial(webpackConfigOptions: WebpackConfi
                 {
                     loader: lessLoader,
                     options: {
+                        paths: includePaths
                         // sourceMap: cssSourceMap
                     }
                 }

@@ -1,4 +1,8 @@
-﻿# v4.0.0
+﻿# 2017/08/06
+- Package dependencies updated
+- support includePaths for less.
+
+# v4.0.0
 #### Features
 - added - build support for angular lib projects
 
