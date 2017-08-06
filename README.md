@@ -59,6 +59,10 @@ npm install -g @bizappframework/angular-build
 
 1. Go to your project directory and run **ngb init** to init configuration files.
 2. To build your project, run '**ngb build**'.
+  
+Library projects built with angular-build  
+[@bizappframework/ng-config](https://github.com/bizappframework/ng-config)  
+[@bizappframework/ng-config-http-loader](https://github.com/bizappframework/ng-config)
 
 ## More about ngb
 
@@ -68,7 +72,8 @@ ngb --help
 
 ## angular-build.json config file
 
-The main configuration file to build your angular project. The following is an example config.
+The main configuration file to build your angular project.  
+The following is an example configuration for angular app(s).
 
 ```<language>
 {
@@ -137,6 +142,76 @@ The main configuration file to build your angular project. The following is an e
         }
       }
     }
+  ]
+}
+```
+  
+The following is an example configuration for angular lib project(s).
+
+```<language>
+{  
+  "libs": [
+    {
+      "srcDir": "libs/ng-config",
+      "outDir": "dist/packages/ng-config",
+      "assets": [
+        "../../LICENSE",
+        "README.md"
+      ],
+      "tsTranspilations": [
+        {
+          "tsconfig": "tsconfig.json",
+          "target": "es2015",
+          "copyTemplateAndStyleUrls": false,
+          "inlineMetaDataResources": false,
+          "outDir": "es2015"
+        },
+        {
+          "tsconfig": "tsconfig.json",
+          "target": "es5",
+          "copyTemplateAndStyleUrls": false,
+          "inlineMetaDataResources": false,
+          "outDir": ""
+        }
+      ],
+      "bundleTargets": [
+        {
+          "name": "esm-es2015",
+          "entry": "index.js",
+          "entryResolution": {
+            "entryRoot": "tsTranspilationOutDir"
+          },
+          "libraryTarget": "es",
+          "outDir": "bundles",
+          "inlineResources": true
+        },
+        {
+          "name": "esm-es5",
+          "entryResolution": {
+            "entryRoot": "bundleTargetOutDir"
+          },
+          "libraryTarget": "es",
+          "outDir": "bundles",
+          "inlineResources": false,
+          "addPureAnnotations": true,
+          "transformScriptTargetOnly": true,
+          "scriptTarget": "es5"
+        },
+        {
+          "name": "umd-es5",
+          "entryResolution": {
+            "entryRoot": "bundleTargetOutDir"
+          },
+          "libraryTarget": "umd",
+          "outDir": "bundles",
+          "inlineResources": false
+        }
+      ],
+      "packageOptions": {
+        "packageConfigFile": "package.json"
+      },
+      "banner": "banner.txt"
+    }  
   ]
 }
 ```
