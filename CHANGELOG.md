@@ -2,7 +2,7 @@
 - Package dependencies updated
 - support includePaths for less
 - 'ngb init' bug fixed on lib project- Error: Cannot convert undefined or null to object - angular-build\src\cli\init\init.ts:468:41
-- other bug fixes in 'ngb init' lib project
+- other improvements and bug fixes in 'ngb init' lib project
 - removed - noEmit from TsTranspilation option
 
 # v4.0.0

@@ -4,7 +4,7 @@ import * as path from 'path';
 import { prepareBannerSync, TsTranspiledInfo } from '../../helpers';
 import { TypingsAndMetaData } from '../../models';
 import { globCopyFiles, isInFolder, normalizeRelativePath, isSamePaths, readJson } from '../../utils';
-import {LibBuildPipeInfo} from './lib-build-pipe-info';
+import { LibBuildPipeInfo } from './lib-build-pipe-info';
 
 export async function packagingTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<void> {
     const projectRoot = libBuildPipeInfo.projectRoot;
@@ -41,15 +41,45 @@ export async function packagingTask(libBuildPipeInfo: LibBuildPipeInfo): Promise
     }
 
     if (libConfig.packageOptions.useRootPackageConfigVerion !== false &&
-        !!rootPackageConfig &&
-        !!rootPackageConfig.version) {
+        rootPackageConfig &&
+        rootPackageConfig.version) {
         libPackageConfig.version = rootPackageConfig.version;
+    }
+
+    if (rootPackageConfig &&
+        rootPackageConfig.description && !libPackageConfig.description) {
+        libPackageConfig.description = rootPackageConfig.description;
+    }
+
+    if (rootPackageConfig &&
+        rootPackageConfig.keywords && !libPackageConfig.keywords) {
+        libPackageConfig.keywords = rootPackageConfig.keywords;
+    }
+
+    if (rootPackageConfig &&
+        rootPackageConfig.author && !libPackageConfig.author) {
+        libPackageConfig.author = rootPackageConfig.author;
+    }
+
+    if (rootPackageConfig &&
+        rootPackageConfig.license && !libPackageConfig.license) {
+        libPackageConfig.license = rootPackageConfig.license;
+    }
+
+    if (rootPackageConfig &&
+        rootPackageConfig.repository && !libPackageConfig.repository) {
+        libPackageConfig.repository = rootPackageConfig.repository;
+    }
+
+    if (rootPackageConfig &&
+        rootPackageConfig.homepage && !libPackageConfig.homepage) {
+        libPackageConfig.homepage = rootPackageConfig.homepage;
     }
 
     // typing and meta-data re-exports
     if (libConfig.packageOptions.typingsAndMetaData &&
-    (libConfig.packageOptions.typingsAndMetaData.entry ||
-        libConfig.packageOptions.typingsAndMetaData.outFileName)) {
+        (libConfig.packageOptions.typingsAndMetaData.entry ||
+            libConfig.packageOptions.typingsAndMetaData.outFileName)) {
 
         const typingsAndMetaData =
             libConfig.packageOptions.typingsAndMetaData as TypingsAndMetaData;
@@ -161,7 +191,7 @@ export async function packagingTask(libBuildPipeInfo: LibBuildPipeInfo): Promise
                 typingsOutFileName.replace(/\.d\.ts$/i, '.metadata.json'));
             const metaDataIndexContent =
                 `{"__symbolic":"module","version":3,"metadata":{},"exports":[{"from":"./${typingsOutDirRelative}/${
-                    typingsEntryFile.replace(/\.d\.ts$/i, '')}"}]}`;
+                typingsEntryFile.replace(/\.d\.ts$/i, '')}"}]}`;
             await fs.writeFile(metaDataOutFilePath, metaDataIndexContent);
         }
     }

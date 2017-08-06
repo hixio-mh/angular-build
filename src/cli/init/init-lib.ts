@@ -264,7 +264,7 @@ async function initLibProject(cfg: InitInfo, trackInfo: LibCreateTrackInfo): Pro
     }
 
     // tsTanspilations
-    let firstTsTranspilation: TsTranspilation =
+    let firstTsTranspilation =
         currentLibConfig.tsTranspilations &&
             Array.isArray(currentLibConfig.tsTranspilations) &&
             currentLibConfig.tsTranspilations.length
@@ -347,26 +347,18 @@ async function initLibProject(cfg: InitInfo, trackInfo: LibCreateTrackInfo): Pro
         firstTsTranspilation.inlineMetaDataResources = true;
     }
 
-    // ts outDir
-    // const tsConfigDir = path.dirname(path.resolve(srcDir, firstTsTranspilation.tsconfig));
-    // const tsConfigOutDirRelative = tsConfigJson.compilerOptions && tsConfigJson.compilerOptions.outDir
-    //    ? tsConfigJson.compilerOptions.outDir
-    //    : '';
-    // const tsConfigOutDirAbsolute = tsConfigOutDirRelative ? path.resolve(tsConfigDir, tsConfigOutDirRelative) : '';
-    // let isTypescriptOutputOutsideOutDir = !isSamePaths(tsConfigOutDirAbsolute, outDir) &&
-    //    !isInFolder(outDir, tsConfigOutDirAbsolute);
-    const tsDeployAnswer = await inquirer.prompt([
+    var flatModuleOutFile = !!tsConfigJson.angularCompilerOptions && !!tsConfigJson.angularCompilerOptions.flatModuleOutFile;
+
+    const deployOptionsAnswer = await inquirer.prompt([
         {
-            type: 'list',
-            name: 'choice',
-            message: colorize('Select typescript deploy type:', 'white'),
-            choices: [
-                'typings and meta-data only',
-                'esm-es2015 and esm-es5'
-            ]
+            type: 'confirm',
+            name: 'confirm',
+            message: colorize('Include js transpiled sources for each targets?', 'white'),
+            default: !flatModuleOutFile
         }
     ]);
-    const deployTypingsAndMetaDataOnly = tsDeployAnswer.choice === 'typings and meta-data only';
+
+    var deployTypingsAndMetaDataOnly = !deployOptionsAnswer.confirm;
 
     const tsConfigOutDirAnswer = await inquirer.prompt([
         {
@@ -402,7 +394,7 @@ async function initLibProject(cfg: InitInfo, trackInfo: LibCreateTrackInfo): Pro
         (currentLibConfig.tsTranspilations as TsTranspilation[]).push(Object.assign({},
             firstTsTranspilation,
             {
-                outDir: 'es5',
+                outDir: '',
                 target: 'es5'
             }));
     }
