@@ -1,7 +1,7 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "4.0.0",
-  "description": "Build tool for Angular 4+ app and library projects.",
+  "version": "4.0.1",
+  "description": "Build tool for Angular app and library projects.",
   "keywords": [
     "ngb",
     "angular",
@@ -20,7 +20,7 @@
     "html-inject",
     "favicon"
   ],
-  "author": "BizAppFramework Authors",
+  "author": "BizAppFramework Team",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "bin": {

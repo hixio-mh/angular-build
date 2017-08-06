@@ -89,48 +89,8 @@ async function initInternal(cliOptions: CliOptions, logger: Logger = new Logger(
         cfg.userPackageConfig = await readJson(path.resolve(projectRoot, 'package.json'));
     }
 
-    // quick check ASP.Net MVC
-    if (await fs.exists(path.resolve(projectRoot, 'Views'))) {
-        const foundPaths = await globPromise('**/*.cshtml',
-            { cwd: path.resolve(projectRoot, 'Views') });
-        cfg.isAspNetMvc = (foundPaths as string[]).length > 0;
-    }
-
-    // for dll bundling
-    await checkAndUpdateDevDependencies(cfg);
-
     // init configs
     await initConfigs(cfg);
-
-    // check deps  to install
-    const angularDepsOnly = !cfg.commandOptions.link && !cfg.webpackConfigFileCreated && !cfg.cliIsLocal;
-    const packagesToInstall = await checkAngularAndWebpackDependenciesToInstall(cfg, angularDepsOnly);
-
-    // install webpack and loaders
-    if (packagesToInstall) {
-        cfg.logger.logLine('\n  To work angular-build correctly, we need to install/upgrade the following dependencies:');
-        cfg.logger.logLine(`  ${colorize(`${Object.keys(packagesToInstall).map(key => key + '@' + packagesToInstall[key])
-            .sort()
-            .join('\n  ')}`,
-            'cyan')}`);
-
-        const answer = await inquirer.prompt([
-            {
-                type: 'confirm',
-                name: 'confirm',
-                message: colorize(`Do you want to continue?`, 'white'),
-                default: true
-            }
-        ]);
-
-        if (answer.confirm) {
-            await setPackageManagerWithPrompt(cfg);
-            await installToolingDependencies(cfg, packagesToInstall);
-        }
-    } else if (cfg.shouldInstallPolyfills) {
-        await setPackageManagerWithPrompt(cfg);
-        await installPolyfillsOnly(cfg);
-    }
 
     if ((cfg.commandOptions.link || cfg.webpackConfigFileCreated) && !cfg.cliIsLocal) {
         await linkCli(cfg);
@@ -272,7 +232,47 @@ async function initConfigs(cfg: InitInfo): Promise<void> {
     if (cfg.commandOptions.projectType === 'lib') {
         await initLibProjects(cfg);
     } else if (cfg.commandOptions.projectType === 'app') {
+        // quick check ASP.Net MVC
+        if (await fs.exists(path.resolve(projectRoot, 'Views'))) {
+            const foundPaths = await globPromise('**/*.cshtml',
+                { cwd: path.resolve(projectRoot, 'Views') });
+            cfg.isAspNetMvc = (foundPaths as string[]).length > 0;
+        }
+
+        // for dll bundling
+        await checkAndUpdateDevDependencies(cfg);
+
         await initAppProjects(cfg);
+
+        // check deps  to install
+        const angularDepsOnly = !cfg.commandOptions.link && !cfg.webpackConfigFileCreated && !cfg.cliIsLocal;
+        const packagesToInstall = await checkAngularAndWebpackDependenciesToInstall(cfg, angularDepsOnly);
+
+        // install webpack and loaders
+        if (packagesToInstall) {
+            cfg.logger.logLine('\n To work angular-build correctly, we need to install/upgrade the following dependencies:');
+            cfg.logger.logLine(`  ${colorize(`${Object.keys(packagesToInstall).map(key => key + '@' + packagesToInstall[key])
+                .sort()
+                .join('\n  ')}`,
+                'cyan')}`);
+
+            const answer = await inquirer.prompt([
+                {
+                    type: 'confirm',
+                    name: 'confirm',
+                    message: colorize(`Do you want to continue?`, 'white'),
+                    default: true
+                }
+            ]);
+
+            if (answer.confirm) {
+                await setPackageManagerWithPrompt(cfg);
+                await installToolingDependencies(cfg, packagesToInstall);
+            }
+        } else if (cfg.shouldInstallPolyfills) {
+            await setPackageManagerWithPrompt(cfg);
+            await installPolyfillsOnly(cfg);
+        }
     }
 
     await fs.writeFile(path.join(projectRoot, 'angular-build.json'),
@@ -367,12 +367,12 @@ async function checkAngularAndWebpackDependenciesToInstall(cfg: InitInfo, angula
     } else {
         Object.keys(masterPkgConfig.dependencies)
             .filter((key: string) => peerDepNames.indexOf(key) > -1 || key.match(/\-loader$/)).forEach(
-                (key: string) => {
-                    packagesToCheck[key] = masterPkgConfig.dependencies[key];
-                    if (!angularVersion && /^@angular\//.test(key)) {
-                        angularVersion = packagesToCheck[key];
-                    }
-                });
+            (key: string) => {
+                packagesToCheck[key] = masterPkgConfig.dependencies[key];
+                if (!angularVersion && /^@angular\//.test(key)) {
+                    angularVersion = packagesToCheck[key];
+                }
+            });
 
         Object.keys(masterPkgConfig.optionalDependencies)
             .forEach((key: string) => {
@@ -464,8 +464,8 @@ async function checkAndUpdateDevDependencies(cfg: InitInfo): Promise<void> {
     }
 
     const masterPkgConfig = await fs.readJson(path.resolve(__dirname, masterPackageConfigPath));
-    const masterPkgDepNames = Object.keys(masterPkgConfig.dependencies);
-    const masterPkgDevDepNames = Object.keys(masterPkgConfig.devDependencies);
+    const masterPkgDepNames = masterPkgConfig.dependencies ? Object.keys(masterPkgConfig.dependencies) : [];
+    const masterPkgDevDepNames = masterPkgConfig.devDependencies ? Object.keys(masterPkgConfig.devDependencies) : [];
 
     // move to dev dependencies
     const userPackageConfig = cfg.userPackageConfig;
