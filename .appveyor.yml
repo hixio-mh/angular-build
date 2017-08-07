@@ -12,8 +12,8 @@ environment:
     - nodejs_version: "8"
 
 install:
-  - ps: Install-Product node $env:nodejs_version
   #- ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
+  - ps: Install-Product node $env:nodejs_version
   #- yarn --frozen-lockfile
   - npm install -g npm@latest
   - npm install
@@ -23,12 +23,13 @@ build_script:
 
 # Post-install test scripts.
 test_script:
-  - node --version
   #- yarn --version
+  - node --version
   - npm --version
 
 cache:
-  - node_modules
   #- "%LOCALAPPDATA%/Yarn"
+  - node_modules
+
 matrix:
   fast_finish: true

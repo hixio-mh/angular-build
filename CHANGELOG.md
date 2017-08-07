@@ -2,6 +2,7 @@
 - Package dependencies updated
 - Removed - webpack-dev-server dependencies.
 - Updated .appveyor file
+- Updated yarn.lock file
 
 # v4.0.1
 - Package dependencies updated
