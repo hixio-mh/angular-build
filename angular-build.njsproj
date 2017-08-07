@@ -46,6 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include=".appveyor.yml" />
+    <Content Include=".circleci\config.yml" />
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
     <Content Include=".npmignore" />
@@ -70,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\" />
+    <Folder Include=".circleci\" />
     <Folder Include="schemas\" />
     <Folder Include="src\cli\new\" />
     <Folder Include="src\plugins\assets-json-webpack-plugin\" />

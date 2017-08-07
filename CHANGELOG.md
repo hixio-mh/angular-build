@@ -2,7 +2,9 @@
 - Package dependencies updated
 - Removed - webpack-dev-server dependencies.
 - Updated .appveyor file
+- - Updated ..travis.yml file
 - Updated yarn.lock file
+- Added .circleci
 
 # v4.0.1
 - Package dependencies updated
