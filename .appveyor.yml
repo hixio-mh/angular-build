@@ -1,20 +1,34 @@
+version: 4.0.{build}
+branches:
+  only:
+  - master
+image: Visual Studio 2017 Preview
+platform: Any CPU
 environment:
   matrix:
+    # node.js
     - nodejs_version: "6"
-
-matrix:
-  fast_finish: true
+    - nodejs_version: "7"
+    - nodejs_version: "8"
 
 install:
   - ps: Install-Product node $env:nodejs_version
-  - yarn --frozen-lockfile
+  #- ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
+  #- yarn --frozen-lockfile
+  - npm install -g npm@latest
+  - npm install
 
+build_script:
+  - ps: npm run build
+
+# Post-install test scripts.
 test_script:
   - node --version
-  - yarn --version
-
-build: off
+  #- yarn --version
+  - npm --version
 
 cache:
   - node_modules
-  - "%LOCALAPPDATA%/Yarn"
+  #- "%LOCALAPPDATA%/Yarn"
+matrix:
+  fast_finish: true

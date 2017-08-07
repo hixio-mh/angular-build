@@ -1,4 +1,9 @@
-﻿# v4.0.1
+﻿# 2017/08/07
+- Package dependencies updated
+- Removed - webpack-dev-server dependencies.
+- Updated .appveyor file
+
+# v4.0.1
 - Package dependencies updated
 - support includePaths for less
 - 'ngb init' bug fixed on lib project- Error: Cannot convert undefined or null to object - angular-build\src\cli\init\init.ts:468:41

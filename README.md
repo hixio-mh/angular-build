@@ -1,7 +1,11 @@
-﻿## angular-build
+﻿angular-build
+=====================
 
-[![Build Status](https://travis-ci.org/BizAppFramework/angular-build.svg?branch=master)](https://travis-ci.org/BizAppFramework/angular-build)
+<!-- Badges section here. -->
+[![Build Status](https://img.shields.io/travis/BizAppFramework/angular-build/master.svg?label=travis)](https://travis-ci.org/BizAppFramework/angular-build)
 [![npm version](https://badge.fury.io/js/%40bizappframework%2Fangular-build.svg)](https://badge.fury.io/js/%40bizappframework%2Fangular-build)
+[![Dependency Status](https://david-dm.org/bizappframework/angular-build.svg)](https://david-dm.org/bizappframework/angular-build)
+[![npm](https://img.shields.io/npm/dm/@bizappframework/angular-build.svg)](https://www.npmjs.com/package/@bizappframework/angular-build)
 
 ## What is this?
 
