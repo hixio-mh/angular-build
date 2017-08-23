@@ -9,23 +9,22 @@
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  
+
   <ItemGroup Condition="'$(TargetFrameworkOverride)' == ''">
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0-preview2-final" />
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFrameworkOverride)' != ''">
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.0.0-rtm-26272" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.0-rtm-26272" />
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices" Version="2.0.0-rtm-26272" />
-    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.0.0-rtm-26272" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(NoTools)' != 'True'">
-    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0-preview2-final" />
+    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <!-- Files not to publish -->
     <Content Remove="ClientApp\**" />
@@ -42,7 +41,7 @@
     <Exec Command="ngb build --env.dev --env.universal" />
   </Target>
   <!--/+:cnd:noEmit -->
-  
+
   <Target Name="PublishRunAngularBuild" AfterTargets="ComputeFilesToPublish">
     <Exec Command="ngb build --clean --env.prod --env.aot --env.universal" />
     <!-- Include the newly-built files in the publish output -->

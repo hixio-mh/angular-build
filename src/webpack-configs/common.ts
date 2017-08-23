@@ -19,16 +19,13 @@ import { AppProjectConfig } from '../models';
 
 import { WebpackConfigOptions } from './webpack-config-options';
 
-
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
  * know they are used.
  * require('file-loader')
- * require('json-loader')
  * require('raw-loader')
  * require('source-map-loader')
  * require('url-loader')
- * require('@angular-devkit/build-optimizer')
  */
 
 export function getCommonWebpackConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
@@ -59,13 +56,9 @@ export function getCommonWebpackConfigPartial(webpackConfigOptions: WebpackConfi
         `[name]${chunkHashFormat}.js`;
 
     const fileLoader = cliIsLocal ? 'file-loader' : require.resolve('file-loader');
-    const jsonLoader = cliIsLocal ? 'json-loader' : require.resolve('json-loader');
     const rawLoader = cliIsLocal ? 'raw-loader' : require.resolve('raw-loader');
     const sourceMapLoader = cliIsLocal ? 'source-map-loader' : require.resolve('source-map-loader');
     const urlLoader = cliIsLocal ? 'url-loader' : require.resolve('url-loader');
-    const buildOptimizerLoader = cliIsLocal
-        ? '@angular-devkit/build-optimizer/webpack-loader'
-        : require.resolve('@angular-devkit/build-optimizer/webpack-loader');
 
     const isDevServer = environment.hot || environment.hmr || environment.devServer;
     let profile = buildOptions.profile && !isDevServer;
@@ -76,11 +69,6 @@ export function getCommonWebpackConfigPartial(webpackConfigOptions: WebpackConfi
 
     // rules
     const rules: any[] = [
-        {
-            test: /\.json$/,
-            use: jsonLoader,
-            exclude: [path.resolve(srcDir, 'appsettings.json')]
-        },
         {
             test: /\.html$/,
             use: rawLoader,
@@ -146,17 +134,6 @@ export function getCommonWebpackConfigPartial(webpackConfigOptions: WebpackConfi
             test: /\.js$/,
             use: sourceMapLoader,
             exclude: sourceMapExcludes
-        });
-    }
-
-    // build-optimizer/webpack-loader
-    if (buildOptions.production && buildOptions.buildOptimizer) {
-        rules.push({
-            test: /\.js$/,
-            use: [{
-                loader: buildOptimizerLoader,
-                options: { sourceMap: projectConfig.sourceMap }
-            }]
         });
     }
 
@@ -334,13 +311,14 @@ export function getCommonWebpackConfigPartial(webpackConfigOptions: WebpackConfi
     }
 
     // Provide plugin
-    if ((projectConfig as AppProjectConfig).provides &&
-        typeof (projectConfig as AppProjectConfig).provides === 'object' &&
-        Object.keys((projectConfig as AppProjectConfig).provides).length > 0) {
-        plugins.push(
-            // NOTE: when adding more properties make sure you include them in custom-typings.d.ts
-            new webpack.ProvidePlugin((projectConfig as AppProjectConfig).provides as any)
-        );
+    if ((projectConfig as AppProjectConfig).provides) {
+        var provideConfig = (projectConfig as AppProjectConfig).provides as any;
+        if (Object.keys(provideConfig).length > 0) {
+            plugins.push(
+                // NOTE: when adding more properties make sure you include them in custom-typings.d.ts
+                new webpack.ProvidePlugin((projectConfig as AppProjectConfig).provides as any)
+            );
+        }
     }
 
     // performance options

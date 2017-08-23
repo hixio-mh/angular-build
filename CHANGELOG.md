@@ -1,10 +1,10 @@
-﻿# 2017/08/07
+﻿# v4.0.2
+- Updated to .Net Core 2.0.0 in ASP.Net Core template
 - Package dependencies updated
-- Removed - webpack-dev-server dependencies.
-- Updated .appveyor file
-- - Updated ..travis.yml file
-- Updated yarn.lock file
-- Added .circleci
+- Updated .appveyor and .travis.yml files
+- Removed script-loader dependency 'cause it used `eval` instead we use webpack-concat-plugin (ref: [angular-cli](https://github.com/angular/angular-cli/commit/e8f27f029ad89f963547d03afdc06c77550b9ee6))
+- Removed json-loader dependency
+- Other minor bug fixes and improvements
 
 # v4.0.1
 - Package dependencies updated

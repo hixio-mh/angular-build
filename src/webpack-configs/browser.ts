@@ -4,10 +4,14 @@ import * as webpack from 'webpack';
 
 import * as HtmlWebpackPlugin from 'html-webpack-plugin';
 
+// ReSharper disable once InconsistentNaming
+// ReSharper disable once CommonJsExternalModule
+const ConcatPlugin = require('webpack-concat-plugin');
+
 import { CustomizeAssetsHtmlWebpackPlugin } from '../plugins/customize-assets-html-webpack-plugin';
 import { DllAssetsReferenceWebpackPlugin } from '../plugins/dll-assets-reference-webpack-plugin';
 import { IconWebpackPlugin } from '../plugins/icon-webpack-plugin';
-
+import { InsertConcatAssetsWebpackPlugin } from '../plugins/insert-concat-assets-webpack-plugin';
 import {
     DllParsedEntry, getNodeModuleStartPaths, mergeProjectConfigWithEnvOverrides, parseDllEntry, parseIconOptions,
     parseScriptEntry, ScriptParsedEntry
@@ -17,12 +21,6 @@ import { AppProjectConfig } from '../models';
 import { getGlobalStyleEntries } from './styles';
 
 import { WebpackConfigOptions } from './webpack-config-options';
-
-/**
- * Enumerate loaders and their dependencies from this file to let the dependency validator
- * know they are used.
- * require('script-loader')
- */
 
 export function getHtmlInjectWebpackConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
     const projectRoot = webpackConfigOptions.projectRoot;
@@ -84,8 +82,48 @@ export function getHtmlInjectWebpackConfigPartial(webpackConfigOptions: WebpackC
     }
 
     // prepare global scripts
-    if (appConfig.scripts && appConfig.scripts.length && !appConfig.referenceDll) {
-        parseScriptEntry(appConfig.scripts, srcDir, 'scripts').forEach((scriptEntry: ScriptParsedEntry) => {
+    if (appConfig.scripts && appConfig.scripts.length > 0) {
+        const globalScripts = parseScriptEntry(appConfig.scripts, srcDir, 'scripts');
+
+        const globalScriptsByEntry = globalScripts
+            .reduce((prev: { entry: string, paths: string[], lazy: boolean }[], curr: ScriptParsedEntry) => {
+
+                const existingEntry = prev.find((el) => el.entry === curr.entry);
+                if (existingEntry) {
+                    existingEntry.paths.push(curr.path);
+                    // All entries have to be lazy for the bundle to be lazy.
+                    existingEntry.lazy = existingEntry.lazy && !!curr.lazy;
+                } else {
+                    prev.push({ entry: curr.entry, paths: [curr.path], lazy: !!curr.lazy });
+                }
+                return prev;
+            }, []);
+
+        // Add a new asset for each entry.
+        globalScriptsByEntry.forEach((script) => {
+            const fileHashFormat = appConfig.appendOutputHash && !script.lazy
+                ? '.[hash]'
+                : '';
+
+            plugins.push(new ConcatPlugin({
+                // TODO: to review
+                uglify: buildOptions.production ? { sourceMapIncludeSources: true } : false,
+                sourceMap: appConfig.sourceMap,
+                name: script.entry,
+                // Lazy scripts don't get a hash, otherwise they can't be loaded by name.
+                fileName: `[name]${script.lazy ? '' : fileHashFormat}.js`,
+                filesToConcat: script.paths
+            }));
+        });
+
+        // Insert all the assets created by ConcatPlugin in the right place in index.html.
+        plugins.push(new InsertConcatAssetsWebpackPlugin(
+            globalScriptsByEntry
+                .filter((el) => !el.lazy)
+                .map((el) => el.entry)
+        ));
+
+        globalScriptsByEntry.forEach((scriptEntry: { entry: string, paths: string[], lazy: boolean }) => {
             if (scriptEntry.lazy) {
                 lazyChunks.push(scriptEntry.entry);
             } else {
@@ -99,7 +137,7 @@ export function getHtmlInjectWebpackConfigPartial(webpackConfigOptions: WebpackC
     if (!appConfig.referenceDll) {
         chunkSortList.push(vendorChunkName);
     }
-    // TODO: to review order
+
     chunkSortList.push(commonChunkName);
     chunkSortList.push(mainChunkName);
 
@@ -114,7 +152,7 @@ export function getHtmlInjectWebpackConfigPartial(webpackConfigOptions: WebpackC
 
     // dll assets
     if (appConfig.referenceDll) {
-        const clonedAppConfig = JSON.parse(JSON.stringify(webpackConfigOptions.projectConfigMaster));
+        const clonedAppConfig = JSON.parse(JSON.stringify(webpackConfigOptions.projectConfigMaster)) as AppProjectConfig;
         mergeProjectConfigWithEnvOverrides(clonedAppConfig, buildOptions);
 
         const dllOutDir = path.resolve(projectRoot, clonedAppConfig.outDir || '');
@@ -453,44 +491,6 @@ export function getChunksWebpackConfigPartial(webpackConfigOptions: WebpackConfi
     };
 
     return webpackChunksConfig;
-}
-
-export function getGlobalScriptsWebpackConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
-    const projectRoot = webpackConfigOptions.projectRoot;
-    const buildOptions = webpackConfigOptions.buildOptions;
-    const environment = buildOptions.environment || {};
-    const appConfig = webpackConfigOptions.projectConfig as AppProjectConfig;
-
-    // browser only
-    if (environment.test ||
-        environment.dll ||
-        appConfig.referenceDll ||
-        appConfig.projectType !== 'app' ||
-        (appConfig.platformTarget && appConfig.platformTarget !== 'web')) {
-        return {};
-    }
-
-    const cliIsLocal = (buildOptions as any).cliIsLocal !== false;
-    const scriptLoader = cliIsLocal ? 'script-loader' : require.resolve('script-loader');
-
-    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
-    const entryPoints: { [key: string]: string[] } = {};
-
-    if (appConfig.scripts && appConfig.scripts.length > 0) {
-        const globalScripts = parseScriptEntry(appConfig.scripts, srcDir, 'scripts');
-
-        // add entry points and lazy chunks
-        globalScripts.forEach((scriptParsedEntry: ScriptParsedEntry) => {
-            const scriptPath = `${scriptLoader}!${scriptParsedEntry.path}`;
-            entryPoints[scriptParsedEntry.entry] = (entryPoints[scriptParsedEntry.entry] || []).concat(scriptPath);
-        });
-    }
-
-    const webpackGlobalScriptsConfig: webpack.Configuration = {
-        entry: entryPoints
-    };
-
-    return webpackGlobalScriptsConfig;
 }
 
 function packageChunkSort(packages: string[]): HtmlWebpackPlugin.ChunkComparator {

@@ -46,7 +46,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include=".appveyor.yml" />
-    <Content Include=".circleci\config.yml" />
     <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
     <Content Include=".npmignore" />
@@ -67,16 +66,15 @@
     <Content Include="TROUBLESHOOTING.md" />
     <Content Include="tsconfig.json" />
     <Content Include="tslint.json" />
-    <Content Include="yarn.lock" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\" />
-    <Folder Include=".circleci\" />
     <Folder Include="schemas\" />
     <Folder Include="src\cli\new\" />
     <Folder Include="src\plugins\assets-json-webpack-plugin\" />
     <Folder Include="src\plugins\dll-assets-reference-webpack-plugin\" />
     <Folder Include="src\plugins\named-lazy-chunks-webpack-plugin\" />
+    <Folder Include="src\plugins\insert-concat-assets-webpack-plugin\" />
     <Folder Include="src\plugins\rollup-plugin-ng-resource-inline\" />
     <Folder Include="src\rollup-configs\" />
     <Folder Include="templates\" />
@@ -135,6 +133,7 @@
     <TypeScriptCompile Include="src\helpers\get-node-modules-start-paths.ts" />
     <TypeScriptCompile Include="src\plugins\assets-json-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\dll-assets-reference-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\insert-concat-assets-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\named-lazy-chunks-webpack-plugin\index.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

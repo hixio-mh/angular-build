@@ -28,6 +28,7 @@ import { WebpackConfigOptions } from './webpack-config-options';
  * require('ng-router-loader')
  * require('awesome-typescript-loader')
  * require('angular2-template-loader')
+ * require('@angular-devkit/build-optimizer')
  */
 
 export function getAngularTypescriptWebpackConfigPartial(webpackConfigOptions: WebpackConfigOptions): webpack.Configuration {
@@ -151,7 +152,7 @@ export function getAngularFixPlugins(projectRoot: string, projectConfig: Project
             // Workaround for https://github.com/angular/angular/issues/14898
             new webpack.ContextReplacementPlugin(
                 // Angular 2
-                /// angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
+                // angular(\\|\/)core(\\|\/)(esm(\\|\/)src|src)(\\|\/)linker/,
                 // Angular 4
                 /angular(\\|\/)core(\\|\/)@angular/,
                 srcDir
@@ -179,20 +180,46 @@ function getAngularTypescriptWithAoTPluginWebpackConfigPartial(webpackConfigOpti
 
     // IMPORTANT: To solve 'Cannot read property 'newLine' of undefined' error.
     const ngToolsWebpackLoader = cliIsLocal ? '@ngtools/webpack' : require.resolve('@ngtools/webpack');
+    const buildOptimizerLoader = cliIsLocal
+        ? '@angular-devkit/build-optimizer/webpack-loader'
+        : require.resolve('@angular-devkit/build-optimizer/webpack-loader');
 
-    const tsRules: any[] = [
+    let boLoaders: any = [];
+    if (buildOptions.production && buildOptions.buildOptimizer) {
+        boLoaders = [{
+            loader: buildOptimizerLoader,
+            options: { sourceMap: projectConfig.sourceMap }
+        }];
+    }
+
+    const rules: any[] = [
         {
             test: /\.ts$/,
-            use: ngToolsWebpackLoader
+            use: [...boLoaders, ngToolsWebpackLoader]
             // exclude: [/\.(spec|e2e|e2e-spec)\.ts$/]
         }
     ];
+
+    // build-optimizer/webpack-loader
+    if (buildOptions.production && buildOptions.buildOptimizer) {
+        rules.push({
+            test: /\.js$/,
+            use: [{
+                loader: buildOptimizerLoader,
+                options: { sourceMap: projectConfig.sourceMap }
+            }]
+        });
+    }
 
     const tsConfigPath = path.resolve(projectRoot,
         projectConfig.srcDir || '',
         projectConfig.tsconfig || 'tsconfig.json');
     const hostReplacementPaths: any = getHostReplacementPaths(projectRoot, projectConfig);
-    const aotOptions: any = { exclude, tsConfigPath, hostReplacementPaths };
+    const aotOptions: any = {
+        exclude,
+        tsConfigPath,
+        hostReplacementPaths
+    };
 
     if (!environment.aot) {
         aotOptions.skipCodeGeneration = true;
@@ -209,7 +236,7 @@ function getAngularTypescriptWithAoTPluginWebpackConfigPartial(webpackConfigOpti
 
     return {
         module: {
-            rules: tsRules
+            rules: rules
         },
         plugins: plugins
     };
@@ -376,6 +403,9 @@ function createAotPlugin(webpackConfigOptions: WebpackConfigOptions, aotOptions:
             // If not specifed mainPath and angularCompilerOptions, awesome error occurs:
             // ERROR in Cannot read property 'split' of undefined
             mainPath: path.join(projectRoot, projectConfig.srcDir || '', projectConfig.entry),
+            replaceExport: projectConfig.platformTarget === 'node' ||
+                projectConfig.platformTarget === 'async-node' ||
+                projectConfig.platformTarget === 'node-webkit',
             // If we don't explicitely list excludes, it will default to `['**/*.spec.ts']`.
             exclude: []
         },

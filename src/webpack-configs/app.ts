@@ -9,7 +9,7 @@ import { AppProjectConfig, DllEntry } from '../models';
 import { Logger } from '../utils';
 
 import { getAngularTypescriptWebpackConfigPartial, getAngularServiceWorkerWebpackConfigPartial } from './angular';
-import { getChunksWebpackConfigPartial, getGlobalScriptsWebpackConfigPartial, getHtmlInjectWebpackConfigPartial } from
+import { getChunksWebpackConfigPartial, getHtmlInjectWebpackConfigPartial } from
     './browser';
 import { getCommonWebpackConfigPartial } from './common';
 import { getAppReferenceDllWebpackConfigPartial } from './reference-dll';
@@ -50,7 +50,6 @@ export function getAppWebpackConfig(webpackConfigOptions: WebpackConfigOptions):
         // browser only
         getHtmlInjectWebpackConfigPartial(webpackConfigOptions),
         getChunksWebpackConfigPartial(webpackConfigOptions),
-        getGlobalScriptsWebpackConfigPartial(webpackConfigOptions),
 
         getStylesWebpackConfigPartial(webpackConfigOptions),
         getAngularTypescriptWebpackConfigPartial(webpackConfigOptions),

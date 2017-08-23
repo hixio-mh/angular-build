@@ -5,7 +5,7 @@ import * as denodeify from 'denodeify';
 import * as path from 'path';
 
 import { colorize, isInFolder, isSamePaths, normalizeRelativePath, readJson } from '../../utils';
-import { AngularBuildConfig, AppProjectConfig, ModuleReplacementEntry } from '../../models';
+import { AngularBuildConfig, AppProjectConfig, HtmlInjectOptions, ModuleReplacementEntry } from '../../models';
 import { FaviconConfig } from '../../plugins/icon-webpack-plugin';
 
 import { InitInfo } from './init-info';
@@ -797,7 +797,9 @@ async function initAppProject(cfg: InitInfo, trackInfo: AppCreateTrackInfo): Pro
     // dlls
     if (!currentAppConfig.dlls || !currentAppConfig.dlls.length) {
         const dllExcludes = ['isomorphic-fetch', 'preboot'];
-        if (cfg.userPackageConfig.dependencies['aspnet-prerendering'] && currentAppConfig.platformTarget === 'web') {
+        if (cfg.userPackageConfig.dependencies &&
+            cfg.userPackageConfig.dependencies['aspnet-prerendering'] &&
+            currentAppConfig.platformTarget === 'web') {
             dllExcludes.push('aspnet-prerendering');
         }
 
@@ -968,7 +970,7 @@ async function initAppProject(cfg: InitInfo, trackInfo: AppCreateTrackInfo): Pro
                     .filter((app: AppProjectConfig) => app.htmlInjectOptions && app.platformTarget === 'web')
                     .map((app: AppProjectConfig) => JSON.parse(JSON.stringify(app.htmlInjectOptions)));
             if (foundHtmlInjectOptions.length) {
-                currentAppConfig.htmlInjectOptions = foundHtmlInjectOptions[0];
+                currentAppConfig.htmlInjectOptions = foundHtmlInjectOptions[0] as HtmlInjectOptions;
             }
         }
         currentAppConfig.htmlInjectOptions = currentAppConfig.htmlInjectOptions || {};
