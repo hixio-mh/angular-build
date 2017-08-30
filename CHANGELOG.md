@@ -1,4 +1,7 @@
-﻿# v4.0.2
+﻿# v4.0.3
+- Bug fixed - incorrect path in global scripts html injection 
+
+# v4.0.2
 - Updated to .Net Core 2.0.0 in ASP.Net Core template
 - Package dependencies updated
 - Updated .appveyor and .travis.yml files

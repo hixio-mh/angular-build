@@ -54,7 +54,6 @@
     <Content Include="bin\angular-build" />
     <Content Include="bin\ngb" />
     <Content Include="CHANGELOG.md" />
-    <Content Include="package-lock.json" />
     <Content Include="schemas\favicon-config-schema-draft-04.json" />
     <Content Include="schemas\favicon-config-schema.json" />
     <Content Include="schemas\schema-draft-04.json" />
@@ -74,7 +73,7 @@
     <Folder Include="src\plugins\assets-json-webpack-plugin\" />
     <Folder Include="src\plugins\dll-assets-reference-webpack-plugin\" />
     <Folder Include="src\plugins\named-lazy-chunks-webpack-plugin\" />
-    <Folder Include="src\plugins\insert-concat-assets-webpack-plugin\" />
+    <Folder Include="src\plugins\script-concat-webpack-plugin\" />
     <Folder Include="src\plugins\rollup-plugin-ng-resource-inline\" />
     <Folder Include="src\rollup-configs\" />
     <Folder Include="templates\" />
@@ -133,7 +132,7 @@
     <TypeScriptCompile Include="src\helpers\get-node-modules-start-paths.ts" />
     <TypeScriptCompile Include="src\plugins\assets-json-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\dll-assets-reference-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\insert-concat-assets-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\script-concat-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\named-lazy-chunks-webpack-plugin\index.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

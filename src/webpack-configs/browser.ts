@@ -4,14 +4,10 @@ import * as webpack from 'webpack';
 
 import * as HtmlWebpackPlugin from 'html-webpack-plugin';
 
-// ReSharper disable once InconsistentNaming
-// ReSharper disable once CommonJsExternalModule
-const ConcatPlugin = require('webpack-concat-plugin');
-
 import { CustomizeAssetsHtmlWebpackPlugin } from '../plugins/customize-assets-html-webpack-plugin';
 import { DllAssetsReferenceWebpackPlugin } from '../plugins/dll-assets-reference-webpack-plugin';
 import { IconWebpackPlugin } from '../plugins/icon-webpack-plugin';
-import { InsertConcatAssetsWebpackPlugin } from '../plugins/insert-concat-assets-webpack-plugin';
+import { ScriptsConcatWebpackPlugin } from '../plugins/script-concat-webpack-plugin';
 import {
     DllParsedEntry, getNodeModuleStartPaths, mergeProjectConfigWithEnvOverrides, parseDllEntry, parseIconOptions,
     parseScriptEntry, ScriptParsedEntry
@@ -81,7 +77,16 @@ export function getHtmlInjectWebpackConfigPartial(webpackConfigOptions: WebpackC
         });
     }
 
-    // prepare global scripts
+    const defaultHtmlWebpackPluginId = 'DefaultHtmlWebpackPlugin';
+    const stylesHtmlWebpackPluginId = 'StylesHtmlWebpackPlugin';
+    const scriptsHtmlWebpackPluginId = 'ScriptsHtmlWebpackPlugin';
+    const resourceHintsHtmlWebpackPluginId = 'ResourceHintsHtmlWebpackPlugin';
+
+    appConfig.htmlInjectOptions = appConfig.htmlInjectOptions || {};
+    const customLinkAttributes = appConfig.htmlInjectOptions.customLinkAttributes;
+    const customScriptAttributes = appConfig.htmlInjectOptions.customScriptAttributes;
+
+    // global scripts
     if (appConfig.scripts && appConfig.scripts.length > 0) {
         const globalScripts = parseScriptEntry(appConfig.scripts, srcDir, 'scripts');
 
@@ -99,29 +104,22 @@ export function getHtmlInjectWebpackConfigPartial(webpackConfigOptions: WebpackC
                 return prev;
             }, []);
 
+        const targetScriptIds = [defaultHtmlWebpackPluginId, scriptsHtmlWebpackPluginId, resourceHintsHtmlWebpackPluginId];
+
         // Add a new asset for each entry.
         globalScriptsByEntry.forEach((script) => {
-            const fileHashFormat = appConfig.appendOutputHash && !script.lazy
-                ? '.[hash]'
-                : '';
-
-            plugins.push(new ConcatPlugin({
-                // TODO: to review
-                uglify: buildOptions.production ? { sourceMapIncludeSources: true } : false,
+            plugins.push(new ScriptsConcatWebpackPlugin({
+                inputs: script.paths,
+                output: `${script.entry}.js`,
+                lazy: script.lazy,
+                appendHash: appConfig.appendOutputHash,
+                minify: buildOptions.production,
                 sourceMap: appConfig.sourceMap,
-                name: script.entry,
-                // Lazy scripts don't get a hash, otherwise they can't be loaded by name.
-                fileName: `[name]${script.lazy ? '' : fileHashFormat}.js`,
-                filesToConcat: script.paths
+                verbose: buildOptions.verbose,
+                targetHtmlWebpackPluginIds: targetScriptIds,
+                customAttributes: customScriptAttributes
             }));
         });
-
-        // Insert all the assets created by ConcatPlugin in the right place in index.html.
-        plugins.push(new InsertConcatAssetsWebpackPlugin(
-            globalScriptsByEntry
-                .filter((el) => !el.lazy)
-                .map((el) => el.entry)
-        ));
 
         globalScriptsByEntry.forEach((scriptEntry: { entry: string, paths: string[], lazy: boolean }) => {
             if (scriptEntry.lazy) {
@@ -140,15 +138,6 @@ export function getHtmlInjectWebpackConfigPartial(webpackConfigOptions: WebpackC
 
     chunkSortList.push(commonChunkName);
     chunkSortList.push(mainChunkName);
-
-    const defaultHtmlWebpackPluginId = 'DefaultHtmlWebpackPlugin';
-    const stylesHtmlWebpackPluginId = 'StylesHtmlWebpackPlugin';
-    const scriptsHtmlWebpackPluginId = 'ScriptsHtmlWebpackPlugin';
-    const resourceHintsHtmlWebpackPluginId = 'ResourceHintsHtmlWebpackPlugin';
-
-    appConfig.htmlInjectOptions = appConfig.htmlInjectOptions || {};
-    const customLinkAttributes = appConfig.htmlInjectOptions.customLinkAttributes;
-    const customScriptAttributes = appConfig.htmlInjectOptions.customScriptAttributes;
 
     // dll assets
     if (appConfig.referenceDll) {
