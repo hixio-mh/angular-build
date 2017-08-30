@@ -1,5 +1,4 @@
-﻿// Add assets from `ConcatPlugin` to index.html.
-// Ref: angular-cli - https://github.com/angular/angular-cli
+﻿// Ref: hxlniada/webpack-concat-plugin - https://github.com/hxlniada/webpack-concat-plugin
 
 import * as fs from 'fs';
 import * as md5 from 'md5';
