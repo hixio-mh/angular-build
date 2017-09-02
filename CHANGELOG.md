@@ -1,4 +1,8 @@
-﻿# v4.0.3
+﻿# v4.0.4
+- Fixed - rollup deprecation warnings
+- updated npm packages
+
+# v4.0.3
 - Bug fixed - incorrect path in global scripts html injection 
 
 # v4.0.2

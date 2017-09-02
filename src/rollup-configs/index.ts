@@ -24,9 +24,29 @@ import { RollupConfigOptions } from './rollup-config-options';
 
 export * from './rollup-config-options';
 
+export interface RollupInputOptions {
+    input: string | string[];
+    external?: ((id: string) => boolean) | string[];
+    onwarn?(warning: rollup.Warning): void;
+    plugins?: any[];
+    context?: any;
+    moduleContext?: ((id: string) => any) | { [id: string]: any };
+}
+
+export interface RollupOutputOptions {
+    file: string;
+    format: string;
+    name?: string;
+    exports?: 'auto' | 'default' | 'named' | 'none';
+    globals?: { [id: string]: string };
+    sourcemap?: boolean | 'inline';
+    sourcemapFile?: string;
+    banner?: string;
+}
+
 export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
-    options: rollup.Options;
-    writeOptions: rollup.WriteOptions;
+    inputOptions: RollupInputOptions;
+    outputOptions: RollupOutputOptions;
 } {
     const projectRoot = rollupConfigOptions.projectRoot;
     const buildOptions = rollupConfigOptions.buildOptions;
@@ -96,7 +116,7 @@ export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
     const rawBanner = libConfig.banner
         ? prepareBannerSync(projectRoot, libConfig.srcDir || '', libConfig.banner)
         : undefined;
-    const plugins: rollup.Plugin[] = [];
+    const plugins: any[] = [];
     const isTsEntry = /\.ts$/i.test(bundleEntryFile);
 
     let stylePreprocessorIncludePaths: string[] = [];
@@ -223,7 +243,7 @@ export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
     }
 
     if (isTsEntry) {
-// ReSharper disable once CommonJsExternalModule
+        // ReSharper disable once CommonJsExternalModule
         const typescript = require('rollup-plugin-typescript2');
 
         const tsConfigPath = path.resolve(projectRoot, libConfig.srcDir || '', libConfig.tsconfig || 'tsconfig.json');
@@ -246,8 +266,8 @@ export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
         // }));
     }
 
-    const bundleOptions: rollup.Options = {
-        entry: bundleEntryPath,
+    const inputOptions: RollupInputOptions = {
+        input: bundleEntryPath,
         // exports: 'named',
         external: externals,
         plugins: plugins,
@@ -260,26 +280,24 @@ export function getRollupConfig(rollupConfigOptions: RollupConfigOptions): {
             }
 
             // console.warn everything else
-            console.warn(warning.message);
+            logger.warnLine(warning.message);
         }
     };
 
-    const writeOptions: rollup.WriteOptions = {
-        // Keep the moduleId empty because we don't want to force developers to a specific moduleId.
-        moduleId: '',
-        moduleName: moduleName,
+    const outputOptions: RollupOutputOptions = {
+        name: moduleName,
         format: format,
         globals: rollupExternalMap.globals,
         // suitable if you're exporting more than one thing
         exports: 'named',
         banner: rawBanner,
-        dest: bundleDestFilePath,
-        sourceMap: libConfig.sourceMap
+        file: bundleDestFilePath,
+        sourcemap: libConfig.sourceMap
     };
 
     return {
-        options: bundleOptions,
-        writeOptions: writeOptions
+        inputOptions: inputOptions,
+        outputOptions: outputOptions
     };
 }
 

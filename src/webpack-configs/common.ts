@@ -252,10 +252,11 @@ export function getCommonWebpackConfigPartial(webpackConfigOptions: WebpackConfi
             devtool = undefined;
             // '[absolute-resource-path]'
             // Or
-            let defaultModuleFilenameTemplate = path.relative(projectConfig.srcDir || '', '[resourcePath]');
+            let defaultModuleFilenameTemplate =
+                path.relative(projectConfig.outDir || '', '[resourcePath]').replace(/\\/g, '/');
             plugins.push(new webpack.SourceMapDevToolPlugin({
                 // if no value is provided the sourcemap is inlined
-                filename: '[file].map[query]',
+                filename: '[file].map', // [file].map[query]
                 // default: "webpack:///[resourcePath]"
                 moduleFilenameTemplate: projectConfig.sourceMapModuleFilenameTemplate || defaultModuleFilenameTemplate
                 // default: "webpack:///[resourcePath]?[hash]"

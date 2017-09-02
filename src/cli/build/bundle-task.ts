@@ -403,8 +403,8 @@ export async function bundleTask(libBuildPipeInfo: LibBuildPipeInfo): Promise<vo
                     logger: logger
                 };
                 const rollupOptions = getRollupConfig(rollupConfigOptions);
-                const bundle = await rollup.rollup(rollupOptions.options);
-                await bundle.write(rollupOptions.writeOptions);
+                const bundle = await rollup.rollup(rollupOptions.inputOptions as any);
+                await bundle.write(rollupOptions.outputOptions as any);
 
                 // Remapping sourcemaps
                 if (libConfig.sourceMap && bundleRootDir !== srcDir) {
