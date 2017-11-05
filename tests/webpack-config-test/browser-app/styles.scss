@@ -1,0 +1,12 @@
+$bg-color: blue;
+$fg-color: white;
+html,body{
+    width: 100%;
+    height: 100%;
+    color: $fg-color;
+    background-color: $bg-color;
+}
+
+a{
+    color: $fg-color;
+}

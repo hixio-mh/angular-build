@@ -1,126 +1,150 @@
 ﻿#!/usr/bin/env node
 'use strict';
 
-// Provide a title to the process in `ps`
 process.title = 'angular-build';
 
-const resolve = require('resolve');
-const packageJson = require('../package.json');
-const chalk = require('chalk');
-const SemVer = require('semver').SemVer;
 const fs = require('fs');
 const path = require('path');
+const stripIndents = require('common-tags').stripIndents;
+const resolve = require('resolve');
+const SemVer = require('semver').SemVer;
+const supportsColor = require('supports-color');
+const updateNotifier = require('update-notifier');
 
+const packageJson = require('../package.json');
 let cliVersion = packageJson['version'];
 
-//global.angularBuildCliIsLocal = true;
-
-function _versionFromPackageJson(cwd) {
-  cwd = cwd || process.cwd();
-
-  do {
-    const packageJsonPath = path.join(cwd, 'node_modules/angular-build/package.json');
-    if (fs.existsSync(packageJsonPath)) {
-      const content = fs.readFileSync(packageJsonPath, 'utf-8');
-      if (content) {
-        const json = JSON.parse(content);
-        if (json['version']) {
-          //return new SemVer(json['version']);
-          return json['version'];
-        }
-      }
+function _colorize(str, key) {
+    if (!supportsColor) {
+        return str;
     }
 
-    // Check the parent.
-    cwd = path.dirname(cwd);
-  } while (cwd != path.dirname(cwd));
+    const buf = [];
+    buf.push(key);
+    buf.push(str);
+    buf.push('\u001b[37m');
+    buf.push('\u001b[39m\u001b[22m');
+    return buf.join('');
+}
 
-  return null;
+function _yellow(str) {
+    return _colorize(str, '\u001b[1m\u001b[33m');
+}
+
+function _versionFromPackageJson(packageName) {
+    let cwd = process.cwd();
+    let findUpLevel = false;
+    if (!packageName) {
+        packageName = '@bizappframework/angular-build';
+        findUpLevel = true;
+    }
+    do {
+        const packageJsonPath = path.join(cwd, `node_modules/${packageName}/package.json`);
+        if (fs.existsSync(packageJsonPath)) {
+            const content = fs.readFileSync(packageJsonPath, 'utf-8');
+            if (content) {
+                const json = JSON.parse(content);
+                if (json['version']) {
+                    return json['version'];
+                }
+            }
+        }
+
+        if (!findUpLevel) {
+            const packageJsonGlobalPath = path.join(__dirname, `../node_modules/${packageName}/package.json`);
+            if (fs.existsSync(packageJsonGlobalPath)) {
+                const content = fs.readFileSync(packageJsonGlobalPath, 'utf-8');
+                if (content) {
+                    const json = JSON.parse(content);
+                    if (json['version']) {
+                        return json['version'];
+                    }
+                }
+            }
+        }
+        cwd = path.dirname(cwd);
+    } while (cwd !== path.dirname(cwd) && findUpLevel);
+
+    return '';
 }
 
 function _exit(code) {
-  if (process.platform === 'win32' && process.stdout.bufferSize) {
-    process.stdout.once('drain', function () {
-      process.exit(code);
-    });
-    return;
-  }
-  process.exit(code);
+    if (process.platform === 'win32' && process.stdout.bufferSize) {
+        process.stdout.once('drain', function () {
+            process.exit(code);
+        });
+        return;
+    }
+    process.exit(code);
 }
+
+updateNotifier({ pkg: packageJson })
+    .notify({ defer: false });
 
 // Show the warnings due to package and version deprecation.
 const version = new SemVer(process.version);
 if (version.compare(new SemVer('6.9.0')) < 0) {
-  process.stderr.write(yellow(`You are running version ${version.version} of Node, which will not be supported in future versions of the CLI. The official Node version that will be supported is 6.9 and greater.`));
+    console.warn(_yellow(stripIndents`
+  You are running version ${version.version} of Node, which will not be supported by the angular-build cli.
+  The official Node version that will be supported is 6.9 and greater.`));
 }
 
-resolve('@bizappframework/angular-build', {
-  basedir: process.cwd()
-}, (error, projectLocalCli) => {
-  let cli = null;
-  let cliIsLocal = false;
+resolve('@bizappframework/angular-build',
+    {
+        basedir: process.cwd()
+    },
+    (error, projectLocalCli) => {
+        let cli = null;
+        let cliIsLocal = false;
 
-  if (error) {
-    cliIsLocal = false;            
-    if (fs.existsSync(path.resolve(__dirname, '../cli/index.js'))) {
-      cli = require('../cli');
-    } else {
-      cli = require('../dist/cli');
-    }
-  } else {
-    cliIsLocal = true;
+        if (error) {
+            if (fs.existsSync(path.resolve(__dirname, '../cli/index.js'))) {
+                cli = require('../cli');
+            } else {
+                cli = require('../dist/cli');
+            }
+        } else {
+            cliIsLocal = true;
+            const globalVersion = new SemVer(packageJson['version']);
+            let localVersion = '';
+            let shouldWarn = false;
+            try {
+                const v = _versionFromPackageJson();
+                if (v) {
+                    localVersion = new SemVer(v);
+                    cliVersion = localVersion;
+                }
 
-    // This was run from a global, check local version.
-    const globalVersion = new SemVer(packageJson['version']);
-    let localVersion;
-    let shouldWarn = false;
-    try {
-      let v = _versionFromPackageJson();
-      if (v) {
-        localVersion = new SemVer(v);
-        cliVersion = localVersion;
-      }
+                shouldWarn = localVersion && globalVersion.compare(localVersion) > 0;
+            } catch (err) {
+                console.error(err);
+                shouldWarn = true;
+            }
 
-      shouldWarn = localVersion && globalVersion.compare(localVersion) > 0;
-    } catch (err) {
-      console.error(err);
-      shouldWarn = true;
-    }
+            if (shouldWarn) {
+                console.warn(_yellow(stripIndents`
+      Your global angular-build cli version (${globalVersion}) is greater than
+      your local version (${localVersion}). The local Angular-build cli version is used.`));
+            }
 
-    if (shouldWarn) {
-      console.log(chalk.yellow(`Your global angular-build cli version (${globalVersion}) is greater than ` +
-        `your local version (${localVersion}). The local Angular-build cli version is used.`));
-    }
+            // projectLocalCli -> index.js
+            let localCliPath = path.resolve(path.dirname(projectLocalCli), './cli');
+            cli = require(localCliPath);
+        }
 
-    // projectLocalCli -> index.js
-    let localCliPath = path.resolve(path.dirname(projectLocalCli), './cli');
-    cli = require(localCliPath);
-  }
+        if ('default' in cli) {
+            cli = cli['default'];
+        }
 
-  if ('default' in cli) {
-    cli = cli['default'];
-  }
+        const cliOptions = {
+            args: process.argv.slice(2),
+            cliVersion: cliVersion,
+            cliIsGlobal: !cliIsLocal
+        };
 
-  let standardInput;
-  try {
-    standardInput = process.stdin;
-  } catch (e) {
-    delete process.stdin;
-    process.stdin = new events.EventEmitter();
-    standardInput = process.stdin;
-  }
-
-  cli({
-    cliArgs: process.argv.slice(2),
-    inputStream: standardInput,
-    outputStream: process.stdout,
-    errorStream: process.stderr,
-    cliVersion: cliVersion,
-    cliIsLocal: cliIsLocal
-  }).then((result) => _exit(typeof result === 'object' ? result.exitCode : result))
-    .catch(err => {
-      if (err) {
-        throw err;
-      }
+        cli(cliOptions)
+            .then((exitCode) => {
+                process.exitCode = typeof exitCode === 'number' ? exitCode : 0;
+                _exit(process.exitCode);
+            });
     });
-});

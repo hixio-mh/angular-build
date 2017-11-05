@@ -1,36 +1,27 @@
-﻿import * as path from 'path';
-import * as fs from 'fs';
+﻿import { existsSync } from 'fs';
+import * as path from 'path';
 
-import { AngularBuildConfig, AppProjectConfig, BuildOptions, LibProjectConfig, ProjectConfig } from '../models';
-import { normalizeRelativePath } from '../utils';
+import * as ts from 'typescript';
 
-import { defaultAngularAndRxJsExternals } from './angular-rxjs-externals';
-import { isDllBuildFromNpmEvent, isAoTBuildFromNpmEvent, hasProdFlag, hasDevFlag, isUniversalBuildFromNpmEvent,
-    isWebpackDevServer, hasProcessFlag } from './process-helpers';
+import {
+    AngularBuildConfigInternal,
+    AppProjectConfig,
+    AppProjectConfigInternal,
+    InternalError,
+    InvalidConfigError,
+    LibProjectConfig,
+    LibProjectConfigInternal,
+    PreDefinedEnvironment,
+    ProjectConfigInternal,
+    TsTranspilationOptionsInternal } from '../models';
+import { isWebpackDevServer } from './is-webpack-dev-server';
 
-export const reserviedEnvNames = [
-    'app', 'lib', 'project', 'buildOptions', 'baseHref', 'deployUrl', 'publicPath', 'hot', 'devSever'
-];
+import { parseDllEntries, parseGlobalEntries } from '../helpers';
+import { isInFolder, isSamePaths, normalizeRelativePath } from '../utils';
 
-export function prepareBuildOptions(buildOptions: BuildOptions): void {
-    if (!buildOptions) {
-        throw new Error(`The 'buildOptions' is required.`);
-    }
-
-    mergeBuildOptionsWithDefaults(buildOptions);
-}
-
-export function prepareAngularBuildConfig(projectRoot: string,
-    angularBuildConfig: AngularBuildConfig,
-    buildOptions: BuildOptions): void {
-    if (!projectRoot) {
-        throw new Error(`The 'projectRoot' is required.`);
-    }
+export function applyAngularBuildConfigDefaults(angularBuildConfig: AngularBuildConfigInternal): void {
     if (!angularBuildConfig) {
-        throw new Error(`The 'angularBuildConfig' is required.`);
-    }
-    if (!buildOptions) {
-        throw new Error(`The 'buildOptions' is required.`);
+        throw new InternalError(`The 'angularBuildConfig' is required.`);
     }
 
     angularBuildConfig.apps = angularBuildConfig.apps || [];
@@ -40,55 +31,67 @@ export function prepareAngularBuildConfig(projectRoot: string,
     angularBuildConfig.libs = applyProjectConfigExtends(angularBuildConfig.libs);
     angularBuildConfig.apps = applyProjectConfigExtends(angularBuildConfig.apps);
 
-    angularBuildConfig.libs.forEach((libConfig: LibProjectConfig) => {
-        libConfig.projectType = 'lib';
-        // mergeProjectConfigWithEnvOverrides(libConfig, buildOptions);
-        mergeProjectConfigWithDefaults(projectRoot, libConfig, buildOptions);
-        mergeLibConfigWithDefaults(projectRoot, libConfig);
-    });
+    for (let i = 0; i < angularBuildConfig.libs.length; i++) {
+        const libConfig = angularBuildConfig.libs[i];
+        (libConfig as ProjectConfigInternal)._index = i;
+        (libConfig as ProjectConfigInternal)._projectType = 'lib';
+    }
 
-    angularBuildConfig.apps.forEach((appConfig: AppProjectConfig) => {
-        appConfig.projectType = 'app';
-        // mergeProjectConfigWithEnvOverrides(appConfig, buildOptions);
-        mergeProjectConfigWithDefaults(projectRoot, appConfig, buildOptions);
-        mergeAppConfigWithDefaults(projectRoot, appConfig, buildOptions);
-    });
+    for (let i = 0; i < angularBuildConfig.apps.length; i++) {
+        const appConfig = angularBuildConfig.apps[i];
+        (appConfig as ProjectConfigInternal)._index = i;
+        (appConfig as ProjectConfigInternal)._projectType = 'app';
+    }
 }
 
-export function mergeProjectConfigWithEnvOverrides(projectConfig: AppProjectConfig | LibProjectConfig,
-    buildOptions: BuildOptions): void {
-    if (!projectConfig || !projectConfig.envOverrides || Object.keys(projectConfig.envOverrides).length === 0) {
+export function applyProjectConfigWithEnvOverrides(projectConfig: AppProjectConfig | LibProjectConfig,
+    env: { [key: string]: boolean | string; } | PreDefinedEnvironment): void {
+    if (!env) {
+        throw new InternalError(`The 'env' is required.`);
+    }
+
+    if (!projectConfig ||
+        !projectConfig.envOverrides ||
+        Object.keys(projectConfig.envOverrides).length === 0) {
         return;
     }
 
-    const environment = buildOptions.environment || {};
+    const environment = env as PreDefinedEnvironment;
 
     const buildTargets: string[] = [];
-    if (environment.test) {
-        buildTargets.push('test');
-    } else {
-        if (buildOptions.production || environment.prod || environment.production) {
-            buildTargets.push('prod');
-            buildTargets.push('production');
-        } else if (!buildOptions.production || environment.dev || environment.development) {
-            buildTargets.push('dev');
-            buildTargets.push('development');
-        }
-
-        if (environment.dll) {
-            buildTargets.push('dll');
-        } else if (environment.aot) {
-            buildTargets.push('aot');
-        } else if (environment.universal) {
-            buildTargets.push('universal');
-        }
+    if (environment.dll) {
+        buildTargets.push('dll');
+    } else if (environment.aot) {
+        buildTargets.push('aot');
+        buildTargets.push('prod');
+        buildTargets.push('production');
     }
 
+    if (environment.prod || (environment as any).production) {
+        if (!buildTargets.includes('prod')) {
+            buildTargets.push('prod');
+        }
+        if (!buildTargets.includes('production')) {
+            buildTargets.push('production');
+        }
+    } else if (environment.dev ||
+        (environment as any).development ||
+        (!environment.prod && !(environment as any).production)) {
+        buildTargets.push('dev');
+        buildTargets.push('development');
+    }
+
+    if (environment.hot || isWebpackDevServer()) {
+        buildTargets.push('hot');
+    }
+
+    const preDefinedKeys = ['prod', 'production', 'dev', 'development', 'aot', 'dll', 'hot'];
+
     Object.keys(environment)
-        .filter(key => reserviedEnvNames.indexOf(key) === -1 &&
-            buildTargets.indexOf(key) === -1 &&
-            environment[key] &&
-            (typeof environment[key] === 'boolean' || environment[key] === 'true'))
+        .filter(key => !preDefinedKeys.includes(key.toLowerCase()) &&
+            !buildTargets.includes(key) &&
+            (environment as any)[key] &&
+            (typeof (environment as any)[key] === 'boolean' || (environment as any)[key] === 'true'))
         .forEach(key => {
             buildTargets.push(key);
         });
@@ -108,18 +111,39 @@ export function mergeProjectConfigWithEnvOverrides(projectConfig: AppProjectConf
     });
 }
 
-function applyProjectConfigExtends(projectConfigs: ProjectConfig[]): ProjectConfig[] {
+export function applyProjectConfigDefaults(projectRoot: string,
+    projectConfig: AppProjectConfigInternal | LibProjectConfigInternal,
+    environment: PreDefinedEnvironment): void {
+
+    if (projectConfig.skip) {
+        return;
+    }
+
+    const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
+    if (!environment.dll && projectConfig.styles && projectConfig.styles.length > 0) {
+        projectConfig._styleParsedEntries = parseGlobalEntries(projectConfig.styles, srcDir, 'styles');
+    }
+
+    if (projectConfig._projectType === 'lib') {
+        applyLibProjectConfigDefaults(projectRoot, projectConfig as LibProjectConfigInternal);
+    } else {
+        applyAppProjectConfigDefaults(projectRoot, projectConfig as AppProjectConfigInternal, environment);
+    }
+}
+
+function applyProjectConfigExtends(projectConfigs: (AppProjectConfig | LibProjectConfig)[]): any[] {
     if (!projectConfigs) {
         return [];
     }
 
-    return projectConfigs.map((projectConfig: ProjectConfig) => {
+    return projectConfigs.map((projectConfig: (AppProjectConfig | LibProjectConfig)) => {
         const extendName = projectConfig.extends;
         if (!extendName) {
             return projectConfig;
         }
 
-        const baseProject = projectConfigs.find((app: ProjectConfig) => app.name === extendName);
+        const baseProject =
+            projectConfigs.find((proj: (AppProjectConfig | LibProjectConfig)) => proj.name === extendName);
         if (!baseProject) {
             return projectConfig;
         }
@@ -135,170 +159,6 @@ function applyProjectConfigExtends(projectConfigs: ProjectConfig[]): ProjectConf
     });
 }
 
-function mergeBuildOptionsWithDefaults(buildOptions: BuildOptions): BuildOptions {
-    if (Array.isArray(buildOptions.environment)) {
-        const envObj: any = {};
-        buildOptions.environment.forEach((s: string) => envObj[s] = true);
-        buildOptions.environment = envObj;
-    } else if (typeof (buildOptions.environment as any) === 'string') {
-        const envObj: any = {};
-        const key = (buildOptions.environment as any) as string;
-        envObj[key] = true;
-        buildOptions.environment = envObj;
-    }
-    const environment = buildOptions.environment || {};
-
-    if (environment.buildOptions && typeof environment.buildOptions === 'object') {
-        buildOptions = Object.assign(buildOptions, environment.buildOptions);
-        delete environment.buildOptions;
-    }
-    if (environment.app &&
-        (typeof environment.app === 'string' || Array.isArray(environment.app))) {
-        buildOptions.filter = environment.app as any;
-        delete environment.app;
-    }
-    if (environment.project &&
-        (typeof environment.project === 'string' || Array.isArray(environment.project))) {
-        buildOptions.filter = environment.project as any;
-        delete environment.project;
-    }
-
-    Object.keys(environment).forEach((key: string) => {
-        if (typeof environment[key] === 'string' &&
-            (environment[key] as string).toLowerCase() === 'true') {
-            environment[key] = true;
-        } else if (typeof environment[key] === 'string' &&
-            (environment[key] as string).toLowerCase() === 'false') {
-            environment[key] = true;
-        }
-    });
-
-    if (typeof buildOptions.verbose === 'undefined') {
-        buildOptions.verbose = process.argv.indexOf('--verbose') > -1;
-    }
-
-    // dll
-    if (typeof (environment.dll) !== 'undefined') {
-        const dll = !!(environment.dll as any);
-        if (dll) {
-            environment.dll = true;
-        } else {
-            delete environment.dll;
-        }
-    } else {
-        const dll = isDllBuildFromNpmEvent() || process.argv.indexOf('--dll') > -1;
-        if (dll) {
-            environment.dll = true;
-        }
-    }
-
-    // aot
-    if (typeof (environment.aot) !== 'undefined') {
-        const aot = !!(environment.aot as any);
-        if (aot) {
-            environment.aot = true;
-        } else {
-            delete environment.aot;
-        }
-    } else {
-        const aot = isAoTBuildFromNpmEvent() || process.argv.indexOf('--aot') > -1;
-        if (aot) {
-            environment.aot = true;
-        }
-    }
-
-    // universal
-    if (typeof (environment.universal) !== 'undefined') {
-        const universal = !!(environment.universal as any);
-        if (universal) {
-            environment.universal = true;
-        } else {
-            delete environment.universal;
-        }
-    } else {
-        const universal = isUniversalBuildFromNpmEvent() || process.argv.indexOf('--universal') > -1;
-        if (universal) {
-            environment.universal = true;
-        }
-    }
-
-    // prod
-    if (typeof buildOptions.production !== 'undefined') {
-        environment.prod = !!(buildOptions.production as any);
-    } else if (typeof environment.prod !== 'undefined') {
-        const prod = !!(environment.prod as any);
-        buildOptions.production = prod;
-        if (prod) {
-            environment.prod = true;
-        } else {
-            delete environment.prod;
-        }
-    } else if (typeof environment.production !== 'undefined') {
-        const prod = !!(environment.production as any);
-        buildOptions.production = prod;
-        if (prod) {
-            environment.prod = true;
-        } else {
-            delete environment.production;
-        }
-    } else {
-        const production = hasProdFlag() ||
-            (!hasDevFlag() &&
-                !(environment.dev || environment.development) &&
-                (isAoTBuildFromNpmEvent() ||
-                    process.argv.indexOf('--aot') > -1 ||
-                    isUniversalBuildFromNpmEvent() ||
-                    process.argv.indexOf('--universal') > -1));
-        if (production) {
-            buildOptions.production = true;
-            environment.prod = true;
-        }
-    }
-
-    // dev
-    if (typeof environment.dev !== 'undefined' &&
-        (buildOptions.production || !environment.dev)) {
-        delete environment.dev;
-    }
-    if (typeof environment.development !== 'undefined' &&
-        (buildOptions.production || !environment.development)) {
-        delete environment.development;
-    }
-    if (environment.development) {
-        environment.dev = true;
-        delete environment.development;
-    }
-    if (environment.dev) {
-        environment.dev = true;
-    }
-    if (!buildOptions.production &&
-        !environment.test &&
-        typeof environment.dev === 'undefined') {
-        environment.dev = true;
-    }
-
-    // devServer
-    if (isWebpackDevServer() || environment.devServer) {
-        environment.devServer = true;
-    }
-
-    // hmr
-    if (hasProcessFlag('hot') || environment.hot || environment.hmr) {
-        environment.hot = true;
-        if (environment.hmr) {
-            delete environment.hmr;
-        }
-    }
-
-    // Reset aot = false
-    if (environment.dll && environment.aot) {
-        environment.aot = false;
-    }
-
-    buildOptions.environment = environment;
-    return buildOptions;
-}
-
 function overrideProjectConfig(oldConfig: any, newConfig: any): void {
     if (!newConfig || !oldConfig || typeof newConfig !== 'object' || Object.keys(newConfig).length === 0) {
         return;
@@ -309,137 +169,279 @@ function overrideProjectConfig(oldConfig: any, newConfig: any): void {
     });
 }
 
-function mergeProjectConfigWithDefaults(projectRoot: string,
-    projectConfig: ProjectConfig,
-    buildOptions: BuildOptions): void {
-    // srcDir
-    if (!projectConfig.srcDir &&
-        projectConfig.entry &&
-        fs.existsSync(path.resolve(projectRoot, projectConfig.entry)) &&
-        fs.existsSync(path.resolve(projectRoot, path.dirname(projectConfig.entry)))) {
-        projectConfig.srcDir = path.relative(projectRoot, path.dirname(projectConfig.entry));
+function applyLibProjectConfigDefaults(projectRoot: string, libConfig: LibProjectConfigInternal): void {
+    if (libConfig.skip) {
+        return;
     }
-    projectConfig.srcDir = normalizeRelativePath(projectConfig.srcDir || '');
 
-    // outDir
-    if (!projectConfig.outDir) {
-        if (projectConfig.srcDir &&
-            projectConfig.srcDir.indexOf('/') > 0 &&
-            projectConfig.srcDir.indexOf('/') + 1 < projectConfig.srcDir.length) {
-            const srcSubDir = projectConfig.srcDir.substr(projectConfig.srcDir.indexOf('/') + 1);
-            projectConfig.outDir = `dist/${srcSubDir}`;
-        } else {
-            projectConfig.outDir = 'dist';
+    const srcDir = path.resolve(projectRoot, libConfig.srcDir || '');
+    const outDir = path.resolve(projectRoot, libConfig.outDir);
+
+    if (libConfig.tsTranspilation) {
+        const tsTranspilation = libConfig.tsTranspilation as TsTranspilationOptionsInternal;
+        tsTranspilation._tsConfigPath = path.resolve(srcDir, tsTranspilation.tsconfig);
+
+        const jsonConfigFile = ts.readConfigFile(tsTranspilation._tsConfigPath, ts.sys.readFile);
+        if (jsonConfigFile.error && jsonConfigFile.error.length) {
+            const formattedMsg = formatDiagnostics(jsonConfigFile.error);
+            if (formattedMsg) {
+                throw new InvalidConfigError(formattedMsg);
+            }
         }
-    }
-    projectConfig.outDir = normalizeRelativePath(projectConfig.outDir);
 
-    projectConfig.assets = projectConfig.assets || ([] as string[]);
-    projectConfig.styles = projectConfig.styles || ([] as string[]);
+        // _tsConfigJson
+        tsTranspilation._tsConfigJson = jsonConfigFile.config;
 
-    if (typeof projectConfig.sourceMap === 'undefined') {
-        if (projectConfig.projectType === 'app' &&
-            (!projectConfig.platformTarget || projectConfig.platformTarget === 'web')) {
-            projectConfig.sourceMap = !buildOptions.production;
+        // _tsCompilerConfig
+        tsTranspilation._tsCompilerConfig = ts.parseJsonConfigFileContent(tsTranspilation._tsConfigJson,
+            ts.sys,
+            path.dirname(tsTranspilation._tsConfigPath),
+            undefined,
+            tsTranspilation._tsConfigPath);
+        const compilerOptions = tsTranspilation._tsCompilerConfig.options;
+
+        // _tsOutDir
+        let tsOutputPath: string;
+        if (!compilerOptions.outDir) {
+            tsOutputPath = outDir;
         } else {
-            projectConfig.sourceMap = true;
+            tsOutputPath = path.isAbsolute(compilerOptions.outDir)
+                ? path.resolve(compilerOptions.outDir)
+                : path.resolve(path.dirname(tsTranspilation._tsConfigPath), compilerOptions.outDir);
         }
+
+        if (compilerOptions.rootDir &&
+            !isSamePaths(compilerOptions.rootDir, path.dirname(tsTranspilation._tsConfigPath)) &&
+            isInFolder(compilerOptions.rootDir, path.dirname(tsTranspilation._tsConfigPath))) {
+            const relSubDir = normalizeRelativePath(
+                path.relative(
+                    compilerOptions.rootDir,
+                    path.dirname(tsTranspilation._tsConfigPath)));
+            tsOutputPath = path.resolve(tsOutputPath, relSubDir);
+        }
+        tsTranspilation._tsOutDir = tsOutputPath;
+
+        // _angularCompilerOptions
+        tsTranspilation._angularCompilerOptions = tsTranspilation._tsConfigJson.angularCompilerOptions;
     }
 }
 
-function mergeAppConfigWithDefaults(projectRoot: string,
-    appConfig: AppProjectConfig,
-    buildOptions: BuildOptions): void {
-    appConfig.projectType = 'app';
+function applyAppProjectConfigDefaults(projectRoot: string,
+    appConfig: AppProjectConfigInternal,
+    environment: PreDefinedEnvironment): void {
+    if (appConfig.skip) {
+        return;
+    }
 
-    appConfig.scripts = appConfig.scripts || ([] as string[]);
+    if (!appConfig.platformTarget) {
+        appConfig.platformTarget = 'web';
+    }
 
     if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
-        appConfig.publicPath = appConfig.publicPath ||
-            (appConfig as any).deployUrl ||
-            (buildOptions as any).publicPath ||
-            (buildOptions as any).deployUrl ||
-            '/';
-        appConfig.baseHref = appConfig.baseHref || (buildOptions as any).baseHref;
+        appConfig.publicPath = appConfig.publicPath || '/';
     }
 
     if (appConfig.publicPath) {
         appConfig.publicPath = /\/$/.test(appConfig.publicPath) ? appConfig.publicPath : appConfig.publicPath + '/';
     }
 
-    appConfig.polyfills = appConfig.polyfills || ([] as string[]);
-    appConfig.dlls = appConfig.dlls || ([] as string[]);
-    appConfig.vendorChunkName = appConfig.vendorChunkName || 'vendor';
+    appConfig.mainEntryChunkName = appConfig.mainEntryChunkName || 'main';
     appConfig.polyfillsChunkName = appConfig.polyfillsChunkName || 'polyfills';
+    appConfig.vendorChunkName = appConfig.vendorChunkName || 'vendor';
     appConfig.inlineChunkName = appConfig.inlineChunkName || 'inline';
+    appConfig.commonChunkName = appConfig.commonChunkName || 'common';
 
-    appConfig.htmlInjectOptions = appConfig.htmlInjectOptions || {};
-
-    const environment = buildOptions.environment || {};
-
-    // if (typeof appConfig.referenceDll === 'undefined') {
-    //    appConfig.referenceDll = !buildOptions.production &&
-    //        !environment.aot &&
-    //        !environment.dll &&
-    //        environment.dev &&
-    //        appConfig.dlls &&
-    //        appConfig.dlls.length > 0 &&
-    //        appConfig.tsLoader !== '@ngtools/webpack' &&
-    //        !!appConfig.entry &&
-    //        !/\.aot\.ts$/i.test(appConfig.entry);
-    // }
-
-    if (appConfig.referenceDll && (environment.aot || environment.dll)) {
-        appConfig.referenceDll = false;
+    if (typeof appConfig.sourceMap === 'undefined') {
+        appConfig.sourceMap = !environment.prod || isWebpackDevServer();
     }
 
     if (typeof appConfig.extractCss === 'undefined') {
-        if (!environment.test && !environment.dll) {
-            if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
-                appConfig.extractCss = buildOptions.production;
-            } else {
-                appConfig.extractCss = false;
-            }
+        if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
+            appConfig.extractCss = (environment.prod || environment.dll) && !isWebpackDevServer();
         } else {
             appConfig.extractCss = false;
         }
     }
 
     if (typeof appConfig.appendOutputHash === 'undefined') {
-        if (!environment.test && (!appConfig.platformTarget || appConfig.platformTarget === 'web')) {
-            // is asp.net
-            if (appConfig.htmlInjectOptions &&
-            ((appConfig.htmlInjectOptions.customLinkAttributes &&
-                    !!appConfig.htmlInjectOptions.customLinkAttributes['asp-append-version']) ||
-                (appConfig.htmlInjectOptions.customScriptAttributes &&
-                    !!appConfig.htmlInjectOptions.customScriptAttributes['asp-append-version']))) {
+        if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
+            if (hasAspAppendVersion(appConfig)) {
                 appConfig.appendOutputHash = false;
             } else {
-                appConfig.appendOutputHash = buildOptions.production;
+                appConfig.appendOutputHash = environment.prod && !isWebpackDevServer();
             }
         } else {
             appConfig.appendOutputHash = false;
         }
+    } else if (appConfig.appendOutputHash && hasAspAppendVersion(appConfig)) {
+        appConfig.appendOutputHash = false;
+    }
+
+    if (environment.dll) {
+        appConfig.referenceDll = false;
+        if (appConfig.htmlInject) {
+            delete appConfig.htmlInject;
+        }
+        if (typeof appConfig.environmentVariables !== 'undefined') {
+            delete appConfig.environmentVariables;
+        }
+        if (appConfig.banner) {
+            delete appConfig.banner;
+        }
+    }
+
+    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
+    const outDir = path.resolve(projectRoot, appConfig.outDir);
+
+    // typescript
+    let tsConfigFilePath = path.resolve(srcDir, appConfig.tsconfig || 'tsconfig.json');
+    if (existsSync(tsConfigFilePath)) {
+        appConfig._tsConfigPath = tsConfigFilePath;
+    } else if (!appConfig.tsconfig &&
+        appConfig.srcDir &&
+        srcDir !== projectRoot &&
+        path.resolve(srcDir, '../tsconfig.json') !== tsConfigFilePath) {
+        tsConfigFilePath = path.resolve(srcDir, '../tsconfig.json');
+        if (existsSync(tsConfigFilePath)) {
+            appConfig._tsConfigPath = tsConfigFilePath;
+        }
+    }
+    if (!appConfig._tsConfigPath &&
+        !appConfig.tsconfig &&
+        path.resolve(projectRoot, 'tsconfig.json') !== tsConfigFilePath) {
+        tsConfigFilePath = path.resolve(projectRoot, 'tsconfig.json');
+        if (existsSync(tsConfigFilePath)) {
+            appConfig._tsConfigPath = tsConfigFilePath;
+        }
+    }
+
+    if (appConfig._tsConfigPath) {
+        const jsonConfigFile = ts.readConfigFile(appConfig._tsConfigPath, ts.sys.readFile);
+        if (jsonConfigFile.error && jsonConfigFile.error.length) {
+            const formattedMsg = formatDiagnostics(jsonConfigFile.error);
+            if (formattedMsg) {
+                throw new InvalidConfigError(formattedMsg);
+            }
+        }
+
+        // _tsConfigJson
+        appConfig._tsConfigJson = jsonConfigFile.config;
+
+        // _tsCompilerConfig
+        appConfig._tsCompilerConfig = ts.parseJsonConfigFileContent(appConfig._tsConfigJson,
+            ts.sys,
+            path.dirname(appConfig._tsConfigPath),
+            undefined,
+            appConfig._tsConfigPath);
+        const compilerOptions = appConfig._tsCompilerConfig.options;
+
+        // _tsOutDir
+        let tsOutputPath: string;
+        if (!compilerOptions.outDir) {
+            tsOutputPath = outDir;
+        } else {
+            tsOutputPath = path.isAbsolute(compilerOptions.outDir)
+                ? path.resolve(compilerOptions.outDir)
+                : path.resolve(path.dirname(appConfig._tsConfigPath), compilerOptions.outDir);
+        }
+
+        if (compilerOptions.rootDir &&
+            !isSamePaths(compilerOptions.rootDir, path.dirname(appConfig._tsConfigPath)) &&
+            isInFolder(compilerOptions.rootDir, path.dirname(appConfig._tsConfigPath))) {
+            const relSubDir = normalizeRelativePath(
+                path.relative(
+                    compilerOptions.rootDir,
+                    path.dirname(appConfig._tsConfigPath)));
+            tsOutputPath = path.resolve(tsOutputPath, relSubDir);
+        }
+        appConfig._tsOutDir = tsOutputPath;
+
+        // _angularCompilerOptions
+        appConfig._angularCompilerOptions = appConfig._tsConfigJson.angularCompilerOptions;
+
+        // _ecmaVersion
+        if (compilerOptions.target === ts.ScriptTarget.ES2017) {
+            appConfig._ecmaVersion = 8;
+        } else if (compilerOptions.target === ts.ScriptTarget.ES2016) {
+            appConfig._ecmaVersion = 7;
+        } else if (compilerOptions.target !== ts.ScriptTarget.ES3 && compilerOptions.target !== ts.ScriptTarget.ES5) {
+            appConfig._ecmaVersion = 6;
+        }
+
+        // _nodeResolveFields
+        let nodeResolveFields: string[] = [];
+        if (compilerOptions.target === ts.ScriptTarget.ES2017) {
+            nodeResolveFields.push('es2017');
+            nodeResolveFields.push('es2016');
+            nodeResolveFields.push('es2015');
+        } else if (compilerOptions.target === ts.ScriptTarget.ES2016) {
+            nodeResolveFields.push('es2016');
+            nodeResolveFields.push('es2015');
+        } else if (compilerOptions.target !== ts.ScriptTarget.ES3 &&
+            compilerOptions.target !== ts.ScriptTarget.ES5) {
+            nodeResolveFields.push('es2015');
+        }
+
+        if (appConfig.nodeResolveFields && appConfig.nodeResolveFields.length > 0) {
+            nodeResolveFields = appConfig.nodeResolveFields;
+        } else {
+            if (appConfig._projectType === 'app' && (!appConfig.platformTarget || appConfig.platformTarget === 'web')) {
+                nodeResolveFields.push('browser');
+            }
+            const defaultMainFields = ['module', 'main'];
+            nodeResolveFields.push(...defaultMainFields);
+        }
+        appConfig._nodeResolveFields = nodeResolveFields;
+    }
+
+    if (appConfig.dll && (environment.dll || appConfig.referenceDll)) {
+        appConfig._dllParsedResult = parseDllEntries(srcDir, appConfig.dll);
+    }
+
+    if (!environment.dll && appConfig.polyfills && appConfig.polyfills.length > 0) {
+        const polyfills = Array.isArray(appConfig.polyfills) ? appConfig.polyfills : [appConfig.polyfills];
+        appConfig._polyfillParsedResult = parseDllEntries(srcDir, polyfills);
+    }
+
+    if (!environment.dll && appConfig.scripts && appConfig.scripts.length > 0) {
+        appConfig._scriptParsedEntries = parseGlobalEntries(appConfig.scripts, srcDir, 'scripts');
     }
 }
 
-function mergeLibConfigWithDefaults(projectRoot: string,
-    libConfig: LibProjectConfig): void {
-    libConfig.projectType = 'lib';
-    if (typeof libConfig.includeAngularAndRxJsExternals === 'undefined') {
-        libConfig.includeAngularAndRxJsExternals = true;
-    }
-    if (typeof libConfig.bundleTool === 'undefined') {
-        libConfig.bundleTool = 'rollup';
-    }
-
-    // externals
-    if (libConfig.includeAngularAndRxJsExternals !== false) {
-        if (libConfig.externals && Array.isArray(libConfig.externals)) {
-            const externals = Object.assign({}, defaultAngularAndRxJsExternals);
-            (libConfig.externals as Array<any>).push(externals);
-        } else {
-            libConfig.externals = Object.assign({}, defaultAngularAndRxJsExternals, libConfig.externals || {});
+function hasAspAppendVersion(appConfig: AppProjectConfig): boolean {
+    if (appConfig.htmlInject && (appConfig.htmlInject.customAttributes ||
+        appConfig.htmlInject.customLinkAttributes ||
+        appConfig.htmlInject.customLinkAttributes)) {
+        let customAttributes = Object.assign({}, appConfig.htmlInject.customAttributes || {});
+        customAttributes = Object.assign({}, customAttributes, appConfig.htmlInject.customLinkAttributes || {});
+        customAttributes = Object.assign({}, customAttributes, appConfig.htmlInject.customLinkAttributes || {});
+        if (customAttributes['asp-append-version']) {
+            return true;
         }
     }
+    return false;
+}
+
+function formatDiagnostics(diagnostic: ts.Diagnostic | ts.Diagnostic[]): string {
+    if (!diagnostic) {
+        return '';
+    }
+
+    const diags = Array.isArray(diagnostic) ? diagnostic : [diagnostic];
+    if (!diags || !diags.length || !diags[0].length) {
+        return '';
+    }
+
+    return diags
+        .map((d) => {
+            let res = ts.DiagnosticCategory[d.category];
+            if (d.file) {
+                res += ` at ${d.file.fileName}:`;
+                const { line, character } = d.file.getLineAndCharacterOfPosition(d.start as number);
+                res += (line + 1) + ':' + (character + 1) + ':';
+            }
+            res += ` ${ts.flattenDiagnosticMessageText(d.messageText, '\n')}`;
+            return res;
+        })
+        .join('\n');
 }

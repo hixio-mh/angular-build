@@ -1,17 +1,20 @@
-﻿const fs = require('fs-extra');
-import * as path from 'path';
+﻿import * as path from 'path';
+
+import { existsSync, readFile, writeFile } from 'fs-extra';
 import * as uglify from 'uglify-js';
+
+import { UglifyError } from '../models';
 import { Logger } from '../utils';
 
-export async function writeMinifyFile(inputPath: string,
+export async function minifyFile(inputPath: string,
     outputPath: string,
-    sourceMap?: boolean,
-    verbose?: boolean,
-    logger: Logger = new Logger()): Promise<any> {
-    const content = await fs.readFile(inputPath, 'utf-8');
+    sourceMap: boolean,
+    verbose: boolean,
+    logger: Logger): Promise<any> {
+    const content = await readFile(inputPath, 'utf-8');
     let sourceMapContent: string | null = null;
-    if (sourceMap && await fs.exists(inputPath + '.map')) {
-        sourceMapContent = await fs.readFile(inputPath + '.map', 'utf-8');
+    if (sourceMap && existsSync(inputPath + '.map')) {
+        sourceMapContent = await readFile(inputPath + '.map', 'utf-8');
     }
     const outputFileName = path.parse(outputPath).base;
     const sourceObj: any = {};
@@ -38,15 +41,15 @@ export async function writeMinifyFile(inputPath: string,
             }
         } as any);
     if ((result as any).error) {
-        throw new Error((result as any).error);
+        throw new UglifyError((result as any).error);
     }
     if ((result as any).warnings) {
-        logger.warnLine((result as any).warnings);
+        logger.warn((result as any).warnings);
     }
 
-    await fs.writeFile(outputPath, result.code);
-    if (sourceMap && !!result.map) {
+    await writeFile(outputPath, result.code);
+    if (sourceMap && result.map) {
         const sourcemapPath = outputPath + '.map';
-        await fs.writeFile(sourcemapPath, result.map);
+        await writeFile(sourcemapPath, result.map);
     }
 }

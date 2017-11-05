@@ -1,333 +1,358 @@
-﻿const fs = require('fs-extra');
-import * as path from 'path';
+﻿import * as path from 'path';
+
 import * as webpack from 'webpack';
 
+import { colorize } from '../../utils';
+import {CliOptions} from '../cli-options';
+
 import {
-    getAoTGenDir, getWebpackToStringStatsOptions, mergeProjectConfigWithEnvOverrides, prepareAngularBuildConfig,
-    prepareBuildOptions, readAngularBuildConfig
-} from '../../helpers';
-import { BuildOptions, ProjectConfig } from '../../models';
-import { clean, colorize, isInFolder, isSamePaths, Logger } from '../../utils';
-import { getWebpackConfig } from '../../webpack-configs';
+    AngularBuildConfigInternal,
+    AngularBuildContextImpl,
+    AppBuildContext,
+    LibProjectConfigInternal,
+    PreDefinedEnvironment,
+    ProjectConfigInternal,
+    WebpackError
+} from '../../models';
+import {
+    applyAngularBuildConfigDefaults,
+    applyProjectConfigDefaults,
+    applyProjectConfigWithEnvOverrides,
+    validateProjectConfig
+    } from '../../helpers';
+import { formatValidationError, Logger, readJson, validateSchema} from '../../utils';
 
-import { CliOptions } from '../cli-options';
+import {getLibWebpackConfig} from '../../webpack-configs/lib';
+import {getAppDllWebpackConfig} from '../../webpack-configs/app/dll';
+import {getAppWebpackConfig} from '../../webpack-configs/app/app';
 
-import { buildLib } from './build-lib';
-import { webpackBundle } from './webpack-bundle';
 
-export async function cliBuild(cliOptions: CliOptions, logger: Logger = new Logger()): Promise<number> {
-    try {
-        logger.logLine(`\n${colorize(
-            `angular-build ${cliOptions.cliVersion} [${cliOptions.cliIsLocal ? 'Local' : 'Global'}]`,
-            'green')}`);
+const { exists } = require('fs-extra');
 
-        cliOptions.cwd = cliOptions.cwd ? path.resolve(cliOptions.cwd) : process.cwd();
-        let projectRoot = cliOptions.cwd;
-        const buildOptions: any = {};
+export async function cliBuild(cliOptions: CliOptions): Promise<number> {
+    console.log(`${colorize(
+        `\nangular-build ${cliOptions.cliVersion} [${cliOptions.cliIsGlobal ? 'Global' : 'Local'}]`,
+        'white')}\n`);
 
-        if (cliOptions.commandOptions && cliOptions.commandOptions.p) {
-            projectRoot = path.isAbsolute(cliOptions.commandOptions.p)
-                ? path.resolve(cliOptions.commandOptions.p)
-                : path.resolve(cliOptions.cwd, cliOptions.commandOptions.p);
+    const logger = new Logger({
+        logLevel: 'info',
+        debugPrefix: 'DEBUG:',
+        infoPrefix: 'INFO:',
+        warnPrefix: 'WARNING:'
+    });
+
+    let environment: PreDefinedEnvironment = {};
+    let configPath = path.resolve(process.cwd(), 'angular-build.json');
+    let cliIsGlobal = cliOptions.cliIsGlobal;
+    let watch = false;
+    let verbose = false;
+    let progress = false;
+    let cleanOutDirs = false;
+    const filter: string[] = [];
+
+    if (cliOptions.commandOptions && typeof cliOptions.commandOptions === 'object') {
+        const commandOptions = cliOptions.commandOptions as any;
+        if (commandOptions.env && typeof commandOptions.env === 'object') {
+            environment = Object.assign(environment, commandOptions.env);
         }
 
-        if (cliOptions.commandOptions && typeof cliOptions.commandOptions === 'object') {
-            const commandOptions = cliOptions.commandOptions as any;
-
-            // const buildOptionsSchema = schema.definitions.BuildOptions.properties;
-            Object.keys(cliOptions.commandOptions)
-                .filter((key: string) => typeof commandOptions[key] !== 'undefined' &&
-                    commandOptions[key] !== null)
-                .forEach((key: string) => {
-                    buildOptions[key] = commandOptions[key];
-                });
-
-            if (typeof commandOptions.clean === 'boolean') {
-                buildOptions.clean = commandOptions.clean;
-            }
-            if (typeof commandOptions.progress === 'boolean') {
-                buildOptions.progress = commandOptions.progress;
-            }
-            if (typeof commandOptions.profile === 'boolean') {
-                buildOptions.profile = commandOptions.profile;
-            }
-            if (typeof commandOptions.watch === 'boolean') {
-                buildOptions.watch = commandOptions.watch;
-            }
-            if (typeof commandOptions.env === 'object') {
-                buildOptions.environment = Object.assign(buildOptions.environment || {}, commandOptions.env);
-            }
-            if (typeof commandOptions.environment === 'object') {
-                buildOptions.environment = Object.assign(buildOptions.environment || {}, commandOptions.environment);
-            }
+        if (commandOptions.config) {
+            configPath = path.isAbsolute(commandOptions.config)
+                ? path.resolve(commandOptions.config)
+                : path.resolve(process.cwd(), commandOptions.config);
         }
 
-        buildOptions.cliIsLocal = cliOptions.cliIsLocal;
-        buildOptions.isAngularBuildCli = true;
-
-        await build(projectRoot, buildOptions, logger);
-    } catch (err) {
-        if (err) {
-            logger.errorLine(`An error occured during the build:\n${(err.stack) || err}${err.details
-                ? `\n\nError details:\n${err.details}`
-                : ''}`);
+        if (commandOptions.filter &&
+            (Array.isArray(commandOptions.filter) || typeof commandOptions.filter === 'string')) {
+            Array.isArray(commandOptions.filter)
+                ? filter.push(...commandOptions.filter)
+                : filter.push(commandOptions.filter);
         }
 
+        if (commandOptions.cleanOutDirs && typeof commandOptions.cleanOutDirs === 'boolean') {
+            cleanOutDirs = true;
+        }
+
+        if (commandOptions.watch && typeof commandOptions.watch === 'boolean') {
+            watch = true;
+        }
+
+        if (commandOptions.verbose && typeof commandOptions.verbose === 'boolean') {
+            verbose = true;
+        }
+
+        if (commandOptions.progress && typeof commandOptions.progress === 'boolean') {
+            progress = true;
+        }
+    }
+
+    if (!await exists(configPath)) {
+        logger.error(`Config file does not exist, path: ${configPath}.`);
         return -1;
     }
 
-    return 0;
-}
+    const angularBuildConfig = await readJson(configPath) as AngularBuildConfigInternal;
 
-export async function build(projectRoot: string,
-    buildOptions: BuildOptions,
-    logger: Logger = new Logger()): Promise<any> {
-    let angularBuildConfigPath = path.resolve(projectRoot, 'angular-build.json');
-    const angularBuildConfig = await readAngularBuildConfig(angularBuildConfigPath);
-    buildOptions = buildOptions || {};
-
-    // merge buildOptions
-    if (angularBuildConfig.buildOptions) {
-        Object.keys(angularBuildConfig.buildOptions)
-            .filter((key: string) => !(key in buildOptions) &&
-                typeof (angularBuildConfig.buildOptions as any)[key] !== 'undefined')
-            .forEach((key: string) => {
-                (buildOptions as any)[key] = (angularBuildConfig.buildOptions as any)[key];
-            });
+    // validate schema
+    let schemaPath = '../schemas/schema.json';
+    if (!await exists(path.resolve(__dirname, schemaPath))) {
+        schemaPath = '../../schemas/schema.json';
     }
-    prepareBuildOptions(buildOptions);
-    prepareAngularBuildConfig(projectRoot, angularBuildConfig, buildOptions);
+    if (!await exists(path.resolve(__dirname, schemaPath))) {
+        schemaPath = '../../../schemas/schema.json';
+    }
+    if (await exists(path.resolve(__dirname, schemaPath))) {
+        const schema = require(schemaPath);
+        if (schema.$schema) {
+            delete schema.$schema;
+        }
+        if ((angularBuildConfig as any).$schema) {
+            delete (angularBuildConfig as any).$schema;
+        }
+        if (angularBuildConfig._schema) {
+            delete angularBuildConfig._schema;
+        }
+        if (angularBuildConfig._schemaValidated) {
+            delete angularBuildConfig._schemaValidated;
+        }
+
+        const errors = validateSchema(schema, angularBuildConfig);
+        if (errors.length) {
+            const errMsg = errors.map(err => formatValidationError(schema, err)).join('\n');
+            logger.error(
+                `Invalid configuration object.\n\n${
+                errMsg}\n`);
+            return -1;
+        }
+
+        angularBuildConfig._schema = schema;
+        angularBuildConfig._schemaValidated = true;
+    } else {
+        logger.warn(`The angular-build schema file doesn't exist`);
+    }
+
+    // set angular build defaults
+    applyAngularBuildConfigDefaults(angularBuildConfig);
+    if (verbose) {
+        angularBuildConfig.logLevel = 'debug';
+    }
 
     const libConfigs = angularBuildConfig.libs || [];
     const appConfigs = angularBuildConfig.apps || [];
 
-    // filter
-    const filterProjects: string[] = [];
-    if (buildOptions.filter) {
-        filterProjects.push(...Array.isArray(buildOptions.filter) ? buildOptions.filter : [buildOptions.filter]);
-    }
-
     if (appConfigs.length === 0 && libConfigs.length === 0) {
-        throw new Error('No project config is available.');
+        logger.error(`No app or lib project is available.`);
+        return - 1;
     }
 
-    // build libs
-    if (libConfigs.length) {
-        const filteredLibConfigs = libConfigs
-            .filter((projectConfig: ProjectConfig) =>
-                (filterProjects.length === 0 ||
-                    (filterProjects.length > 0 &&
-                        projectConfig.name &&
-                        filterProjects.indexOf(projectConfig.name) > -1)));
+    const projectRoot = path.dirname(configPath);
 
-        for (let libConfig of filteredLibConfigs) {
-            const clonedProjectConfig: ProjectConfig = JSON.parse(JSON.stringify(libConfig));
-            mergeProjectConfigWithEnvOverrides(clonedProjectConfig, buildOptions);
-            if (clonedProjectConfig.skip) {
-                continue;
+    // apply filter
+    const configNames: string[] = [];
+    if (filter && filter.length) {
+        filter
+            .filter(configName => !configNames.includes(configName)).forEach(
+                configName => configNames.push(configName));
+    }
+
+    const webpackConfigs: webpack.Configuration[] = [];
+
+    if (libConfigs.length > 0) {
+        let filteredLibConfigs = libConfigs
+            .filter(projectConfig =>
+                (configNames.length === 0 ||
+                (configNames.length > 0 &&
+                (configNames.indexOf('libs') > -1 ||
+                    (projectConfig.name && configNames.indexOf(projectConfig.name) > -1)))));
+
+        if (configNames.length === 1 && configNames[0] === 'apps') {
+            filteredLibConfigs = [];
+        }
+
+        if (filteredLibConfigs.length > 0) {
+            for (let i = 0; i < filteredLibConfigs.length; i++) {
+                const libConfig = filteredLibConfigs[i];
+
+                const clonedLibConfig = JSON.parse(JSON.stringify(libConfig)) as LibProjectConfigInternal;
+                applyProjectConfigWithEnvOverrides(clonedLibConfig, environment);
+                applyProjectConfigDefaults(projectRoot, clonedLibConfig, environment);
+
+                if (clonedLibConfig.skip) {
+                    continue;
+                }
+
+                validateProjectConfig(projectRoot, clonedLibConfig);
+
+                const angularBuildContext = new AngularBuildContextImpl(
+                    environment,
+                    configPath,
+                    angularBuildConfig,
+                    libConfig as ProjectConfigInternal,
+                    clonedLibConfig);
+
+                angularBuildContext.ngbCli = true;
+                angularBuildContext.cliIsGlobal = cliIsGlobal;
+                angularBuildContext.watch = watch;
+                angularBuildContext.progress = progress;
+                angularBuildContext.cleanOutDirs = cleanOutDirs;
+
+
+                const wpConfig = getLibWebpackConfig(angularBuildContext);
+                if (wpConfig) {
+                    webpackConfigs.push(wpConfig);
+                }
+
             }
-
-
-            // validation
-            await validateProjectConfig(projectRoot, clonedProjectConfig);
-
-            // clean outDir
-            if ((buildOptions as any).clean) {
-                await cleanOutDirs(projectRoot, clonedProjectConfig, buildOptions, logger);
-            }
-
-            // build lib
-            await buildLib(projectRoot,
-                libConfig,
-                clonedProjectConfig,
-                buildOptions,
-                angularBuildConfig,
-                logger);
         }
     }
 
-    // build apps
-    if (appConfigs.length) {
-        const webpackWatchOptions = angularBuildConfig && angularBuildConfig.webpackWatchOptions
-            ? angularBuildConfig.webpackWatchOptions
-            : {};
+    if (appConfigs.length > 0) {
+        let filteredAppConfigs = appConfigs
+            .filter(projectConfig =>
+                (configNames.length === 0 ||
+                    (configNames.length > 0 &&
+                        (configNames.indexOf('apps') > -1 ||
+                            (projectConfig.name && configNames.indexOf(projectConfig.name) > -1)))));
 
-        const filteredAppConfigs = appConfigs
-            .filter((projectConfig: ProjectConfig) =>
-                (filterProjects.length === 0 ||
-                    (filterProjects.length > 0 &&
-                        projectConfig.name &&
-                        filterProjects.indexOf(projectConfig.name) > -1)));
 
-        const webpackConfigs: webpack.Configuration[] = [];
+        if (configNames.length === 1 && configNames[0] === 'libs') {
+            filteredAppConfigs = [];
+        }
 
-        for (let appConfig of filteredAppConfigs) {
-            const clonedProjectConfig: ProjectConfig = JSON.parse(JSON.stringify(appConfig));
-            mergeProjectConfigWithEnvOverrides(clonedProjectConfig, buildOptions);
-            if (clonedProjectConfig.skip) {
-                continue;
+        if (filteredAppConfigs.length > 0) {
+            // logger.debug('Initializing app configs');
+            for (let i = 0; i < filteredAppConfigs.length; i++) {
+                const appConfig = filteredAppConfigs[i];
+
+                const clonedAppConfig = JSON.parse(JSON.stringify(appConfig)) as ProjectConfigInternal;
+                applyProjectConfigWithEnvOverrides(clonedAppConfig, environment);
+                applyProjectConfigDefaults(projectRoot, clonedAppConfig, environment);
+
+                if (clonedAppConfig.skip) {
+                    continue;
+                }
+
+                validateProjectConfig(projectRoot, clonedAppConfig);
+
+                const angularBuildContext = new AngularBuildContextImpl(
+                    environment,
+                    configPath,
+                    angularBuildConfig,
+                    appConfig as ProjectConfigInternal,
+                    clonedAppConfig);
+
+                angularBuildContext.ngbCli = true;
+                angularBuildContext.cliIsGlobal = cliIsGlobal;
+                angularBuildContext.watch = watch;
+                angularBuildContext.progress = progress;
+                angularBuildContext.cleanOutDirs = cleanOutDirs;
+
+                if (environment.dll) {
+                    (angularBuildContext as AppBuildContext).dllBuildOnly = true;
+                    const wpConfig = getAppDllWebpackConfig(angularBuildContext);
+                    if (wpConfig) {
+                        webpackConfigs.push(wpConfig);
+                    }
+                } else {
+                    const wpConfig = getAppWebpackConfig(angularBuildContext);
+                    if (wpConfig) {
+                        webpackConfigs.push(wpConfig);
+                    }
+                }
             }
-
-            // validation
-            await validateProjectConfig(projectRoot, clonedProjectConfig);
-
-            const wpConfig = getWebpackConfig({
-                projectRoot: projectRoot,
-                projectConfigMaster: appConfig,
-                projectConfig: clonedProjectConfig,
-                buildOptions: buildOptions as BuildOptions,
-                angularBuildConfig: angularBuildConfig,
-                logger
-            });
-            webpackConfigs.push(wpConfig);
-
-            // clean outDir
-            if ((buildOptions as any).clean) {
-                await cleanOutDirs(projectRoot, clonedProjectConfig, buildOptions, logger);
-            }
         }
+    }
 
-        if (!webpackConfigs || webpackConfigs.length === 0) {
-            throw new Error('No webpack config available.');
-        }
+    if (webpackConfigs.length === 0) {
+        logger.error(`No app or lib project is available.`);
+        return - 1;
+    }
 
-        const firstConfig = Array.isArray(webpackConfigs) ? webpackConfigs[0] : webpackConfigs;
-        const statsOptions =
-            getWebpackToStringStatsOptions(buildOptions.stats || firstConfig.stats, buildOptions.verbose);
-        if (typeof statsOptions.context === 'undefined') {
-            statsOptions.context = firstConfig.context;
-        }
-        if (typeof statsOptions.colors === 'undefined') {
-            // ReSharper disable once CommonJsExternalModule
-            statsOptions.colors = require('supports-color');
-        }
-
-        const watch = (buildOptions as any).watch || firstConfig.watch;
-        if (watch || !Array.isArray(webpackConfigs)) {
-            await webpackBundle(webpackConfigs, buildOptions, statsOptions, watch, webpackWatchOptions, logger);
+    try {
+        if (watch) {
+            await runWebpack(webpackConfigs, watch, logger);
         } else {
-            for (let i = 0; i < webpackConfigs.length; i++) {
-                const webpackConfig = webpackConfigs[i];
-                await webpackBundle(webpackConfig, buildOptions, statsOptions, watch, webpackWatchOptions, logger);
+            for (let wpConfig of webpackConfigs) {
+                await runWebpack(wpConfig, false, logger);
             }
         }
+        return 0;
+    } catch (err) {
+        // TODO: to add more error names
+        if (err.name === 'InvalidConfigError' ||
+            err.name === 'TypescriptCompileError' ||
+            err.name === 'UglifyError' ||
+            err.name === 'UnSupportedStyleExtError') {
+            console.log('\n');
+            logger.error(err.message);
+        } else {
+            let errMsg = '';
+            if (err.message && err.message !== err.stack) {
+                errMsg = err.message;
+            }
+            if (err.stack && err.stack !== err.message) {
+                if (errMsg) {
+                    errMsg += '\nCall Stack:\n';
+                }
+                errMsg += err.stack;
+            }
+            if ((err as any).details && (err as any).details !== err.stack && (err as any).details !== err.message) {
+                if (errMsg) {
+                    errMsg += '\nError Details:\n';
+                }
+                errMsg += (err as any).details;
+            }
+            console.log('\n');
+            logger.error(errMsg);
+        }
+
+        return -1;
     }
 }
 
-async function validateProjectConfig(projectRoot: string, projectConfig: ProjectConfig): Promise<any> {
-    if (projectConfig.srcDir && path.isAbsolute(projectConfig.srcDir)) {
-        throw new Error(`The 'srcDir' must be relative path to project root.`);
-    }
-    if (projectConfig.outDir && path.isAbsolute(projectConfig.outDir)) {
-        throw new Error(`The 'outDir' must be relative path to project root.`);
-    }
 
-    const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
-    if (!await fs.exists(srcDir)) {
-        throw new Error(`The 'srcDir' - ${srcDir} doesn't exist.`);
-    }
-
-    if (projectConfig.entry && path.isAbsolute(projectConfig.entry)) {
-        throw new Error(`The 'entry' must be relative path to 'srcDir' in project config.`);
-    }
-
-    if (projectConfig.outDir) {
-        const outDir = path.resolve(projectRoot, projectConfig.outDir);
-
-        if (isSamePaths(projectRoot, outDir)) {
-            throw new Error(`The 'outDir' and 'projectRoot' must NOT be the same folder.`);
-        }
-        if (isSamePaths(srcDir, outDir)) {
-            throw new Error(`The 'outDir' and 'srcDir' must NOT be the same folder.`);
-        }
-        if (outDir === path.parse(outDir).root || outDir === '.') {
-            throw new Error(`The 'outDir' must NOT be root folder.`);
-        }
-
-        const srcDirHomeRoot = path.parse(srcDir).root;
-        if (outDir === srcDirHomeRoot) {
-            throw new Error(`The 'outDir' must NOT be 'srcDir''s root folder: ${srcDirHomeRoot}.`);
-        }
-        if (isInFolder(outDir, projectRoot)) {
-            throw new Error(`The project root folder must NOT be inside 'outDir'.`);
-        }
-        if (isInFolder(outDir, srcDir)) {
-            throw new Error(`The 'srcDir' must NOT be inside 'outDir'.`);
-        }
-    }
-}
-
-async function cleanOutDirs(projectRoot: string,
-    projectConfig: ProjectConfig,
-    buildOptions: BuildOptions,
+function runWebpack(wpConfig: webpack.Configuration | webpack.Configuration[],
+    watch: boolean,
     logger: Logger): Promise<any> {
-    if (!projectConfig.outDir) {
-        return;
-    }
 
-    const srcDir = path.resolve(projectRoot, projectConfig.srcDir || '');
-    const outDir = path.resolve(projectRoot, projectConfig.outDir);
+    const firstConfig = Array.isArray(wpConfig) ? wpConfig[0] : wpConfig;
+    const webpackCompiler = webpack(wpConfig as any);
+    const statsOptions = firstConfig.stats;
+    const watchOptions = firstConfig.watchOptions;
+    // if (Array.isArray(wpConfig) && wpConfig.length > 1 && statsOptions && !statsOptions.children) {
+    //    statsOptions.children = true; // wpConfig.map((o: webpack.Configuration) => o.stats) as any;
+    // }
 
-    if (isSamePaths(projectRoot, outDir)) {
-        throw new Error(`The 'outDir' and project root folder must NOT be the same folder.`);
-    }
-    if (isSamePaths(srcDir, outDir)) {
-        throw new Error(`The 'outDir' and 'srcDir' must NOT be the same folder.`);
-    }
-    if (outDir === path.parse(outDir).root || outDir === '.') {
-        throw new Error(`The 'outDir' must NOT be root folder.`);
-    }
+    return new Promise((resolve, reject) => {
+        const callback: webpack.compiler.CompilerCallback = (err: any, stats: webpack.compiler.Stats) => {
+            if (!watch || err) {
+                // Do not keep cache anymore
+                (webpackCompiler as any).purgeInputFileSystem();
+            }
 
-    const srcDirHomeRoot = path.parse(srcDir).root;
-    if (outDir === srcDirHomeRoot) {
-        throw new Error(`The 'outDir' must NOT be 'srcDir''s root folder: ${srcDirHomeRoot}.`);
-    }
-    if (isInFolder(outDir, projectRoot)) {
-        throw new Error(`The project root folder must NOT be inside 'outDir'.`);
-    }
-    if (isInFolder(outDir, srcDir)) {
-        throw new Error(`The 'srcDir' must NOT be inside 'outDir'.`);
-    }
+            if (err) {
+                return reject(new WebpackError(err));
+            }
 
-    logger.logLine(`Cleaning ${outDir}`);
-    if (/wwwroot$/g.test(outDir)) {
-        await clean(path.join(outDir, '**/*'));
-    } else {
-        await clean(outDir);
-    }
+            if (watch) {
+                return;
+            }
 
-    if (projectConfig.tsconfig) {
-        const tsConfigPath = path.resolve(projectRoot, projectConfig.srcDir || '', projectConfig.tsconfig);
-        if (!await fs.exists(tsConfigPath)) {
-            return;
+            if (stats.hasErrors()) {
+                return reject(new WebpackError(stats.toString('errors-only')));
+            } else {
+                if (statsOptions) {
+                    console.log(stats.toString(statsOptions));
+                }
+                resolve();
+            }
+        };
+
+        if (watch) {
+            webpackCompiler.watch(watchOptions as webpack.WatchOptions, callback);
+            logger.info('\nWebpack is watching the files…\n');
+        } else {
+            webpackCompiler.run(callback);
         }
-
-        const aotGenDir = await getAoTGenDir(tsConfigPath);
-        if (buildOptions.environment &&
-            buildOptions.environment.aot &&
-            aotGenDir &&
-            aotGenDir !== srcDir &&
-            aotGenDir !== projectRoot) {
-
-            if (isSamePaths(projectRoot, aotGenDir)) {
-                throw new Error(`The aot 'genDir' and project root folder must NOT be the same folder.`);
-            }
-            if (isSamePaths(srcDir, aotGenDir)) {
-                throw new Error(`The aot 'genDir' and 'srcDir' must NOT be the same folder.`);
-            }
-
-            if (aotGenDir === path.parse(aotGenDir).root || aotGenDir === '.') {
-                throw new Error(`The aot 'genDir' must NOT be root folder: ${path.parse(aotGenDir).root}.`);
-            }
-
-            if (isInFolder(aotGenDir, projectRoot)) {
-                throw new Error(`The project root folder must NOT be inside aot 'genDir'.`);
-            }
-            if (isInFolder(aotGenDir, srcDir)) {
-                throw new Error(`The 'srcDir' must NOT be inside aot 'genDir'.`);
-            }
-
-            await clean(aotGenDir);
-        }
-    }
+    });
 }

@@ -1,0 +1,14 @@
+{
+    "version": "1.0",
+    "name": "@bizappframework/angular-build",
+    "description": "TODO",
+    "icons": {
+        "60": "icons-b6b2ac2dc9c76b25d08c52e17814ae79/firefox_app_60x60.png",
+        "128": "icons-b6b2ac2dc9c76b25d08c52e17814ae79/firefox_app_128x128.png",
+        "512": "icons-b6b2ac2dc9c76b25d08c52e17814ae79/firefox_app_512x512.png"
+    },
+    "developer": {
+        "name": "BizAppFramework Team",
+        "url": "https://github.com/bizappframework/angular-build"
+    }
+}

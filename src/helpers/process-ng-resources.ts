@@ -1,31 +1,32 @@
-﻿const fs = require('fs-extra');
+﻿import * as path from 'path';
+
+import * as autoprefixer from 'autoprefixer';
+import { copy, existsSync, readFile, readJson, writeFile } from 'fs-extra';
+import * as denodeify from 'denodeify';
 import * as glob from 'glob';
-import * as less from 'less';
-import * as path from 'path';
-
 import { minify as minifyHtml } from 'html-minifier';
+import * as sass from 'node-sass';
 
-// ReSharper disable CommonJsExternalModule
-const autoprefixer = require('autoprefixer');
+import { UnSupportedStyleExtError } from '../models';
+
 const cssnano = require('cssnano');
 const postcss = require('postcss');
+const customProperties = require('postcss-custom-properties');
 const postcssUrl = require('postcss-url');
-// ReSharper restore CommonJsExternalModule
 
-import { sassPromise } from '../utils';
+const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 
 const templateUrlRegex = /templateUrl:\s*['"`]([^'"`]+?\.[a-zA-Z]+)['"`]/g;
 const styleUrlsRegex = /styleUrls:\s*(\[[^\]]*?\])/gm;
-
 
 export async function processNgResources(srcDir: string,
     outDir: string,
     searchPatterns: string | string[],
     stylePreprocessorIncludePaths: string[],
-    aotGenDir: string,
-    copyResources: boolean,
+    copyResources?: boolean,
     inlineMetaDataResources?: boolean,
-    flatModuleOutFile?: string): Promise<void> {
+    flatModuleOutFile?: string
+): Promise<void> {
     if (typeof searchPatterns === 'string') {
         searchPatterns = [searchPatterns as string];
     }
@@ -42,13 +43,13 @@ export async function processNgResources(srcDir: string,
         files = files.filter(name => /\.js$/i.test(name)); // Matches only javaScript/typescript files.
         // Generate all files content with inlined templates.
         await Promise.all(files.map(async (resourceId: string) => {
-            const content = await fs.readFile(resourceId, 'utf-8');
+            const content = await readFile(resourceId, 'utf-8');
             let hasMatched: boolean;
             const hasTemplateMatched = await copyTemplateUrl(content,
                 resourceId,
                 srcDir,
                 outDir,
-                copyResources,
+                copyResources as boolean,
                 componentResources);
             hasMatched = hasTemplateMatched;
 
@@ -57,16 +58,16 @@ export async function processNgResources(srcDir: string,
                 srcDir,
                 outDir,
                 stylePreprocessorIncludePaths,
-                copyResources,
+                copyResources as boolean,
                 componentResources);
             hasMatched = hasMatched || hasStyleMatched;
 
             if (inlineMetaDataResources && !flatModuleOutFile && hasMatched) {
                 const metaDataRelativeOutPath = path.relative(outDir, path.dirname(resourceId));
-                const metaDataFilePath = path.resolve(aotGenDir,
+                const metaDataFilePath = path.resolve(outDir,
                     metaDataRelativeOutPath,
                     path.parse(resourceId).name + '.metadata.json');
-                const metaJson = await fs.readJson(metaDataFilePath);
+                const metaJson = await readJson(metaDataFilePath);
 
                 metaJson.forEach((obj: any) => {
                     if (!obj.metadata) {
@@ -80,16 +81,16 @@ export async function processNgResources(srcDir: string,
                             componentResources);
                     });
                 });
-                await fs.writeFile(metaDataFilePath, JSON.stringify(metaJson));
+                await writeFile(metaDataFilePath, JSON.stringify(metaJson));
             }
 
         }));
 
         if (inlineMetaDataResources && flatModuleOutFile) {
             const metaDataFilePath = path.resolve(outDir, flatModuleOutFile);
-            const metaDataJson = await fs.readJson(metaDataFilePath);
+            const metaDataJson = await readJson(metaDataFilePath);
             const inlinedMetaDataJson = inlineFlattenMetaDataResources(metaDataJson, componentResources);
-            await fs.writeFile(metaDataFilePath, JSON.stringify(inlinedMetaDataJson));
+            await writeFile(metaDataFilePath, JSON.stringify(inlinedMetaDataJson));
         }
 
     }));
@@ -112,12 +113,12 @@ async function copyTemplateUrl(source: string,
         const templateSourceFilePath = await findResourcePath(templateUrl, resourceId, srcDir, outDir);
         const templateDestFilePath = path.resolve(path.dirname(resourceId), templateUrl);
         if (copyResources) {
-            await fs.copy(templateSourceFilePath, templateDestFilePath);
+            await copy(templateSourceFilePath, templateDestFilePath);
         }
 
         const componentKey = path.relative(outDir, templateDestFilePath).replace(/\\/g, '/').replace(/^(\.\/|\/)/, '')
             .replace(/\/$/, '');
-        let componentContent = await fs.readFile(templateSourceFilePath, 'utf-8');
+        let componentContent = await readFile(templateSourceFilePath, 'utf-8');
         componentContent = minifyHtml(componentContent,
             {
                 caseSensitive: true,
@@ -158,18 +159,26 @@ async function copyStyleUrls(source: string,
 
         let styleContent: string | Buffer;
         if (/\.scss$|\.sass$/i.test(styleSourceFilePath)) {
-            const result = await sassPromise({ file: styleSourceFilePath, includePaths: includePaths });
+            const result = await new Promise<{
+                css: Buffer;
+            }>((resolve, reject) => {
+                sass.render({ file: styleSourceFilePath, includePaths: includePaths },
+                    (err: Error, sassResult: any) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        return resolve(sassResult);
+                    });
+            });
             styleContent = result.css;
-        } else if (/\.less$/i.test(styleSourceFilePath)) {
-            const content = await fs.readFile(styleSourceFilePath, 'utf-8');
-            const result = await less.render(content, { filename: styleSourceFilePath });
-            styleContent = result.css;
+        } else if (/\.css$/i.test(styleSourceFilePath)) {
+            styleContent = await readFile(styleSourceFilePath, 'utf-8');
         } else {
-            styleContent = await fs.readFile(styleSourceFilePath, 'utf-8');
+            throw new UnSupportedStyleExtError(`The ${styleSourceFilePath} is not supported style format.`);
         }
 
         if (copyResources) {
-            await fs.writeFile(styleDestFilePath, styleContent);
+            await writeFile(styleDestFilePath, styleContent);
         }
 
         const componentKey = path.relative(outDir, styleDestFilePath).replace(/\\/g, '/').replace(/^(\.\/|\/)/, '')
@@ -246,7 +255,7 @@ async function findResourcePath(url: string, resourceId: string, srcDir: string,
     const dir = path.parse(resourceId).dir;
     const relOutPath = path.relative(rootOutDir, dir);
     const filePath = path.resolve(srcDir, relOutPath, url);
-    if (await fs.exists(filePath)) {
+    if (existsSync(filePath)) {
         return filePath;
     } else if (/\.(css|scss|sass|less)$/i.test(filePath)) {
         const failbackExts = ['.css', '.scss', '.sass', '.less'];
@@ -256,7 +265,7 @@ async function findResourcePath(url: string, resourceId: string, srcDir: string,
                 continue;
             }
             const tempNewFilePath = filePath.substr(0, filePath.length - curExt.length) + ext;
-            if (await fs.exists(tempNewFilePath)) {
+            if (existsSync(tempNewFilePath)) {
                 return tempNewFilePath;
             }
         }
@@ -270,7 +279,9 @@ async function processPostCss(css: string, from: string): Promise<string> {
         postcssUrl({
             url: 'inline'
         }),
+
         autoprefixer,
+        customProperties({ preserve: true }),
         cssnano({
             safe: true,
             mergeLonghand: false,
@@ -284,18 +295,4 @@ async function processPostCss(css: string, from: string): Promise<string> {
 
         });
     return result.css;
-}
-
-function globPromise(pattern: string, options: glob.IOptions): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-        glob(pattern,
-            options,
-            (err, matches) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve(matches);
-            });
-    });
 }

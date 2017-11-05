@@ -6,7 +6,13 @@
     // Angular dependencies
     '@angular/animations': 'ng.animations',
     '@angular/core': 'ng.core',
+    '@angular/core/testing': 'ng.core.testing',
+
     '@angular/common': 'ng.common',
+    '@angular/common/http': 'ng.common.http',
+    '@angular/common/testing': 'ng.common.testing',
+    '@angular/common/http/testing': 'ng.common.http.testing',
+
     '@angular/compiler': 'ng.compiler',
     '@angular/forms': 'ng.forms',
     '@angular/http': 'ng.http',
@@ -16,6 +22,7 @@
     '@angular/platform-browser/animations': 'ng.platformBrowser.animations',
     '@angular/platform-server': 'ng.platformServer',
     '@angular/platform-webworker': 'ng.platformWebworker',
+    '@angular/platform-webworker-dynamic': 'ng.platformWebworkerDynamic',
 
     // Rxjs dependencies
     'rxjs/Observable': 'Rx',

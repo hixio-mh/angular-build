@@ -1,0 +1,272 @@
+{
+  "libs": [
+    {
+      //"skip": true,
+
+      "name": "ng-config",
+      "srcDir": "modules/ng-config",
+      "outDir": "dist/packages/ng-config",
+
+      "libraryName": "baf.ngConfig",
+
+      //"clean": {
+      //  "beforeRun": {
+      //    "cleanOutDir": true
+      //    //"paths": [],
+      //    //"exclude": []
+      //  }
+      //},
+
+      "tsTranspilation": {
+        "tsconfig": "tsconfig-build.json",
+        "copyTemplateAndStyleUrls": true,
+        "inlineMetaDataResources": true
+      },
+
+      "sourceMap": true,
+
+      "envOverrides": {
+        "prod": {
+          "copy": [
+            "LICENSE",
+            "README.md"
+          ],
+
+          //"styles": [
+          //],
+
+          "bundles": [
+            {
+              "entry": "index.js",
+              "entryRoot": "tsOutDir",
+              "libraryTarget": "es",
+              "outDir": "bundles"
+              //"outFileName": "[packagename].js"
+            },
+            {
+              "entryRoot": "prevBundleOutDir",
+              "libraryTarget": "es",
+              "outDir": "bundles",
+              "transformScriptTargetOnly": true,
+              "scriptTarget": "es5"
+            },
+            {
+              "entryRoot": "prevBundleOutDir",
+              "libraryTarget": "umd",
+              "outDir": "bundles"
+            }
+          ],
+
+          "packageOptions": {
+            "packageJsonFile": "package.json",
+            "reExportTypingsAndMetaDataAs": "[packagename]"
+          }
+        }
+      }
+    },
+    {
+      "name": "ng-config-http-loader",
+      "srcDir": "modules/ng-config/http-loader",
+      "outDir": "dist/packages/ng-config",
+
+      "libraryName": "baf.ngConfig.httpLoader",
+
+      "tsTranspilation": {
+        "tsconfig": "tsconfig-build.json",
+        "copyTemplateAndStyleUrls": true,
+        "inlineMetaDataResources": true
+      },
+
+      "externals": {
+        "@bizappframework/ng-config": "baf.ngConfig"
+      },
+
+      "sourceMap": true,
+
+      "envOverrides": {
+        "prod": {
+          "bundles": [
+            {
+              "entry": "index.js",
+              "entryRoot": "tsOutDir",
+              "libraryTarget": "es",
+              "outDir": "bundles/[parentpackagename]"
+              //"outFileName": "[packagename].js"
+            },
+            {
+              "entryRoot": "prevBundleOutDir",
+              "libraryTarget": "es",
+              "outDir": "bundles/[parentpackagename]",
+              "transformScriptTargetOnly": true,
+              "scriptTarget": "es5"
+            },
+            {
+              "entryRoot": "prevBundleOutDir",
+              "libraryTarget": "umd",
+              "outDir": "bundles",
+              "outFileName": "[parentpackagename]-[packagename].umd.js"
+            }
+          ],
+
+          "packageOptions": {
+            "packageJsonFile": "package.json",
+            "packageJsonFileOutDir": "[packagename]",
+            "reExportTypingsAndMetaDataAs": "[packagename]"
+          }
+        }
+      }
+    }
+  ],
+  "apps": [
+    {
+      "name": "browser-app",
+      "platformTarget": "web",
+      "srcDir": "browser-app",
+      "outDir": "dist/browser-app",
+
+      "publicPath": "/",
+      "baseHref": "/",
+
+      "entry": "main.ts",
+      //"tsconfig": "tsconfig.json",
+
+      "clean": {
+        "beforeRun": {
+          //"cleanOutDir": true,
+          //"paths": [],
+          "exclude": [
+            ".icons-cache",
+            "favicon.ico",
+            "icons-*",
+            "icons-*/*"
+            //"vendor*"
+          ]
+        }
+        //"afterEmit": {
+        //  "paths": [ "temp-*" ]
+        //}
+        //"forceCleanToDisk": false
+      },
+
+      "copy": [
+        "assets/**"
+      ],
+      // or
+      //"copy": [
+      //  {
+      //    "from": "assets/**",
+      //    "to": "assets",
+      //    "exclude": [ ".gitkeep" ]
+      //  }
+      //],
+      // or
+      //"copy": {
+      //  "assets": [ "assets/**" ],
+      //  "forceWriteToDisk": true,
+      //  "allowCopyOutsideOutputPath":  true
+      //},
+
+      "favicons": {
+        "masterPicture": "favicon.svg"
+        // "forceWriteToDisk": true
+      },
+      // or
+      //"favicons": "favicons-config.json",
+
+      "dll": {
+        "entry": [
+          "package.json"
+        ],
+        "exclude": []
+      },
+      // or
+      //"dll": [
+      //  "@angular/common",
+      //  "@angular/core",
+      //  "@angular/platform-browser"
+      //],
+
+      "styles": [
+        "styles.scss"
+      ],
+      //"stylePreprocessorOptions": {
+      //  "includePaths": []
+      //},
+
+      //"scripts": [
+      //  "../../../node_modules/core-js/client/shim.js"
+      //],
+
+      "polyfills": [
+        "polyfills.ts"
+      ],
+
+      "htmlInject": {
+        "index": "index.html",
+        //"indexOut": "index.html"
+        "baseHrefOut": "_base-href.html",
+        "resourceHintsOut": "_resource-hints.html",
+        "iconsOut": "_favicons.html",
+        "stylesOut": "_styles.html",
+        "scriptsOut": "_scripts.html",
+
+        "resourceHints": true
+
+        //"customAttributes": {
+        //  "asp-append-version": "true"
+        //},
+        //"customLinkAttributes": {},
+        //"customScriptAttributes": {},
+        //"customPreloadPrefetchAttributes": {}
+      },
+
+      "bundleAnalyzer": {
+        "openAnalyzer": false
+      },
+      // or
+      //"bundleAnalyzer": true,
+
+      //"provides": {
+      //  "$": "jquery",
+      //  "jQuery": "jquery"
+      //},
+
+      //"nodeResolveFields": [
+      //  "es2015",
+      //  "module",
+      //  "main"
+      //],
+
+      //"skip": true,
+
+      "envOverrides": {
+        "dev": {
+          "referenceDll": true
+          //"sourceMapDevTool": "cheap-eval-source-map",
+          //"sourceMapDevToolModuleFilenameTemplate": "[absolute-resource-path]",
+          //"namedLazyChunks": false,
+          //"extractCss": true,
+        },
+        "prod": {
+          //"sourceMap": true,
+          //"environmentVariables": false,
+          //"appendOutputHash": false,
+
+          //"serviceWorker": true,
+          "dll": {},
+          "moduleReplacements": [
+            {
+              "resourcePath": "environments/environment.ts",
+              "newResourcePath": "environments/environment.prod.ts"
+            }
+          ],
+
+          "banner": "[PROJECT_NAME] - [PROJECT_VERSION]\nCopyright [CURRENT_YEAR]."
+          // or
+          //"banner": "banner.txt"
+        }
+      }
+    }
+  ],
+  "logLevel": "debug"
+}

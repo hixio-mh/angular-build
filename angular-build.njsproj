@@ -51,198 +51,208 @@
     <Content Include=".npmignore" />
     <Content Include=".nvmrc" />
     <Content Include=".travis.yml" />
-    <Content Include="bin\angular-build" />
     <Content Include="bin\ngb" />
     <Content Include="CHANGELOG.md" />
-    <Content Include="schemas\favicon-config-schema-draft-04.json" />
-    <Content Include="schemas\favicon-config-schema.json" />
-    <Content Include="schemas\schema-draft-04.json" />
-    <Content Include="schemas\schema.json" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
-    <Content Include="TODO.md" />
-    <Content Include="TROUBLESHOOTING.md" />
+    <Content Include="src\plugins\favicons-webpack-plugin\package.json" />
+    <Content Include="src\tsconfig.json" />
+    <Content Include="tests\webpack-config-test\angular-build.json" />
+    <Content Include="tests\webpack-config-test\browser-app\app\app.component.css" />
+    <Content Include="tests\webpack-config-test\browser-app\app\app.component.html" />
+    <Content Include="tests\webpack-config-test\browser-app\assets\.gitkeep" />
+    <Content Include="tests\webpack-config-test\browser-app\favicon.svg" />
+    <Content Include="tests\webpack-config-test\browser-app\index.html" />
+    <Content Include="tests\webpack-config-test\browser-app\package.json" />
+    <Content Include="tests\webpack-config-test\browser-app\styles.scss" />
+    <Content Include="tests\webpack-config-test\browser-app\tsconfig.app.json" />
+    <Content Include="tests\webpack-config-test\modules\ng-config\http-loader\package.json" />
+    <Content Include="tests\webpack-config-test\modules\ng-config\http-loader\tsconfig-build.json" />
+    <Content Include="tests\webpack-config-test\modules\ng-config\package.json" />
+    <Content Include="tests\webpack-config-test\modules\ng-config\README.md" />
+    <Content Include="tests\webpack-config-test\modules\ng-config\tsconfig-build.json" />
+    <Content Include="tests\webpack-config-test\modules\tsconfig-build.json" />
+    <Content Include="tests\webpack-config-test\modules\tsconfig.json" />
+    <Content Include="tests\webpack-config-test\tsconfig.json" />
+    <Content Include="tools\tsconfig-favicons-schema.json" />
+    <Content Include="tools\tsconfig-schema.json" />
     <Content Include="tsconfig.json" />
     <Content Include="tslint.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\" />
-    <Folder Include="schemas\" />
-    <Folder Include="src\cli\new\" />
-    <Folder Include="src\plugins\assets-json-webpack-plugin\" />
-    <Folder Include="src\plugins\dll-assets-reference-webpack-plugin\" />
-    <Folder Include="src\plugins\named-lazy-chunks-webpack-plugin\" />
-    <Folder Include="src\plugins\script-concat-webpack-plugin\" />
-    <Folder Include="src\plugins\rollup-plugin-ng-resource-inline\" />
-    <Folder Include="src\rollup-configs\" />
-    <Folder Include="templates\" />
-    <Folder Include="tools\" />
-    <Folder Include="src\" />
     <Folder Include="src\cli\" />
     <Folder Include="src\cli\build\" />
-    <Folder Include="src\cli\init\" />
-    <Folder Include="src\models\" />
-    <Folder Include="src\models\" />
+    <Folder Include="tests\" />
+    <Folder Include="src\" />
     <Folder Include="src\models\" />
     <Folder Include="src\helpers\" />
-    <Folder Include="src\utils\" />
     <Folder Include="src\plugins\" />
-    <Folder Include="src\plugins\" />
-    <Folder Include="src\plugins\" />
-    <Folder Include="src\plugins\customize-assets-html-webpack-plugin\" />
-    <Folder Include="src\plugins\customize-assets-html-webpack-plugin\" />
-    <Folder Include="src\plugins\icon-webpack-plugin\" />
-    <Folder Include="src\plugins\icon-webpack-plugin\" />
-    <Folder Include="src\plugins\icon-webpack-plugin\src\" />
-    <Folder Include="src\plugins\icon-webpack-plugin\src\" />
+    <Folder Include="src\plugins\add-assets-html-webpack-plugin\" />
+    <Folder Include="src\plugins\add-assets-html-webpack-plugin\src\" />
+    <Folder Include="src\plugins\add-static-asset-webpack-plugin\" />
+    <Folder Include="src\plugins\add-static-asset-webpack-plugin\src\" />
+    <Folder Include="src\plugins\angular-build-project-config-webpack-plugin\" />
+    <Folder Include="src\plugins\angular-build-project-config-webpack-plugin\src\" />
+    <Folder Include="src\plugins\base-href-html-webpack-plugin\" />
+    <Folder Include="src\plugins\base-href-html-webpack-plugin\src\" />
     <Folder Include="src\plugins\bundle-analyzer-webpack-plugin\" />
-    <Folder Include="src\plugins\static-asset-webpack-plugin\" />
-    <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
-    <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
-    <Folder Include="src\plugins\bundle-dll-webpack-plugin\" />
-    <Folder Include="src\plugins\try-bundle-dll-webpack-plugin\" />
-    <Folder Include="src\webpack-configs\" />
+    <Folder Include="src\plugins\bundle-analyzer-webpack-plugin\src\" />
+    <Folder Include="src\plugins\clean-webpack-plugin\" />
+    <Folder Include="src\plugins\clean-webpack-plugin\src\" />
+    <Folder Include="src\plugins\copy-webpack-plugin\" />
+    <Folder Include="src\plugins\copy-webpack-plugin\src\" />
     <Folder Include="src\plugins\customize-assets-html-webpack-plugin\" />
-    <Folder Include="src\plugins\icon-webpack-plugin\" />
-    <Folder Include="src\plugins\icon-webpack-plugin\src\" />
-    <Folder Include="src\plugins\try-bundle-dll-webpack-plugin\" />
+    <Folder Include="src\plugins\customize-assets-html-webpack-plugin\src\" />
+    <Folder Include="src\plugins\dynamic-dll-webpack-plugin\" />
+    <Folder Include="src\plugins\dynamic-dll-webpack-plugin\src\" />
+    <Folder Include="src\plugins\favicons-webpack-plugin\" />
+    <Folder Include="src\plugins\favicons-webpack-plugin\src\" />
+    <Folder Include="src\plugins\lib-bundle-webpack-plugin\" />
+    <Folder Include="src\plugins\lib-bundle-webpack-plugin\src\" />
+    <Folder Include="src\plugins\named-lazy-chunks-webpack-plugin\" />
+    <Folder Include="src\plugins\named-lazy-chunks-webpack-plugin\src\" />
+    <Folder Include="src\plugins\resource-hints-html-webpack-plugin\" />
+    <Folder Include="src\plugins\resource-hints-html-webpack-plugin\src\" />
+    <Folder Include="src\plugins\script-concat-webpack-plugin\" />
+    <Folder Include="src\plugins\script-concat-webpack-plugin\src\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
+    <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\" />
+    <Folder Include="src\plugins\write-assets-to-disk-webpack-plugin\" />
+    <Folder Include="src\plugins\write-assets-to-disk-webpack-plugin\src\" />
+    <Folder Include="src\plugins\write-stats-json-webpack-plugin\" />
+    <Folder Include="src\plugins\write-stats-json-webpack-plugin\src\" />
+    <Folder Include="src\utils\" />
     <Folder Include="src\webpack-configs\" />
-    <Folder Include="src\webpack-configs\" />
+    <Folder Include="src\webpack-configs\app\" />
+    <Folder Include="src\webpack-configs\lib\" />
+    <Folder Include="tests\webpack-config-test\" />
+    <Folder Include="tests\webpack-config-test\browser-app\" />
+    <Folder Include="tests\webpack-config-test\browser-app\app\" />
+    <Folder Include="tests\webpack-config-test\browser-app\assets\" />
+    <Folder Include="tests\webpack-config-test\browser-app\environments\" />
+    <Folder Include="tests\webpack-config-test\modules\" />
+    <Folder Include="tests\webpack-config-test\modules\ng-config\" />
+    <Folder Include="tests\webpack-config-test\modules\ng-config\http-loader\" />
+    <Folder Include="tests\webpack-config-test\modules\ng-config\http-loader\src\" />
+    <Folder Include="tests\webpack-config-test\modules\ng-config\src\" />
+    <Folder Include="tools\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="src\cli\build\build-lib.ts" />
-    <TypeScriptCompile Include="src\cli\build\bundle-task.ts" />
-    <TypeScriptCompile Include="src\cli\build\lib-build-pipe-info.ts" />
-    <TypeScriptCompile Include="src\cli\build\packaging-task.ts" />
-    <TypeScriptCompile Include="src\cli\build\ts-transpilation-task.ts" />
-    <TypeScriptCompile Include="src\cli\build\webpack-bundle.ts" />
-    <TypeScriptCompile Include="src\cli\init\index.ts" />
-    <TypeScriptCompile Include="src\cli\init\init-app.ts" />
-    <TypeScriptCompile Include="src\cli\init\init-command-module.ts" />
-    <TypeScriptCompile Include="src\cli\init\init-info.ts" />
-    <TypeScriptCompile Include="src\cli\init\init-lib.ts" />
-    <TypeScriptCompile Include="src\cli\init\init.ts" />
-    <TypeScriptCompile Include="src\cli\new\index.ts" />
-    <TypeScriptCompile Include="src\cli\new\new-command-module.ts" />
-    <TypeScriptCompile Include="src\cli\new\new.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\helpers\get-node-modules-start-paths.ts" />
-    <TypeScriptCompile Include="src\plugins\assets-json-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\dll-assets-reference-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\script-concat-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\named-lazy-chunks-webpack-plugin\index.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\rollup-configs\rollup-config-options.ts" />
-    <TypeScriptCompile Include="src\utils\path-helpers.ts" />
-    <TypeScriptCompile Include="src\utils\glob-copy-files.ts" />
-    <TypeScriptCompile Include="src\models\index.ts" />
-    <TypeScriptCompile Include="src\models\public-models.ts" />
-    <TypeScriptCompile Include="src\plugins\rollup-plugin-ng-resource-inline\index.ts" />
-    <TypeScriptCompile Include="src\rollup-configs\index.ts" />
-    <TypeScriptCompile Include="src\cli\build\build-command-module.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\cli\build\build.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\cli\build\build-command-module.ts" />
+    <TypeScriptCompile Include="src\cli\build\build.ts" />
     <TypeScriptCompile Include="src\cli\build\index.ts" />
-    <TypeScriptCompile Include="src\helpers\angular-rxjs-externals.ts" />
-    <TypeScriptCompile Include="src\helpers\copy-assets.ts" />
-    <TypeScriptCompile Include="src\helpers\copy-styles.ts" />
-    <TypeScriptCompile Include="src\helpers\get-aot-gen-dir.ts" />
-    <TypeScriptCompile Include="src\helpers\process-ng-resources.ts" />
-    <TypeScriptCompile Include="src\helpers\normalize-env-name.ts" />
-    <TypeScriptCompile Include="src\helpers\parse-icon-options.ts" />
-    <TypeScriptCompile Include="src\helpers\parse-style-entry.ts" />
-    <TypeScriptCompile Include="src\helpers\prepare-banner.ts" />
-    <TypeScriptCompile Include="src\helpers\ts-transpile.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\plugin-models.ts" />
-    <TypeScriptCompile Include="src\helpers\minify-file.ts" />
-    <TypeScriptCompile Include="src\helpers\pure-annotations.ts" />
-    <TypeScriptCompile Include="src\utils\sass-promise.ts" />
-    <TypeScriptCompile Include="src\utils\sourcemap-remap.ts" />
+    <TypeScriptCompile Include="src\cli\cli-options.ts" />
     <TypeScriptCompile Include="src\cli\index.ts" />
-    <TypeScriptCompile Include="src\cli\cli-options.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\helpers\prepare-configs.ts" />
+    <TypeScriptCompile Include="src\helpers\angular-rxjs-externals.ts" />
+    <TypeScriptCompile Include="src\helpers\get-custom-webpack-config.ts" />
+    <TypeScriptCompile Include="src\helpers\get-rollup-config.ts" />
     <TypeScriptCompile Include="src\helpers\index.ts" />
+    <TypeScriptCompile Include="src\helpers\is-webpack-dev-server.ts" />
+    <TypeScriptCompile Include="src\helpers\minify-file.ts" />
     <TypeScriptCompile Include="src\helpers\parse-dll-entry.ts" />
-    <TypeScriptCompile Include="src\helpers\parse-script-entry.ts" />
-    <TypeScriptCompile Include="src\helpers\process-helpers.ts" />
-    <TypeScriptCompile Include="src\helpers\read-angular-build-config.ts" />
+    <TypeScriptCompile Include="src\helpers\parse-global-entry.ts" />
+    <TypeScriptCompile Include="src\helpers\perform-lib-bundles.ts" />
+    <TypeScriptCompile Include="src\helpers\perform-ngc.ts" />
+    <TypeScriptCompile Include="src\helpers\perform-package-json-copy.ts" />
+    <TypeScriptCompile Include="src\helpers\prepare-configs.ts" />
+    <TypeScriptCompile Include="src\helpers\prepare-environment.ts" />
+    <TypeScriptCompile Include="src\helpers\process-ng-resources.ts" />
+    <TypeScriptCompile Include="src\helpers\process-styles.ts" />
+    <TypeScriptCompile Include="src\helpers\validate-project-config.ts" />
     <TypeScriptCompile Include="src\helpers\webpack-to-string-stats-options.ts" />
-    <TypeScriptCompile Include="src\plugins\bundle-analyzer-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\static-asset-webpack-plugin\index.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\utils\change-dash-case.ts" />
-    <TypeScriptCompile Include="src\utils\clean.ts" />
-    <TypeScriptCompile Include="src\utils\colorize.ts" />
-    <TypeScriptCompile Include="src\utils\glob-promise.ts" />
-    <TypeScriptCompile Include="src\utils\index.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\utils\logger.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\utils\package-json-version.ts" />
-    <TypeScriptCompile Include="src\helpers\parse-asset-entry.ts" />
-    <TypeScriptCompile Include="src\utils\read-json.ts" />
-    <TypeScriptCompile Include="src\utils\spawn-promise.ts" />
-    <TypeScriptCompile Include="src\utils\validate-schema.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\utils\yargs-type-map.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\lib.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\reference-dll.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\browser.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack-configs\common.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack-configs\dll.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\plugins\customize-assets-html-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-generator.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-loader.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\icon-webpack-plugin.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\index.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\src\interfaces.ts" />
-    <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\bundle-dll-webpack-plugin\index.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
     <TypeScriptCompile Include="src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\icon-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\webpack-config-options.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack-configs\app.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack-configs\styles.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack-configs\angular.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack-configs\index.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack-configs\test.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
-    <TypeScriptCompile Include="src\webpack-custom-typings.d.ts" />
+    <TypeScriptCompile Include="src\models\config-models.ts" />
+    <TypeScriptCompile Include="src\models\errors.ts" />
+    <TypeScriptCompile Include="src\models\favicons-config-models.ts" />
+    <TypeScriptCompile Include="src\models\index.ts" />
+    <TypeScriptCompile Include="src\models\internal-config-models.ts" />
+    <TypeScriptCompile Include="src\plugins\add-assets-html-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\add-assets-html-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\add-static-asset-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\add-static-asset-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\angular-build-project-config-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\angular-build-project-config-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\base-href-html-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\base-href-html-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\bundle-analyzer-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\bundle-analyzer-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\clean-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\clean-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\src\pre-process-assets.ts" />
+    <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\src\process-assets.ts" />
+    <TypeScriptCompile Include="src\plugins\customize-assets-html-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\customize-assets-html-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\dynamic-dll-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\dynamic-dll-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\compiler.ts" />
+    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\icon-generator.ts" />
+    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\internal-models.ts" />
+    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\plugin.ts" />
+    <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\named-lazy-chunks-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\named-lazy-chunks-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\resource-hints-html-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\resource-hints-html-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\script-concat-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\script-concat-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\write-assets-to-disk-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\write-assets-to-disk-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\write-stats-json-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\write-stats-json-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\utils\camel-case-to-underscore.ts" />
+    <TypeScriptCompile Include="src\utils\colorize.ts" />
+    <TypeScriptCompile Include="src\utils\generate-hash-digest.ts" />
+    <TypeScriptCompile Include="src\utils\index.ts" />
+    <TypeScriptCompile Include="src\utils\is-base64.ts" />
+    <TypeScriptCompile Include="src\utils\is-glob.ts" />
+    <TypeScriptCompile Include="src\utils\is-url.ts" />
+    <TypeScriptCompile Include="src\utils\logger.ts" />
+    <TypeScriptCompile Include="src\utils\path-helpers.ts" />
+    <TypeScriptCompile Include="src\utils\read-json.ts" />
+    <TypeScriptCompile Include="src\utils\require-project-module.ts" />
+    <TypeScriptCompile Include="src\utils\strip-comments.ts" />
+    <TypeScriptCompile Include="src\utils\validate-schema.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app\angular.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app\app.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app\browser.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app\common.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app\dll.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app\index.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app\reference-dll.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app\styles.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\index.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\lib\index.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\app\app.component.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\app\app.module.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\environments\environment.prod.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\environments\environment.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\main.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\polyfills.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\http-loader\index.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\http-loader\public_api.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\http-loader\src\config.http-loader.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\index.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\public_api.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\config.loader.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\config.module.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\config.pipe.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\config.service.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\config.static.loader.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\index.ts" />
+    <TypeScriptCompile Include="tests\webpack-config-test\webpack.config.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="tools\generate-schema.js" />
+    <Compile Include="tools\copy-files.js" />
   </ItemGroup>
   <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />

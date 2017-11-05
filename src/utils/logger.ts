@@ -1,46 +1,139 @@
-﻿import { EOL } from 'os';
-import * as supportsColor from 'supports-color';
+﻿import { colorize } from './colorize';
 
-import { colorize } from './colorize';
+export enum LogLevel {
+    None = 0,
+    Error = 1,
+    Warn = 2,
+    Info = 4,
+    Debug = 8
+}
 
-export class Logger {
-    private readonly colorSupported: boolean = supportsColor;
+export type LogLevelSring = 'debug' | 'info' | 'warn' | 'error' | 'none';
 
-    constructor(public readonly outputStream: NodeJS.Socket = process.stdout,
-        public readonly errorStream: NodeJS.Socket = process.stderr) {
+export type LoggerOptions = {
+    logLevel?: LogLevelSring;
+    name?: string;
+    debugPrefix?: string;
+    infoPrefix?: string;
+    warnPrefix?: string;
+    errorPrefix?: string;
+    color?: boolean;
+};
+
+
+export interface LoggerBase {
+    debug?: (message: string, optionalParams?: any[]) => void;
+    info?: (message: string, optionalParams?: any[]) => void;
+    warn?: (message: string, optionalParams?: any[]) => void;
+    error?: (message: string, optionalParams?: any[]) => void;
+}
+
+export class Logger implements LoggerBase {
+
+    private readonly loggerOptions: LoggerOptions;
+    private minLogLevel: LogLevel = LogLevel.Info;
+
+    set logLevel(logLevel: LogLevelSring) {
+        switch (logLevel) {
+            case 'debug':
+                this.minLogLevel = LogLevel.Debug;
+                break;
+            case 'info':
+                this.minLogLevel = LogLevel.Info;
+                break;
+            case 'warn':
+                this.minLogLevel = LogLevel.Warn;
+                break;
+            case 'error':
+                this.minLogLevel = LogLevel.Error;
+                break;
+            case 'none':
+                this.minLogLevel = LogLevel.None;
+                break;
+            default:
+        }
     }
 
-    log(data: string): void {
-        this.outputStream.write(data);
+    constructor(loggerOptions: LoggerOptions) {
+        this.loggerOptions = loggerOptions || {};
+        if (this.loggerOptions.logLevel) {
+            this.logLevel = this.loggerOptions.logLevel;
+        }
     }
 
-    info(data: string): void {
-        this.log(`${colorize('INFO', 'cyan', this.colorSupported)}: ${data}`);
+    debug(message: string, optionalParams?: any[]): void {
+        if (this.minLogLevel < LogLevel.Debug) {
+            return;
+        }
+
+        const prefix =
+            `${this.loggerOptions.name ? this.loggerOptions.name + ' ' : ''}${
+            this.loggerOptions.debugPrefix
+                ? this.loggerOptions.debugPrefix + ' '
+                : ''}`;
+        if (optionalParams) {
+            console.log(`${prefix}${message.trim()}`, optionalParams);
+        } else {
+            console.log(`${prefix}${message.trim()}`);
+        }
     }
 
-    warn(data: string): void {
-        this.log(`${colorize('WARN', 'yellow', this.colorSupported)}: ${data}`);
+    info(message: string, optionalParams?: any[]): void {
+        if (this.minLogLevel < LogLevel.Info) {
+            return;
+        }
+
+        const prefix =
+            `${this.loggerOptions.name ? this.loggerOptions.name + ' ' : ''}${
+            this.loggerOptions.infoPrefix
+                ? this.loggerOptions.infoPrefix + ' '
+                : ''}`;
+        if (optionalParams) {
+            console.log(`${prefix}${message.trim()}`, optionalParams);
+        } else {
+            console.log(`${prefix}${message.trim()}`);
+        }
     }
 
-    error(data: string, prefixErrorText: boolean = true): void {
-        prefixErrorText
-            ? this.errorStream.write(`${colorize('ERROR', 'red', this.colorSupported)}: ${data}`)
-            : this.errorStream.write(data);
+    warn(message: string, optionalParams?: any[]): void {
+        if (this.minLogLevel < LogLevel.Warn) {
+            return;
+        }
+
+        const prefix =
+            `${this.loggerOptions.name ? this.loggerOptions.name + ' ' : ''}${
+            this.loggerOptions.warnPrefix
+                ? this.loggerOptions.warnPrefix + ' '
+                : ''}`;
+        const logMsg = this.loggerOptions.color !== false
+            ? colorize(`${prefix}${message.trim()}`, 'yellow')
+            : `${prefix}${message.trim()}`;
+
+        if (optionalParams) {
+            console.warn(logMsg, optionalParams);
+        } else {
+            console.warn(logMsg);
+        }
     }
 
-    logLine(data: string): void {
-        this.outputStream.write(data + EOL);
-    }
+    error(message: string, optionalParams?: any[]): void {
+        if (this.minLogLevel < LogLevel.Warn) {
+            return;
+        }
 
-    infoLine(data: string): void {
-        this.info(data + EOL);
-    }
+        const prefix =
+            `${this.loggerOptions.name ? this.loggerOptions.name + ' ' : ''}${
+            this.loggerOptions.errorPrefix
+                ? this.loggerOptions.errorPrefix + ' '
+                : ''}`;
+        const logMsg = this.loggerOptions.color !== false
+            ? colorize(`${prefix}${message.trim()}`, 'red')
+            : `${prefix}${message.trim()}`;
 
-    warnLine(data: string): void {
-        this.warn(data + EOL);
-    }
-
-    errorLine(data: string, prefixErrorText: boolean = true): void {
-        this.error(data + EOL, prefixErrorText);
+        if (optionalParams) {
+            console.error(logMsg, optionalParams);
+        } else {
+            console.error(logMsg);
+        }
     }
 }

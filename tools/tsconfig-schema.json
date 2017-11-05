@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+
+  "compilerOptions": {
+    "types": []
+  },
+
+  "files": [
+    "../src/models/favicons-config-models.ts"
+  ]
+}

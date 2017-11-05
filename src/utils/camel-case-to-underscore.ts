@@ -1,0 +1,3 @@
+﻿export function camelCaseToUnderscore(s: string): string {
+    return s.replace(/(?:^|\.?)([A-Z])/g, (x, y) => `_${y.toLowerCase()}`).replace(/^_/, '');
+}

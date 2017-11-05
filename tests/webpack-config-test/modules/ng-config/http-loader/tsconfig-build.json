@@ -1,0 +1,26 @@
+﻿{
+  "extends": "../tsconfig-build.json",
+
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "../",
+    "paths": {
+      "@bizappframework/ng-config": [ "../../../dist/packages/ng-config" ],
+
+      "@angular/core": [ "../../../../../node_modules/@angular/core" ],
+      "@angular/common/http": [ "../../../../../node_modules/@angular/common/http" ],
+      "@angular/platform-browser": [ "../../../../../node_modules/@angular/platform-browser" ],
+      "rxjs/*": [ "../../../../../node_modules/rxjs/*" ]
+    },
+    "outDir": "../../../dist/packages/ng-config"
+  },
+  "files": [
+    "public_api.ts"
+  ],
+  "angularCompilerOptions": {
+    "annotateForClosureCompiler": true,
+    "strictMetadataEmit": true,
+    "flatModuleOutFile": "index.js",
+    "flatModuleId": "@bizappframework/ng-config/http-loader"
+  }
+}

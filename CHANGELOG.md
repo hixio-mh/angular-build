@@ -1,4 +1,9 @@
-﻿# v4.0.4
+﻿# v5.0.0-rc.0
+- Support Angular 5
+- All code refactoring, schema and API changes
+- Updated dependencies
+
+# v4.0.4
 - Fixed - rollup deprecation warnings
 - updated npm packages
 

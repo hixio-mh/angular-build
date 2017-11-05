@@ -1,6 +1,8 @@
 ﻿import * as webpack from 'webpack';
 
-export function getWebpackToStringStatsOptions(options?: webpack.Stats.ToStringOptions, verbose: boolean = false):
+// const verbose = process.argv.indexOf('--verbose') > -1;
+
+export function getWebpackToStringStatsOptions(verbose: boolean, options?: webpack.Stats.ToStringOptions):
     webpack.Stats.ToStringOptionsObject {
     const defaultOptions: webpack.Stats.ToStringOptions = {
         colors: true,
@@ -8,14 +10,17 @@ export function getWebpackToStringStatsOptions(options?: webpack.Stats.ToStringO
         warnings: true,
         assets: true, // buildOptions.debug,
 
-        // version: false,
+        hash: false,
+        version: false,
+        timings: false,
         publicPath: false,
         reasons: false,
         chunkModules: false,
         modules: false,
         // listing all children is very noisy in AOT and hides warnings/errors
         children: false,
-        // make sure 'chunks' is false or it will add 5-10 seconds to your build and incremental build time, due to excessive output.
+        // make sure 'chunks' is false or it will add 5-10 seconds to your build and
+        // incremental build time, due to excessive output.
         chunks: false
     };
 
@@ -54,9 +59,9 @@ export function getWebpackToStringStatsOptions(options?: webpack.Stats.ToStringO
                 warnings: false,
                 publicPath: false,
                 performance: false
-            } as any;
+            } as webpack.Stats.ToStringOptionsObject ;
         } else {
-            const pn = options;
+            const pn: any = options;
             return {
                 hash: pn !== 'errors-only' && pn !== 'minimal',
                 version: pn === 'verbose',
@@ -73,7 +78,7 @@ export function getWebpackToStringStatsOptions(options?: webpack.Stats.ToStringO
                 providedExports: pn === 'verbose',
                 colors: true,
                 performance: true
-            } as any;
+            } as webpack.Stats.ToStringOptionsObject ;
         }
 
     } else {

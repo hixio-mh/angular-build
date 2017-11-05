@@ -1,7 +1,8 @@
 ﻿export interface CliOptions {
-    cliVersion?: string;
-    cwd?: string;
+    args: any;
+    cliVersion: string;
+    cliIsGlobal: boolean;
+
     command?: string;
     commandOptions?: any;
-    cliIsLocal?: boolean;
 }
