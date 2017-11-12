@@ -5,9 +5,11 @@ import * as glob from 'glob';
 import * as loaderUtils from 'loader-utils';
 import * as minimatch from 'minimatch';
 
+import { InternalError } from '../../../models';
 import { isInFolder, isSamePaths, normalizeRelativePath } from '../../../utils';
 
 import { PreProcessedAssetEntry } from './pre-process-assets';
+
 
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 
@@ -54,11 +56,12 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
             }
         }
 
-        let shouldFlattern = assetEntry.flatten || assetEntry.fromIsAbsolute || !assetEntry.fromIsDir;
+        let shouldFlattern = !assetEntry.to || assetEntry.fromIsAbsolute || !assetEntry.fromIsDir;
         if (!shouldFlattern) {
             for (let relfromPath of relativeFromPaths) {
                 const absFromPath = path.resolve(assetEntry.context, relfromPath);
-                if (!isInFolder(assetEntry.context, path.resolve(assetEntry.context, relfromPath)) ||
+                if ((!assetEntry.fromIsDir &&
+                        !isInFolder(assetEntry.context, path.resolve(assetEntry.context, relfromPath))) ||
                     isSamePaths(path.dirname(absFromPath), path.parse(absFromPath).root)) {
                     shouldFlattern = true;
                     break;
@@ -99,11 +102,11 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
                 relativeTo: assetEntry.to || ''
             };
 
-            if (shouldFlattern) {
-                assetToEmit.relativeFrom = path.basename(assetToEmit.absoluteFrom);
-            }
-
             if (assetEntry.to) {
+                if (shouldFlattern) {
+                    assetToEmit.relativeFrom = path.basename(assetToEmit.absoluteFrom);
+                }
+
                 if (assetEntry.toIsTemplate && assetToEmit.relativeTo) {
                     // a hack so .dotted files don't get parsed as extensions
                     const basename = path.basename(assetToEmit.relativeFrom);
@@ -123,7 +126,7 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
 
                     // a hack because loaderUtils.interpolateName doesn't
                     // find the right path if no directory is defined
-                    // ie. [path] applied to 'file.txt' would return 'file'
+                    // i.e. [path] applied to 'file.txt' would return 'file'
                     if (assetToEmit.relativeFrom.indexOf(path.sep) < 0) {
                         assetToEmit.relativeFrom = path.sep + assetToEmit.relativeFrom;
                     }
@@ -138,23 +141,18 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
                         const newBasename = path.basename(assetToEmit.relativeTo);
                         assetToEmit.relativeTo = path.dirname(assetToEmit.relativeTo) + '/.' + newBasename;
                     }
-                } else if (assetEntry.toIsDir) {
+                } else if (assetEntry.fromIsDir) {
                     assetToEmit.relativeTo = path.join(assetEntry.to, assetToEmit.relativeFrom);
                 } else {
                     assetToEmit.relativeTo = assetEntry.to;
                 }
             } else {
-                if (shouldFlattern) {
-                    assetToEmit.relativeTo = path.basename(assetToEmit.absoluteFrom);
-                } else {
-                    const formPath = path.dirname(assetToEmit.absoluteFrom);
-                    assetToEmit.relativeTo = path.relative(path.dirname(formPath), assetToEmit.absoluteFrom);
-                }
+                assetToEmit.relativeTo = path.basename(assetToEmit.absoluteFrom);
             }
 
             if (path.isAbsolute(assetToEmit.relativeTo)) {
                 if (!outputPath || outputPath === '/') {
-                    throw new Error(`The absolute path is required for 'outputPath'.`);
+                    throw new InternalError(`The absolute path is required for 'outputPath'.`);
                 }
 
                 assetToEmit.relativeTo = path.relative(outputPath, assetToEmit.relativeTo);

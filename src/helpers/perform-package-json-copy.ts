@@ -29,7 +29,8 @@ export async function performPackageJsonCopy(angularBuildContext: LibBuildContex
 
     const projectRoot = angularBuildContext.projectRoot;
     const outDir = path.resolve(projectRoot, libConfig.outDir);
-    const packageJsonOutDir = path.resolve(outDir, libConfig.packageOptions.packageJsonFileOutDir || '');
+    let packageJsonOutDir = path.resolve(outDir, libConfig.packageOptions.packageJsonFileOutDir || '');
+    packageJsonOutDir = replaceOutputTokens(packageJsonOutDir, angularBuildContext);
 
     const mainFields: {
         main?: string;

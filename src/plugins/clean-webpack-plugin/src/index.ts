@@ -40,8 +40,8 @@ export class CleanWebpackPlugin {
             throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
         }
 
-        const loggerOptions = this.options.loggerOptions || {} as LoggerOptions;
-        loggerOptions.name = `[${this.name}]`;
+        const loggerOptions =
+            Object.assign({ name: `[${this.name}]` }, this.options.loggerOptions || {}) as LoggerOptions;
         this.logger = new Logger(loggerOptions);
 
         if (this.options.persistedOutputFileSystemNames && this.options.persistedOutputFileSystemNames.length) {
@@ -316,7 +316,7 @@ export class CleanWebpackPlugin {
         }
 
         await Promise.all(filesToClean.map(async (f: string) => {
-            const fileRel = compiler.options.context ? path.relative(outputPath, f) : f;
+            const fileRel = compiler.options.context ? path.relative(process.cwd(), f) : f;
             this.logger.debug(`Deleting ${fileRel}`);
 
             await new Promise((resolve: any, reject: any) => rimraf(f,

@@ -131,6 +131,7 @@ export class AngularBuildContextImpl implements AngularBuildContext {
         readonly projectConfig: ProjectConfigInternal
     ) {
         this.logger = new Logger({
+            name:'',
             logLevel: this.angularBuildConfig.logLevel || 'info',
             debugPrefix: 'DEBUG:',
             infoPrefix: 'INFO:',

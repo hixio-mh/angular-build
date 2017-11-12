@@ -55,8 +55,8 @@ export class AngularBuildProjectConfigWebpackPlugin {
             throw new InternalError(`[${this.name}] The 'configPath' option is required.`);
         }
 
-        const loggerOptions = this.options.loggerOptions || {} as LoggerOptions;
-        loggerOptions.name = `[${this.name}]`;
+        const loggerOptions =
+            Object.assign({ name: `[${this.name}]` }, this.options.loggerOptions || {}) as LoggerOptions;
         this.logger = new Logger(loggerOptions);
 
         if (this.options.initialProjectConfig) {

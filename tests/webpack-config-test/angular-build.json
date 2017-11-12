@@ -1,21 +1,11 @@
 {
   "libs": [
     {
-      //"skip": true,
-
       "name": "ng-config",
       "srcDir": "modules/ng-config",
       "outDir": "dist/packages/ng-config",
 
       "libraryName": "baf.ngConfig",
-
-      //"clean": {
-      //  "beforeRun": {
-      //    "cleanOutDir": true
-      //    //"paths": [],
-      //    //"exclude": []
-      //  }
-      //},
 
       "tsTranspilation": {
         "tsconfig": "tsconfig-build.json",
@@ -27,6 +17,14 @@
 
       "envOverrides": {
         "prod": {
+          "clean": {
+            "beforeRun": {
+              "cleanOutDir": true
+              //"paths": [],
+              //"exclude": []
+            }
+          },
+
           "copy": [
             "LICENSE",
             "README.md"
@@ -119,6 +117,7 @@
   ],
   "apps": [
     {
+      "skip": true,
       "name": "browser-app",
       "platformTarget": "web",
       "srcDir": "browser-app",

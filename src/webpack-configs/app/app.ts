@@ -10,7 +10,7 @@ import {
     PreDefinedEnvironment } from '../../models';
 import { getCustomWebpackConfig, isWebpackDevServer } from '../../helpers';
 
-import { getAppAngularTypescriptWebpackConfigPartial, getAppAngularServiceWorkerWebpackConfigPartial } from './angular';
+import { getAppAngularTypescriptWebpackConfigPartial } from './angular';
 import { getAppBrowserWebpackConfigPartial } from './browser';
 import { getAppCommonWebpackConfigPartial } from './common';
 import { getAppReferenceDllWebpackConfigPartial } from './reference-dll';
@@ -36,7 +36,6 @@ export function getAppWebpackConfig(angularBuildContext: AppBuildContext): webpa
         getAppCommonWebpackConfigPartial(angularBuildContext),
         getAppStylesWebpackConfigPartial(angularBuildContext),
         getAppAngularTypescriptWebpackConfigPartial(angularBuildContext),
-        getAppAngularServiceWorkerWebpackConfigPartial(angularBuildContext),
 
         // browser only
         getAppBrowserWebpackConfigPartial(angularBuildContext),

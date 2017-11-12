@@ -11,8 +11,6 @@ import {
     InvalidConfigError,
     LibBuildContext,
     LibProjectConfigInternal,
-    RollupError,
-    SorceryError,
     TsTranspilationOptionsInternal,
     TypescriptCompileError } from '../models';
 import { isSamePaths, Logger } from '../utils';
@@ -243,25 +241,13 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
             logger.debug(
                 `Bundling ${currentBundle.libraryTarget} module with rollup`);
 
-            try {
-                const bundle = await rollup.rollup(rollupOptions.inputOptions as any);
-                await bundle.write(rollupOptions.outputOptions as any);
-            } catch (err) {
-                // TODO: to reivew
-                throw new RollupError(err);
-            }
+            const bundle = await rollup.rollup(rollupOptions.inputOptions as any);
+            await bundle.write(rollupOptions.outputOptions as any);
 
             // Remapping sourcemaps
             if (shouldReMapSourceMap) {
-                // logger.debug(`Remapping sourcemaps - ${path.basename(tempOutputFilePath)}`);
-
-                try {
-                    const chain: any = await sorcery.load(tempOutputFilePath);
-                    await chain.write();
-                } catch (sorceryErr2) {
-                    // TODO: to reivew
-                    throw new SorceryError(sorceryErr2);
-                }
+                const chain: any = await sorcery.load(tempOutputFilePath);
+                await chain.write();
             }
 
             // re transform script version
@@ -305,13 +291,8 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
 
             // Remapping sourcemaps
             if (libConfig.sourceMap) {
-                // logger.debug(`Remapping sourcemaps - ${path.basename(outputFilePath)}`);
-                try {
-                    const chain: any = await sorcery.load(outputFilePath);
-                    await chain.write();
-                } catch (sorceryErr4) {
-                    throw new SorceryError(sorceryErr4);
-                }
+                const chain: any = await sorcery.load(outputFilePath);
+                await chain.write();
             }
         }
     }
@@ -342,13 +323,8 @@ async function transformScriptTarget(bundleEntryFilePath: string,
         });
 
     if (reMapSourceMap) {
-        // logger.debug(`Remapping sourcemaps - ${path.basename(bundleDestFilePath)}`);
-        try {
-            const chain: any = await sorcery.load(bundleDestFilePath);
-            await chain.write();
-        } catch (sorceryErr) {
-            throw new SorceryError(sorceryErr);
-        }
+        const chain: any = await sorcery.load(bundleDestFilePath);
+        await chain.write();
     }
 }
 

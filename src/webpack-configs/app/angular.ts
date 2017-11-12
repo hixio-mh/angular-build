@@ -1,19 +1,13 @@
-﻿import { existsSync, readFileSync } from 'fs';
-import * as path from 'path';
+﻿import * as path from 'path';
 
 import * as webpack from 'webpack';
-import { stripIndent } from 'common-tags';
-import * as semver from 'semver';
 
-import {
+ import {
     AotPlugin,
     AotPluginOptions,
     AngularCompilerPlugin,
     AngularCompilerPluginOptions,
     PLATFORM } from '@ngtools/webpack';
-
-import { CopyWebpackPlugin } from '../../plugins/copy-webpack-plugin';
-import { AddStaticAssetWebpackPlugin } from '../../plugins/add-static-asset-webpack-plugin';
 
 import {
     AppBuildContext,
@@ -37,91 +31,6 @@ export function getAppAngularTypescriptWebpackConfigPartial(angularBuildContext:
     }
 
     return getAngularPluginWebpackConfigPartial(angularBuildContext);
-}
-
-// Ref: https://github.com/angular/angular-cli
-// TODO: to review for >=5.0.0
-export function getAppAngularServiceWorkerWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
-    const projectRoot = angularBuildContext.projectRoot;
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-
-    if (appConfig._projectType !== 'app' ||
-        !appConfig.serviceWorker ||
-        !appConfig.entry ||
-        appConfig.platformTarget === 'node') {
-        return {};
-    }
-
-    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
-    const swModule = path.resolve(angularBuildContext.nodeModulesPath, '@angular/service-worker');
-
-    const entryPoints: { [key: string]: string[] } = {};
-
-    // @angular/service-worker is required to be installed when serviceWorker is true.
-    if (!existsSync(swModule)) {
-        throw new InvalidConfigError(stripIndent`
-        Your project is configured with serviceWorker = true, but @angular/service-worker
-        is not installed. Run 'npm install -S @angular/service-worker'
-        and try again, or set 'apps[${appConfig._index}].serviceWorker' = false in your angular-build.json.
-      `);
-    }
-
-    // Read the version of @angular/service-worker and throw if it doesn't match the
-    // expected version.
-    const allowedVersion = '>= 1.0.0-beta.5 < 2.0.0';
-    const swPackageJson = readFileSync(`${path.resolve(swModule, 'package.json')}`).toString();
-    const swVersion = JSON.parse(swPackageJson).version;
-    if (!semver.satisfies(swVersion, allowedVersion)) {
-        throw new InvalidConfigError(stripIndent`
-        The installed version of @angular/service-worker is ${swVersion}. This version of the cli
-        requires the @angular/service-worker version to satisfy ${allowedVersion}. Please upgrade
-        your service worker version.
-      `);
-    }
-
-    // Path to the worker script itself.
-    const workerPath = path.resolve(swModule, 'bundles', 'worker-basic.min.js');
-
-    // Path to a small script to register a service worker.
-    const registerPath = path.resolve(swModule, 'build/assets/register-basic.min.js');
-
-    // Sanity check - both of these files should be present in @angular/service-worker.
-    if (!existsSync(workerPath) || !existsSync(registerPath)) {
-        throw new InvalidConfigError(stripIndent`
-        The installed version of @angular/service-worker isn't supported by the cli.
-        Please install a supported version. The following files should exist:
-        - ${registerPath}
-        - ${workerPath}
-      `);
-    }
-
-    // Path to a small script to register a service worker.
-    entryPoints['sw-register'] = [registerPath];
-
-    const plugins: webpack.Plugin[] = [];
-
-    plugins.push(new CopyWebpackPlugin({
-        assets: [
-            'ngsw-manifest.json'
-        ],
-        baseDir: srcDir
-    }));
-
-    // Load the Webpack plugin for manifest generation and install it.
-    const AngularServiceWorkerPlugin = require('@angular/service-worker/build/webpack')
-        .AngularServiceWorkerPlugin;
-    plugins.push(new AngularServiceWorkerPlugin({
-        baseHref: appConfig.baseHref || '/'
-    }));
-
-    // Copy the worker script into assets.
-    const workerContents = readFileSync(workerPath).toString();
-    plugins.push(new AddStaticAssetWebpackPlugin('worker-basic.min.js', workerContents));
-
-    return {
-        entry: entryPoints,
-        plugins: plugins
-    };
 }
 
 export function getAngularFixPlugins(angularBuildContext: AppBuildContext): webpack.Plugin[] {

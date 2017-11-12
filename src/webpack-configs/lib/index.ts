@@ -42,9 +42,7 @@ export function getLibWebpackConfig(angularBuildContext: LibBuildContext): webpa
         plugins.push(new CleanWebpackPlugin(Object.assign(cleanOptions,
             {
                 forceCleanToDisk: true,
-                loggerOptions: {
-                    logLevel: angularBuildContext.angularBuildConfig.logLevel
-                }
+                loggerOptions: angularBuildContext.logger.loggerOptions
             })));
     }
 
@@ -71,9 +69,7 @@ export function getLibWebpackConfig(angularBuildContext: LibBuildContext): webpa
             baseDir: srcDir,
             allowCopyOutsideOutputPath: true,
             forceWriteToDisk: true,
-            loggerOptions: {
-                logLevel: angularBuildContext.angularBuildConfig.logLevel
-            }
+            loggerOptions: angularBuildContext.logger.loggerOptions
         }));
     }
     

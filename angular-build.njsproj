@@ -57,7 +57,6 @@
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="src\plugins\favicons-webpack-plugin\package.json" />
-    <Content Include="src\tsconfig.json" />
     <Content Include="tests\webpack-config-test\angular-build.json" />
     <Content Include="tests\webpack-config-test\browser-app\app\app.component.css" />
     <Content Include="tests\webpack-config-test\browser-app\app\app.component.html" />

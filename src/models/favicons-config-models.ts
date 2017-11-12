@@ -1,15 +1,9 @@
-﻿/**
- * MasterPicture
- */
-export type MasterPicture = {
+﻿export type MasterPicture = {
     type?: 'inline' | 'url';
     content?: string;
     url?: string;
 };
 
-/**
- * @additionalProperties true
- */
 export type AndroidChromeDesign = {
     /**
      * The picture aspect.
@@ -63,9 +57,6 @@ export type AndroidChromeDesign = {
     };
 };
 
-/**
- * @additionalProperties true
- */
 export type IoSDesign = {
     pictureAspect?: 'noChange' | 'backgroundAndMargin';
     margin?: number | string;
@@ -87,18 +78,12 @@ export type IoSDesign = {
     };
 };
 
-/**
- * @additionalProperties true
- */
 export type SafariPinnedTabDesign = {
     pictureAspect?: 'noChange' | 'silhouette' | 'blackAndWhite';
     threshold?: number;
     themeColor?: string;
 };
 
-/**
- * @additionalProperties true
- */
 export type WindowsDesign = {
     pictureAspect?: 'noChange' | 'whiteSilhouette';
     backgroundColor?: string;
@@ -120,18 +105,13 @@ export type WindowsDesign = {
     }
 };
 
-/**
- * @additionalProperties true
- */
 export type CoastDesign = {
     pictureAspect?: 'noChange' | 'backgroundAndMargin';
     backgroundColor?: string;
     margin?: number | string;
 };
 
-/**
- * @additionalProperties true
- */
+
 export type OpenGraphDesign = {
     pictureAspect?: 'noChange' | 'backgroundAndMargin';
     backgroundColor?: string;
@@ -139,9 +119,6 @@ export type OpenGraphDesign = {
     ratio?: string;
 };
 
-/**
- * @additionalProperties true
- */
 export type FirefoxAppDesign = {
     pictureAspect?: 'noChange' | 'circle';
     keepPictureInCircle?: string | boolean;
@@ -159,9 +136,7 @@ export type FirefoxAppDesign = {
     };
 };
 
-/**
- * @additionalProperties true
- */
+
 export type YandexBrowserDesign = {
     backgroundColor?: string;
     /**
@@ -173,9 +148,6 @@ export type YandexBrowserDesign = {
     };
 };
 
-/**
- * @additionalProperties true
- */
 export interface IconDesign {
     androidChrome?: AndroidChromeDesign | boolean;
     ios?: IoSDesign | boolean;
@@ -188,9 +160,6 @@ export interface IconDesign {
     yandexBrowser?: YandexBrowserDesign | boolean;
 }
 
-/**
- * @additionalProperties false
- */
 export interface FaviconsConfig {
     /**
      * Your API key. Register at {@link https://realfavicongenerator.net/api/#register_key realfavicongenerator.net}

@@ -3,7 +3,12 @@ import * as path from 'path';
 import { InvalidConfigError, ProjectConfigInternal } from '../models';
 import { isInFolder, isSamePaths } from '../utils';
 
-export async function validateProjectConfig(projectRoot: string, projectConfig: ProjectConfigInternal): Promise<any> {
+export function validateProjectConfig(projectRoot: string, projectConfig: ProjectConfigInternal): void {
+    if (!projectConfig.outDir) {
+        throw new InvalidConfigError(`The '${projectConfig._projectType}s[${projectConfig._index
+            }].outDir' is required.`);
+    }
+
     if (projectConfig.srcDir && path.isAbsolute(projectConfig.srcDir)) {
         throw new InvalidConfigError(`The '${projectConfig._projectType}s[${projectConfig._index
             }].srcDir' must be relative path.`);

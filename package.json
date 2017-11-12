@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "5.0.0-rc.0",
+  "version": "5.0.0-rc.4",
   "description": "Build tool for Angular app and library projects.",
   "keywords": [
     "ngb",
@@ -30,9 +30,13 @@
   },
   "homepage": "https://github.com/bizappframework/angular-build",
   "scripts": {
-    "build": "rimraf -- dist && tsc -p src/tsconfig.json && node tools/generate-schema.js && node tools/copy-files.js"
+    "generate:schema": "node tools/generate-schema.js",
+    "build": "rimraf -- dist && tsc && node tools/generate-schema.js && node tools/copy-files.js"
   },
   "dependencies": {
+    "@angular/core": "^5.0.1",
+    "@angular/compiler": "^5.0.1",
+    "@angular/compiler-cli": "^5.0.1",
     "@angular-devkit/build-optimizer": "0.0.32",
     "@ngtools/webpack": "^1.8.0",
     "ajv": "^5.3.0",
@@ -63,7 +67,7 @@
     "raw-loader": "^0.5.1",
     "resolve": "^1.5.0",
     "rimraf": "^2.6.2",
-    "rollup": "^0.50.0",
+    "rollup": "^0.51.5",
     "rollup-plugin-node-resolve": "^3.0.0",
     "sass-loader": "^6.0.6",
     "semver": "^5.4.1",
@@ -72,37 +76,35 @@
     "supports-color": "^5.0.0",
     "tinycolor2": "^1.4.1",
     "typescript": "^2.6.1",
-    "uglify-js": "^3.1.7",
+    "uglify-js": "^3.1.9",
     "uglifyjs-webpack-plugin": "^1.0.1",
     "unzip2": "^0.2.5",
     "update-notifier": "^2.3.0",
     "url-loader": "^0.6.2",
     "webpack": "^3.8.1",
-    "webpack-bundle-analyzer": "^2.9.0",
+    "webpack-bundle-analyzer": "^2.9.1",
     "webpack-merge": "^4.1.1",
-    "yargs": "^10.0.3"
+    "yargs": "^10.0.3",
+    "rxjs": "^5.5.2",
+    "zone.js": "^0.8.18"
   },
   "devDependencies": {
-    "@angular/common": "^5.0.0",
-    "@angular/compiler": "^5.0.0",
-    "@angular/compiler-cli": "^5.0.0",
-    "@angular/core": "^5.0.0",
-    "@angular/platform-browser": "^5.0.0",
-    "@angular/platform-browser-dynamic": "^5.0.0",
-    "@angular/router": "^5.0.0",
-    "@angular/service-worker": "5.0.0",
+    "@angular/common": "^5.0.1",
+    "@angular/platform-browser": "^5.0.1",
+    "@angular/platform-browser-dynamic": "^5.0.1",
+    "@angular/router": "^5.0.1",
     "@types/autoprefixer": "^6.7.3",
     "@types/common-tags": "^1.4.0",
     "@types/denodeify": "^1.2.31",
     "@types/extract-text-webpack-plugin": "^3.0.0",
-    "@types/fs-extra": "^4.0.3",
+    "@types/fs-extra": "^4.0.4",
     "@types/glob": "^5.0.33",
     "@types/html-minifier": "^1.1.30",
     "@types/html-webpack-plugin": "^2.28.0",
-    "@types/jasmine": "^2.6.2",
+    "@types/jasmine": "^2.6.3",
     "@types/loader-utils": "^1.1.0",
     "@types/minimatch": "^3.0.1",
-    "@types/node": "^8.0.47",
+    "@types/node": "^8.0.51",
     "@types/node-sass": "^3.10.32",
     "@types/resolve": "^0.0.4",
     "@types/rimraf": "^2.0.2",
@@ -111,16 +113,14 @@
     "@types/supports-color": "^3.1.0",
     "@types/tinycolor2": "^1.4.0",
     "@types/uglify-js": "^2.6.29",
-    "@types/webpack": "^3.0.14",
+    "@types/webpack": "^3.8.1",
     "@types/yargs": "^8.0.2",
     "ajv-cli": "^2.1.0",
     "core-js": "^2.5.1",
-    "rxjs": "^5.5.2",
     "ts-node": "^3.3.0",
-    "typescript-json-schema": "^0.19.0",
-    "zone.js": "^0.8.18"
+    "typescript-json-schema": "^0.19.0"
   },
   "optionalDependencies": {
-    "node-sass": "^4.6.0"
+    "node-sass": "^4.6.1"
   }
 }

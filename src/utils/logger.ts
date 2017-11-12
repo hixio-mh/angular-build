@@ -30,7 +30,7 @@ export interface LoggerBase {
 
 export class Logger implements LoggerBase {
 
-    private readonly loggerOptions: LoggerOptions;
+    readonly loggerOptions: LoggerOptions;
     private minLogLevel: LogLevel = LogLevel.Info;
 
     set logLevel(logLevel: LogLevelSring) {
@@ -72,9 +72,9 @@ export class Logger implements LoggerBase {
                 ? this.loggerOptions.debugPrefix + ' '
                 : ''}`;
         if (optionalParams) {
-            console.log(`${prefix}${message.trim()}`, optionalParams);
+            console.log(`${prefix}${message}`, optionalParams);
         } else {
-            console.log(`${prefix}${message.trim()}`);
+            console.log(`${prefix}${message}`);
         }
     }
 
@@ -89,9 +89,9 @@ export class Logger implements LoggerBase {
                 ? this.loggerOptions.infoPrefix + ' '
                 : ''}`;
         if (optionalParams) {
-            console.log(`${prefix}${message.trim()}`, optionalParams);
+            console.log(`${prefix}${message}`, optionalParams);
         } else {
-            console.log(`${prefix}${message.trim()}`);
+            console.log(`${prefix}${message}`);
         }
     }
 

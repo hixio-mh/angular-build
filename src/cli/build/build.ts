@@ -3,43 +3,45 @@
 import * as webpack from 'webpack';
 
 import { colorize } from '../../utils';
-import {CliOptions} from '../cli-options';
+import { CliOptions } from '../cli-options';
 
 import {
     AngularBuildConfigInternal,
     AngularBuildContextImpl,
     AppBuildContext,
+    InvalidConfigError,
     LibProjectConfigInternal,
     PreDefinedEnvironment,
     ProjectConfigInternal,
-    WebpackError
+    TypescriptCompileError,
+    UglifyError,
+    UnSupportedStyleExtError
 } from '../../models';
 import {
     applyAngularBuildConfigDefaults,
     applyProjectConfigDefaults,
     applyProjectConfigWithEnvOverrides,
     validateProjectConfig
-    } from '../../helpers';
-import { formatValidationError, Logger, readJson, validateSchema} from '../../utils';
+} from '../../helpers';
+import { formatValidationError, Logger, readJson, validateSchema } from '../../utils';
 
-import {getLibWebpackConfig} from '../../webpack-configs/lib';
-import {getAppDllWebpackConfig} from '../../webpack-configs/app/dll';
-import {getAppWebpackConfig} from '../../webpack-configs/app/app';
-
+import { getLibWebpackConfig } from '../../webpack-configs/lib';
+import { getAppDllWebpackConfig } from '../../webpack-configs/app/dll';
+import { getAppWebpackConfig } from '../../webpack-configs/app/app';
 
 const { exists } = require('fs-extra');
 
 export async function cliBuild(cliOptions: CliOptions): Promise<number> {
-    console.log(`${colorize(
-        `\nangular-build ${cliOptions.cliVersion} [${cliOptions.cliIsGlobal ? 'Global' : 'Local'}]`,
-        'white')}\n`);
-
+    const startTime = Date.now();
     const logger = new Logger({
-        logLevel: 'info',
+        logLevel: 'debug',
         debugPrefix: 'DEBUG:',
-        infoPrefix: 'INFO:',
         warnPrefix: 'WARNING:'
     });
+
+    logger.info(`${colorize(
+        `\nangular-build ${cliOptions.cliVersion} [${cliOptions.cliIsGlobal ? 'Global' : 'Local'}]`,
+        'white')}\n`);
 
     let environment: PreDefinedEnvironment = {};
     let configPath = path.resolve(process.cwd(), 'angular-build.json');
@@ -86,12 +88,24 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
         }
     }
 
+    if (!/\.json$/i.test(configPath)) {
+        logger.error(`Invalid config file, path: ${configPath}.`);
+        return -1;
+    }
+
     if (!await exists(configPath)) {
         logger.error(`Config file does not exist, path: ${configPath}.`);
         return -1;
     }
 
-    const angularBuildConfig = await readJson(configPath) as AngularBuildConfigInternal;
+    let angularBuildConfig: AngularBuildConfigInternal | null = null;
+
+    try {
+        angularBuildConfig = await readJson(configPath) as AngularBuildConfigInternal;
+    } catch (jsonErr) {
+        logger.error(`Invalid configuration, error: ${jsonErr.message || jsonErr}.`);
+        return -1;
+    }
 
     // validate schema
     let schemaPath = '../schemas/schema.json';
@@ -120,7 +134,7 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
         if (errors.length) {
             const errMsg = errors.map(err => formatValidationError(schema, err)).join('\n');
             logger.error(
-                `Invalid configuration object.\n\n${
+                `Invalid configuration.\n\n${
                 errMsg}\n`);
             return -1;
         }
@@ -152,7 +166,7 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
     if (filter && filter.length) {
         filter
             .filter(configName => !configNames.includes(configName)).forEach(
-                configName => configNames.push(configName));
+            configName => configNames.push(configName));
     }
 
     const webpackConfigs: webpack.Configuration[] = [];
@@ -161,9 +175,9 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
         let filteredLibConfigs = libConfigs
             .filter(projectConfig =>
                 (configNames.length === 0 ||
-                (configNames.length > 0 &&
-                (configNames.indexOf('libs') > -1 ||
-                    (projectConfig.name && configNames.indexOf(projectConfig.name) > -1)))));
+                    (configNames.length > 0 &&
+                        (configNames.indexOf('libs') > -1 ||
+                            (projectConfig.name && configNames.indexOf(projectConfig.name) > -1)))));
 
         if (configNames.length === 1 && configNames[0] === 'apps') {
             filteredLibConfigs = [];
@@ -175,31 +189,44 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
 
                 const clonedLibConfig = JSON.parse(JSON.stringify(libConfig)) as LibProjectConfigInternal;
                 applyProjectConfigWithEnvOverrides(clonedLibConfig, environment);
-                applyProjectConfigDefaults(projectRoot, clonedLibConfig, environment);
 
                 if (clonedLibConfig.skip) {
                     continue;
                 }
 
-                validateProjectConfig(projectRoot, clonedLibConfig);
+                try {
+                    validateProjectConfig(projectRoot, clonedLibConfig);
+                    applyProjectConfigDefaults(projectRoot, clonedLibConfig, environment);
 
-                const angularBuildContext = new AngularBuildContextImpl(
-                    environment,
-                    configPath,
-                    angularBuildConfig,
-                    libConfig as ProjectConfigInternal,
-                    clonedLibConfig);
+                    const angularBuildContext = new AngularBuildContextImpl(
+                        environment,
+                        configPath,
+                        angularBuildConfig,
+                        libConfig as ProjectConfigInternal,
+                        clonedLibConfig);
 
-                angularBuildContext.ngbCli = true;
-                angularBuildContext.cliIsGlobal = cliIsGlobal;
-                angularBuildContext.watch = watch;
-                angularBuildContext.progress = progress;
-                angularBuildContext.cleanOutDirs = cleanOutDirs;
+                    angularBuildContext.ngbCli = true;
+                    angularBuildContext.cliIsGlobal = cliIsGlobal;
+                    angularBuildContext.watch = watch;
+                    angularBuildContext.progress = progress;
+                    angularBuildContext.cleanOutDirs = cleanOutDirs;
 
+                    const wpConfig = getLibWebpackConfig(angularBuildContext);
+                    if (wpConfig) {
+                        (wpConfig as any)._projectConfig = clonedLibConfig;
+                        webpackConfigs.push(wpConfig);
+                    }
+                } catch (configErr) {
+                    if (!configErr) {
+                        return -1;
+                    }
 
-                const wpConfig = getLibWebpackConfig(angularBuildContext);
-                if (wpConfig) {
-                    webpackConfigs.push(wpConfig);
+                    if (configErr instanceof InvalidConfigError) {
+                        logger.error(`\n${configErr.message}`);
+                        return -1;
+                    } else {
+                        throw configErr;
+                    }
                 }
 
             }
@@ -226,37 +253,52 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
 
                 const clonedAppConfig = JSON.parse(JSON.stringify(appConfig)) as ProjectConfigInternal;
                 applyProjectConfigWithEnvOverrides(clonedAppConfig, environment);
-                applyProjectConfigDefaults(projectRoot, clonedAppConfig, environment);
 
                 if (clonedAppConfig.skip) {
                     continue;
                 }
 
-                validateProjectConfig(projectRoot, clonedAppConfig);
+                try {
+                    validateProjectConfig(projectRoot, clonedAppConfig);
+                    applyProjectConfigDefaults(projectRoot, clonedAppConfig, environment);
 
-                const angularBuildContext = new AngularBuildContextImpl(
-                    environment,
-                    configPath,
-                    angularBuildConfig,
-                    appConfig as ProjectConfigInternal,
-                    clonedAppConfig);
+                    const angularBuildContext = new AngularBuildContextImpl(
+                        environment,
+                        configPath,
+                        angularBuildConfig,
+                        appConfig as ProjectConfigInternal,
+                        clonedAppConfig);
 
-                angularBuildContext.ngbCli = true;
-                angularBuildContext.cliIsGlobal = cliIsGlobal;
-                angularBuildContext.watch = watch;
-                angularBuildContext.progress = progress;
-                angularBuildContext.cleanOutDirs = cleanOutDirs;
+                    angularBuildContext.ngbCli = true;
+                    angularBuildContext.cliIsGlobal = cliIsGlobal;
+                    angularBuildContext.watch = watch;
+                    angularBuildContext.progress = progress;
+                    angularBuildContext.cleanOutDirs = cleanOutDirs;
 
-                if (environment.dll) {
-                    (angularBuildContext as AppBuildContext).dllBuildOnly = true;
-                    const wpConfig = getAppDllWebpackConfig(angularBuildContext);
-                    if (wpConfig) {
-                        webpackConfigs.push(wpConfig);
+                    if (environment.dll) {
+                        (angularBuildContext as AppBuildContext).dllBuildOnly = true;
+                        const wpConfig = getAppDllWebpackConfig(angularBuildContext);
+                        if (wpConfig) {
+                            (wpConfig as any)._projectConfig = clonedAppConfig;
+                            webpackConfigs.push(wpConfig);
+                        }
+                    } else {
+                        const wpConfig = getAppWebpackConfig(angularBuildContext);
+                        if (wpConfig) {
+                            (wpConfig as any)._projectConfig = clonedAppConfig;
+                            webpackConfigs.push(wpConfig);
+                        }
                     }
-                } else {
-                    const wpConfig = getAppWebpackConfig(angularBuildContext);
-                    if (wpConfig) {
-                        webpackConfigs.push(wpConfig);
+                } catch (configErr2) {
+                    if (!configErr2) {
+                        return -1;
+                    }
+
+                    if (configErr2 instanceof InvalidConfigError) {
+                        logger.error(`\n${configErr2.message}`);
+                        return -1;
+                    } else {
+                        throw configErr2;
                     }
                 }
             }
@@ -270,39 +312,54 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
 
     try {
         if (watch) {
+            for (let wpConfig of webpackConfigs) {
+                delete (wpConfig as any)._projectConfig;
+            }
+
             await runWebpack(webpackConfigs, watch, logger);
         } else {
             for (let wpConfig of webpackConfigs) {
+                const mappedConfig = (wpConfig as any)._projectConfig as ProjectConfigInternal;
+                logger.debug(`Processing ${mappedConfig.name
+                    ? mappedConfig.name
+                    : mappedConfig._projectType + '[' + mappedConfig._index + ']'}`);
+                delete (wpConfig as any)._projectConfig;
                 await runWebpack(wpConfig, false, logger);
             }
         }
+
+        logger.info(`Build completed in [${Date.now() - startTime}ms]`);
         return 0;
     } catch (err) {
-        // TODO: to add more error names
-        if (err.name === 'InvalidConfigError' ||
-            err.name === 'TypescriptCompileError' ||
-            err.name === 'UglifyError' ||
-            err.name === 'UnSupportedStyleExtError') {
-            console.log('\n');
-            logger.error(err.message);
+        if (!err) {
+            return -1;
+        }
+
+        if (err instanceof InvalidConfigError ||
+            err instanceof TypescriptCompileError ||
+            err instanceof UglifyError ||
+            err instanceof UnSupportedStyleExtError) {
+            logger.error(`\n${err.message}`);
         } else {
-            let errMsg = '';
-            if (err.message && err.message !== err.stack) {
-                errMsg = err.message;
+            let errMsg = '\n';
+            if (err.message && err.message.length && err.message !== err.stack) {
+                errMsg += err.message;
             }
-            if (err.stack && err.stack !== err.message) {
-                if (errMsg) {
-                    errMsg += '\nCall Stack:\n';
-                }
-                errMsg += err.stack;
-            }
-            if ((err as any).details && (err as any).details !== err.stack && (err as any).details !== err.message) {
-                if (errMsg) {
+            if ((err as any).details &&
+                (err as any).details.length &&
+                (err as any).details !== err.stack &&
+                (err as any).details !== err.message) {
+                if (errMsg.trim()) {
                     errMsg += '\nError Details:\n';
                 }
                 errMsg += (err as any).details;
             }
-            console.log('\n');
+            if (err.stack && err.stack.length && err.stack !== err.message) {
+                if (errMsg.trim()) {
+                    errMsg += '\nCall Stack:\n';
+                }
+                errMsg += err.stack;
+            }
             logger.error(errMsg);
         }
 
@@ -331,7 +388,7 @@ function runWebpack(wpConfig: webpack.Configuration | webpack.Configuration[],
             }
 
             if (err) {
-                return reject(new WebpackError(err));
+                return reject(err);
             }
 
             if (watch) {
@@ -339,10 +396,11 @@ function runWebpack(wpConfig: webpack.Configuration | webpack.Configuration[],
             }
 
             if (stats.hasErrors()) {
-                return reject(new WebpackError(stats.toString('errors-only')));
+                logger.error(stats.toString('errors-only'));
+                return reject();
             } else {
                 if (statsOptions) {
-                    console.log(stats.toString(statsOptions));
+                    logger.info(stats.toString(statsOptions));
                 }
                 resolve();
             }

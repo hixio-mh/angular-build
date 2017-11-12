@@ -105,10 +105,7 @@ export interface LibProjectConfig extends LibProjectConfigBase, ProjectConfig {
     /**
      * To override properties based on build target environments.
      */
-    envOverrides?: {
-        dev?: LibProjectConfigBase;
-        prod?: LibProjectConfigBase;
-    } | { [name: string]: LibProjectConfigBase };
+    envOverrides?: { [name: string]: LibProjectConfigBase };
 }
 
 /**
@@ -204,10 +201,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Performance options.
      */
     performance?: PerformanceOptions;
-    /**
-     * Enables experimental support for angular service worker
-     */
-    serviceWorker?: boolean;
     /**
      * Use file name for lazy loaded chunks.
      * @default true
@@ -332,18 +325,9 @@ export interface AppProjectConfig extends AppProjectConfigBase, ProjectConfig {
     /**
      * To override properties based on build targets.
      */
-    envOverrides?: {
-        dll?: AppProjectConfigBase;
-        dev?: AppProjectConfigBase;
-        prod?: AppProjectConfigBase;
-        aot?: AppProjectConfigBase;
-        hot?: AppProjectConfigBase;
-    } | { [name: string]: AppProjectConfigBase };
+    envOverrides?: { [name: string]: AppProjectConfigBase };
 }
 
-/**
- * @additionalProperties false
- */
 export type CleanOptions = {
     /**
      * Before run clean option.
@@ -357,18 +341,12 @@ export type CleanOptions = {
     allowOutsideWorkingDir?: boolean;
 };
 
-/**
- * @additionalProperties false
- */
 export type BeforeRunCleanOptions = {
     cleanOutDir?: boolean;
     paths?: string[];
     exclude?: string[];
 };
 
-/**
- * @additionalProperties false
- */
 export type AfterEmitCleanOptions = {
     paths?: string[];
     exclude?: string[];
@@ -389,9 +367,6 @@ export type ExternalsObjectElement = {
 
 export type ExternalsEntry = string | ExternalsObjectElement;
 
-/**
- * @additionalProperties false
- */
 export interface StylePreprocessorOptions {
     /**
      * An array of paths that LibSass can look in to attempt to resolve your @import declarations.
@@ -400,9 +375,6 @@ export interface StylePreprocessorOptions {
     includePaths: string[];
 }
 
-/**
- * @additionalProperties false
- */
 export type AssetEntry = {
     /**
      * The source file, it can be absolute or relative path or glob pattern.
@@ -418,9 +390,6 @@ export type AssetEntry = {
     exclude?: string[];
 };
 
-/**
- * @additionalProperties false
- */
 export interface TsTranspilationOptions {
     /**
      * The typescript configuration file to be used.
@@ -462,9 +431,6 @@ export interface TsTranspilationOptions {
     i18nOutFormat?: string;
 }
 
-/**
- * @additionalProperties false
- */
 export interface BundleOptions {
     /**
      * Bundle module format.
@@ -506,9 +472,6 @@ export interface BundleOptions {
     includeAngularAndRxJsExternals?: boolean;
 }
 
-/**
- * @additionalProperties false
- */
 export interface PackageOptions {
     /**
      * The source package.json file to be updated and copied.
@@ -524,9 +487,6 @@ export interface PackageOptions {
     reExportTypingsAndMetaDataAs?: string;
 }
 
-/**
- * @additionalProperties false
- */
 export interface ModuleReplacementEntry {
     resourcePath: string;
     newResourcePath: string;
@@ -588,9 +548,6 @@ export interface WebpackStatsToStringOptions extends WebpackStatsToJsonOptions {
     colors?: boolean;
 }
 
-/**
- * @additionalProperties false
- */
 export interface BundleAnalyzerOptions {
     /**
      * Path to bundle report file that will be generated in `static` mode.
@@ -612,9 +569,6 @@ export interface BundleAnalyzerOptions {
     openAnalyzer?: boolean;
 }
 
-/**
- * @additionalProperties false
- */
 export type GlobalEntry = {
     /**
      * The source style file, it can be .scss/.sass, .less or .css
@@ -635,9 +589,6 @@ export type DllOptions = {
     exclude?: string[];
 };
 
-/**
- * @additionalProperties false
- */
 export interface HtmlInjectOptions {
     index?: string;
     indexOut?: string;
@@ -657,9 +608,6 @@ export interface HtmlInjectOptions {
     customPreloadPrefetchAttributes?: { [key: string]: string | boolean };
 }
 
-/**
- * @additionalProperties false
- */
 export interface PerformanceOptions {
     /**
      * Turns hints on/off. In addition, tells webpack to throw either an error or a warning when hints are
@@ -679,9 +627,6 @@ export interface PerformanceOptions {
     maxEntrypointSize?: number;
 }
 
-/**
- * @additionalProperties false
- */
 export interface WebpackWatchOptions {
     /**
      * Add a delay before rebuilding once the first file changed. This allows webpack to aggregate any other
@@ -707,9 +652,6 @@ export type PreDefinedEnvironment = {
     dll?: boolean;
 };
 
-/**
- * @additionalProperties false
- */
 export interface ApplicationinsightsOptions {
     /**
      * Instrumentation key.
@@ -720,7 +662,6 @@ export interface ApplicationinsightsOptions {
      */
     customProperties?: { [key: string]: string };
 }
-
 
 /**
  * @additionalProperties true

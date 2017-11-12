@@ -1,16 +1,12 @@
 ﻿import * as webpack from 'webpack';
 
 import {
-    InternalError,
     InvalidConfigError,
     LibBuildContext,
     LibProjectConfigInternal,
-    RollupError,
-    SorceryError,
     TypescriptCompileError,
     UglifyError,
-    UnSupportedStyleExtError,
-    WebpackError
+    UnSupportedStyleExtError
 } from '../../../models';
 import { performLibBundles, performNgc, performPackageJsonCopy, processStyles } from '../../../helpers';
 
@@ -35,16 +31,11 @@ export class LibBundleWebpackPlugin {
                     // RenderError
                     // CssSyntaxError
 
-                    // TODO: to review
                     if (compilation.errors &&
-                    (err instanceof InternalError ||
-                        err instanceof InvalidConfigError ||
-                        err instanceof RollupError ||
-                        err instanceof SorceryError ||
+                    (err instanceof InvalidConfigError ||
                         err instanceof TypescriptCompileError ||
                         err instanceof UglifyError ||
-                        err instanceof UnSupportedStyleExtError ||
-                        err instanceof WebpackError)) {
+                        err instanceof UnSupportedStyleExtError)) {
                         compilation.errors.push(err);
                         return cb();
                     }

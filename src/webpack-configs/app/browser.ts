@@ -448,7 +448,8 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
     }
 
     // resource hints
-    if (appConfig.htmlInject.resourceHints) {
+    if (appConfig.htmlInject.resourceHints ||
+        (appConfig.htmlInject.resourceHintsOut && appConfig.htmlInject.resourceHints !== false)) {
         const resourceHintsInjectOutFileName = appConfig.htmlInject.resourceHintsOut;
         const resourceHintsHtmlSeparateOut = !!resourceHintsInjectOutFileName &&
             resourceHintsInjectOutFileName !== appConfig.htmlInject.indexOut &&
@@ -492,7 +493,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
     }
 
     // basehref
-    if (appConfig.baseHref || appConfig.baseHref === '') {
+    if (appConfig.baseHref || appConfig.baseHref === '' || appConfig.htmlInject.baseHrefOut) {
         const baseHrefInjectOutFileName = appConfig.htmlInject.baseHrefOut;
         const baseHrefHtmlSeparateOut = !!baseHrefInjectOutFileName &&
             baseHrefInjectOutFileName !== appConfig.htmlInject.indexOut &&
@@ -502,7 +503,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
         const targetHtmlWebpackPluginIds = [baseHrefHtmlWebpackPluginId, defaultHtmlWebpackPluginId];
 
         plugins.push(new BaseHrefHtmlWebpackPlugin({
-            baseHref: appConfig.baseHref,
+            baseHref: appConfig.baseHref || '',
             isSeparateOutFunc: (htmlOptionsId?: string): boolean => {
                 return htmlOptionsId === baseHrefHtmlWebpackPluginId;
             },

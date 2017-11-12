@@ -23,8 +23,16 @@ import { getLibWebpackConfig } from './lib';
 
 // config for webpack cli
 export function getWebpackConfigStandalone(configPath: string, env?: any, argv?: any): webpack.Configuration[] | webpack.Configuration {
+    if (!configPath || !configPath.length) {
+        throw new Error(`The 'configPath' is required.`);
+    }
+
+    if (!/\.json$/i.test(configPath)) {
+        throw new Error(`Invalid config file, path: ${configPath}.`);
+    }
+
     const logger = new Logger({
-        logLevel: 'info',
+        logLevel: 'debug',
         debugPrefix: 'DEBUG:',
         infoPrefix: 'INFO:',
         warnPrefix: 'WARNING:'
@@ -84,7 +92,7 @@ export function getWebpackConfigStandalone(configPath: string, env?: any, argv?:
         if (errors.length) {
             const errMsg = errors.map(err => formatValidationError(schema, err)).join('\n');
             throw new InvalidConfigError(
-                `Invalid configuration object.\n\n${
+                `Invalid configuration.\n\n${
                 errMsg}\n`);
         }
 
@@ -147,19 +155,17 @@ export function getWebpackConfigStandalone(configPath: string, env?: any, argv?:
         }
 
         if (filteredLibConfigs.length > 0) {
-            // logger.debug('Initializing lib configs');
             for (let i = 0; i < filteredLibConfigs.length; i++) {
                 const libConfig = filteredLibConfigs[i];
 
                 const clonedLibConfig = JSON.parse(JSON.stringify(libConfig)) as ProjectConfigInternal;
                 applyProjectConfigWithEnvOverrides(clonedLibConfig, environment);
+                validateProjectConfig(projectRoot, clonedLibConfig);
                 applyProjectConfigDefaults(projectRoot, clonedLibConfig, environment);
 
                 if (clonedLibConfig.skip) {
                     continue;
                 }
-
-                validateProjectConfig(projectRoot, clonedLibConfig);
 
                 const angularBuildContext = new AngularBuildContextImpl(
                     environment,
@@ -196,19 +202,17 @@ export function getWebpackConfigStandalone(configPath: string, env?: any, argv?:
         }
 
         if (filteredAppConfigs.length > 0) {
-            // logger.debug('Initializing app configs');
             for (let i = 0; i < filteredAppConfigs.length; i++) {
                 const appConfig = filteredAppConfigs[i];
 
                 const clonedAppConfig = JSON.parse(JSON.stringify(appConfig)) as ProjectConfigInternal;
                 applyProjectConfigWithEnvOverrides(clonedAppConfig, environment);
+                validateProjectConfig(projectRoot, clonedAppConfig);
                 applyProjectConfigDefaults(projectRoot, clonedAppConfig, environment);
 
                 if (clonedAppConfig.skip) {
                     continue;
                 }
-
-                validateProjectConfig(projectRoot, clonedAppConfig);
 
                 const angularBuildContext = new AngularBuildContextImpl(
                     environment,

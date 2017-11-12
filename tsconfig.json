@@ -22,16 +22,16 @@
     "lib": [
       "es2017"
     ],
-    "baseUrl": "",
-    "rootDir": ".",
-    "outDir": "dist",
+    "baseUrl": ".",
+    "rootDir": "./src",
+    "outDir": "./dist",
 
     "typeRoots": [
       "./node_modules/@types"
     ]
   },
   "include": [
-    "src"
+    "./src"
   ],
   "compileOnSave": false
 }
