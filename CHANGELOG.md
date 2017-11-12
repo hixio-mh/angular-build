@@ -1,4 +1,7 @@
-﻿# v5.0.0-rc.0
+﻿# v5.0.0-rc.4
+-  Bug fixes and updated dependencies
+
+# v5.0.0-rc.0
 - Support Angular 5
 - All code refactoring, schema and API changes
 - Updated dependencies
