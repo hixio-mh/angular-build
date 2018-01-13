@@ -114,8 +114,8 @@ export class CopyWebpackPlugin {
         await Promise.all(processedAssets.map(async (processedAsset) => {
             const assetEntry = processedAsset.assetEntry;
 
-            if (assetEntry.fromIsDir && assetEntry.fromDir && !this.contextDependencies.includes(assetEntry.fromDir)) {
-                this.contextDependencies.push(assetEntry.fromDir);
+            if (assetEntry.fromType === 'directory' && !this.contextDependencies.includes(assetEntry.context)) {
+                this.contextDependencies.push(assetEntry.context);
             }
 
             if (!this.options.allowCopyOutsideOutputPath &&
@@ -130,7 +130,7 @@ export class CopyWebpackPlugin {
                 }
             }
 
-            if (!assetEntry.fromIsDir && !this.fileDependencies.includes(processedAsset.absoluteFrom)) {
+            if (assetEntry.fromType !== 'directory'  && !this.fileDependencies.includes(processedAsset.absoluteFrom)) {
                 this.fileDependencies.push(processedAsset.absoluteFrom);
             }
 

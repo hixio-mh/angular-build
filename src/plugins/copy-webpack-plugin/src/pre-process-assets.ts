@@ -1,22 +1,20 @@
 ﻿import * as path from 'path';
 
 import { InternalError } from '../../../models';
-import { isGlob, isInFolder } from '../../../utils';
+import { isGlob } from '../../../utils';
 
-export type PreProcessedAssetEntry = {
+export interface PreProcessedAssetEntry {
     context: string;
     from: {
         glob: string;
         dot?: boolean;
     } | string;
+    fromType: 'file' | 'directory' | 'glob';
     to?: string;
-    exclude?: string[];
-
-    fromIsDir: boolean;
     fromDir?: string;
-    fromIsAbsolute?: boolean;
+    exclude?: string[];
     toIsTemplate?: boolean;
-};
+}
 
 // https://www.debuggex.com/r/VH2yS2mvJOitiyr3
 const isTemplateLike = /(\[ext\])|(\[name\])|(\[path\])|(\[folder\])|(\[emoji(:\d+)?\])|(\[(\w+:)?hash(:\w+)?(:\d+)?\])|(\[\d+\])/;
@@ -63,37 +61,46 @@ export async function preProcessAssets(baseDir: string,
         if (typeof asset === 'string') {
             const isGlobPattern = asset.lastIndexOf('*') > -1 || isGlob(asset);
             let fromIsDir = false;
-            let tempFromPath = '';
+
+            let fromPath = '';
             if (!isGlobPattern) {
-                tempFromPath = path.isAbsolute(asset) ? path.resolve(asset) : path.resolve(baseDir, asset);
-                fromIsDir = /\\|\/$/.test(asset) || await isDirectory(tempFromPath);
+                fromPath = path.isAbsolute(asset) ? path.resolve(asset) : path.resolve(baseDir, asset);
+                fromIsDir = /\\|\/$/.test(asset) || await isDirectory(fromPath);
+            } else if (asset.endsWith('*')) {
+                let tempDir = asset.substr(0, asset.length - 1);
+                while (tempDir && tempDir.length > 1 && (tempDir.endsWith('*') || tempDir.endsWith('/'))) {
+                    tempDir = tempDir.substr(0, tempDir.length - 1);
+                }
+
+                if (tempDir) {
+                    tempDir = path.isAbsolute(tempDir) ? path.resolve(tempDir) : path.resolve(baseDir, tempDir);
+                    if (await isDirectory(tempDir)) {
+                        fromPath = tempDir;
+                    }
+                }
             }
 
+
             if (!isGlobPattern && !fromIsDir) {
-                const ret = {
-                    from: tempFromPath,
-                    fromIsAbsolute: true,
-                    fromIsDir: false,
+                const ret: PreProcessedAssetEntry = {
+                    from: fromPath,
+                    fromType: 'file',
                     context: baseDir
                 };
                 return ret;
             } else {
-                const fromGlob = fromIsDir ? path.join(tempFromPath, '**/*') : asset;
-                let context = baseDir;
-                if (!isGlobPattern && fromIsDir && !isInFolder(baseDir, tempFromPath)) {
-                    context = tempFromPath;
-                }
-                return {
+                const fromGlob = fromIsDir ? path.join(asset, '**/*') : asset;
+                const fromType = fromIsDir ? 'directory' : 'glob';
+                const ret: PreProcessedAssetEntry = {
                     from: {
                         glob: fromGlob,
                         dot: true
                     },
-                    fromIsDir: fromIsDir,
-                    fromDir: fromIsDir
-                        ? tempFromPath
-                        : undefined,
-                    context: context
+                    fromType: fromType as any,
+                    context: baseDir,
+                    fromDir: fromPath
                 };
+                return ret;
             }
         } else if (typeof asset === 'object' &&
             (asset as {
@@ -104,9 +111,8 @@ export async function preProcessAssets(baseDir: string,
                 };
                 to?: string;
             }).from) {
-
             const assetParsedEntry: PreProcessedAssetEntry =
-                Object.assign({}, asset, { context: baseDir, fromIsDir: false });
+                Object.assign({}, asset, { context: baseDir, fromType: 'glob' as any});
 
             if (assetParsedEntry.to) {
                 if (isTemplateLike.test(assetParsedEntry.to)) {
@@ -115,37 +121,44 @@ export async function preProcessAssets(baseDir: string,
             }
 
             const from = (asset as { from: string; to?: string }).from;
-            if (typeof from === 'string') {
-                const isGlobPattern = from.lastIndexOf('*') > -1 || isGlob(from);
-                let fromIsDir = false;
-                let tempFromPath = '';
+            const isGlobPattern = from.lastIndexOf('*') > -1 || isGlob(from);
+            let fromIsDir = false;
 
-                if (!isGlobPattern) {
-                    tempFromPath = path.isAbsolute(from) ? path.resolve(from) : path.resolve(baseDir, from);
-                    fromIsDir = /\\|\/$/.test(from) || await isDirectory(tempFromPath);
+            let fromPath = '';
+            if (!isGlobPattern) {
+                fromPath = path.isAbsolute(from) ? path.resolve(from) : path.resolve(baseDir, from);
+                fromIsDir = /\\|\/$/.test(from) || await isDirectory(fromPath);
+            } else if (from.endsWith('*')) {
+                let tempDir = from.substr(0, from.length - 1);
+                while (tempDir && tempDir.length > 1 && (tempDir.endsWith('*') || tempDir.endsWith('/'))) {
+                    tempDir = tempDir.substr(0, tempDir.length - 1);
                 }
 
-                if (!isGlobPattern && !fromIsDir) {
-                    assetParsedEntry.from = tempFromPath;
-                    assetParsedEntry.fromIsAbsolute = true;
-                    assetParsedEntry.fromIsDir = false;
-                } else {
-                    const fromGlob = fromIsDir ? path.join(tempFromPath, '**/*') : from;
-                    assetParsedEntry.from = {
-                        glob: fromGlob,
-                        dot: true
-                    };
-
-                    if (fromIsDir) {
-                        assetParsedEntry.fromIsDir = true;
-                        assetParsedEntry.fromDir = tempFromPath;
-
-                        if (!isGlobPattern && !isInFolder(baseDir, tempFromPath)) {
-                            assetParsedEntry.context = tempFromPath;
-                        }
+                if (tempDir) {
+                    tempDir = path.isAbsolute(tempDir) ? path.resolve(tempDir) : path.resolve(baseDir, tempDir);
+                    if (await isDirectory(tempDir)) {
+                        fromPath = tempDir;
                     }
                 }
             }
+
+            if (!isGlobPattern && !fromIsDir) {
+                assetParsedEntry.from = fromPath;
+                assetParsedEntry.fromType = 'file';
+            } else {
+                const fromGlob = fromIsDir ? path.join(from, '**/*') : from;
+                assetParsedEntry.from = {
+                    glob: fromGlob,
+                    dot: true
+                };
+
+
+                if (fromIsDir) {
+                    assetParsedEntry.fromType = 'directory';
+                }
+                assetParsedEntry.fromDir = fromPath;
+            }
+
             return assetParsedEntry;
         } else {
             throw new InternalError('Invalid assets entry.');

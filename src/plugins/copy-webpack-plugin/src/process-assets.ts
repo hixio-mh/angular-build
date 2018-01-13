@@ -56,18 +56,6 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
             }
         }
 
-        let shouldFlattern = !assetEntry.to || assetEntry.fromIsAbsolute || !assetEntry.fromIsDir;
-        if (!shouldFlattern) {
-            for (let relfromPath of relativeFromPaths) {
-                const absFromPath = path.resolve(assetEntry.context, relfromPath);
-                if ((!assetEntry.fromIsDir &&
-                        !isInFolder(assetEntry.context, path.resolve(assetEntry.context, relfromPath))) ||
-                    isSamePaths(path.dirname(absFromPath), path.parse(absFromPath).root)) {
-                    shouldFlattern = true;
-                    break;
-                }
-            }
-        }
 
         await Promise.all(relativeFromPaths.map(async (relativeFrom) => {
             const absoluteFrom = path.resolve(assetEntry.context, relativeFrom);
@@ -101,6 +89,23 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
                 absoluteFrom: absoluteFrom,
                 relativeTo: assetEntry.to || ''
             };
+
+            if (assetEntry.fromDir) {
+                assetToEmit.relativeFrom = path.relative(assetEntry.fromDir, absoluteFrom);
+            }
+
+            let shouldFlattern = assetEntry.fromType === 'file';
+            if (!shouldFlattern) {
+                for (let relfromPath of relativeFromPaths) {
+                    const absFromPath = path.resolve(assetEntry.context, relfromPath);
+                    if ((assetEntry.fromType !== 'directory' &&
+                        !isInFolder(assetEntry.context, absFromPath)) ||
+                        isSamePaths(path.dirname(absFromPath), path.parse(absFromPath).root)) {
+                        shouldFlattern = true;
+                        break;
+                    }
+                }
+            }
 
             if (assetEntry.to) {
                 if (shouldFlattern) {
@@ -141,13 +146,17 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
                         const newBasename = path.basename(assetToEmit.relativeTo);
                         assetToEmit.relativeTo = path.dirname(assetToEmit.relativeTo) + '/.' + newBasename;
                     }
-                } else if (assetEntry.fromIsDir) {
+                } else if (assetEntry.fromType === 'directory' || assetEntry.fromType === 'glob') {
                     assetToEmit.relativeTo = path.join(assetEntry.to, assetToEmit.relativeFrom);
                 } else {
                     assetToEmit.relativeTo = assetEntry.to;
                 }
             } else {
-                assetToEmit.relativeTo = path.basename(assetToEmit.absoluteFrom);
+                if ((assetEntry.fromType === 'directory' || assetEntry.fromType === 'glob') && !shouldFlattern) {
+                    assetToEmit.relativeTo = assetToEmit.relativeFrom;
+                } else {
+                    assetToEmit.relativeTo = path.basename(assetToEmit.absoluteFrom);
+                }
             }
 
             if (path.isAbsolute(assetToEmit.relativeTo)) {
