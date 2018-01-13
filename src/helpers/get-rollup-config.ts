@@ -4,31 +4,11 @@ import { BundleOptionsInternal, InternalError, LibBuildContext, LibProjectConfig
 
 const rollupNodeResolve = require('rollup-plugin-node-resolve');
 
-export interface RollupInputOptions {
-    input: string | string[];
-    external?: ((id: string) => boolean) | string[];
-    onwarn?(warning: rollup.Warning): void;
-    plugins?: any[];
-    context?: any;
-    moduleContext?: ((id: string) => any) | { [id: string]: any };
-}
-
-export interface RollupOutputOptions {
-    file: string;
-    format: string;
-    name?: string;
-    exports?: 'auto' | 'default' | 'named' | 'none';
-    globals?: { [id: string]: string };
-    sourcemap?: boolean | 'inline';
-    sourcemapFile?: string;
-    banner?: string;
-}
-
 export function getRollupConfig(angularbuildContext: LibBuildContext,
     currentBundle: BundleOptionsInternal,
     outputFilePath: string): {
-        inputOptions: RollupInputOptions;
-        outputOptions: RollupOutputOptions;
+        inputOptions: rollup.InputOptions;
+        outputOptions: rollup.OutputOptions;
     } {
     if (!currentBundle._entryFilePath) {
         throw new InternalError(`The 'currentBundle._entryFilePath' is not set.`);
@@ -39,11 +19,11 @@ export function getRollupConfig(angularbuildContext: LibBuildContext,
     const libConfig = angularbuildContext.projectConfig as LibProjectConfigInternal;
     const libraryTarget = currentBundle.libraryTarget;
 
-    let format: rollup.Format;
+    let format: rollup.ModuleFormat;
     if (libraryTarget === 'commonjs' || libraryTarget === 'commonjs2') {
         format = 'cjs';
     } else {
-        format = libraryTarget as rollup.Format;
+        format = libraryTarget as rollup.ModuleFormat;
     }
 
     const moduleName = libConfig.libraryName || angularbuildContext.packageNameWithoutScope;
@@ -77,14 +57,14 @@ export function getRollupConfig(angularbuildContext: LibBuildContext,
         plugins.push(rollupNodeResolve(nodeResolveOptions));
     }
 
-    const inputOptions: RollupInputOptions = {
+    const inputOptions: rollup.InputOptions = {
         input: currentBundle._entryFilePath,
         external: externals,
         plugins: plugins,
-        onwarn(warning: rollup.Warning): void {
+        onwarn(warning: rollup.RollupWarning): void {
             // Skip certain warnings
             // should intercept ... but doesn't in some rollup versions
-            if (warning.code === 'THIS_IS_UNDEFINED') {
+            if (!warning.message || warning.code === 'THIS_IS_UNDEFINED') {
                 return;
             }
 
@@ -92,7 +72,7 @@ export function getRollupConfig(angularbuildContext: LibBuildContext,
         }
     };
 
-    const outputOptions: RollupOutputOptions = {
+    const outputOptions: rollup.OutputOptions = {
         name: moduleName,
         format: format,
         globals: rollupExternalMap.globals,

@@ -241,8 +241,8 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
             logger.debug(
                 `Bundling ${currentBundle.libraryTarget} module with rollup`);
 
-            const bundle = await rollup.rollup(rollupOptions.inputOptions as any);
-            await bundle.write(rollupOptions.outputOptions as any);
+            const bundle = await rollup.rollup(rollupOptions.inputOptions);
+            await bundle.write(rollupOptions.outputOptions);
 
             // Remapping sourcemaps
             if (shouldReMapSourceMap) {

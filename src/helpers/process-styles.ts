@@ -14,7 +14,6 @@ import { Logger } from '../utils';
 
 const cssnano = require('cssnano');
 const postcss = require('postcss');
-const customProperties = require('postcss-custom-properties');
 
 export async function processStyles(angularBuildContext: LibBuildContext, customLogger?: Logger): Promise<any> {
     const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
@@ -108,8 +107,7 @@ async function processPostCss(css: string, from: string): Promise<any> {
         cssnano({
             safe: true,
             discardComments: { remove: (comment: string) => !importantCommentRegex.test(comment) }
-        }),
-        customProperties({ preserve: true })
+        })
     ]).process(css,
         {
             from: from

@@ -333,7 +333,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
                 templateContent: ' ',
                 filename: path.resolve(projectRoot,
                     appConfig.outDir,
-                    appConfig.htmlInject.indexOut || appConfig.htmlInject.index),
+                    appConfig.htmlInject.indexOut || appConfig.htmlInject.index || ''),
                 chunksSortMode: packageChunkSort(chunkSortList),
                 excludeChunks: lazyChunks,
                 title: '',
@@ -360,7 +360,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
     if (separateStylesOut) {
         plugins.push(new HtmlWebpackPlugin({
             templateContent: ' ',
-            filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInject.stylesOut),
+            filename: path.resolve(projectRoot, appConfig.outDir, appConfig.htmlInject.stylesOut || ''),
             title: '',
             minify: false,
             xhtml: true,
@@ -436,7 +436,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
         if (iconHtmlSeparateOut) {
             plugins.push(new HtmlWebpackPlugin({
                 templateContent: ' ',
-                filename: path.resolve(projectRoot, appConfig.outDir, iconsInjectOutFileName),
+                filename: path.resolve(projectRoot, appConfig.outDir, iconsInjectOutFileName || ''),
                 chunks: [],
                 title: '',
                 minify: false,
@@ -480,7 +480,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
 
             plugins.push(new HtmlWebpackPlugin({
                 templateContent: ' ',
-                filename: path.resolve(projectRoot, appConfig.outDir, resourceHintsInjectOutFileName),
+                filename: path.resolve(projectRoot, appConfig.outDir, resourceHintsInjectOutFileName || ''),
                 chunksSortMode: packageChunkSort(chunkSortList),
                 excludeChunks: excludeChunks,
                 title: '',
@@ -516,7 +516,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
         if (baseHrefHtmlSeparateOut) {
             plugins.push(new HtmlWebpackPlugin({
                 templateContent: ' ',
-                filename: path.resolve(projectRoot, appConfig.outDir, baseHrefInjectOutFileName),
+                filename: path.resolve(projectRoot, appConfig.outDir, baseHrefInjectOutFileName || ''),
                 title: '',
                 minify: false,
                 xhtml: true,

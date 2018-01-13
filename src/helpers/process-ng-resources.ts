@@ -11,7 +11,6 @@ import { UnSupportedStyleExtError } from '../models';
 
 const cssnano = require('cssnano');
 const postcss = require('postcss');
-const customProperties = require('postcss-custom-properties');
 const postcssUrl = require('postcss-url');
 
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
@@ -281,7 +280,6 @@ async function processPostCss(css: string, from: string): Promise<string> {
         }),
 
         autoprefixer,
-        customProperties({ preserve: true }),
         cssnano({
             safe: true,
             mergeLonghand: false,

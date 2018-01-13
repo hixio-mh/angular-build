@@ -292,11 +292,16 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
                     ecma: appConfig._ecmaVersion, // default undefined
                     compress: {
                         passes: 3,
-                        pure_getters: true
+                        pure_getters: true,
+                        // Disabled because of an issue with Mapbox GL when using the Webpack node global and UglifyJS:
+                        // https://github.com/mapbox/mapbox-gl-js/issues/4359#issuecomment-303880888
+                        // https://github.com/angular/angular-cli/issues/5804
+                        // https://github.com/angular/angular-cli/pull/7931
+                        typeofs: false
                     },
                     warnings: angularBuildContext.angularBuildConfig.logLevel === 'debug', // default false
                     output: {
-                        // ascii_only: true, // default false
+                        ascii_only: true, // default false
                         // comments: false, // default false
                         beautify: false // default true
                     }

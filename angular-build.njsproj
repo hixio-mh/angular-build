@@ -83,6 +83,8 @@
     <Folder Include="bin\" />
     <Folder Include="src\cli\" />
     <Folder Include="src\cli\build\" />
+    <Folder Include="src\plugins\cleancss-webpack-plugin\" />
+    <Folder Include="src\plugins\cleancss-webpack-plugin\src\" />
     <Folder Include="tests\" />
     <Folder Include="src\" />
     <Folder Include="src\models\" />
@@ -179,6 +181,8 @@
     <TypeScriptCompile Include="src\plugins\bundle-analyzer-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\clean-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\clean-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\cleancss-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\cleancss-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\src\pre-process-assets.ts" />
