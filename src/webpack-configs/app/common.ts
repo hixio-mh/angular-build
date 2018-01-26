@@ -274,7 +274,9 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
     // production plugins
     if (environment.prod) {
         plugins.push(new webpack.HashedModuleIdsPlugin());
-        if (!devServer) {
+
+        // TODO: to reivew for platformTarget === 'node'
+        if (!devServer && appConfig.platformTarget !== 'node') {
             plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
 
             // This plugin must be before webpack.optimize.UglifyJsPlugin.
@@ -287,6 +289,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
                     return !!resourceId && /(\\|\/)node_modules(\\|\/)/.test(resourceId);
                 },
                 parallel: true,
+                cache: true,
                 uglifyOptions: {
                     // ie8: true, // default false
                     ecma: appConfig._ecmaVersion, // default undefined
@@ -366,25 +369,3 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
 
     return webpackCommonConfig;
 }
-
-// export function getWebpackLibTargetName(libraryTarget?: string,
-//    platformTarget?: string,
-//    defaultTarget?: string): any {
-
-//    if (libraryTarget === 'iife') {
-//        return 'var';
-//    }
-
-//    if (!libraryTarget &&
-//        platformTarget === 'node' ||
-//        platformTarget === 'async-node' ||
-//        platformTarget === 'node-webkit') {
-//        return defaultTarget || 'commonjs2';
-//    }
-
-//    if (!libraryTarget) {
-//        return defaultTarget;
-//    }
-
-//    return libraryTarget;
-// }

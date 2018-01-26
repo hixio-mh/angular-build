@@ -10,7 +10,7 @@
 
 ## What is this?
 
-Build system for Angular app and library projects. This can be used as alternative to [angular-cli](https://github.com/angular/angular-cli).
+Build system for Angular app and library projects. This can be used as alternative to [angular-cli](https://github.com/angular/angular-cli) to build Angular projects.
 
 *Customizations over [angular-cli](https://github.com/angular/angular-cli):*
 
@@ -18,8 +18,7 @@ Build system for Angular app and library projects. This can be used as alternati
 - DLL bundling support for optimizing build time in development, see [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)
 - Multi-platform favicons generation (online/offline)- integration with [realfavicongenerator](http://realfavicongenerator.net) and [evilebottnawi/favicons](https://github.com/evilebottnawi/favicons)
 - Customizable html injection - can inject scripts, styles, favicons, etc into separate partial views
-- Can work well with [Microsoft ASP.NET Core Spa Services](https://github.com/aspnet/JavaScriptServices)
-- Can work with webpack cli directly
+- Can build with webpack cli directly
 
 ## Prerequisites
 

@@ -4,6 +4,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
 
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
 
     "noEmitOnError": true,
@@ -28,6 +29,10 @@
 
     "typeRoots": [
       "./node_modules/@types"
+    ],
+
+    "types": [
+      "node"
     ]
   },
   "include": [

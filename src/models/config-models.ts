@@ -136,13 +136,17 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     dll?: string[] | DllOptions;
     /**
-     * Bundle module format.
+     * Module format for bundling.
      */
     libraryTarget?: LibraryTarget;
     /**
      * The main typescript entry file to be bundled.
      */
     entry?: string;
+    /**
+     * If true, the build process will use awesome-typescript-loader.
+     */
+    useLegacyTsLoader?: boolean;
     /**
      * The typescript configuration file to be used.
      * @default tsconfig.json

@@ -73,9 +73,11 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
 
     // rules
     const rules: webpack.Rule[] = [];
-    
+
+    const maximumInlineSize = 10;
+
     // ReSharper disable once Lambda
-    const postcssPluginFactory = function (loader: webpack.loader.LoaderContext): any[] {        
+    const postcssPluginCreator = function (loader: webpack.loader.LoaderContext): any[] {
         return [
             postcssImports({
                 resolve: (url: string, context: string) => {
@@ -83,31 +85,33 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
                         if (url && url.startsWith('~')) {
                             url = url.substr(1);
                         }
-                        loader.resolve(context, url, (err: Error, result: string) => {
-                            if (err) {
-                                reject(err);
-                                return;
-                            }
+                        loader.resolve(context,
+                            url,
+                            (err: Error, result: string) => {
+                                if (err) {
+                                    reject(err);
+                                    return;
+                                }
 
-                            resolve(result);
-                        });
+                                resolve(result);
+                            });
                     });
                 },
                 load: (filename: string) => {
                     return new Promise<string>((resolve, reject) => {
-                        loader.fs.readFile(filename, (err: Error, data: Buffer) => {
-                            if (err) {
-                                reject(err);
-                                return;
-                            }
+                        loader.fs.readFile(filename,
+                            (err: Error, data: Buffer) => {
+                                if (err) {
+                                    reject(err);
+                                    return;
+                                }
 
-                            const content = data.toString();
-                            resolve(content);
-                        });
+                                const content = data.toString();
+                                resolve(content);
+                            });
                     });
                 }
             }),
-
             postcssUrl({
                 filter: ({ url }: PostcssUrlAsset) => url.startsWith('~'),
                 url: ({ url }: PostcssUrlAsset) => {
@@ -115,7 +119,6 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
                     return path.relative(loader.context, fullPath).replace(/\\/g, '/');
                 }
             }),
-
             postcssUrl([
                 {
                     // Only convert root relative URLs, which CSS-Loader won't process into require().
@@ -137,14 +140,17 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
                 },
                 {
                     // TODO: inline .cur if not supporting IE (use browserslist to check)
-                    filter: (asset: PostcssUrlAsset) => !asset.hash && !asset.absolutePath.endsWith('.cur'),
+                    filter: (asset: PostcssUrlAsset) => {
+                        return maximumInlineSize > 0 && !asset.hash && !asset.absolutePath.endsWith('.cur');
+                    },
                     url: 'inline',
                     // NOTE: maxSize is in KB
-                    maxSize: 10,
+                    maxSize: maximumInlineSize,
                     fallback: 'rebase',
-                }
-            ]),            
-            autoprefixer()            
+                },
+                { url: 'rebase' }
+            ]),
+            autoprefixer()
         ];
     };
 
@@ -194,7 +200,7 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
             options: {
                 // non-function property is required to workaround a webpack option handling abug
                 ident: 'postcss',
-                plugins: postcssPluginFactory,
+                plugins: postcssPluginCreator,
                 // If set true, 'Previous source map found, but options.sourceMap isn't set.'
                 // will disapper, but will add absolute sourceMap
                 // TODO: to review
@@ -308,7 +314,7 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
     if (minimizeCss) {
         plugins.push(new CleanCssWebpackPlugin({ sourceMap: cssSourceMap }));
     }
-    
+
     return {
         entry: Object.keys(entryPoints).length ? entryPoints : undefined,
         module: { rules: rules },
