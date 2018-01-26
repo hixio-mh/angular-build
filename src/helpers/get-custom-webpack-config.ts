@@ -2,6 +2,7 @@ import * as webpack from 'webpack';
 
 import { AngularBuildContext } from '../models';
 
+// TODO: to support for async function
 export function getCustomWebpackConfig(modulePath: string, angularBuildContext: AngularBuildContext): webpack.
                                                                                                       Configuration |
                                                                                                       null {

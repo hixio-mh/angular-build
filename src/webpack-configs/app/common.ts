@@ -1,5 +1,6 @@
 ﻿import * as path from 'path';
 
+import * as resolve from 'resolve';
 import * as webpack from 'webpack';
 
 import { PurifyPlugin } from '@angular-devkit/build-optimizer';
@@ -16,7 +17,6 @@ import {
     BundleAnalyzerOptions,
     CleanOptions } from '../../models';
 import { getWebpackToStringStatsOptions, isWebpackDevServer } from '../../helpers';
-import { requireProjectModule } from '../../utils';
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
@@ -260,11 +260,11 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
     let alias = {};
     if (!isDll) {
         try {
-            const rxjsPathMappingImport =
+            const rxjsPathMappingImportModuleName =
                 appConfig._ecmaVersion && appConfig._ecmaVersion > 5
                     ? 'rxjs/_esm2015/path-mapping'
                     : 'rxjs/_esm5/path-mapping';
-            const rxPaths = requireProjectModule(projectRoot, rxjsPathMappingImport);
+            const rxPaths= require(resolve.sync(rxjsPathMappingImportModuleName, { basedir: projectRoot }));
             alias = rxPaths(angularBuildContext.nodeModulesPath);
         } catch (e) {
             logger.warn(`Failed rxjs path alias. ${e.message}`);
@@ -334,7 +334,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
             alias: alias
         },
         resolveLoader: {
-            modules: [angularBuildContext.nodeModulesPath, 'node_modules']
+            modules: ['node_modules', angularBuildContext.nodeModulesPath]
         },
         context: projectRoot,
         output: {

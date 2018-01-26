@@ -7,6 +7,5 @@ export * from './is-glob';
 export * from './logger';
 export * from './path-helpers';
 export * from './read-json';
-export * from './require-project-module';
 export * from './strip-comments';
 export * from './validate-schema';

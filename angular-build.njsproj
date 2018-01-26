@@ -57,23 +57,6 @@
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="src\plugins\favicons-webpack-plugin\package.json" />
-    <Content Include="tests\webpack-config-test\angular-build.json" />
-    <Content Include="tests\webpack-config-test\browser-app\app\app.component.css" />
-    <Content Include="tests\webpack-config-test\browser-app\app\app.component.html" />
-    <Content Include="tests\webpack-config-test\browser-app\assets\.gitkeep" />
-    <Content Include="tests\webpack-config-test\browser-app\favicon.svg" />
-    <Content Include="tests\webpack-config-test\browser-app\index.html" />
-    <Content Include="tests\webpack-config-test\browser-app\package.json" />
-    <Content Include="tests\webpack-config-test\browser-app\styles.scss" />
-    <Content Include="tests\webpack-config-test\browser-app\tsconfig.app.json" />
-    <Content Include="tests\webpack-config-test\modules\ng-config\http-loader\package.json" />
-    <Content Include="tests\webpack-config-test\modules\ng-config\http-loader\tsconfig-build.json" />
-    <Content Include="tests\webpack-config-test\modules\ng-config\package.json" />
-    <Content Include="tests\webpack-config-test\modules\ng-config\README.md" />
-    <Content Include="tests\webpack-config-test\modules\ng-config\tsconfig-build.json" />
-    <Content Include="tests\webpack-config-test\modules\tsconfig-build.json" />
-    <Content Include="tests\webpack-config-test\modules\tsconfig.json" />
-    <Content Include="tests\webpack-config-test\tsconfig.json" />
     <Content Include="tools\tsconfig-favicons-schema.json" />
     <Content Include="tools\tsconfig-schema.json" />
     <Content Include="tsconfig.json" />
@@ -85,7 +68,6 @@
     <Folder Include="src\cli\build\" />
     <Folder Include="src\plugins\cleancss-webpack-plugin\" />
     <Folder Include="src\plugins\cleancss-webpack-plugin\src\" />
-    <Folder Include="tests\" />
     <Folder Include="src\" />
     <Folder Include="src\models\" />
     <Folder Include="src\helpers\" />
@@ -128,16 +110,6 @@
     <Folder Include="src\webpack-configs\" />
     <Folder Include="src\webpack-configs\app\" />
     <Folder Include="src\webpack-configs\lib\" />
-    <Folder Include="tests\webpack-config-test\" />
-    <Folder Include="tests\webpack-config-test\browser-app\" />
-    <Folder Include="tests\webpack-config-test\browser-app\app\" />
-    <Folder Include="tests\webpack-config-test\browser-app\assets\" />
-    <Folder Include="tests\webpack-config-test\browser-app\environments\" />
-    <Folder Include="tests\webpack-config-test\modules\" />
-    <Folder Include="tests\webpack-config-test\modules\ng-config\" />
-    <Folder Include="tests\webpack-config-test\modules\ng-config\http-loader\" />
-    <Folder Include="tests\webpack-config-test\modules\ng-config\http-loader\src\" />
-    <Folder Include="tests\webpack-config-test\modules\ng-config\src\" />
     <Folder Include="tools\" />
   </ItemGroup>
   <ItemGroup>
@@ -221,7 +193,6 @@
     <TypeScriptCompile Include="src\utils\logger.ts" />
     <TypeScriptCompile Include="src\utils\path-helpers.ts" />
     <TypeScriptCompile Include="src\utils\read-json.ts" />
-    <TypeScriptCompile Include="src\utils\require-project-module.ts" />
     <TypeScriptCompile Include="src\utils\strip-comments.ts" />
     <TypeScriptCompile Include="src\utils\validate-schema.ts" />
     <TypeScriptCompile Include="src\webpack-configs\app\angular.ts" />
@@ -234,24 +205,6 @@
     <TypeScriptCompile Include="src\webpack-configs\app\styles.ts" />
     <TypeScriptCompile Include="src\webpack-configs\index.ts" />
     <TypeScriptCompile Include="src\webpack-configs\lib\index.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\app\app.component.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\app\app.module.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\environments\environment.prod.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\environments\environment.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\main.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\browser-app\polyfills.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\http-loader\index.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\http-loader\public_api.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\http-loader\src\config.http-loader.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\index.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\public_api.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\config.loader.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\config.module.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\config.pipe.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\config.service.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\config.static.loader.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\modules\ng-config\src\index.ts" />
-    <TypeScriptCompile Include="tests\webpack-config-test\webpack.config.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="tools\generate-schema.js" />

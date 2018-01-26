@@ -61,14 +61,21 @@ export function getRollupConfig(angularbuildContext: LibBuildContext,
         input: currentBundle._entryFilePath,
         external: externals,
         plugins: plugins,
-        onwarn(warning: rollup.RollupWarning): void {
-            // Skip certain warnings
-            // should intercept ... but doesn't in some rollup versions
-            if (!warning.message || warning.code === 'THIS_IS_UNDEFINED') {
+        onwarn(warning: string | rollup.RollupWarning): void {
+            if(typeof warning === 'string'){
+                logger.warn(warning);
                 return;
             }
 
-            logger.warn(warning.message);
+            const rollupWarning = warning as rollup.RollupWarning;
+            
+            // Skip certain warnings
+            // should intercept ... but doesn't in some rollup versions
+            if (!rollupWarning.message || rollupWarning.code === 'THIS_IS_UNDEFINED') {
+                return;
+            }
+
+            logger.warn(rollupWarning.message);
         }
     };
 
