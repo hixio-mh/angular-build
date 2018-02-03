@@ -7,13 +7,14 @@ import * as webpack from 'webpack';
 const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
 
 import { FaviconsConfig } from '../../../models';
-import { generateHashDigest, Logger } from '../../../utils';
+import { Logger } from '../../../utils/logger';
+import { generateHashDigest } from '../../../utils/generate-hash-digest';
 
 import { IconStatsInfo, IconStatsJson } from './internal-models';
 import { IconGenerator, IconFileInfo, IconGenerateResult } from './icon-generator';
 
 export class ChildComplier {
-    private iconStatsInfo: IconStatsInfo;
+    private iconStatsInfo: IconStatsInfo | null = null;
 
     constructor(private readonly faviconsConfig: FaviconsConfig,
         private readonly baseDir: string,
@@ -75,7 +76,9 @@ export class ChildComplier {
                     return reject(new Error(errorDetails));
                 } else if (err) {
                     return reject(err);
-                } else {
+                } else if(!this.iconStatsInfo) {
+                    return reject(new Error('The iconStatsInfo is null.'));
+                }else {
                     return resolve(this.iconStatsInfo);
                 }
             });

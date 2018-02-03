@@ -1,7 +1,7 @@
 import * as path from 'path';
 
 import { InvalidConfigError, ProjectConfigInternal } from '../models';
-import { isInFolder, isSamePaths } from '../utils';
+import { isInFolder, isSamePaths } from '../utils/path-helpers';
 
 export function validateProjectConfig(projectRoot: string, projectConfig: ProjectConfigInternal): void {
     if (!projectConfig.outDir) {

@@ -3,6 +3,9 @@ import * as path from 'path';
 
 import * as ts from 'typescript';
 
+import { Logger } from '../utils/logger';
+import { readJsonSync } from '../utils/read-json';
+
 import {
     AngularBuildConfig,
     AppProjectConfig,
@@ -13,7 +16,6 @@ import {
     TsTranspilationOptions
 } from './config-models';
 import { InvalidConfigError } from './errors';
-import { Logger, readJsonSync } from '../utils';
 
 export interface DllParsedResult {
     tsEntries: string[];
@@ -30,6 +32,7 @@ export interface GlobalParsedEntry {
 export interface AngularBuildConfigInternal extends AngularBuildConfig {
     _schema?: object;
     _schemaValidated?: boolean;
+    _configPath?: string;
 }
 
 export interface ProjectConfigSharedInternal {
@@ -46,6 +49,9 @@ export interface BundleOptionsInternal extends BundleOptions {
     _tsConfigPath?: string;
     _tsConfigJson?: any;
     _tsCompilerConfig?: ts.ParsedCommandLine;
+    _ecmaVersion?: number;
+    _nodeResolveFields?: string[];
+
 
     _expectedScriptTarget?: ts.ScriptTarget;
     _exactScriptTarget?: ts.ScriptTarget;
@@ -86,11 +92,13 @@ export interface AngularBuildContext {
     projectConfig: ProjectConfigInternal;
     logger: Logger;
 
-    ngbCli?: boolean;
+    fromAngularBuildCli?: boolean;
+    angularBuildCliRootPath?: string;
     cliIsGlobal?: boolean;
+
     projectRoot: string;
     nodeModulesPath: string;
-
+    
     watch?: boolean;
     progress?: boolean;
     cleanOutDirs?: boolean;
@@ -113,6 +121,7 @@ export interface AngularBuildContext {
     packageScope?: string;
     packageNameWithoutScope?: string;
     parentPackageName?: string;
+    isPackagePrivate?:boolean;
 }
 
 export interface AppBuildContext extends AngularBuildContext {
@@ -134,15 +143,16 @@ export class AngularBuildContextImpl implements AngularBuildContext {
             name:'',
             logLevel: this.angularBuildConfig.logLevel || 'info',
             debugPrefix: 'DEBUG:',
-            infoPrefix: 'INFO:',
             warnPrefix: 'WARNING:'
         });
     }
 
     logger: Logger;
-    // cliIsGlobal? = (global as any).angularBuildCliIsGlobal ? true : false;
-    ngbCli?: boolean;
+    
+    fromAngularBuildCli?: boolean;
+    angularBuildCliRootPath?: string;
     cliIsGlobal?: boolean;
+    
     watch?: boolean;
     progress?: boolean;
     cleanOutDirs?: boolean;
@@ -152,9 +162,9 @@ export class AngularBuildContextImpl implements AngularBuildContext {
         return path.dirname(this.configPath);
     }
 
-    private _nodeModulesPath: string;
+    private _nodeModulesPath: string = '';
     get nodeModulesPath(): string {
-        if (typeof this._nodeModulesPath !== 'undefined') {
+        if (this._nodeModulesPath) {
             return this._nodeModulesPath;
         }
 
@@ -371,6 +381,15 @@ export class AngularBuildContextImpl implements AngularBuildContext {
             if (nameParts.length > 2) {
                 return nameParts[nameParts.length - 2];
             }
+        }
+
+        return undefined;
+    }
+
+    get isPackagePrivate(): boolean | undefined {
+        const packageJson = this.packageJson;
+        if (packageJson) {
+            return packageJson.private;
         }
 
         return undefined;

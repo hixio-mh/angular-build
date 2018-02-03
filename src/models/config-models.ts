@@ -5,11 +5,16 @@
  */
 export interface ProjectConfigBase {
     /**
-     * The output directory for build results. Path must be relative to angular-build.json file.
+     * The output directory for build results. 
      * @example
      * 'dist', 'wwwroot'.
      */
     outDir: string;
+    /**
+     * Tells the build system which platform environment the application is targeting.
+     * Also check out {@link https://webpack.js.org/concepts/targets Webpack}.
+     */
+    platformTarget?: 'web' | 'node';
     /**
      * Clean options.
      */
@@ -47,9 +52,9 @@ export interface ProjectConfig extends ProjectConfigBase {
      */
     extends?: string;
     /**
-     * The root folder containing your typescript source files. Path must be relative to angular-build.json file.
+     * The root folder containing your typescript source files. 
      * @example
-     * 'src', 'ClientApp', 'packages/core'.
+     * 'src', 'ClientApp', 'modules/core'.
      */
     srcDir?: string;
 }
@@ -138,7 +143,7 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     /**
      * Module format for bundling.
      */
-    libraryTarget?: LibraryTarget;
+    libraryTarget?: 'var' | 'iife' | 'cjs' | 'commonjs' | 'commonjs2' | 'amd' | 'umd';
     /**
      * The main typescript entry file to be bundled.
      */
@@ -297,11 +302,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
  */
 export interface AppProjectConfig extends AppProjectConfigBase, ProjectConfig {
     /**
-     * Tells the build system which platform environment the application is targeting.
-     * Also check out {@link https://webpack.js.org/concepts/targets Webpack}.
-     */
-    platformTarget?: 'web' | 'node';
-    /**
      * The output chunk name for main entry.
      * @default main
      */
@@ -341,7 +341,14 @@ export type CleanOptions = {
      * After emit clean option.
      */
     afterEmit?: AfterEmitCleanOptions;
+    /**
+     * Allows cleaning outside of output directory.
+     * @default false
+     */
     allowOutsideOutputDir?: boolean;
+    /**
+     * Allows cleaning outside of output directory.
+     */
     allowOutsideWorkingDir?: boolean;
 };
 
@@ -355,8 +362,6 @@ export type AfterEmitCleanOptions = {
     paths?: string[];
     exclude?: string[];
 };
-
-export type LibraryTarget = 'iife' | 'commonjs' | 'commonjs2' | 'amd' | 'umd' | 'es';
 
 export type ExternalsObjectElement = {
     [key: string]: boolean |
@@ -437,17 +442,32 @@ export interface TsTranspilationOptions {
 
 export interface BundleOptions {
     /**
+     * Bundle tool to be used.
+     * @default rollup
+     */
+    bundleTool?: 'rollup' | 'webpack';
+    /**
+     * Custom webpack config file to be merged. Path will be resolved to angular-build.json file.
+     */
+    webpackConfig?: string;
+    /**
      * Bundle module format.
      */
-    libraryTarget: LibraryTarget;
+    libraryTarget: 'var' | 'iife' | 'cjs' | 'commonjs' | 'commonjs2' | 'amd' | 'umd' | 'es';
     /**
      * The entry file to be bundled.
      */
     entry?: string;
     /**
-     * Entry root directory.
+     * The typescript configuration file to be used.
+     * @default tsconfig.json
      */
-    entryRoot?: 'tsOutDir' | 'prevBundleOutDir' | 'outDir';
+    tsconfig?: string;
+    /**
+     * Entry root directory.
+     * @default srcDir
+     */
+    entryRoot?: 'srcDir' | 'outDir' | 'tsOutDir' | 'prevBundleOutDir';
     /**
      * Custom bundle output file name.
      */
@@ -471,9 +491,18 @@ export interface BundleOptions {
     externals?: ExternalsEntry | ExternalsEntry[];
     /**
      * If true, default Angular and RxJs global module names are added as externals.
-     * @default true
+     * @default  true
      */
-    includeAngularAndRxJsExternals?: boolean;
+    nodeModulesAsExternals?: boolean;
+    /**
+     * If true, default Angular and RxJs global module names are added as externals.
+     * @default  true
+     */
+    angularAndRxJsAsExternals?: boolean;
+    /**
+     * If true, minify file will be generated.
+     */
+    minify?: boolean;
 }
 
 export interface PackageOptions {

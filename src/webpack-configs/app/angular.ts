@@ -17,7 +17,7 @@ import {
     InvalidConfigError,
     ModuleReplacementEntry
 } from '../../models';
-import { isWebpackDevServer } from '../../helpers';
+import { isWebpackDevServer } from '../../helpers/is-webpack-dev-server';
 
 const { CheckerPlugin, TsConfigPathsPlugin } = require('awesome-typescript-loader');
 

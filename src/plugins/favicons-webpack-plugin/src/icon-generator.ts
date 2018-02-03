@@ -19,7 +19,11 @@ import {
     WindowsDesign,
     YandexBrowserDesign
 } from '../../../models';
-import { camelCaseToUnderscore, isBase64, isUrl, Logger } from '../../../utils';
+import { Logger } from '../../../utils/logger';
+import { camelCaseToUnderscore } from '../../../utils/camel-case-to-underscore';
+import { isBase64 } from '../../../utils/is-base64';
+import { isUrl } from '../../../utils/is-url';
+
 
 const favicons = require('favicons');
 const unzip = require('unzip2');

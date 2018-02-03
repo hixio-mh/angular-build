@@ -15,8 +15,10 @@ import {
     AppProjectConfigInternal,
     BeforeRunCleanOptions,
     BundleAnalyzerOptions,
-    CleanOptions } from '../../models';
-import { getWebpackToStringStatsOptions, isWebpackDevServer } from '../../helpers';
+    CleanOptions
+} from '../../models';
+import { isWebpackDevServer } from '../../helpers/is-webpack-dev-server';
+import { getWebpackToStringStatsOptions } from '../../helpers/webpack-to-string-stats-options';
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
@@ -34,7 +36,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
     const environment = angularBuildContext.environment;
     const cliIsGlobal = angularBuildContext.cliIsGlobal;
-    const ngbCli = angularBuildContext.ngbCli;
+    const fromAngularBuildCli = angularBuildContext.fromAngularBuildCli;
 
     const isDll = environment.dll;
     const logger = angularBuildContext.logger;
@@ -96,7 +98,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
     const plugins: webpack.Plugin[] = [new webpack.NoEmitOnErrorsPlugin()];
 
     // progress
-    if (angularBuildContext.progress && ngbCli && !devServer && !hot && !watch) {
+    if (angularBuildContext.progress && fromAngularBuildCli && !devServer && !hot && !watch) {
         plugins.push(new webpack.ProgressPlugin());
     }
 
@@ -121,8 +123,8 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
 
     // clean
     let shouldClean = outDir &&
-    (angularBuildContext.cleanOutDirs ||
-        (appConfig.clean && Object.keys(appConfig.clean).length));
+        (angularBuildContext.cleanOutDirs ||
+            (appConfig.clean && Object.keys(appConfig.clean).length));
     if (shouldClean) {
         const cleanOptions = Object.assign({}, appConfig.clean || {}) as CleanOptions;
         cleanOptions.beforeRun = cleanOptions.beforeRun || {} as BeforeRunCleanOptions;
@@ -195,11 +197,11 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
             }
 
             plugins.push(new BundleAnalyzerWebpackPlugin(Object.assign({
-                    loggerOptions: {
-                        // logLevel: angularBuildContext.logLevel === 'debug' ? 'debug' : 'error'
-                        logLevel: 'error'
-                    }
-                },
+                loggerOptions: {
+                    // logLevel: angularBuildContext.logLevel === 'debug' ? 'debug' : 'error'
+                    logLevel: 'error'
+                }
+            },
                 bundleAnalyzerOptions)));
         }
     }
@@ -264,7 +266,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
                 appConfig._ecmaVersion && appConfig._ecmaVersion > 5
                     ? 'rxjs/_esm2015/path-mapping'
                     : 'rxjs/_esm5/path-mapping';
-            const rxPaths= require(resolve.sync(rxjsPathMappingImportModuleName, { basedir: projectRoot }));
+            const rxPaths = require(resolve.sync(rxjsPathMappingImportModuleName, { basedir: projectRoot }));
             alias = rxPaths(angularBuildContext.nodeModulesPath);
         } catch (e) {
             logger.warn(`Failed rxjs path alias. ${e.message}`);
@@ -320,6 +322,29 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
         symlinks = false;
     }
 
+    const loaderModulePaths = ['node_modules', angularBuildContext.nodeModulesPath];
+    if (angularBuildContext.angularBuildCliRootPath) {
+        loaderModulePaths.push(path.resolve(angularBuildContext.angularBuildCliRootPath, 'node_modules'));
+    }
+
+    // library target
+    let libraryTarget: 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd'  = 'var';
+    if (appConfig.libraryTarget === 'iife') {
+        libraryTarget = 'var';
+    } else if (appConfig.libraryTarget === 'cjs') {
+        libraryTarget = 'commonjs';
+    }  else if (appConfig.libraryTarget === 'commonjs') {
+        libraryTarget = 'commonjs';
+    } else if (appConfig.libraryTarget === 'commonjs2') {
+        libraryTarget = 'commonjs2';
+    } else if (appConfig.libraryTarget === 'amd') {
+        libraryTarget = 'amd';
+    } else if (appConfig.libraryTarget === 'umd') {
+        libraryTarget = 'umd';
+    } else if (!appConfig.libraryTarget && appConfig.platformTarget === 'node') {
+        libraryTarget = 'commonjs2';
+    }
+    
     // webpack config
     const webpackCommonConfig: webpack.Configuration = {
         name: appConfig.name,
@@ -334,10 +359,11 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
             alias: alias
         },
         resolveLoader: {
-            modules: ['node_modules', angularBuildContext.nodeModulesPath]
+            modules: loaderModulePaths
         },
         context: projectRoot,
         output: {
+            libraryTarget: libraryTarget,
             path: outDir,
             filename: `[name]${chunkHashFormat}.js`,
             chunkFilename: `[id]${chunkHashFormat}.chunk.js`,

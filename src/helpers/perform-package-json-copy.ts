@@ -1,15 +1,18 @@
 import * as path from 'path';
 
 import { copy, remove, writeFile } from 'fs-extra';
-import * as ts from 'typescript';
+import { ModuleKind, ScriptTarget } from 'typescript';
 
 import {
     BundleOptionsInternal,
     InvalidConfigError,
     LibBuildContext,
     LibProjectConfigInternal,
-    TsTranspilationOptionsInternal } from '../models';
-import { isSamePaths, Logger, normalizeRelativePath } from '../utils';
+    TsTranspilationOptionsInternal
+} from '../models';
+
+import { Logger } from '../utils/logger';
+import { isSamePaths, normalizeRelativePath } from '../utils/path-helpers';
 
 const { exists } = require('fs-extra');
 
@@ -60,18 +63,18 @@ export async function performPackageJsonCopy(angularBuildContext: LibBuildContex
             }
 
             if (expectedMainEntryFile) {
-                if (compilerOptions.module === ts.ModuleKind.ES2015 &&
-                    compilerOptions.target === ts.ScriptTarget.ES2015) {
+                if (compilerOptions.module === ModuleKind.ES2015 &&
+                    compilerOptions.target === ScriptTarget.ES2015) {
                     mainFields.es2015 = normalizeRelativePath(path.relative(packageJsonOutDir,
                         path.join(tsTranspilation._tsOutDir, expectedMainEntryFile)));
-                } else if (compilerOptions.module === ts.ModuleKind.ES2015 &&
-                    compilerOptions.target === ts.ScriptTarget.ES5) {
+                } else if (compilerOptions.module === ModuleKind.ES2015 &&
+                    compilerOptions.target === ScriptTarget.ES5) {
                     mainFields.module = normalizeRelativePath(path.relative(packageJsonOutDir,
                         path.join(tsTranspilation._tsOutDir, expectedMainEntryFile)));
-                } else if ((compilerOptions.module === ts.ModuleKind.UMD ||
-                        compilerOptions.module === ts.ModuleKind.CommonJS) &&
-                    (compilerOptions.target === ts.ScriptTarget.ES5 ||
-                        compilerOptions.target === ts.ScriptTarget.ES2015)) {
+                } else if ((compilerOptions.module === ModuleKind.UMD ||
+                        compilerOptions.module === ModuleKind.CommonJS) &&
+                    (compilerOptions.target === ScriptTarget.ES5 ||
+                        compilerOptions.target === ScriptTarget.ES2015)) {
                     mainFields.main = normalizeRelativePath(path.relative(packageJsonOutDir,
                         path.join(tsTranspilation._tsOutDir, expectedMainEntryFile)));
                 }
@@ -93,17 +96,17 @@ export async function performPackageJsonCopy(angularBuildContext: LibBuildContex
             const bundle = b as BundleOptionsInternal;
             if (bundle._outputFilePath &&
                 bundle.libraryTarget === 'es' &&
-                bundle._expectedScriptTarget === ts.ScriptTarget.ES2015) {
+                bundle._expectedScriptTarget === ScriptTarget.ES2015) {
                 mainFields.es2015 =
                     normalizeRelativePath(path.relative(packageJsonOutDir, bundle._outputFilePath));
             } else if (bundle._outputFilePath &&
                 bundle.libraryTarget === 'es' &&
-                bundle._expectedScriptTarget === ts.ScriptTarget.ES5) {
+                bundle._expectedScriptTarget === ScriptTarget.ES5) {
                 mainFields.module =
                     normalizeRelativePath(path.relative(packageJsonOutDir, bundle._outputFilePath));
             } else if (bundle._outputFilePath &&
                 bundle.libraryTarget === 'umd' &&
-                bundle._expectedScriptTarget === ts.ScriptTarget.ES5) {
+                bundle._expectedScriptTarget === ScriptTarget.ES5) {
                 mainFields.main =
                     normalizeRelativePath(path.relative(packageJsonOutDir, bundle._outputFilePath));
             }

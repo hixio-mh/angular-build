@@ -10,7 +10,7 @@ import {
     InvalidConfigError,
     PreDefinedEnvironment,
     ProjectConfigInternal } from '../../models';
-import { applyProjectConfigWithEnvOverrides, applyProjectConfigDefaults } from '../../helpers';
+import { applyProjectConfigWithEnvOverrides, applyProjectConfigDefaults } from '../../helpers/prepare-configs';
 
 import { getAppDllWebpackConfig } from './dll';
 

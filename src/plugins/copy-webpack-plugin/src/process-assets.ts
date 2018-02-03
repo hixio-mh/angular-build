@@ -6,7 +6,7 @@ import * as loaderUtils from 'loader-utils';
 import * as minimatch from 'minimatch';
 
 import { InternalError } from '../../../models';
-import { isInFolder, isSamePaths, normalizeRelativePath } from '../../../utils';
+import { isInFolder, isSamePaths, normalizeRelativePath } from '../../../utils/path-helpers';
 
 import { PreProcessedAssetEntry } from './pre-process-assets';
 

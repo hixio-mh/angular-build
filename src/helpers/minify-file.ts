@@ -4,7 +4,7 @@ import { existsSync, readFile, writeFile } from 'fs-extra';
 import * as uglify from 'uglify-js';
 
 import { UglifyError } from '../models';
-import { Logger } from '../utils';
+import { Logger } from '../utils/logger';
 
 export async function minifyFile(inputPath: string,
     outputPath: string,
@@ -20,7 +20,7 @@ export async function minifyFile(inputPath: string,
     const sourceObj: any = {};
     sourceObj[outputFileName] = content;
 
-    const result = uglify.minify(sourceObj,
+    const result: uglify.MinifyOutput = uglify.minify(sourceObj,
         {
             warnings: verbose, // default false,
             ie8: true, // default false
@@ -40,11 +40,19 @@ export async function minifyFile(inputPath: string,
                 beautify: false // default true
             }
         } as any);
+
     if ((result as any).error) {
         throw new UglifyError((result as any).error);
     }
-    if ((result as any).warnings) {
-        logger.warn((result as any).warnings);
+    if ((result as any).warnings && verbose) {
+        const warnings = (result as any).warnings;
+        if (Array.isArray(warnings)) {
+            (warnings as string[]).forEach(msg => {
+                logger.warn(msg);
+            });
+        } else if (typeof warnings === 'string') {
+            logger.warn(warnings);
+        }
     }
 
     await writeFile(outputPath, result.code);

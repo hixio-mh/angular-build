@@ -1,15 +1,18 @@
 import * as path from 'path';
 
-import * as ts from 'typescript';
+import { ParsedCommandLine } from 'typescript';
 
 import {
     InvalidConfigError,
     LibBuildContext,
     LibProjectConfigInternal,
     TsTranspilationOptionsInternal,
-    TypescriptCompileError } from '../models';
+    TypescriptCompileError
+} from '../models';
+
+import { Logger } from '../utils/logger';
+
 import { processNgResources } from './process-ng-resources';
-import { Logger } from '../utils';
 
 const spawn = require('cross-spawn');
 const { exists } = require('fs-extra');
@@ -44,7 +47,7 @@ export async function performNgc(angularBuildContext: LibBuildContext, customLog
     }
 
     const srcDir = path.resolve(projectRoot, libConfig.srcDir || '');
-    const tsCompilerConfig = tsTranspilation._tsCompilerConfig as ts.ParsedCommandLine;
+    const tsCompilerConfig = tsTranspilation._tsCompilerConfig as ParsedCommandLine;
     const compilerOptions = tsCompilerConfig.options;
     const tsOutDir = tsTranspilation._tsOutDir as string;
     const copyTemplateAndStyleUrls = tsTranspilation.copyTemplateAndStyleUrls;

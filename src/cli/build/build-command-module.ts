@@ -1,6 +1,6 @@
 ﻿import * as yargs from 'yargs';
 
-import { colorize } from '../../utils';
+import { colorize } from '../../utils/colorize';
 
 export function getBuildCommandModule(cliVersion: string): yargs.CommandModule {
     const buildCommandUsage = `${colorize(`angular-build ${cliVersion}`, 'white')}\n
@@ -14,40 +14,48 @@ Usage:
             const yargvObj = yargv
                 .reset()
                 .usage(buildCommandUsage)
-                .example('ngb build', 'Build the project(s) using angular-build.json file.')
+                .example('ngb build', 'Build the project(s) using angular-build.json file')
                 .help('h')
-                .option('config',
-                    {
-                        describe: 'The angular-buid.json config file location.',
-                        type: 'string'
-                    })
                 .option('env',
                     {
                         alias: 'environment',
-                        describe: 'Build environment.'
+                        describe: 'Environment option(s) for build'
                     })
                 .option('filter',
                     {
-                        describe: 'Filter config by name(s).',
+                        describe: 'Filter config by name(s)',
+                        type: 'array',
+                        array: true
                     })
-                .option('cleanOutDirs',
+                .option('clean',
                     {
-                        describe: 'Clean output directories before build.',
-                        type: 'boolean'
-                })
+                        describe: 'Clean output directories before build',
+                        type: 'boolean',
+                        boolean: true
+                    })
                 .option('progress',
                     {
-                        describe: 'Display compilation progress in percentage.',
-                        type: 'boolean'
+                        describe: 'Display compilation progress in percentage',
+                        type: 'boolean',
+                        boolean: true
                     })
                 .option('verbose',
                     {
-                        describe: 'Show more details.',
-                        type: 'boolean'
+                        describe: 'Show more details',
+                        type: 'boolean',
+                        boolean: true
                     })
                 .option('watch',
                     {
-                        describe: 'Build with watch mode.',
+                        describe: 'Build with watch mode',
+                        type: 'boolean',
+                        boolean: true
+                    })
+                .option('beep',
+                    {
+                        describe: 'Beep when build compled',
+                        type: 'boolean',
+                        boolean: true
                     });
 
             // if (schemaPart) {

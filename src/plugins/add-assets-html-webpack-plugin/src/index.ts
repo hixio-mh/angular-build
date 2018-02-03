@@ -1,7 +1,7 @@
 import * as webpack from 'webpack';
 
 import { InternalError } from '../../../models';
-import { Logger, LoggerOptions } from '../../../utils';
+import { Logger, LoggerOptions } from '../../../utils/logger';
 
 export interface AddAssetsHtmlWebpckPluginOptions {
     source: 'json' | 'linksAndScripts' | 'linksAndScriptsOptionsKey' | 'rawOptionsKey';

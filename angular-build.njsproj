@@ -114,14 +114,14 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="src\cli\build\build-command-module.ts" />
-    <TypeScriptCompile Include="src\cli\build\build.ts" />
-    <TypeScriptCompile Include="src\cli\build\index.ts" />
+    <TypeScriptCompile Include="src\cli\build\cli-build.ts" />
+    <TypeScriptCompile Include="src\helpers\run-webpack.ts" />
     <TypeScriptCompile Include="src\cli\cli-options.ts" />
     <TypeScriptCompile Include="src\cli\index.ts" />
     <TypeScriptCompile Include="src\helpers\angular-rxjs-externals.ts" />
     <TypeScriptCompile Include="src\helpers\get-custom-webpack-config.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\lib\get-lib-bundle-webpack-config.ts" />
     <TypeScriptCompile Include="src\helpers\get-rollup-config.ts" />
-    <TypeScriptCompile Include="src\helpers\index.ts" />
     <TypeScriptCompile Include="src\helpers\is-webpack-dev-server.ts" />
     <TypeScriptCompile Include="src\helpers\minify-file.ts" />
     <TypeScriptCompile Include="src\helpers\parse-dll-entry.ts" />
@@ -186,7 +186,6 @@
     <TypeScriptCompile Include="src\utils\camel-case-to-underscore.ts" />
     <TypeScriptCompile Include="src\utils\colorize.ts" />
     <TypeScriptCompile Include="src\utils\generate-hash-digest.ts" />
-    <TypeScriptCompile Include="src\utils\index.ts" />
     <TypeScriptCompile Include="src\utils\is-base64.ts" />
     <TypeScriptCompile Include="src\utils\is-glob.ts" />
     <TypeScriptCompile Include="src\utils\is-url.ts" />
@@ -200,11 +199,10 @@
     <TypeScriptCompile Include="src\webpack-configs\app\browser.ts" />
     <TypeScriptCompile Include="src\webpack-configs\app\common.ts" />
     <TypeScriptCompile Include="src\webpack-configs\app\dll.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\app\index.ts" />
     <TypeScriptCompile Include="src\webpack-configs\app\reference-dll.ts" />
     <TypeScriptCompile Include="src\webpack-configs\app\styles.ts" />
     <TypeScriptCompile Include="src\webpack-configs\index.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\lib\index.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\lib\get-lib-webpack-config.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="tools\generate-schema.js" />

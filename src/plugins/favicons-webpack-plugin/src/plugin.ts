@@ -6,17 +6,15 @@ import * as webpack from 'webpack';
 import {
     FaviconsConfig,
     InternalError,
-    InvalidConfigError } from '../../../models';
-import {
-    formatValidationError,
-    generateHashDigest,
-    isBase64,
-    isUrl,
-    Logger,
-    LoggerOptions,
-    stripComments,
-    validateSchema } from '../../../utils';
+    InvalidConfigError
+} from '../../../models';
 
+import { generateHashDigest } from '../../../utils/generate-hash-digest';
+import { isBase64 } from '../../../utils/is-base64';
+import { isUrl } from '../../../utils/is-url';
+import { stripComments } from '../../../utils/strip-comments';
+import { Logger, LoggerOptions } from '../../../utils/logger';
+import { formatValidationError, validateSchema } from '../../../utils/validate-schema';
 import { IconStatsInfo } from './internal-models';
 import { ChildComplier } from './compiler';
 
@@ -68,8 +66,8 @@ export class FaviconsWebpackPlugin {
     private lastConfigHash?: string;
     private lastTimeStamp?: number;
 
-    private iconStatsCacheInfo: IconStatsInfo | null;
-    private hasPersistedCachedFile: boolean;
+    private iconStatsCacheInfo: IconStatsInfo | null = null;
+    private hasPersistedCachedFile: boolean = false;
 
     get name(): string {
         return 'FaviconsWebpackPlugin';

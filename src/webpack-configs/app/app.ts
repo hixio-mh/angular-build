@@ -7,8 +7,10 @@ import { NamedLazyChunksWebpackPlugin } from '../../plugins/named-lazy-chunks-we
 import {
     AppBuildContext,
     AppProjectConfigInternal,
-    PreDefinedEnvironment } from '../../models';
-import { getCustomWebpackConfig, isWebpackDevServer } from '../../helpers';
+    PreDefinedEnvironment
+} from '../../models';
+import { isWebpackDevServer } from '../../helpers/is-webpack-dev-server';
+import { getCustomWebpackConfig } from '../../helpers/get-custom-webpack-config';
 
 import { getAppAngularTypescriptWebpackConfigPartial } from './angular';
 import { getAppBrowserWebpackConfigPartial } from './browser';

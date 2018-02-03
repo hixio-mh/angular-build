@@ -1,8 +1,4 @@
 ﻿export const defaultAngularAndRxJsExternals = {
-    // Import tslib rather than having TypeScript output its helpers multiple times.
-    // See https://github.com/Microsoft/tslib
-    'tslib': 'tslib',
-
     // Angular dependencies
     '@angular/animations': 'ng.animations',
     '@angular/core': 'ng.core',

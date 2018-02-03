@@ -1,10 +1,11 @@
 ﻿import * as rollup from 'rollup';
 
+import { defaultAngularAndRxJsExternals } from '../helpers/angular-rxjs-externals';
 import { BundleOptionsInternal, InternalError, LibBuildContext, LibProjectConfigInternal } from '../models';
 
-const rollupNodeResolve = require('rollup-plugin-node-resolve');
+const getBuiltins = require('builtins');
 
-export function getRollupConfig(angularbuildContext: LibBuildContext,
+export function getRollupConfig(angularBuildContext: LibBuildContext,
     currentBundle: BundleOptionsInternal,
     outputFilePath: string): {
         inputOptions: rollup.InputOptions;
@@ -14,61 +15,172 @@ export function getRollupConfig(angularbuildContext: LibBuildContext,
         throw new InternalError(`The 'currentBundle._entryFilePath' is not set.`);
     }
 
-    const logger = angularbuildContext.logger;
+    const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
+    const logger = angularBuildContext.logger;
 
-    const libConfig = angularbuildContext.projectConfig as LibProjectConfigInternal;
-    const libraryTarget = currentBundle.libraryTarget;
+    const isTsEntry = /\.ts$/i.test(currentBundle._entryFilePath);
+    const moduleName = libConfig.libraryName || angularBuildContext.packageNameWithoutScope;
 
-    let format: rollup.ModuleFormat;
-    if (libraryTarget === 'commonjs' || libraryTarget === 'commonjs2') {
-        format = 'cjs';
+    // library target
+    let libraryTarget: rollup.ModuleFormat = 'umd';
+    if (currentBundle.libraryTarget === 'commonjs' || currentBundle.libraryTarget === 'commonjs2') {
+        libraryTarget = 'cjs';
+    } else if (currentBundle.libraryTarget === 'var') {
+        libraryTarget = 'iife';
+    } else if (!currentBundle.libraryTarget) {
+        if (libConfig.platformTarget === 'node') {
+            libraryTarget = 'cjs';
+        }
     } else {
-        format = libraryTarget as rollup.ModuleFormat;
+        libraryTarget = currentBundle.libraryTarget as rollup.ModuleFormat;
     }
 
-    const moduleName = libConfig.libraryName || angularbuildContext.packageNameWithoutScope;
+    // externals
+    let includeCommonJsModules = true;
+    let externalsRaw = currentBundle.externals as any;
     const rollupExternalMap = {
         externals: [] as string[],
         globals: {}
     };
-    mapToRollupGlobalsAndExternals(currentBundle.externals, rollupExternalMap);
-    if (rollupExternalMap.globals) {
+    if (currentBundle.nodeModulesAsExternals !== false) {
+        includeCommonJsModules = false;
+    }
+
+    if (typeof currentBundle.externals === 'undefined') {
+        if (currentBundle.angularAndRxJsAsExternals ||
+            (currentBundle.angularAndRxJsAsExternals !== false && !(currentBundle.nodeModulesAsExternals !== false))) {
+            if (libraryTarget === 'es') {
+                externalsRaw = Object.assign({
+                    'tslib': 'tslib'
+                },
+                    defaultAngularAndRxJsExternals);
+            } else {
+                externalsRaw = Object.assign({}, defaultAngularAndRxJsExternals);
+            }
+        }
+    } else {
+        let noExternals = false;
+        if (!currentBundle.externals ||
+            (Array.isArray(currentBundle.externals) && !currentBundle.externals.length) ||
+            (typeof currentBundle.externals === 'object' && !Object.keys(currentBundle.externals).length)) {
+            noExternals = true;
+        }
+
+        if (noExternals) {
+            if (currentBundle.angularAndRxJsAsExternals !== false) {
+                let defaultExternals = Object.assign({}, defaultAngularAndRxJsExternals);
+                if (libraryTarget === 'es') {
+                    defaultExternals = Object.assign({
+                        'tslib': 'tslib'
+                    },
+                        defaultExternals);
+                }
+                externalsRaw = defaultExternals;
+            }
+        } else {
+            if (currentBundle.angularAndRxJsAsExternals !== false) {
+                let defaultExternals = Object.assign({}, defaultAngularAndRxJsExternals);
+                if (libraryTarget === 'es') {
+                    defaultExternals = Object.assign({
+                        'tslib': 'tslib'
+                    },
+                        defaultExternals);
+                }
+                if (Array.isArray(externalsRaw)) {
+                    (externalsRaw as any[]).push(defaultExternals);
+                } else {
+                    externalsRaw = [defaultExternals, externalsRaw];
+                }
+            }
+        }
+    }
+
+    mapToRollupGlobalsAndExternals(externalsRaw, rollupExternalMap);
+    if (Object.keys(rollupExternalMap.globals).length) {
         rollupExternalMap.externals = rollupExternalMap.externals || [];
+
         Object.keys(rollupExternalMap.globals).forEach((key: string) => {
             if (rollupExternalMap.externals.indexOf(key) === -1) {
                 rollupExternalMap.externals.push(key);
             }
         });
     }
-    let externals = rollupExternalMap.externals || [];
-    // When creating a UMD, we want to exclude tslib from the `external` bundle option so that it
-    // is inlined into the bundle.
-    if (format === 'umd') {
-        externals = externals.filter(key => key !== 'tslib');
+    const externals = rollupExternalMap.externals || [];
+    if (libConfig.platformTarget === 'node') {
+        externals.push(...getBuiltins());
     }
 
+    // plugins
     const plugins: any[] = [];
 
-    if (format === 'umd') {
+    if (libraryTarget === 'umd' || libraryTarget === 'cjs' || isTsEntry || includeCommonJsModules) {
         const nodeResolveOptions: any = {
-            jsnext: true
+            // use "module" field for ES6 module if possible
+            // Default: true
+            //module: !currentBundle._nodeResolveFields ||
+            //    (currentBundle._nodeResolveFields && currentBundle._nodeResolveFields.includes('main')),
+
+            // use "jsnext:main" if possible
+            // – see https://github.com/rollup/rollup/wiki/jsnext:main
+            // Default: false
+            jsnext: currentBundle._nodeResolveFields && currentBundle._nodeResolveFields.includes('jsnext'),
+
+            // use "main" field or index.js, even if it's not an ES6 module
+            // (needs to be converted from CommonJS to ES6
+            // – see https://github.com/rollup/rollup-plugin-commonjs
+            // Default: true
+            //main: !currentBundle._nodeResolveFields ||
+            //    (currentBundle._nodeResolveFields && currentBundle._nodeResolveFields.includes('main')),
         };
 
+        const rollupNodeResolve = require('rollup-plugin-node-resolve');
         plugins.push(rollupNodeResolve(nodeResolveOptions));
+
+        if (isTsEntry) {
+            // dynamic require
+            const typescript = require('rollup-plugin-typescript2');
+
+            // rollup-plugin-typescript@0.8.1 doesn't support custom tsconfig path
+            // so we use rollup-plugin-typescript2
+            plugins.push(typescript({
+                tsconfig: currentBundle._tsConfigPath,
+                typescript: require('typescript'),
+                rollupCommonJSResolveHack: libraryTarget === 'cjs'
+                // cacheRoot: './.rts2_cache'
+            }));
+        }
+
+        if (includeCommonJsModules) {
+            const rollupCommonjs = require('rollup-plugin-commonjs');
+            plugins.push(rollupCommonjs({
+                extensions: isTsEntry ? ['.js', '.ts'] : ['.js'],
+                // If false then skip sourceMap generation for CommonJS modules
+                sourceMap: libConfig.sourceMap, // Default: true
+            }));
+        }
+    }
+
+    let preserveSymlinks = false;
+    if (isTsEntry &&
+        currentBundle._tsConfigPath &&
+        currentBundle._tsCompilerConfig &&
+        currentBundle._tsCompilerConfig.options.preserveSymlinks) {
+        preserveSymlinks = true;
     }
 
     const inputOptions: rollup.InputOptions = {
         input: currentBundle._entryFilePath,
+        preserveSymlinks: preserveSymlinks,
         external: externals,
         plugins: plugins,
         onwarn(warning: string | rollup.RollupWarning): void {
-            if(typeof warning === 'string'){
+            if (typeof warning === 'string') {
                 logger.warn(warning);
                 return;
             }
 
             const rollupWarning = warning as rollup.RollupWarning;
-            
+
             // Skip certain warnings
             // should intercept ... but doesn't in some rollup versions
             if (!rollupWarning.message || rollupWarning.code === 'THIS_IS_UNDEFINED') {
@@ -81,11 +193,12 @@ export function getRollupConfig(angularbuildContext: LibBuildContext,
 
     const outputOptions: rollup.OutputOptions = {
         name: moduleName,
-        format: format,
+        format: libraryTarget,
         globals: rollupExternalMap.globals,
         // suitable if you're exporting more than one thing
-        exports: 'named',
-        banner: angularbuildContext.bannerText,
+        // TODO: to reivew for default export
+        //exports: 'named',
+        banner: angularBuildContext.bannerText,
         file: outputFilePath,
         sourcemap: libConfig.sourceMap
     };

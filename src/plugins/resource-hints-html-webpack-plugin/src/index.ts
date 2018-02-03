@@ -1,7 +1,7 @@
 ﻿import * as minimatch from 'minimatch';
 import * as webpack from 'webpack';
 
-import { Logger, LoggerOptions } from '../../../utils';
+import { Logger, LoggerOptions } from '../../../utils/logger';
 
 export interface ResourceHintsHtmlWebpackPluginOptions {
     preloads: string[];

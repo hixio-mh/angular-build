@@ -13,11 +13,14 @@ import {
     LibProjectConfigInternal,
     PreDefinedEnvironment,
     ProjectConfigInternal,
-    TsTranspilationOptionsInternal } from '../models';
-import { isWebpackDevServer } from './is-webpack-dev-server';
+    TsTranspilationOptionsInternal
+} from '../models';
 
-import { parseDllEntries, parseGlobalEntries } from '../helpers';
-import { isInFolder, isSamePaths, normalizeRelativePath } from '../utils';
+import { isInFolder, isSamePaths, normalizeRelativePath } from '../utils/path-helpers';
+
+import { isWebpackDevServer } from './is-webpack-dev-server';
+import { parseDllEntries } from './parse-dll-entry';
+import { parseGlobalEntries } from './parse-global-entry';
 
 export function applyAngularBuildConfigDefaults(angularBuildConfig: AngularBuildConfigInternal): void {
     if (!angularBuildConfig) {

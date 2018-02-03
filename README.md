@@ -10,14 +10,12 @@
 
 ## What is this?
 
-Build system for Angular app and library projects. This can be used as alternative to [angular-cli](https://github.com/angular/angular-cli) to build Angular projects.
-
-*Customizations over [angular-cli](https://github.com/angular/angular-cli):*
+Build system for Angular app and library projects similar to [angular-cli](https://github.com/angular/angular-cli) with some customization:
 
 - Build support for both library projects (internally with [rollup](https://github.com/rollup/rollup)) and app projects (internally with [webpack](https://github.com/webpack/webpack))
-- DLL bundling support for optimizing build time in development, see [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)
+- DLL bundling support for optimizing build time, see [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)
 - Multi-platform favicons generation (online/offline)- integration with [realfavicongenerator](http://realfavicongenerator.net) and [evilebottnawi/favicons](https://github.com/evilebottnawi/favicons)
-- Customizable html injection - can inject scripts, styles, favicons, etc into separate partial views
+- Customizable html injection - can inject scripts, styles, favicons, etc into separate files
 - Can build with webpack cli directly
 
 ## Prerequisites
@@ -40,7 +38,7 @@ npm install -g @bizappframework/angular-build
 ## More about ngb
 
 ```bash
-ngb --help
+ngb -h
 ```
 
 ### License

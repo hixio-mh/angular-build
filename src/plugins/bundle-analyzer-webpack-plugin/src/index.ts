@@ -6,7 +6,7 @@ import { ensureDir, readFileSync, writeFile } from 'fs-extra';
 import * as webpack from 'webpack';
 
 import { BundleAnalyzerOptions } from '../../../models';
-import { Logger, LoggerOptions } from '../../../utils';
+import { Logger, LoggerOptions } from '../../../utils/logger';
 
 const ejs = require('ejs');
 const spawn = require('cross-spawn');

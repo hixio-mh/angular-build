@@ -1,6 +1,6 @@
 ﻿import * as webpack from 'webpack';
 
-import { Logger, LoggerOptions } from '../../../utils';
+import { Logger, LoggerOptions } from '../../../utils/logger';
 
 export interface DynamicDllWebpackPluginOptions {
     manifests: { file: string; chunkName: string; }[];

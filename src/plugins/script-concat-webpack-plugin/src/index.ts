@@ -4,7 +4,8 @@ import * as uglify from 'uglify-js';
 import * as webpack from 'webpack';
 
 import { GlobalParsedEntry, InternalError } from '../../../models';
-import { generateHashDigest, Logger, LoggerOptions } from '../../../utils';
+import { Logger, LoggerOptions } from '../../../utils/logger';
+import { generateHashDigest } from '../../../utils/generate-hash-digest';
 
 type ConcatEntry = {
     fileMap: { [key: string]: string; };
@@ -44,7 +45,7 @@ export class ScriptsConcatWebpackPlugin {
         }
     };
 
-    private concatEntries: ConcatEntry[] | null;
+    private concatEntries: ConcatEntry[] | null = null;
 
     get name(): string {
         return 'ScriptsConcatWebpackPlugin';

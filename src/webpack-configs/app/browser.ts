@@ -19,9 +19,7 @@ import {
     InternalError,
     InvalidConfigError,
     PreDefinedEnvironment } from '../../models';
-import {
-    applyProjectConfigDefaults,
-    applyProjectConfigWithEnvOverrides } from '../../helpers';
+import { applyProjectConfigDefaults, applyProjectConfigWithEnvOverrides } from '../../helpers/prepare-configs';
 
 export function getAppBrowserWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;

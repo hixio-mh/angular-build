@@ -1,7 +1,7 @@
 ﻿import * as path from 'path';
 
 import { InternalError } from '../../../models';
-import { isGlob } from '../../../utils';
+import { isGlob } from '../../../utils/is-glob';
 
 export interface PreProcessedAssetEntry {
     context: string;

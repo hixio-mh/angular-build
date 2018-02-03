@@ -62,7 +62,7 @@ export class Logger implements LoggerBase {
     }
 
     debug(message: string, optionalParams?: any[]): void {
-        if (this.minLogLevel < LogLevel.Debug) {
+        if (this.minLogLevel < LogLevel.Debug || !message) {
             return;
         }
 
@@ -79,7 +79,7 @@ export class Logger implements LoggerBase {
     }
 
     info(message: string, optionalParams?: any[]): void {
-        if (this.minLogLevel < LogLevel.Info) {
+        if (this.minLogLevel < LogLevel.Info || !message) {
             return;
         }
 
@@ -96,7 +96,7 @@ export class Logger implements LoggerBase {
     }
 
     warn(message: string, optionalParams?: any[]): void {
-        if (this.minLogLevel < LogLevel.Warn) {
+        if (this.minLogLevel < LogLevel.Warn || !message) {
             return;
         }
 
@@ -117,7 +117,7 @@ export class Logger implements LoggerBase {
     }
 
     error(message: string, optionalParams?: any[]): void {
-        if (this.minLogLevel < LogLevel.Warn) {
+        if (this.minLogLevel < LogLevel.Warn || !message) {
             return;
         }
 

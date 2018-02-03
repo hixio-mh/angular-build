@@ -1,8 +1,6 @@
 import * as path from 'path';
 
-import * as autoprefixer from 'autoprefixer';
 import { copy, ensureDir, readFile, writeFile } from 'fs-extra';
-import * as sass from 'node-sass';
 
 import {
     GlobalParsedEntry,
@@ -10,8 +8,11 @@ import {
     LibBuildContext,
     LibProjectConfigInternal,
     UnSupportedStyleExtError } from '../models';
-import { Logger } from '../utils';
 
+import { Logger } from '../utils/logger';
+
+import * as sass from 'node-sass';
+const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
 const postcss = require('postcss');
 
@@ -61,13 +62,13 @@ export async function processStyles(angularBuildContext: LibBuildContext, custom
                 map: Buffer;
             }>((resolve, reject) => {
                 sass.render({
-                    file: input,
-                    sourceMap: sourceMap,
-                    outFile: dest,
-                    includePaths: includePaths,
-                    // bootstrap-sass requires a minimum precision of 8
-                    precision: 8
-                },
+                        file: input,
+                        sourceMap: sourceMap,
+                        outFile: dest,
+                        includePaths: includePaths,
+                        // bootstrap-sass requires a minimum precision of 8
+                        precision: 8
+                    },
                     (err: Error, sassResult: any) => {
                         if (err) {
                             return reject(err);

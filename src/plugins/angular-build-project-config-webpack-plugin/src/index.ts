@@ -11,14 +11,12 @@ import {
     applyAngularBuildConfigDefaults,
     applyProjectConfigDefaults,
     applyProjectConfigWithEnvOverrides
-} from '../../../helpers';
-import {
-    formatValidationError,
-    generateHashDigest,
-    Logger, LoggerOptions,
-    stripComments,
-    validateSchema
-} from '../../../utils';
+} from '../../../helpers/prepare-configs';
+
+import { Logger, LoggerOptions } from '../../../utils/logger';
+import { generateHashDigest } from '../../../utils/generate-hash-digest';
+import { stripComments } from '../../../utils/strip-comments';
+import { formatValidationError, validateSchema } from '../../../utils/validate-schema';
 
 export type AngularBuildProjectConfigWebpackPluginOptions = {
     configPath: string;

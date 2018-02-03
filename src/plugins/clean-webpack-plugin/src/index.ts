@@ -7,14 +7,9 @@ import * as rimraf from 'rimraf';
 import * as webpack from 'webpack';
 
 import { AfterEmitCleanOptions, BeforeRunCleanOptions, CleanOptions, InternalError, InvalidConfigError } from '../../../models';
-import {
-    isGlob,
-    isInFolder,
-    isSamePaths,
-    Logger,
-    LoggerOptions,
-    normalizeRelativePath
-} from '../../../utils';
+import { Logger, LoggerOptions } from '../../../utils/logger';
+import { isGlob } from '../../../utils/is-glob';
+import { isInFolder, isSamePaths, normalizeRelativePath } from '../../../utils/path-helpers';
 
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 
@@ -163,20 +158,21 @@ export class CleanWebpackPlugin {
 
         if (webpackContextDir && isInFolder(outputPath, webpackContextDir)) {
             throw new InternalError(
-                `The context directory must not be inside the output path, outputPath: ${outputPath}, context: ${
+                `The webpack context path must not be inside the output path, outputPath: ${outputPath}, context: ${
                 webpackContextDir}.`);
         }
 
         if (webpackContextDir && isSamePaths(outputPath, webpackContextDir)) {
             throw new InternalError(
-                `The context path must not be the output directory, outputPath: ${outputPath}, context: ${
+                `The webpack context path must not be the output directory, outputPath: ${outputPath}, context: ${
                 webpackContextDir}.`);
         }
 
         if (cleanOptions.cleanOutDir) {
-            if (!isInFolder(cwd, outputPath) && !this.options.allowOutsideWorkingDir) {
+            if (!isInFolder(cwd, outputPath) && this.options.allowOutsideWorkingDir === false) {
                 throw new InternalError(
-                    `Cleaning outside of the working directory is not allowed, outputPath: ${outputPath}.`);
+                    `Cleaning outside of the working directory is disabled, outputPath: ${outputPath}.` +
+                    ` To enable cleaning, please set 'allowOutsideWorkingDir = true' in clean option.`);
             }
 
             pathsToClean.push(path.join(outputPath, '**/*'));
@@ -248,26 +244,29 @@ export class CleanWebpackPlugin {
 
                     if (webpackContextDir && isInFolder(absolutePath, webpackContextDir)) {
                         throw new InvalidConfigError(
-                            `The context directory must not be inside the path to be deleted, path: ${absolutePath
+                            `The webpack context path must not be inside the path to be deleted, path: ${absolutePath
                             }, context: ${
                             webpackContextDir}.`);
                     }
 
                     if (webpackContextDir && isSamePaths(absolutePath, webpackContextDir)) {
                         throw new InvalidConfigError(
-                            `The context path must not be the path to be deleted, path: ${outputPath}, context: ${
+                            `The webpack context path must not be the path to be deleted, path: ${outputPath}, context: ${
                             webpackContextDir}.`);
                     }
 
-                    if (!isInFolder(cwd, absolutePath) && !this.options.allowOutsideWorkingDir) {
-                        throw new InvalidConfigError(
-                            `Cleaning outside of the current working directory is not allowed, path: ${absolutePath}.`);
+                    if (!isInFolder(cwd, absolutePath) && this.options.allowOutsideWorkingDir === false) {
+                        throw new InternalError(
+                            `Cleaning outside of the working directory is disabled, outputPath: ${absolutePath}.` +
+                            ` To enable cleaning, please set 'allowOutsideWorkingDir = true' in clean option.`);
                     }
 
                     if ((!isInFolder(outputPath, absolutePath) || isSamePaths(outputPath, absolutePath)) &&
                         !this.options.allowOutsideOutputDir) {
                         throw new InvalidConfigError(
-                            `Cleaning outside of output directory is not allowed, path: ${absolutePath}.`);
+                            `By default, cleaning outside of output directory is disabled, path to clean: ${absolutePath
+                            }.` +
+                            ` To enable cleaning, please set 'allowOutsideOutputDir = true' in clean option.`);
                     }
                 }
 

@@ -2,7 +2,7 @@
 import * as path from 'path';
 
 import { DllOptions, DllParsedResult, InvalidConfigError } from '../models';
-import { readJsonSync } from '../utils';
+import { readJsonSync } from '../utils/read-json';
 
 export function parseDllEntries(srcDir: string,
     inputs: string | DllOptions | string[], checkFileExists?: boolean): DllParsedResult {

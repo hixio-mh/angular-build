@@ -4,7 +4,8 @@ import { copy } from 'fs-extra';
 import * as webpack from 'webpack';
 
 import { AssetEntry, InternalError, InvalidConfigError } from '../../../models';
-import { isInFolder, Logger, LoggerOptions } from '../../../utils';
+import { Logger, LoggerOptions } from '../../../utils/logger';
+import { isInFolder } from '../../../utils/path-helpers';
 
 import { preProcessAssets } from './pre-process-assets';
 import { processAssets, ProcessedAssetsResult } from './process-assets';

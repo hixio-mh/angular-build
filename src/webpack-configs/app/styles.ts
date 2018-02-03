@@ -9,7 +9,8 @@ import { CleanCssWebpackPlugin } from '../../plugins/cleancss-webpack-plugin';
 import { SuppressEntryChunksWebpackPlugin } from '../../plugins/suppress-entry-chunks-webpack-plugin';
 
 import { AppBuildContext, AppProjectConfigInternal } from '../../models';
-import { parseDllEntries, parseGlobalEntries } from '../../helpers';
+import { parseDllEntries } from '../../helpers/parse-dll-entry';
+import { parseGlobalEntries } from '../../helpers/parse-global-entry';
 
 const postcssImports = require('postcss-import');
 const postcssUrl = require('postcss-url');

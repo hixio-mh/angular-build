@@ -12,13 +12,17 @@ import {
     LibBuildContext,
     LibProjectConfigInternal,
     TsTranspilationOptionsInternal,
-    TypescriptCompileError } from '../models';
-import { isSamePaths, Logger } from '../utils';
+    TypescriptCompileError
+} from '../models';
 
-import { defaultAngularAndRxJsExternals } from './angular-rxjs-externals';
+import { Logger } from '../utils/logger';
+import { isSamePaths } from '../utils/path-helpers';
+
 import { getRollupConfig } from './get-rollup-config';
-import { minifyFile } from './minify-file';
+import { getLibBundleWebpackConfig } from '../webpack-configs/lib/get-lib-bundle-webpack-config';
 
+import { runWebpack } from './run-webpack';
+import { minifyFile } from './minify-file';
 
 const { exists } = require('fs-extra');
 const sorcery = require('sorcery');
@@ -33,6 +37,7 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
 
     const projectRoot = angularBuildContext.projectRoot;
     const packageName = angularBuildContext.packageNameWithoutScope;
+    const isPackagePrivate = angularBuildContext.isPackagePrivate;
     const bundles = libConfig.bundles;
 
     const srcDir = path.resolve(projectRoot, libConfig.srcDir || '');
@@ -140,6 +145,65 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
         }
         currentBundle._entryFilePath = entryFilePath;
 
+        if (currentBundle.tsconfig) {
+            currentBundle._tsConfigPath = path.resolve(srcDir, currentBundle.tsconfig);
+        } else if (/\.ts$/i.test(currentBundle._entryFilePath)) {
+            const tempTsConfigPath = path.resolve(path.dirname(currentBundle._entryFilePath), 'tsconfig.json');;
+            if (await exists(tempTsConfigPath)) {
+                currentBundle._tsConfigPath = path.resolve(path.dirname(currentBundle._entryFilePath), 'tsconfig.json');
+            }
+        }
+        if (currentBundle._tsConfigPath) {
+            const jsonConfigFile = ts.readConfigFile(currentBundle._tsConfigPath, ts.sys.readFile);
+            if (jsonConfigFile.error && jsonConfigFile.error.length) {
+                const formattedMsg = formatDiagnostics(jsonConfigFile.error);
+                if (formattedMsg) {
+                    throw new InvalidConfigError(formattedMsg);
+                }
+            }
+
+            // _tsConfigJson
+            currentBundle._tsConfigJson = jsonConfigFile.config;
+
+            // _tsCompilerConfig
+            currentBundle._tsCompilerConfig = ts.parseJsonConfigFileContent(currentBundle._tsConfigJson,
+                ts.sys,
+                path.dirname(currentBundle._tsConfigPath),
+                undefined,
+                currentBundle._tsConfigPath);
+            const compilerOptions = currentBundle._tsCompilerConfig.options;
+       
+            // _ecmaVersion
+            if (compilerOptions.target === ts.ScriptTarget.ES2017) {
+                currentBundle._ecmaVersion = 8;
+            } else if (compilerOptions.target === ts.ScriptTarget.ES2016) {
+                currentBundle._ecmaVersion = 7;
+            } else if (compilerOptions.target !== ts.ScriptTarget.ES3 && compilerOptions.target !== ts.ScriptTarget.ES5) {
+                currentBundle._ecmaVersion = 6;
+            }
+
+            // _nodeResolveFields
+            let nodeResolveFields: string[] = [];
+            if (compilerOptions.target === ts.ScriptTarget.ES2017) {
+                nodeResolveFields.push('es2017');
+                nodeResolveFields.push('es2016');
+                nodeResolveFields.push('es2015');
+            } else if (compilerOptions.target === ts.ScriptTarget.ES2016) {
+                nodeResolveFields.push('es2016');
+                nodeResolveFields.push('es2015');
+            } else if (compilerOptions.target !== ts.ScriptTarget.ES3 &&
+                compilerOptions.target !== ts.ScriptTarget.ES5) {
+                nodeResolveFields.push('es2015');
+            }
+
+            const defaultMainFields = ['module', 'main'];
+            nodeResolveFields.push(...defaultMainFields);
+
+            currentBundle._nodeResolveFields = nodeResolveFields;
+
+            exactEntryScriptTarget = compilerOptions.target;
+        }
+
         // scriptTarget
         if (currentBundle.scriptTarget) {
             const scriptTarget = currentBundle.scriptTarget as string;
@@ -179,7 +243,7 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
 
         let outFileName = currentBundle.outFileName;
         if (!outFileName) {
-            if (packageName) {
+            if (packageName && !isPackagePrivate) {
                 if (currentBundle.libraryTarget === 'umd' && angularBuildContext.parentPackageName) {
                     outFileName =
                         `${angularBuildContext.parentPackageName}-${packageName}.${currentBundle.libraryTarget}.js`;
@@ -196,20 +260,12 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
         currentBundle._outputFilePath = outputFilePath;
 
         // externals
-        if (!currentBundle.externals && libConfig.externals) {
+        if (typeof currentBundle.externals === 'undefined' && libConfig.externals) {
             currentBundle.externals = JSON.parse(JSON.stringify(libConfig.externals));
         }
-        if (currentBundle.includeAngularAndRxJsExternals !== false) {
-            if (currentBundle.externals && Array.isArray(currentBundle.externals)) {
-                const externals = Object.assign({}, defaultAngularAndRxJsExternals);
-                (currentBundle.externals as Array<any>).push(externals);
-            } else {
-                currentBundle.externals = Object.assign({}, defaultAngularAndRxJsExternals, currentBundle.externals || {});
-            }
-        }
 
+        // path.dirname(entryFilePath) !== srcDir
         const shouldReMapSourceMap = libConfig.sourceMap &&
-            path.dirname(entryFilePath) !== srcDir &&
             !/\.ts$/i.test(entryFilePath);
 
         if (currentBundle.transformScriptTargetOnly) {
@@ -237,22 +293,55 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
             }
 
             // main bundling
-            const rollupOptions = getRollupConfig(angularBuildContext, currentBundle, tempOutputFilePath);
-            logger.debug(
-                `Bundling ${currentBundle.libraryTarget} module with rollup`);
+            if (currentBundle.bundleTool === 'webpack') {
+                const wpOptions = getLibBundleWebpackConfig(angularBuildContext, currentBundle, tempOutputFilePath);
+                logger.info(
+                    `Bundling ${currentBundle.libraryTarget} module with webpack`);
+                try {
+                    await runWebpack(wpOptions, false, logger);
+                } catch (err) {
+                    if (err) {
+                        let errMsg = '\n';
+                        if (err.message && err.message.length && err.message !== err.stack) {
+                            errMsg += err.message;
+                        }
+                        if ((err as any).details &&
+                            (err as any).details.length &&
+                            (err as any).details !== err.stack &&
+                            (err as any).details !== err.message) {
+                            if (errMsg.trim()) {
+                                errMsg += '\nError Details:\n';
+                            }
+                            errMsg += (err as any).details;
+                        }
+                        if (err.stack && err.stack.length && err.stack !== err.message) {
+                            if (errMsg.trim()) {
+                                errMsg += '\nCall Stack:\n';
+                            }
+                            errMsg += err.stack;
+                        }
+                        logger.error(errMsg);
+                    }
+                
+                }
+            } else {
+                const rollupOptions = getRollupConfig(angularBuildContext, currentBundle, tempOutputFilePath);
+                logger.info(
+                    `Bundling ${currentBundle.libraryTarget} module with rollup`);
 
-            const bundle = await rollup.rollup(rollupOptions.inputOptions);
-            await bundle.write(rollupOptions.outputOptions);
+                const bundle = await rollup.rollup(rollupOptions.inputOptions);
+                await bundle.write(rollupOptions.outputOptions);
+            }
+
 
             // Remapping sourcemaps
-            if (shouldReMapSourceMap) {
+            if (shouldReMapSourceMap && currentBundle.bundleTool !== 'webpack') {
                 const chain: any = await sorcery.load(tempOutputFilePath);
                 await chain.write();
             }
 
             // re transform script version
             if (reTransformScriptTarget) {
-
                 if (!currentBundle.scriptTarget) {
                     throw new InvalidConfigError(
                         `The 'libs[${libConfig._index}].bundles[${i
@@ -277,9 +366,12 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
         }
 
         // minify umd es5 files
-        if (currentBundle.libraryTarget === 'umd' &&
+        if (currentBundle.bundleTool !== 'webpack' &&
+        (currentBundle.minify ||
+        (currentBundle.minify !== false &&
+            currentBundle.libraryTarget === 'umd' &&
             (exactEntryScriptTarget === ts.ScriptTarget.ES5 ||
-                currentBundle.scriptTarget === 'es5')) {
+                currentBundle.scriptTarget === 'es5')))) {
             const minFilePath = outputFilePath.replace(/\.js$/i, '.min.js');
             logger.debug(`Minifying ${path.basename(outputFilePath)}`);
 

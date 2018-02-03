@@ -6,7 +6,7 @@ import * as webpack from 'webpack';
 import { ensureDir, writeFile } from 'fs-extra';
 
 import { InternalError } from '../../../models';
-import { Logger, LoggerOptions } from '../../../utils';
+import { Logger, LoggerOptions } from '../../../utils/logger';
 
 export interface WriteAssetsToDiskWebpackPluginOptions {
     emittedPaths?: string[];

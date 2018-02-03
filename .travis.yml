@@ -4,7 +4,7 @@ sudo: false
 language: node_js
 
 cache:
-  yarn: true
+  #yarn: true
   directories:
      - ./node_modules
 
@@ -12,22 +12,22 @@ matrix:
   fast_finish: true
   allow_failures:
     - env: nightly
-    - node_js: "7"
-    - node_js: "8"
+    #- node_js: "7"
+    #- node_js: "8"
   include:
     - stage: build
     - script: npm run build
       env: build
 
 before_install:
-  # Install via npm.
-  #- npm install
-  # Install via yarn.
-  - curl -o- -L https://yarnpkg.com/install.sh | bash
-  - export PATH="$HOME/.yarn/bin:$PATH"
-  - yarn config set spin false
-  - yarn config set progress false
+  # Install npm.
+  - npm install -g npm@latest
+  # Install yarn.
+  #- curl -o- -L https://yarnpkg.com/install.sh | bash
+  #- export PATH="$HOME/.yarn/bin:$PATH"
+  #- yarn config set spin false
+  #- yarn config set progress false
 
 install:
-  #- npm install -g npm@latest
-  - yarn --frozen-lockfile
+  - npm install
+  #- yarn --frozen-lockfile

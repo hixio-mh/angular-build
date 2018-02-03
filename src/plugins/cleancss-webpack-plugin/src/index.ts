@@ -85,7 +85,7 @@ export class CleanCssWebpackPlugin {
                                         return;
                                     }
 
-                                    let newSource;
+                                    let newSource: any;
                                     if (output.sourceMap) {
                                         newSource = new SourceMapSource(
                                             output.styles,
