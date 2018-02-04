@@ -46,9 +46,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include=".appveyor.yml" />
+    <Content Include=".editorconfig" />
     <Content Include=".gitattributes" />
+    <Content Include=".github\ISSUE_TEMPLATE.md" />
     <Content Include=".gitignore" />
-    <Content Include=".npmignore" />
     <Content Include=".nvmrc" />
     <Content Include=".travis.yml" />
     <Content Include="bin\ngb" />
@@ -63,6 +64,7 @@
     <Content Include="tslint.json" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include=".github\" />
     <Folder Include="bin\" />
     <Folder Include="src\cli\" />
     <Folder Include="src\cli\build\" />
@@ -96,6 +98,7 @@
     <Folder Include="src\plugins\lib-bundle-webpack-plugin\src\" />
     <Folder Include="src\plugins\named-lazy-chunks-webpack-plugin\" />
     <Folder Include="src\plugins\named-lazy-chunks-webpack-plugin\src\" />
+    <Folder Include="src\plugins\postcss-cli-resources\" />
     <Folder Include="src\plugins\resource-hints-html-webpack-plugin\" />
     <Folder Include="src\plugins\resource-hints-html-webpack-plugin\src\" />
     <Folder Include="src\plugins\script-concat-webpack-plugin\" />
@@ -120,6 +123,7 @@
     <TypeScriptCompile Include="src\cli\index.ts" />
     <TypeScriptCompile Include="src\helpers\angular-rxjs-externals.ts" />
     <TypeScriptCompile Include="src\helpers\get-custom-webpack-config.ts" />
+    <TypeScriptCompile Include="src\plugins\postcss-cli-resources\index.ts" />
     <TypeScriptCompile Include="src\webpack-configs\lib\get-lib-bundle-webpack-config.ts" />
     <TypeScriptCompile Include="src\helpers\get-rollup-config.ts" />
     <TypeScriptCompile Include="src\helpers\is-webpack-dev-server.ts" />

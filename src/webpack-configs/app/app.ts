@@ -111,13 +111,5 @@ export function getAppWebpackConfigPartial(angularBuildContext: AppBuildContext)
         plugins: plugins
     };
 
-    if (appConfig.externals && appConfig.platformTarget === 'node') {
-        let externals = appConfig.externals as any;
-        if (externals && typeof appConfig.externals === 'string') {
-            externals = new RegExp(externals, 'i');
-        }
-        webpackAppConfig.externals = externals;
-    }
-
     return webpackAppConfig;
 }

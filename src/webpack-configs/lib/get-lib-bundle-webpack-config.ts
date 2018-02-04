@@ -27,7 +27,7 @@ const webpackMerge = require('webpack-merge');
  * require('awesome-typescript-loader')
  */
 
-type WebpckLibraryTarget = 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd';
+type WebpackLibraryTarget = 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd';
 
 export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, currentBundle: BundleOptionsInternal,
     outputFilePath: string): webpack.Configuration {
@@ -53,10 +53,10 @@ export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, 
     if (currentBundle.libraryTarget === 'es') {
         throw new InvalidConfigError(
             `The 'libs[${libConfig._index}].bundles[${currentBundle._index
-            }].libraryTarget = es' is not supported by webpack.`);
+            }].libraryTarget = es' is currently not supported by webpack.`);
     }
 
-    let libraryTarget = currentBundle.libraryTarget as WebpckLibraryTarget;
+    let libraryTarget = currentBundle.libraryTarget as WebpackLibraryTarget;
     if (currentBundle.libraryTarget === 'iife') {
         libraryTarget = 'var';
     } else if (currentBundle.libraryTarget === 'cjs') {
@@ -208,7 +208,10 @@ export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, 
     }
 
     let symlinks = true;
-    if (isTsEntry && currentBundle._tsConfigPath && currentBundle._tsCompilerConfig && currentBundle._tsCompilerConfig.options.preserveSymlinks) {
+    if (isTsEntry &&
+        currentBundle._tsConfigPath &&
+        currentBundle._tsCompilerConfig &&
+        currentBundle._tsCompilerConfig.options.preserveSymlinks) {
         symlinks = false;
     }
 

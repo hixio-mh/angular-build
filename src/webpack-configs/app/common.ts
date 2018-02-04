@@ -15,7 +15,8 @@ import {
     AppProjectConfigInternal,
     BeforeRunCleanOptions,
     BundleAnalyzerOptions,
-    CleanOptions
+    CleanOptions,
+    InvalidConfigError
 } from '../../models';
 import { isWebpackDevServer } from '../../helpers/is-webpack-dev-server';
 import { getWebpackToStringStatsOptions } from '../../helpers/webpack-to-string-stats-options';
@@ -30,6 +31,8 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
  * require('raw-loader')
  * require('url-loader')
  */
+
+type WebpackLibraryTarget = 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd';
 
 export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
     const projectRoot = angularBuildContext.projectRoot;
@@ -48,14 +51,14 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
     const watch = angularBuildContext.watch;
     const devServer = isWebpackDevServer();
 
-    const fileHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
-        appConfig.appendOutputHash
-        ? '.[hash]'
+    const resourceExtractHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
+        appConfig.appendOutputHash !== false
+        ? `.[hash:${20}]`
         : '';
 
     const chunkHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
         appConfig.appendOutputHash
-        ? '.[chunkhash]'
+        ? `.[chunkhash:${20}]`
         : '';
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
@@ -76,7 +79,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
             test: /\.(jpg|png|webp|gif|otf|ttf|woff|woff2|ani)$/,
             loader: urlLoader,
             options: {
-                name: `[name]${fileHashFormat}.[ext]`,
+                name: `[name]${resourceExtractHashFormat}.[ext]`,
                 limit: 10000
             }
         },
@@ -84,7 +87,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
             test: /\.(eot|svg|cur)$/,
             loader: fileLoader,
             options: {
-                name: `[name]${fileHashFormat}.[ext]`,
+                name: `[name]${resourceExtractHashFormat}.[ext]`,
                 limit: 10000
             }
         }
@@ -230,6 +233,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
             devtool = 'inline-source-map';
         } else if ((!appConfig.platformTarget || appConfig.platformTarget === 'web')) {
             devtool = undefined;
+            // TODO: to review - '[resource-path]' or path.relative(appConfig.outDir || '', '[resourcePath]')
             let moduleFilenameTemplate =
                 path.relative(appConfig.outDir || '', '[resourcePath]').replace(/\\/g, '/');
             plugins.push(new webpack.SourceMapDevToolPlugin({
@@ -239,7 +243,6 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
                 // default: "webpack:///[resourcePath]?[hash]"
                 // fallbackModuleFilenameTemplate: projectConfig.sourceMapFallbackModuleFilenameTemplate ||
                 //    defaultModuleFilenameTemplate
-                // TODO: to review for sourceRoot
                 // sourceRoot: 'webpack:///'
             }));
         }
@@ -256,10 +259,9 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
         }));
     }
 
-    // TODO: to review
     // Load rxjs path aliases.
     // https://github.com/ReactiveX/rxjs/blob/master/doc/lettable-operators.md#build-and-treeshaking
-    let alias = {};
+    let alias: any = {};
     if (!isDll) {
         try {
             const rxjsPathMappingImportModuleName =
@@ -277,9 +279,10 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
     if (environment.prod) {
         plugins.push(new webpack.HashedModuleIdsPlugin());
 
-        // TODO: to reivew for platformTarget === 'node'
-        if (!devServer && appConfig.platformTarget !== 'node') {
-            plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
+        if (!devServer) {
+            if (appConfig.platformTarget !== 'node') {
+                plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
+            }
 
             // This plugin must be before webpack.optimize.UglifyJsPlugin.
             plugins.push(new PurifyPlugin());
@@ -317,34 +320,39 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
         plugins.push(new webpack.NamedModulesPlugin());
     }
 
-    let symlinks = true;
-    if (appConfig._tsConfigPath && appConfig._tsCompilerConfig && appConfig._tsCompilerConfig.options.preserveSymlinks) {
-        symlinks = false;
-    }
+    const nodeModulePaths = ['node_modules', angularBuildContext.nodeModulesPath];
 
-    const loaderModulePaths = ['node_modules', angularBuildContext.nodeModulesPath];
+    const loaderModulePaths = [...nodeModulePaths];
     if (angularBuildContext.angularBuildCliRootPath) {
         loaderModulePaths.push(path.resolve(angularBuildContext.angularBuildCliRootPath, 'node_modules'));
     }
 
+    // symlinks
+    let symlinks = true;
+    if (appConfig._tsConfigPath &&
+        appConfig._tsCompilerConfig &&
+        appConfig._tsCompilerConfig.options.preserveSymlinks) {
+        symlinks = false;
+    }
+
     // library target
-    let libraryTarget: 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd'  = 'var';
+    if ((appConfig.libraryTarget as any) === 'es') {
+        throw new InvalidConfigError(
+            `The 'apps[${appConfig._index}].libraryTarget = es' is currently not supported by webpack.`);
+    }
+    let libraryTarget = appConfig.libraryTarget as WebpackLibraryTarget;
     if (appConfig.libraryTarget === 'iife') {
         libraryTarget = 'var';
     } else if (appConfig.libraryTarget === 'cjs') {
-        libraryTarget = 'commonjs';
-    }  else if (appConfig.libraryTarget === 'commonjs') {
-        libraryTarget = 'commonjs';
-    } else if (appConfig.libraryTarget === 'commonjs2') {
         libraryTarget = 'commonjs2';
-    } else if (appConfig.libraryTarget === 'amd') {
-        libraryTarget = 'amd';
-    } else if (appConfig.libraryTarget === 'umd') {
-        libraryTarget = 'umd';
-    } else if (!appConfig.libraryTarget && appConfig.platformTarget === 'node') {
-        libraryTarget = 'commonjs2';
+    } else if (!appConfig.libraryTarget) {
+        if (appConfig.platformTarget === 'node') {
+            libraryTarget = 'commonjs2';
+        } else {
+            libraryTarget = 'var';
+        }
     }
-    
+
     // webpack config
     const webpackCommonConfig: webpack.Configuration = {
         name: appConfig.name,
@@ -354,13 +362,14 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
         resolve: {
             extensions: ['.ts', '.js'],
             symlinks: symlinks,
-            modules: ['node_modules', angularBuildContext.nodeModulesPath],
+            modules: nodeModulePaths,
             mainFields: appConfig._nodeResolveFields,
             alias: alias
         },
         resolveLoader: {
             modules: loaderModulePaths
         },
+        externals: appConfig.platformTarget === 'node' ? appConfig.externals as any : undefined,
         context: projectRoot,
         output: {
             libraryTarget: libraryTarget,

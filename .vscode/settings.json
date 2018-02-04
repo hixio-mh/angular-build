@@ -1,0 +1,6 @@
+{  
+  "files.exclude": {
+    "**/.vs": true,
+    "obj": true
+  }
+}

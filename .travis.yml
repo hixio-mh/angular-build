@@ -9,7 +9,7 @@ cache:
      - ./node_modules
 
 matrix:
-  fast_finish: true
+  fast_finish: false
   allow_failures:
     - env: nightly
     #- node_js: "7"

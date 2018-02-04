@@ -100,26 +100,8 @@ export function getAppDllWebpackConfigPartial(angularBuildContext: AppBuildConte
 
     entryPoints[vendorChunkName] = entries;
 
-    // rules
     const rules: webpack.Rule[] = [];
-    if (tsEntries.length > 0) {
-        const tsLoader = cliIsGlobal ? require.resolve('awesome-typescript-loader') : 'awesome-typescript-loader';
-        const tsConfigPath = appConfig._tsConfigPath;
-        rules.push({
-            test: /\.ts$/,
-            use: [
-                {
-                    loader: tsLoader,
-                    options: {
-                        instance: `at-${appConfig.name || 'app'}-dll-loader`,
-                        configFileName: tsConfigPath
-                        // transpileOnly: true
-                    }
-                }
-            ],
-            include: tsEntries
-        });
-    }
+    const resolvePlugins: webpack.Plugin[] = [];
 
     // plugins
     const plugins: webpack.Plugin[] = [
@@ -144,6 +126,32 @@ export function getAppDllWebpackConfigPartial(angularBuildContext: AppBuildConte
         })
     ];
 
+    if (tsEntries.length > 0) {
+        const tsLoader = cliIsGlobal ? require.resolve('awesome-typescript-loader') : 'awesome-typescript-loader';
+        const tsConfigPath = appConfig._tsConfigPath;
+        rules.push({
+            test: /\.ts$/,
+            use: [
+                {
+                    loader: tsLoader,
+                    options: {
+                        instance: `at-${appConfig.name || 'apps[' + appConfig._index + ']'}-dll-loader`,
+                        configFileName: tsConfigPath,
+                        silent: true
+                    }
+                }
+            ],
+            include: tsEntries
+        });
+
+        // `CheckerPlugin` is optional. Use it if you want async error reporting.
+        // We need this plugin to detect a `--watch` mode. It may be removed later
+        // after https://github.com/webpack/webpack/issues/3460 will be resolved.
+        const { CheckerPlugin, TsConfigPathsPlugin } = require('awesome-typescript-loader');
+        plugins.push(new CheckerPlugin());
+
+        resolvePlugins.push(new TsConfigPathsPlugin(tsConfigPath));
+    }
 
     // es6-promise
     // workaround for https://github.com/stefanpenner/es6-promise/issues/100
@@ -159,7 +167,8 @@ export function getAppDllWebpackConfigPartial(angularBuildContext: AppBuildConte
     const webpackDllConfig: webpack.Configuration = {
         entry: entryPoints,
         resolve: {
-            extensions: tsEntries.length > 0 ? ['.ts', '.js'] : ['.js']
+            extensions: tsEntries.length > 0 ? ['.ts', '.js'] : ['.js'],
+            plugins: resolvePlugins
         },
         output: {
             publicPath: appConfig.publicPath || '/',

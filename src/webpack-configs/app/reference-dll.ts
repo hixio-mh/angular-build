@@ -62,6 +62,12 @@ export function getAppReferenceDllWebpackConfigPartial(angularBuildContext: AppB
         angularBuildContext.projectConfigMaster,
         dllProjectConfig as ProjectConfigInternal
     );
+    dllAngularBuildContext.fromAngularBuildCli = angularBuildContext.fromAngularBuildCli;
+    dllAngularBuildContext.angularBuildCliRootPath = angularBuildContext.angularBuildCliRootPath;
+    dllAngularBuildContext.cliIsGlobal = angularBuildContext.cliIsGlobal;
+    dllAngularBuildContext.watch = angularBuildContext.watch;
+    dllAngularBuildContext.progress = angularBuildContext.progress;
+    dllAngularBuildContext.cleanOutDirs = angularBuildContext.cleanOutDirs;
 
     // dynamic dll
     plugins.push(new DynamicDllWebpackPlugin({

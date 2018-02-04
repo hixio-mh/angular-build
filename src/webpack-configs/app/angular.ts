@@ -83,7 +83,6 @@ export function getAngularFixPlugins(angularBuildContext: AppBuildContext): webp
 function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
     const cliIsGlobal = angularBuildContext.cliIsGlobal;
-    const environment = angularBuildContext.environment;
     const projectRoot = angularBuildContext.projectRoot;
 
     if (!appConfig.entry) {
@@ -105,9 +104,9 @@ function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: App
     }
 
 
-    const plugins: webpack.Plugin[] = [];
+    const plugins: webpack.Plugin[] = [new CheckerPlugin()];
 
-    let exclude = [/\.(spec|e2e|e2e-spec|test)\.ts$/];
+    const exclude = [/\.(spec|e2e|e2e-spec|test)\.ts$/];
 
     const tsLoader = cliIsGlobal ? require.resolve('awesome-typescript-loader') : 'awesome-typescript-loader';
     const ngTemplateLoader = cliIsGlobal ? require.resolve('angular2-template-loader') : 'angular2-template-loader';
@@ -121,8 +120,9 @@ function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: App
                 {
                     loader: tsLoader,
                     options: {
-                        instance: `at-${appConfig.name || 'app'}-loader`,
-                        configFileName: tsConfigFilePath
+                        instance: `at-${appConfig.name || 'apps[' + appConfig._index + ']'}-loader`,
+                        configFileName: tsConfigFilePath,
+                        silent: angularBuildContext.angularBuildConfig.logLevel !== 'debug'
                     }
                 },
                 {
@@ -140,11 +140,6 @@ function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: App
     // angularFixPlugins
     const angularFixPlugins = getAngularFixPlugins(angularBuildContext);
     plugins.push(...angularFixPlugins);
-
-    // CheckerPlugin
-    if (!environment.dll) {
-        plugins.push(new CheckerPlugin());
-    }
 
     // replace environment
     const hostReplacementPaths = getHostReplacementPaths(projectRoot, appConfig);
@@ -265,7 +260,7 @@ function getAngularPluginWebpackConfigPartial(angularBuildContext: AppBuildConte
         createAotPlugin(angularBuildContext, aotOptions)
     ];
 
-    // TODO: to reivew for platformTarget === 'node'
+    // TODO: to reivew necessary?
     if (appConfig.platformTarget === 'node' ||
         (appConfig._nodeResolveFields &&
             appConfig._nodeResolveFields.length &&

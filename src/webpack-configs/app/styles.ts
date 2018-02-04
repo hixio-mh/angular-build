@@ -7,6 +7,7 @@ import * as ExtractTextPlugin from 'extract-text-webpack-plugin';
 
 import { CleanCssWebpackPlugin } from '../../plugins/cleancss-webpack-plugin';
 import { SuppressEntryChunksWebpackPlugin } from '../../plugins/suppress-entry-chunks-webpack-plugin';
+import PostcssCliResources from '../../plugins/postcss-cli-resources';
 
 import { AppBuildContext, AppProjectConfigInternal } from '../../models';
 import { parseDllEntries } from '../../helpers/parse-dll-entry';
@@ -18,10 +19,9 @@ const postcssUrl = require('postcss-url');
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
  * know they are used.
- * require('css-loader')
- * require('exports-loader')
- * require('node-sass')
+  * require('node-sass')
  * require('postcss-loader')
+ * require('raw-loader')
  * require('sass-loader')
  * require('style-loader')
  */
@@ -42,7 +42,15 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
     const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
 
     let extractCss = appConfig.extractCss;
-    const hashFormat = appConfig.appendOutputHash ? `.[contenthash:${20}]` : '';
+
+    const resourceExtractHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
+        appConfig.appendOutputHash !== false
+        ? `.[hash:${20}]`
+        : '';
+    const cssExtractHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
+        appConfig.appendOutputHash
+        ? `.[contenthash:${20}]`
+        : '';
 
     // style-loader does not support sourcemaps without absolute publicPath, so it's
     // better to disable them when not extracting css
@@ -66,50 +74,56 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
         });
     }
 
-    const cssLoader = cliIsGlobal ? require.resolve('css-loader') : 'css-loader';
-    const sassLoader = cliIsGlobal ? require.resolve('sass-loader') : 'sass-loader';
-    const postcssLoader = cliIsGlobal ? require.resolve('postcss-loader') : 'postcss-loader';
-    const exportsLoader = cliIsGlobal ? require.resolve('exports-loader') : 'exports-loader';
-    const styleLoader = cliIsGlobal ? require.resolve('style-loader') : 'style-loader';
 
-    // rules
-    const rules: webpack.Rule[] = [];
+    //const exportsLoader = cliIsGlobal ? require.resolve('exports-loader') : 'exports-loader';
+    const postcssLoader = cliIsGlobal ? require.resolve('postcss-loader') : 'postcss-loader';
+    const rawLoader = cliIsGlobal ? require.resolve('raw-loader') : 'raw-loader';
+    const sassLoader = cliIsGlobal ? require.resolve('sass-loader') : 'sass-loader';
+    const styleLoader = cliIsGlobal ? require.resolve('style-loader') : 'style-loader';
 
     const maximumInlineSize = 10;
 
     // ReSharper disable once Lambda
-    const postcssPluginCreator = function (loader: webpack.loader.LoaderContext): any[] {
+    const postcssPluginCreator = function (loader: webpack.loader.LoaderContext) {
         return [
             postcssImports({
                 resolve: (url: string, context: string) => {
                     return new Promise<string>((resolve, reject) => {
+                        let hadTilde = false;
                         if (url && url.startsWith('~')) {
                             url = url.substr(1);
+                            hadTilde = true;
                         }
-                        loader.resolve(context,
-                            url,
-                            (err: Error, result: string) => {
-                                if (err) {
+                        loader.resolve(context, (hadTilde ? '' : './') + url, (err: Error, result: string) => {
+                            if (err) {
+                                if (hadTilde) {
                                     reject(err);
                                     return;
                                 }
-
+                                loader.resolve(context, url, (err: Error, result: string) => {
+                                    if (err) {
+                                        reject(err);
+                                    } else {
+                                        resolve(result);
+                                    }
+                                });
+                            } else {
                                 resolve(result);
-                            });
+                            }
+                        });
                     });
                 },
                 load: (filename: string) => {
                     return new Promise<string>((resolve, reject) => {
-                        loader.fs.readFile(filename,
-                            (err: Error, data: Buffer) => {
-                                if (err) {
-                                    reject(err);
-                                    return;
-                                }
+                        loader.fs.readFile(filename, (err: Error, data: Buffer) => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
 
-                                const content = data.toString();
-                                resolve(content);
-                            });
+                            const content = data.toString();
+                            resolve(content);
+                        });
                     });
                 }
             }),
@@ -151,11 +165,16 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
                 },
                 { url: 'rebase' }
             ]),
-            autoprefixer()
+            PostcssCliResources({
+                deployUrl: loader.loaders[loader.loaderIndex].options.ident === 'extracted' ? '' : publicPath,
+                loader,
+                filename: `[name]${resourceExtractHashFormat }.[ext]`,
+            }),
+            autoprefixer({ grid: true })
         ];
     };
 
-    const baseRules: any[] = [
+    const baseRules: webpack.NewUseRule[] = [
         { test: /\.css$/, use: [] },
         {
             test: /\.scss$|\.sass$/,
@@ -166,51 +185,29 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
                         // bootstrap-sass requires a minimum precision of 8
                         precision: 8,
                         includePaths,
-                        // TODO: not working
+                        // TODO: to review
                         sourceMap: cssSourceMap,
                     }
                 }
             ]
         }
+    ];
+
+    const commonLoaders: webpack.Loader[] = [
+        { loader: rawLoader }
+        // Or
         // {
-        //    test: /\.less$/,
-        //    use: [
-        //        {
-        //            loader: lessLoader,
-        //            options: {
-        //                paths: includePaths
-        //                // TODO: not working
-        //                // sourceMap: cssSourceMap
-        //            }
-        //        }
-        //    ]
+        //    loader: cssLoader,
+        //    options: {
+        //        sourceMap: cssSourceMap,
+        //        import: false
+        //        //importLoaders: 1
+        //    }
         // }
     ];
-
-    const commonLoaders: any[] = [
-        {
-            loader: cssLoader,
-            options: {
-                sourceMap: cssSourceMap,
-                import: false
-                //importLoaders: 1
-            }
-        },
-        {
-            loader: postcssLoader,
-            options: {
-                // non-function property is required to workaround a webpack option handling abug
-                ident: 'postcss',
-                plugins: postcssPluginCreator,
-                // If set true, 'Previous source map found, but options.sourceMap isn't set.'
-                // will disapper, but will add absolute sourceMap
-                // TODO: to review
-                sourceMap: cssSourceMap
-            }
-        }
-    ];
-
+    
     const entryPoints: { [key: string]: string[] } = {};
+    const rules: webpack.Rule[] = [];
     const plugins: webpack.Plugin[] = [];
     const globalStylePaths: string[] = [];
 
@@ -256,7 +253,15 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
             const extractTextPluginOptions = {
                 use: [
                     ...commonLoaders,
-                    ...(use as any[])
+                    {
+                        loader: postcssLoader,
+                        options: {
+                            ident: extractCss ? 'extracted' : 'embedded',
+                            plugins: postcssPluginCreator,
+                            sourceMap: cssSourceMap
+                        }
+                    },
+                    ...(use as webpack.Loader[])
                 ],
                 // publicPath needed as a workaround https://github.com/angular/angular-cli/issues/4035
                 publicPath: ''
@@ -269,7 +274,7 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
                     ? ExtractTextPlugin.extract(extractTextPluginOptions)
                     : appConfig.platformTarget === 'node'
                         ? [
-                            exportsLoader + '?module.exports.toString()',
+                            // exportsLoader + '?module.exports.toString()',
                             ...extractTextPluginOptions.use
                         ]
                         : [
@@ -283,7 +288,7 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
             // extract global css from js files into own css file
             plugins.push(
                 new ExtractTextPlugin({
-                    filename: `[name]${hashFormat}.css`
+                    filename: `[name]${cssExtractHashFormat}.css`
                 }));
 
             if (shouldSuppressChunk) {
@@ -307,9 +312,19 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
         exclude: globalStylePaths,
         test,
         use: [
-            exportsLoader + '?module.exports.toString()'
-        ].concat(commonLoaders).concat(use)
+            ...commonLoaders,
+            {
+                loader: postcssLoader,
+                options: {
+                    ident: 'embedded',
+                    plugins: postcssPluginCreator,
+                    sourceMap: cssSourceMap
+                }
+            },
+            ...(use as webpack.Loader[])
+        ]
     }));
+
     rules.push(...componentStyleRules);
 
     if (minimizeCss) {

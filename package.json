@@ -49,7 +49,6 @@
     "cssnano": "^3.10.0",
     "denodeify": "^1.2.1",
     "ejs": "^2.5.7",
-    "exports-loader": "^0.6.4",
     "extract-text-webpack-plugin": "^3.0.2",
     "favicons": "^4.8.6",
     "file-loader": "^1.1.6",
