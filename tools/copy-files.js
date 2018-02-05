@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 'use strict';
 
 const fs = require('fs-extra');
@@ -18,9 +18,6 @@ if (packageJson.devDependencies) {
 }
 if (packageJson.scripts) {
     delete packageJson.scripts;
-    // packageJson.scripts = {
-    //    postinstall: 'node ./scripts/postinstall.js'
-    // };
 }
 fs.writeFileSync(path.resolve(destDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
@@ -28,6 +25,3 @@ fs.writeFileSync(path.resolve(destDir, 'package.json'), JSON.stringify(packageJs
 fs.copy(path.resolve(rootDir, 'README.md'), path.resolve(destDir, 'README.md'));
 fs.copy(path.resolve(rootDir, 'LICENSE'), path.resolve(destDir, 'LICENSE'));
 fs.copy(path.resolve(__dirname, '../bin', 'ngb'), path.resolve(destDir, 'bin', 'ngb'));
-
-// fs.copy(path.resolve(rootDir, 'templates'), path.resolve(destDir, 'templates'));
-// fs.copy(path.resolve(rootDir, 'scripts'), path.resolve(destDir, 'scripts'));

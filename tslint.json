@@ -11,7 +11,8 @@
     "forin": true,
     "indent": [
       true,
-      "spaces"
+      "spaces",
+      4
     ],
     "interface-name": [ true, "never-prefix" ],
     "jsdoc-format": true,
@@ -33,16 +34,13 @@
     ],
     "no-construct": true,
     "no-debugger": true,
-    //"no-duplicate-key": true,
     "no-duplicate-variable": true,
     "no-empty": true,
     "no-eval": true,
     "no-string-literal": true,
-    //"no-trailing-comma": true,
     "no-trailing-whitespace": true,
     "no-unused-expression": true,
     "no-unused-variable": true,
-    //"no-unreachable": true,
     "no-use-before-declare": true,
     "one-line": [
       true,
@@ -70,7 +68,6 @@
       "call-signature",
       "parameter",
       "property-declaration"
-      //"variable-declaration"
     ],
     "typedef-whitespace": [
       true,
@@ -83,11 +80,6 @@
         "variable-declaration": "nospace"
       }
     ],
-    //"use-strict": [
-    //  true,
-    //  "check-module",
-    //  "check-function"
-    //],
     "variable-name": [
       true,
       "ban-keywords",

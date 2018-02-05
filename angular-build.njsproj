@@ -47,7 +47,6 @@
   <ItemGroup>
     <Content Include=".appveyor.yml" />
     <Content Include=".editorconfig" />
-    <Content Include=".gitattributes" />
     <Content Include=".github\ISSUE_TEMPLATE.md" />
     <Content Include=".gitignore" />
     <Content Include=".travis.yml" />
@@ -255,4 +254,15 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Target Name="ReleaseBuild" AfterTargets="Build" Condition=" '$(Configuration)' == 'Release' ">
+    <Message Importance="high" Text="Performing npm run build..." />
+    <Exec Command="npm run build" />
+  </Target>
+  <Target Name="CleanDist" AfterTargets="Clean">
+    <ItemGroup>
+      <FilesToDelete Include="dist\**" />
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" />
+    <RemoveDir Directories="dist" />
+  </Target>
 </Project>

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 'use strict';
 
 const fs = require('fs-extra');
@@ -20,8 +20,6 @@ function generateSchema() {
     fs.ensureDirSync(schemaOutDir);
 
     // angular-build schema
-    // rimraf.sync(angularBuildConfigSchemaOutput);
-    // rimraf.sync(angularBuildConfigSchemav6Output);
     spawn.sync(path.join(process.cwd(), 'node_modules', '.bin', 'typescript-json-schema'),
         [angularBuildConfigModelInput, angularBuildConfigSymbol, '-o', angularBuildConfigSchemaOutput],
         { cwd: __dirname, stdio: 'inherit' });
@@ -33,7 +31,6 @@ function generateSchema() {
         { stdio: 'inherit', cwd: process.cwd() });
 
     // favicon schema
-    // rimraf.sync(faviconConfigSchemav6Output);
     spawn.sync(path.join(process.cwd(), 'node_modules', '.bin', 'typescript-json-schema'),
         [faviconConfigModelInput, faviconConfigSymbol, '-o', faviconConfigSchemaOutput],
         { cwd: __dirname, stdio: 'inherit' });

@@ -24,8 +24,12 @@
   },
   "homepage": "https://github.com/bizappframework/angular-build",
   "scripts": {
+    "clean": "rimraf -- dist",
     "lint": "node node_modules/tslint/bin/tslint -p tsconfig.json -c tslint.json",
-    "build": "rimraf -- dist && node node_modules/typescript/bin/tsc -p tsconfig.json && node tools/generate-schema.js && node tools/copy-files.js",
+    "tsc": "node node_modules/typescript/bin/tsc -p tsconfig.json",
+    "generate-schema": "node tools/generate-schema.js",
+    "copy-files": "node tools/copy-files.js",
+    "build": "npm run clean && npm run lint && npm run tsc && npm run generate-schema && npm run copy-files",
     "test": "node dist/bin/ngb --version",
     "pretest": "npm run build"
   },

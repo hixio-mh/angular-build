@@ -1,4 +1,4 @@
-﻿angular-build
+angular-build
 =====================
 
 <!-- Badges section here. -->
@@ -26,6 +26,7 @@ Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9 and np
 
 * [Installation](#installation)
 * [More about ngb](#more-about-ngb)
+* [Build command](#build-command)
 * [License](#license)
 
 ## Installation
@@ -33,6 +34,12 @@ Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9 and np
 **BEFORE YOU INSTALL:** please read the [prerequisites](#prerequisites)
 ```bash
 npm install -g @bizappframework/angular-build
+```
+
+## Build command
+
+```bash
+ngb build
 ```
 
 ## More about ngb
