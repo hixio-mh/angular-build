@@ -26,7 +26,8 @@
   "scripts": {
     "lint": "node node_modules/tslint/bin/tslint -p tsconfig.json -c tslint.json",
     "build": "rimraf -- dist && node node_modules/typescript/bin/tsc -p tsconfig.json && node tools/generate-schema.js && node tools/copy-files.js",
-    "test": "node dist/bin/ngb --version"
+    "test": "node dist/bin/ngb --version",
+    "pretest": "npm run build"
   },
   "dependencies": {
     "@angular-devkit/build-optimizer": "^0.2.0",

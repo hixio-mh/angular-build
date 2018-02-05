@@ -65,6 +65,7 @@
   <ItemGroup>
     <Folder Include=".github\" />
     <Folder Include="bin\" />
+    <Folder Include="test\" />
     <Folder Include="src\cli\" />
     <Folder Include="src\cli\build\" />
     <Folder Include="src\plugins\cleancss-webpack-plugin\" />
@@ -112,6 +113,8 @@
     <Folder Include="src\webpack-configs\" />
     <Folder Include="src\webpack-configs\app\" />
     <Folder Include="src\webpack-configs\lib\" />
+    <Folder Include="test\e2e\" />
+    <Folder Include="test\e2e\build\" />
     <Folder Include="tools\" />
   </ItemGroup>
   <ItemGroup>
