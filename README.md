@@ -25,8 +25,7 @@ Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9 and np
 ## Table of Contents
 
 * [Installation](#installation)
-* [More about ngb](#more-about-ngb)
-* [Build command](#build-command)
+* [How to build](#how-to-build)
 * [License](#license)
 
 ## Installation
@@ -35,18 +34,11 @@ Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9 and np
 ```bash
 npm install -g @bizappframework/angular-build
 ```
-
-## Build command
-
-```bash
-ngb build
-```
-
-## More about ngb
-
-```bash
-ngb -h
-```
+## How to build
+1. Add **angular-build.json** config file in your project.
+2. Specify **srcDir**, **outDir**, **entry** etc.
+3. Type **ngb build** at command line.
+4. More information, see [Wiki](https://github.com/BizAppFramework/angular-build/wiki).
 
 ### License
 
