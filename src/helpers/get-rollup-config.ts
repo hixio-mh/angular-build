@@ -125,7 +125,6 @@ export function getRollupConfig(angularBuildContext: LibBuildContext,
         plugins.push(rollupNodeResolve(nodeResolveOptions));
 
         if (isTsEntry) {
-            // dynamic require
             const typescript = require('rollup-plugin-typescript2');
 
             // rollup-plugin-typescript@0.8.1 doesn't support custom tsconfig path

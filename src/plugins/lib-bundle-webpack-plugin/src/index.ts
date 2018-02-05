@@ -56,25 +56,12 @@ export class LibBundleWebpackPlugin {
             await performNgc(angularBuildContext);
         }
         if (libConfig.styles && libConfig.styles.length) {
-            // Dynamic require
-            // const processStylesModule = await import('../../../helpers/process-styles');
-            // const processStyles = processStylesModule.processStyles;
-
             await processStyles(angularBuildContext);
         }
         if (libConfig.bundles && libConfig.bundles.length > 0) {
-            // Dynamic require
-            // const performLibBundlesModule = await import('../../../helpers/perform-lib-bundles');
-            // const performLibBundles = performLibBundlesModule.performLibBundles;
-
             await performLibBundles(angularBuildContext);
         }
         if (libConfig.packageOptions) {
-            // Dynamic require
-            // const performPackageJsonCopyModule =
-            //    await import('../../../helpers/perform-package-json-copy');
-            // const performPackageJsonCopy = performPackageJsonCopyModule.performPackageJsonCopy;
-
             await performPackageJsonCopy(angularBuildContext);
         }
     }

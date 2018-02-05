@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 import { existsSync } from 'fs';
 
 import * as webpack from 'webpack';
@@ -201,7 +201,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
                     loadedModules.getLibWebpackConfig = getAppWebpackConfigModule.getLibWebpackConfig;
                 }
 
-                const wpConfig = loadedModules.getLibWebpackConfig(angularBuildContext);
+                const wpConfig = loadedModules.getLibWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
                 if (wpConfig) {
                     (wpConfig as any)._projectConfig = clonedLibConfig;
                     webpackConfigs.push(wpConfig);
@@ -259,7 +259,8 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
                     }
 
                     (angularBuildContext as AppBuildContext).dllBuildOnly = true;
-                    const wpConfig = loadedModules.getAppDllWebpackConfig(angularBuildContext);
+                    const wpConfig =
+                        loadedModules.getAppDllWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
                     if (wpConfig) {
                         (wpConfig as any)._projectConfig = clonedAppConfig;
                         webpackConfigs.push(wpConfig);
@@ -271,7 +272,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
                         loadedModules.getAppWebpackConfig = getAppWebpackConfigModule.getAppWebpackConfig;
                     }
 
-                    const wpConfig = loadedModules.getAppWebpackConfig(angularBuildContext);
+                    const wpConfig = loadedModules.getAppWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
                     if (wpConfig) {
                         (wpConfig as any)._projectConfig = clonedAppConfig;
                         webpackConfigs.push(wpConfig);

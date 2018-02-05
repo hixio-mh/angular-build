@@ -74,8 +74,9 @@ export default async function (cliOptions: CliOptions): Promise<number> {
         displayAngularBuildVersion(cliOptions);
 
         // Dynamic require
-        const cliBuildModule = await import('./build/cli-build');
-        return cliBuildModule.cliBuild(cliOptions).then(exitCode => {
+        // const cliBuildModule = await import('./build/cli-build');
+        const cliBuild = require('./build/cli-build').cliBuild;
+        return cliBuild(cliOptions).then((exitCode: number) => {
             if (commandOptions.verbose) {
                 console.log(`\nTotal time: ${Date.now() - cliOptions.startTime}\n`);
             }
