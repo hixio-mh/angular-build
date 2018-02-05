@@ -1,4 +1,4 @@
-﻿import * as rollup from 'rollup';
+import * as rollup from 'rollup';
 
 import { defaultAngularAndRxJsExternals } from '../helpers/angular-rxjs-externals';
 import { BundleOptionsInternal, InternalError, LibBuildContext, LibProjectConfigInternal } from '../models';
@@ -115,22 +115,10 @@ export function getRollupConfig(angularBuildContext: LibBuildContext,
 
     if (libraryTarget === 'umd' || libraryTarget === 'cjs' || isTsEntry || includeCommonJsModules) {
         const nodeResolveOptions: any = {
-            // use "module" field for ES6 module if possible
-            // Default: true
-            //module: !currentBundle._nodeResolveFields ||
-            //    (currentBundle._nodeResolveFields && currentBundle._nodeResolveFields.includes('main')),
-
             // use "jsnext:main" if possible
             // – see https://github.com/rollup/rollup/wiki/jsnext:main
             // Default: false
             jsnext: currentBundle._nodeResolveFields && currentBundle._nodeResolveFields.includes('jsnext'),
-
-            // use "main" field or index.js, even if it's not an ES6 module
-            // (needs to be converted from CommonJS to ES6
-            // – see https://github.com/rollup/rollup-plugin-commonjs
-            // Default: true
-            //main: !currentBundle._nodeResolveFields ||
-            //    (currentBundle._nodeResolveFields && currentBundle._nodeResolveFields.includes('main')),
         };
 
         const rollupNodeResolve = require('rollup-plugin-node-resolve');
@@ -196,8 +184,7 @@ export function getRollupConfig(angularBuildContext: LibBuildContext,
         format: libraryTarget,
         globals: rollupExternalMap.globals,
         // suitable if you're exporting more than one thing
-        // TODO: to reivew for default export
-        //exports: 'named',
+        exports: currentBundle.namedExports ? 'named' : undefined,
         banner: angularBuildContext.bannerText,
         file: outputFilePath,
         sourcemap: libConfig.sourceMap

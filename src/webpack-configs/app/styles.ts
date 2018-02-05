@@ -1,4 +1,4 @@
-﻿// Ref: https://github.com/angular/angular-cli
+// Ref: https://github.com/angular/angular-cli
 import * as path from 'path';
 import * as webpack from 'webpack';
 
@@ -19,7 +19,7 @@ const postcssUrl = require('postcss-url');
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
  * know they are used.
-  * require('node-sass')
+ * require('node-sass')
  * require('postcss-loader')
  * require('raw-loader')
  * require('sass-loader')
@@ -75,7 +75,7 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
     }
 
 
-    //const exportsLoader = cliIsGlobal ? require.resolve('exports-loader') : 'exports-loader';
+    // const exportsLoader = cliIsGlobal ? require.resolve('exports-loader') : 'exports-loader';
     const postcssLoader = cliIsGlobal ? require.resolve('postcss-loader') : 'postcss-loader';
     const rawLoader = cliIsGlobal ? require.resolve('raw-loader') : 'raw-loader';
     const sassLoader = cliIsGlobal ? require.resolve('sass-loader') : 'sass-loader';
@@ -83,96 +83,93 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
 
     const maximumInlineSize = 10;
 
-    // ReSharper disable once Lambda
-    const postcssPluginCreator = function (loader: webpack.loader.LoaderContext) {
-        return [
-            postcssImports({
-                resolve: (url: string, context: string) => {
-                    return new Promise<string>((resolve, reject) => {
-                        let hadTilde = false;
-                        if (url && url.startsWith('~')) {
-                            url = url.substr(1);
-                            hadTilde = true;
-                        }
-                        loader.resolve(context, (hadTilde ? '' : './') + url, (err: Error, result: string) => {
-                            if (err) {
-                                if (hadTilde) {
-                                    reject(err);
-                                    return;
-                                }
-                                loader.resolve(context, url, (err: Error, result: string) => {
-                                    if (err) {
-                                        reject(err);
-                                    } else {
-                                        resolve(result);
-                                    }
-                                });
-                            } else {
-                                resolve(result);
-                            }
-                        });
-                    });
-                },
-                load: (filename: string) => {
-                    return new Promise<string>((resolve, reject) => {
-                        loader.fs.readFile(filename, (err: Error, data: Buffer) => {
-                            if (err) {
+    const postcssPluginCreator = (loader: webpack.loader.LoaderContext) => [
+        postcssImports({
+            resolve: (url: string, context: string) => {
+                return new Promise<string>((resolve, reject) => {
+                    let hadTilde = false;
+                    if (url && url.startsWith('~')) {
+                        url = url.substr(1);
+                        hadTilde = true;
+                    }
+                    loader.resolve(context, (hadTilde ? '' : './') + url, (err: Error, result: string) => {
+                        if (err) {
+                            if (hadTilde) {
                                 reject(err);
                                 return;
                             }
-
-                            const content = data.toString();
-                            resolve(content);
-                        });
-                    });
-                }
-            }),
-            postcssUrl({
-                filter: ({ url }: PostcssUrlAsset) => url.startsWith('~'),
-                url: ({ url }: PostcssUrlAsset) => {
-                    const fullPath = path.join(projectRoot, 'node_modules', url.substr(1));
-                    return path.relative(loader.context, fullPath).replace(/\\/g, '/');
-                }
-            }),
-            postcssUrl([
-                {
-                    // Only convert root relative URLs, which CSS-Loader won't process into require().
-                    filter: ({ url }: PostcssUrlAsset) => url.startsWith('/') && !url.startsWith('//'),
-                    url: ({ url }: PostcssUrlAsset) => {
-                        if (publicPath.match(/:\/\//) || publicPath.startsWith('/')) {
-                            // If deployUrl is absolute or root relative, ignore baseHref & use deployUrl as is.
-                            return `${publicPath.replace(/\/$/, '')}${url}`;
-                        } else if (baseHref.match(/:\/\//)) {
-                            // If baseHref contains a scheme, include it as is.
-                            return baseHref.replace(/\/$/, '') +
-                                `/${publicPath}/${url}`.replace(/\/\/+/g, '/');
+                            loader.resolve(context, url, (err: Error, result: string) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(result);
+                                }
+                            });
                         } else {
-                            // Join together base-href, deploy-url and the original URL.
-                            // Also dedupe multiple slashes into single ones.
-                            return `/${baseHref}/${publicPath}/${url}`.replace(/\/\/+/g, '/');
+                            resolve(result);
                         }
+                    });
+                });
+            },
+            load: (filename: string) => {
+                return new Promise<string>((resolve, reject) => {
+                    loader.fs.readFile(filename, (err: Error, data: Buffer) => {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+
+                        const content = data.toString();
+                        resolve(content);
+                    });
+                });
+            }
+        }),
+        postcssUrl({
+            filter: ({ url }: PostcssUrlAsset) => url.startsWith('~'),
+            url: ({ url }: PostcssUrlAsset) => {
+                const fullPath = path.join(projectRoot, 'node_modules', url.substr(1));
+                return path.relative(loader.context, fullPath).replace(/\\/g, '/');
+            }
+        }),
+        postcssUrl([
+            {
+                // Only convert root relative URLs, which CSS-Loader won't process into require().
+                filter: ({ url }: PostcssUrlAsset) => url.startsWith('/') && !url.startsWith('//'),
+                url: ({ url }: PostcssUrlAsset) => {
+                    if (publicPath.match(/:\/\//) || publicPath.startsWith('/')) {
+                        // If deployUrl is absolute or root relative, ignore baseHref & use deployUrl as is.
+                        return `${publicPath.replace(/\/$/, '')}${url}`;
+                    } else if (baseHref.match(/:\/\//)) {
+                        // If baseHref contains a scheme, include it as is.
+                        return baseHref.replace(/\/$/, '') +
+                            `/${publicPath}/${url}`.replace(/\/\/+/g, '/');
+                    } else {
+                        // Join together base-href, deploy-url and the original URL.
+                        // Also dedupe multiple slashes into single ones.
+                        return `/${baseHref}/${publicPath}/${url}`.replace(/\/\/+/g, '/');
                     }
+                }
+            },
+            {
+                // TODO: inline .cur if not supporting IE (use browserslist to check)
+                filter: (asset: PostcssUrlAsset) => {
+                    return maximumInlineSize > 0 && !asset.hash && !asset.absolutePath.endsWith('.cur');
                 },
-                {
-                    // TODO: inline .cur if not supporting IE (use browserslist to check)
-                    filter: (asset: PostcssUrlAsset) => {
-                        return maximumInlineSize > 0 && !asset.hash && !asset.absolutePath.endsWith('.cur');
-                    },
-                    url: 'inline',
-                    // NOTE: maxSize is in KB
-                    maxSize: maximumInlineSize,
-                    fallback: 'rebase',
-                },
-                { url: 'rebase' }
-            ]),
-            PostcssCliResources({
-                deployUrl: loader.loaders[loader.loaderIndex].options.ident === 'extracted' ? '' : publicPath,
-                loader,
-                filename: `[name]${resourceExtractHashFormat }.[ext]`,
-            }),
-            autoprefixer({ grid: true })
-        ];
-    };
+                url: 'inline',
+                // NOTE: maxSize is in KB
+                maxSize: maximumInlineSize,
+                fallback: 'rebase',
+            },
+            { url: 'rebase' }
+        ]),
+        PostcssCliResources({
+            deployUrl: loader.loaders[loader.loaderIndex].options.ident === 'extracted' ? '' : publicPath,
+            loader,
+            filename: `[name]${resourceExtractHashFormat }.[ext]`,
+        }),
+        autoprefixer({ grid: true })
+    ];
 
     const baseRules: webpack.NewUseRule[] = [
         { test: /\.css$/, use: [] },
@@ -205,7 +202,7 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
         //    }
         // }
     ];
-    
+
     const entryPoints: { [key: string]: string[] } = {};
     const rules: webpack.Rule[] = [];
     const plugins: webpack.Plugin[] = [];

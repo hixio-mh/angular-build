@@ -1,4 +1,4 @@
-﻿import { existsSync } from 'fs';
+import { existsSync } from 'fs';
 import * as path from 'path';
 
 import * as resolve from 'resolve';
@@ -240,7 +240,7 @@ export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, 
             filename: path.basename(outputFilePath),
             library: moduleName,
             libraryTarget: libraryTarget,
-            umdNamedDefine: libraryTarget === 'umd' ? true : undefined
+            umdNamedDefine: libraryTarget === 'umd' && currentBundle.namedExports ? true : undefined
         },
         resolve: {
             extensions: isTsEntry ? ['.ts', '.js'] : ['.js'],

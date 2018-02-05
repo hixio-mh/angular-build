@@ -3,21 +3,35 @@ sudo: false
 
 language: node_js
 
+node_js:
+  - "node"
+
 cache:
   #yarn: true
   directories:
-     - ./node_modules
+    - ./node_modules
+
+stages:
+  - build
+  - test
 
 matrix:
-  fast_finish: false
+  fast_finish: true
   allow_failures:
     - env: nightly
     #- node_js: "7"
     #- node_js: "8"
   include:
+    # Build stage
     - stage: build
+      script: npm run lint
+      env: lint
     - script: npm run build
       env: build
+    # Test stage
+    - stage: test
+      script: npm run test
+      env: test
 
 before_install:
   # Install npm.

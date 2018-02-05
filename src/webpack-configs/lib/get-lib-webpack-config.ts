@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import * as webpack from 'webpack';
 
@@ -72,7 +72,7 @@ export function getLibWebpackConfig(angularBuildContext: LibBuildContext): webpa
             loggerOptions: angularBuildContext.logger.loggerOptions
         }));
     }
-    
+
     if (!plugins.length) {
         return null;
     }

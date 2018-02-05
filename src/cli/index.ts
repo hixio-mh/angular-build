@@ -1,4 +1,4 @@
-﻿import * as yargs from 'yargs';
+import * as yargs from 'yargs';
 
 import { colorize } from '../utils/colorize';
 
@@ -43,7 +43,7 @@ Usage:
     return yargsInstance;
 }
 
-function displayAngularBuildVersion(cliOptions: CliOptions) {
+function displayAngularBuildVersion(cliOptions: CliOptions): void {
     console.log(`${colorize(
         `\nangular-build ${cliOptions.cliVersion} [${cliOptions.cliIsGlobal ? 'Global' : 'Local'}]`,
         'white')}\n`);
@@ -100,4 +100,4 @@ export default async function (cliOptions: CliOptions): Promise<number> {
                 return 0;
             });
     }
-};
+}

@@ -1,11 +1,11 @@
-﻿import { FaviconsConfig } from './favicons-config-models';
+import { FaviconsConfig } from './favicons-config-models';
 
 /**
  * @additionalProperties false
  */
 export interface ProjectConfigBase {
     /**
-     * The output directory for build results. 
+     * The output directory for build results.
      * @example
      * 'dist', 'wwwroot'.
      */
@@ -52,7 +52,7 @@ export interface ProjectConfig extends ProjectConfigBase {
      */
     extends?: string;
     /**
-     * The root folder containing your typescript source files. 
+     * The root folder containing your typescript source files.
      * @example
      * 'src', 'ClientApp', 'modules/core'.
      */
@@ -454,6 +454,10 @@ export interface BundleOptions {
      * Bundle module format.
      */
     libraryTarget: 'var' | 'iife' | 'cjs' | 'commonjs' | 'commonjs2' | 'amd' | 'umd' | 'es';
+    /**
+     * Set true if you're exporting more than one thing.
+     */
+    namedExports?: boolean;
     /**
      * The entry file to be bundled.
      */

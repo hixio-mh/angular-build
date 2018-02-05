@@ -50,7 +50,6 @@
     <Content Include=".gitattributes" />
     <Content Include=".github\ISSUE_TEMPLATE.md" />
     <Content Include=".gitignore" />
-    <Content Include=".nvmrc" />
     <Content Include=".travis.yml" />
     <Content Include="bin\ngb" />
     <Content Include="CHANGELOG.md" />

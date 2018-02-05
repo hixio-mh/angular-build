@@ -76,9 +76,9 @@ export class ChildComplier {
                     return reject(new Error(errorDetails));
                 } else if (err) {
                     return reject(err);
-                } else if(!this.iconStatsInfo) {
+                } else if (!this.iconStatsInfo) {
                     return reject(new Error('The iconStatsInfo is null.'));
-                }else {
+                } else {
                     return resolve(this.iconStatsInfo);
                 }
             });

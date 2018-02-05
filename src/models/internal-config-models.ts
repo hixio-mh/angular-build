@@ -98,7 +98,7 @@ export interface AngularBuildContext {
 
     projectRoot: string;
     nodeModulesPath: string;
-    
+
     watch?: boolean;
     progress?: boolean;
     cleanOutDirs?: boolean;
@@ -121,7 +121,7 @@ export interface AngularBuildContext {
     packageScope?: string;
     packageNameWithoutScope?: string;
     parentPackageName?: string;
-    isPackagePrivate?:boolean;
+    isPackagePrivate?: boolean;
 }
 
 export interface AppBuildContext extends AngularBuildContext {
@@ -140,7 +140,7 @@ export class AngularBuildContextImpl implements AngularBuildContext {
         readonly projectConfig: ProjectConfigInternal
     ) {
         this.logger = new Logger({
-            name:'',
+            name: '',
             logLevel: this.angularBuildConfig.logLevel || 'info',
             debugPrefix: 'DEBUG:',
             warnPrefix: 'WARNING:'
@@ -148,11 +148,11 @@ export class AngularBuildContextImpl implements AngularBuildContext {
     }
 
     logger: Logger;
-    
+
     fromAngularBuildCli?: boolean;
     angularBuildCliRootPath?: string;
     cliIsGlobal?: boolean;
-    
+
     watch?: boolean;
     progress?: boolean;
     cleanOutDirs?: boolean;

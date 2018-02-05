@@ -148,7 +148,7 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
         if (currentBundle.tsconfig) {
             currentBundle._tsConfigPath = path.resolve(srcDir, currentBundle.tsconfig);
         } else if (/\.ts$/i.test(currentBundle._entryFilePath)) {
-            const tempTsConfigPath = path.resolve(path.dirname(currentBundle._entryFilePath), 'tsconfig.json');;
+            const tempTsConfigPath = path.resolve(path.dirname(currentBundle._entryFilePath), 'tsconfig.json');
             if (await exists(tempTsConfigPath)) {
                 currentBundle._tsConfigPath = path.resolve(path.dirname(currentBundle._entryFilePath), 'tsconfig.json');
             }
@@ -172,7 +172,7 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
                 undefined,
                 currentBundle._tsConfigPath);
             const compilerOptions = currentBundle._tsCompilerConfig.options;
-       
+
             // _ecmaVersion
             if (compilerOptions.target === ts.ScriptTarget.ES2017) {
                 currentBundle._ecmaVersion = 8;
@@ -322,7 +322,7 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
                         }
                         logger.error(errMsg);
                     }
-                
+
                 }
             } else {
                 const rollupOptions = getRollupConfig(angularBuildContext, currentBundle, tempOutputFilePath);

@@ -1,9 +1,13 @@
 version: 5.0.{build}
+
 branches:
   only:
   - master
+
 image: Visual Studio 2017
+
 platform: Any CPU
+
 environment:
   matrix:
     # node.js
@@ -11,10 +15,12 @@ environment:
     - nodejs_version: "7"
     - nodejs_version: "8"
 
+matrix:
+  fast_finish: true
+
 install:
   #- ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
   - ps: Install-Product node $env:nodejs_version
-  #- yarn --frozen-lockfile
   - npm install -g npm@latest
   - npm install
 
@@ -23,13 +29,7 @@ build_script:
 
 # Post-install test scripts.
 test_script:
-  #- yarn --version
-  - node --version
-  - npm --version
+  - npm run test
 
 cache:
-  #- "%LOCALAPPDATA%/Yarn"
-  - node_modules
-
-matrix:
-  fast_finish: false
+  - node_modules -> package-lock.json

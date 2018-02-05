@@ -1,4 +1,4 @@
-﻿import * as webpack from 'webpack';
+import * as webpack from 'webpack';
 
 import {
     InvalidConfigError,
@@ -11,10 +11,9 @@ import {
 
 import { performNgc } from '../../../helpers/perform-ngc';
 
-const loadedModules: { [key: string]: any } = {};
-//import { performLibBundles } from '../../../helpers/perform-lib-bundles';
-//import { performPackageJsonCopy } from '../../../helpers/perform-package-json-copy';
-//import { processStyles } from '../../../helpers/process-styles';
+import { performLibBundles } from '../../../helpers/perform-lib-bundles';
+import { performPackageJsonCopy } from '../../../helpers/perform-package-json-copy';
+import { processStyles } from '../../../helpers/process-styles';
 
 export interface LibBundleWebpackPluginOptions {
     angularBuildContext: LibBuildContext;
@@ -58,32 +57,23 @@ export class LibBundleWebpackPlugin {
         }
         if (libConfig.styles && libConfig.styles.length) {
             // Dynamic require
-            if (!loadedModules.processStyles) {
-                const processStylesModule = await import('../../../helpers/process-styles');
-                loadedModules.processStyles = processStylesModule.processStyles;
-            }
-            const processStyles = loadedModules.processStyles;
+            // const processStylesModule = await import('../../../helpers/process-styles');
+            // const processStyles = processStylesModule.processStyles;
 
             await processStyles(angularBuildContext);
         }
         if (libConfig.bundles && libConfig.bundles.length > 0) {
             // Dynamic require
-            if (!loadedModules.performLibBundles) {
-                const performLibBundlesModule = await import('../../../helpers/perform-lib-bundles');
-                loadedModules.performLibBundles = performLibBundlesModule.performLibBundles;
-            }
-            const performLibBundles = loadedModules.performLibBundles;
+            // const performLibBundlesModule = await import('../../../helpers/perform-lib-bundles');
+            // const performLibBundles = performLibBundlesModule.performLibBundles;
 
             await performLibBundles(angularBuildContext);
         }
         if (libConfig.packageOptions) {
             // Dynamic require
-            if (!loadedModules.performPackageJsonCopy) {
-                const performPackageJsonCopyModule =
-                    await import('../../../helpers/perform-package-json-copy');
-                loadedModules.performPackageJsonCopy = performPackageJsonCopyModule.performPackageJsonCopy;
-            }
-            const performPackageJsonCopy = loadedModules.performPackageJsonCopy;
+            // const performPackageJsonCopyModule =
+            //    await import('../../../helpers/perform-package-json-copy');
+            // const performPackageJsonCopy = performPackageJsonCopyModule.performPackageJsonCopy;
 
             await performPackageJsonCopy(angularBuildContext);
         }

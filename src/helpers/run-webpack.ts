@@ -17,7 +17,6 @@ export function runWebpack(wpConfig: webpack.Configuration | webpack.Configurati
     }
 
     const webpackCompiler = webpack(wpConfig as any);
-    //const webpackCompiler = require('webpack')(wpConfig);
 
     return new Promise((resolve, reject) => {
         const callback: webpack.compiler.CompilerCallback = (err: any, stats: webpack.compiler.Stats) => {
@@ -50,7 +49,7 @@ export function runWebpack(wpConfig: webpack.Configuration | webpack.Configurati
 
         if (watch) {
             webpackCompiler.watch(watchOptions as webpack.WatchOptions, callback);
-            logger.info('\nWebpack is watching the files…\n');
+            logger.info('\nWebpack is watching the filesâ€¦\n');
         } else {
             webpackCompiler.run(callback);
         }

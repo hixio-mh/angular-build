@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 import * as webpack from 'webpack';
 
 import {
@@ -71,7 +71,7 @@ export class AngularBuildProjectConfigWebpackPlugin {
 
         compiler.plugin('before-compile',
             (params: any, cb: (err?: Error) => void) => {
-                //const startTime = Date.now();
+                // const startTime = Date.now();
                 const configFilePath = this.options.configPath;
 
                 // first compilation
@@ -80,10 +80,10 @@ export class AngularBuildProjectConfigWebpackPlugin {
                     !this.lastContentHash) {
                     params.compilationDependencies.push(configFilePath);
 
-                    //if (!this.lastTimeStamp) {
+                    // if (!this.lastTimeStamp) {
                     //    this.logger.debug(
                     //        `The project config has been initialized`);
-                    //}
+                    // }
 
                     this.lastTimeStamp = Date.now();
                     return cb();
@@ -116,7 +116,7 @@ export class AngularBuildProjectConfigWebpackPlugin {
                         const contentHash = generateHashDigest(content);
 
                         if (this.lastContentHash && contentHash === this.lastContentHash && this.projectConfig) {
-                            //this.logger.debug(`No configuration changed`);
+                            // this.logger.debug(`No configuration changed`);
                             (compiler as any).options[ANGULAR_BUILD_PROJECT_CONFIG_KEY] = this.projectConfig;
                             this.lastTimeStamp = Date.now();
                             return cb();
@@ -155,7 +155,7 @@ export class AngularBuildProjectConfigWebpackPlugin {
 
                         const nameToFind = this.options.configName || compiler.options.name;
                         let foundProjectType = '';
-                        //let foundIndex = -1;
+                        // let foundIndex = -1;
                         let foundConfig: ProjectConfigInternal | null = null;
                         const projectKeys = Object.keys(angularBuildConfig)
                             .filter(key => key === 'apps' || key === 'libs');
@@ -174,13 +174,13 @@ export class AngularBuildProjectConfigWebpackPlugin {
                                     if (config.name === nameToFind) {
                                         foundConfig = config;
                                         foundProjectType = key;
-                                        //foundIndex = i;
+                                        // foundIndex = i;
                                         break;
                                     }
                                 } else {
                                     foundConfig = config;
                                     foundProjectType = key;
-                                    //foundIndex = i;
+                                    // foundIndex = i;
                                     break;
                                 }
                             }
@@ -216,11 +216,11 @@ export class AngularBuildProjectConfigWebpackPlugin {
                             }
                         }
 
-                        //this.logger.debug(`Found mapped project config at ${foundProjectType}[${foundIndex}]`);
+                        // this.logger.debug(`Found mapped project config at ${foundProjectType}[${foundIndex}]`);
                         this.projectConfig = foundConfig;
                         (compiler as any).options[ANGULAR_BUILD_PROJECT_CONFIG_KEY] = this.projectConfig;
 
-                        //this.logger.debug(
+                        // this.logger.debug(
                         //    `The project config has been initialized in [${Date.now() -
                         //    startTime}ms]`);
 
