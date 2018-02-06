@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Build tool for Angular app and library projects.",
   "keywords": [
     "ngb",
@@ -122,7 +122,7 @@
     "@types/supports-color": "^3.1.0",
     "@types/tinycolor2": "^1.4.0",
     "@types/uglify-js": "^2.6.30",
-    "@types/webpack": "^3.8.4",
+    "@types/webpack": "^3.8.5",
     "@types/webpack-sources": "^0.1.4",
     "@types/yargs": "^10.0.1",
     "ajv-cli": "^3.0.0",
