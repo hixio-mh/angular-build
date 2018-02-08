@@ -22,6 +22,11 @@ if (packageJson.scripts) {
 fs.writeFileSync(path.resolve(destDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
 // copy files
-fs.copy(path.resolve(rootDir, 'README.md'), path.resolve(destDir, 'README.md'));
-fs.copy(path.resolve(rootDir, 'LICENSE'), path.resolve(destDir, 'LICENSE'));
-fs.copy(path.resolve(__dirname, '../bin', 'ngb'), path.resolve(destDir, 'bin', 'ngb'));
+fs.copySync(path.resolve(rootDir, 'README.md'), path.resolve(destDir, 'README.md'));
+fs.copySync(path.resolve(rootDir, 'LICENSE'), path.resolve(destDir, 'LICENSE'));
+fs.copySync(path.resolve(rootDir, 'bin', 'ngb'), path.resolve(destDir, 'bin', 'ngb'));
+
+// copy schema
+const destSchmaPath = path.resolve(rootDir, 'schemas');
+fs.ensureDirSync(destSchmaPath);
+fs.copySync(path.resolve(destDir, 'schemas'), destSchmaPath);
