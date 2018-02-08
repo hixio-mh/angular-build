@@ -234,12 +234,12 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Customize the names used in each source map.
      * Also check out {@link https://webpack.js.org/configuration/output/#output-devtoolmodulefilenametemplate Webpack}.
      */
-    sourceMapDevToolModuleFilenameTemplate?: '[absolute-resource-path]' | '[resource]' | '[resource-path' | string;
+    sourceMapDevToolModuleFilenameTemplate?: '[absolute-resource-path]' | '[resource]' | '[resource-path]' | string;
     /**
      * A fallback used when the template string of 'sourceMapFilenameTemplate' yields duplicates.
      * Also check out {@link https://webpack.js.org/configuration/output/#output-devtoolfallbackmodulefilenametemplate Webpack}.
      */
-    sourceMapDevToolFallbackModuleFilenameTemplate?: '[absolute-resource-path]' | '[resource]' | '[resource-path' | string;
+    sourceMapDevToolFallbackModuleFilenameTemplate?: '[absolute-resource-path]' | '[resource]' | '[resource-path]' | string;
     /**
      * Custom webpack config file to be merged. Path will be resolved to angular-build.json file.
      */
