@@ -23,8 +23,6 @@ matrix:
     - stage: build
     - script: npm run build
       env: build
-      script: npm test
-      env: test
 
 before_install:
   # Install npm.
