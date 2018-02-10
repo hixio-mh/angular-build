@@ -203,7 +203,10 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
 
                 const wpConfig = loadedModules.getLibWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
                 if (wpConfig) {
-                    (wpConfig as any)._projectConfig = clonedLibConfig;
+                    if (fromAngularBuildCli) {
+                        (wpConfig as any)._projectConfig = clonedLibConfig;
+                    }
+
                     webpackConfigs.push(wpConfig);
                 }
 
@@ -262,7 +265,10 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
                     const wpConfig =
                         loadedModules.getAppDllWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
                     if (wpConfig) {
-                        (wpConfig as any)._projectConfig = clonedAppConfig;
+                        if (fromAngularBuildCli) {
+                            (wpConfig as any)._projectConfig = clonedAppConfig;
+                        }
+
                         webpackConfigs.push(wpConfig);
                     }
                 } else {
@@ -274,7 +280,10 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
 
                     const wpConfig = loadedModules.getAppWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
                     if (wpConfig) {
-                        (wpConfig as any)._projectConfig = clonedAppConfig;
+                        if (fromAngularBuildCli) {
+                            (wpConfig as any)._projectConfig = clonedAppConfig;
+                        }
+
                         webpackConfigs.push(wpConfig);
                     }
                 }
