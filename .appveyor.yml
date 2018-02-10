@@ -14,22 +14,36 @@ environment:
     - nodejs_version: "6"
     - nodejs_version: "7"
     - nodejs_version: "8"
+    - nodejs_version: "9"
 
 matrix:
   fast_finish: true
 
 install:
-  #- ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version)
   - ps: Install-Product node $env:nodejs_version
-  - npm install -g npm@latest
+  - set CI=true
+  - npm install --global npm@latest
+  - set PATH=%APPDATA%\npm;%PATH%
   - npm install
+  - ps: '"//registry.npmjs.org/:_authToken=$env:npm_auth_token`n" | out-file "$env:userprofile\.npmrc" -Encoding ASCII'
+  - npm whoami
+
+before_build:
+  - node --version
+  - npm --version
 
 build_script:
-  - ps: npm run build
+  - npm run build
 
-# Post-install test scripts.
 test_script:
-  - npm run test
+  - npm test
 
+deploy_script:
+  - ps: |
+      if ($env:nodejs_version -eq "8")
+      {
+        iex "npm publish dist --access=public"
+      }
 cache:
   - node_modules -> package-lock.json
+  - '%APPDATA%\npm-cache'

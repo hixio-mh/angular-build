@@ -9,6 +9,7 @@ node_js:
 cache:
   directories:
     - ./node_modules
+    - ./dist
 
 stages:
   - build
@@ -23,13 +24,11 @@ matrix:
   include:
     # Build stage
     - stage: build
-      script: npm run lint
-      env: lint
     - script: npm run build
       env: build
     # Test stage
     - stage: test
-      script: npm run test
+      script: npm test
       env: test
 
 before_install:

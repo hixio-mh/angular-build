@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "Build tool for Angular app and library projects.",
   "keywords": [
     "ngb",
@@ -30,8 +30,7 @@
     "generate-schema": "node tools/generate-schema.js",
     "copy-files": "node tools/copy-files.js",
     "build": "npm run clean && npm run lint && npm run tsc && npm run generate-schema && npm run copy-files",
-    "test": "node dist/bin/ngb --version",
-    "pretest": "npm run build"
+    "test": "node dist/bin/ngb --version"
   },
   "dependencies": {
     "@angular-devkit/build-optimizer": "^0.3.1",
