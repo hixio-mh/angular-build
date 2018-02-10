@@ -10,19 +10,11 @@ cache:
   directories:
     - ./node_modules
 
-stages:
-  - build
-
 matrix:
   fast_finish: true
   allow_failures:
     - env: nightly
     #- node_js: "9"
-  include:
-    # Build stage
-    - stage: build
-    - script: npm run build
-      env: build
 
 before_install:
   # Install npm.
@@ -30,3 +22,6 @@ before_install:
 
 install:
   - npm install
+
+  script:
+    - npm run build
