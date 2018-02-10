@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import * as resolve from 'resolve';
 import * as webpack from 'webpack';
@@ -325,6 +325,8 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
     const loaderModulePaths = [...nodeModulePaths];
     if (angularBuildContext.angularBuildCliRootPath) {
         loaderModulePaths.push(path.resolve(angularBuildContext.angularBuildCliRootPath, 'node_modules'));
+    } else {
+        loaderModulePaths.push(path.resolve(angularBuildContext.nodeModulesPath, '@bizappframework/angular-build/node_modules'));
     }
 
     // symlinks
