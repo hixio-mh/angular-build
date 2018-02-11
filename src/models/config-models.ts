@@ -689,17 +689,6 @@ export type PreDefinedEnvironment = {
     dll?: boolean;
 };
 
-export interface ApplicationinsightsOptions {
-    /**
-     * Instrumentation key.
-     */
-    instrumentationKey?: string;
-    /**
-     * Custom properties to send.
-     */
-    customProperties?: { [key: string]: string };
-}
-
 /**
  * @additionalProperties true
  */
@@ -716,10 +705,6 @@ export interface AngularBuildConfig {
      * Log level.
      */
     logLevel?: 'debug' | 'info' | 'warn' | 'none';
-    /**
-     * Azure Application insights options.
-     */
-    applicationinsights?: ApplicationinsightsOptions;
     /**
      * Watch options.
      */
