@@ -1,4 +1,4 @@
-﻿import * as yargs from 'yargs';
+import * as yargs from 'yargs';
 
 import { colorize } from '../../utils/colorize';
 
@@ -16,6 +16,12 @@ Usage:
                 .usage(buildCommandUsage)
                 .example('ngb build', 'Build the project(s) using angular-build.json file')
                 .help('h')
+                .option('config',
+                    {
+                        alias: 'c',
+                        describe: 'The angular-build.json file location',
+                        type: 'string',
+                    })
                 .option('env',
                     {
                         alias: 'environment',
