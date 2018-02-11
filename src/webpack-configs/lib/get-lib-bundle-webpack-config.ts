@@ -205,6 +205,8 @@ export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, 
     const loaderModulePaths = [...nodeModulePaths];
     if (angularBuildContext.angularBuildCliRootPath) {
         loaderModulePaths.push(path.resolve(angularBuildContext.angularBuildCliRootPath, 'node_modules'));
+    } else {
+        loaderModulePaths.push(path.resolve(angularBuildContext.nodeModulesPath, '@bizappframework/angular-build/node_modules'));
     }
 
     let symlinks = true;
@@ -233,7 +235,7 @@ export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, 
 
     const webpackConfig: webpack.Configuration = {
         target: platformTarget,
-        devtool: libConfig.sourceMap ? 'source-map' : false,
+        devtool: libConfig.sourceMap ? 'source-map' : undefined,
         entry: currentBundle._entryFilePath,
         output: {
             path: path.dirname(outputFilePath),
