@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import * as resolve from 'resolve';
 import * as webpack from 'webpack';
@@ -102,7 +102,6 @@ function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: App
             `Invalid tsconfig entry at '${appConfig._projectType}s[${appConfig._index
             }].tsconfig'.`);
     }
-
 
     const plugins: webpack.Plugin[] = [new CheckerPlugin()];
 

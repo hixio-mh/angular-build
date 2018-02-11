@@ -84,7 +84,6 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
 
     if (!existsSync(configPath)) {
         throw new InternalError(`The angular-build.json config file does not exist at ${configPath}.`);
-
     }
 
     let angularBuildConfig: AngularBuildConfigInternal | null = null;
@@ -209,7 +208,6 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
 
                     webpackConfigs.push(wpConfig);
                 }
-
             }
         }
     }
@@ -313,5 +311,6 @@ function prepareFilterNames(filter: string | string[]): string[] {
             filterNames.push(filter);
         }
     }
+
     return filterNames;
 }
