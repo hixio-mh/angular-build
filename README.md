@@ -15,7 +15,8 @@ Build system for Angular app and library projects similar to [angular-cli](https
 - Build support for both library projects (internally with [rollup](https://github.com/rollup/rollup)) and app projects (internally with [webpack](https://github.com/webpack/webpack))
 - DLL bundling support for optimizing build time, see [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)
 - Multi-platform favicons generation (online/offline)- integration with [realfavicongenerator](http://realfavicongenerator.net) and [evilebottnawi/favicons](https://github.com/evilebottnawi/favicons)
-- Customizable html injection - can inject scripts, styles, favicons, etc into separate files
+- Can inject bundled scripts, links, favicons,  resource hints, etc into separate files or [ASP.Net Core MVC](https://docs.microsoft.com/en-us/aspnet/core/mvc/overview) partial views
+- Support custom webpack config to merge with built-in configs
 - Can build with webpack cli directly
 
 ## Prerequisites
@@ -35,7 +36,7 @@ Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9 and np
 npm install -g @bizappframework/angular-build
 ```
 ## How to build
-1. Add a new **angular-build.json** config file in your project.
+1. Add a new **angular-build.json** config file in your project root.
 2. Specify **srcDir**, **outDir**, **entry** etc.
 3. Type **ngb build** at command line.
 4. More information, see [Wiki](https://github.com/BizAppFramework/angular-build/wiki).
