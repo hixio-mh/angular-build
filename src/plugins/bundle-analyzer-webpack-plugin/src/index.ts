@@ -1,4 +1,4 @@
-﻿// Ref: https://github.com/th0r/webpack-bundle-analyzer
+// Ref: https://github.com/th0r/webpack-bundle-analyzer
 
 import * as path from 'path';
 
@@ -126,7 +126,7 @@ export class BundleAnalyzerWebpackPlugin {
 
         let reportFilepath = this.options.reportFilename || 'stats-report.html';
         if (!path.isAbsolute(reportFilepath)) {
-            reportFilepath = path.resolve(outputPath || process.cwd(), reportFilepath);
+            reportFilepath = path.resolve(outputPath, reportFilepath);
         }
 
         const reportFileRelative = path.relative(outputPath, reportFilepath);

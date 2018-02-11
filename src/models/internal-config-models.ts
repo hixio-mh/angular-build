@@ -169,14 +169,6 @@ export class AngularBuildContextImpl implements AngularBuildContext {
         }
 
         this._nodeModulesPath = path.resolve(this.projectRoot, 'node_modules');
-        if (existsSync(path.resolve(this.projectRoot, 'node_modules'))) {
-            return this._nodeModulesPath;
-        }
-
-        if (existsSync(path.resolve(process.cwd(), 'node_modules'))) {
-            this._nodeModulesPath = path.resolve(process.cwd(), 'node_modules');
-        }
-
         return this._nodeModulesPath;
     }
 

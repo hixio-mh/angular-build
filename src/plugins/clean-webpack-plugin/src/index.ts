@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import * as denodeify from 'denodeify';
 import * as glob from 'glob';
@@ -14,6 +14,7 @@ import { isInFolder, isSamePaths, normalizeRelativePath } from '../../../utils/p
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 
 export type CleanWebpackPluginOptions = {
+    projectRoot?: string;
     forceCleanToDisk?: boolean;
     persistedOutputFileSystemNames?: string[];
     loggerOptions?: LoggerOptions;
@@ -26,6 +27,8 @@ export class CleanWebpackPlugin {
     private beforeRunCleaned: boolean = false;
     private afterEmitCleaned: boolean = false;
 
+    private projectRoot = process.cwd();
+
     get name(): string {
         return 'CleanWebpackPlugin';
     }
@@ -33,6 +36,10 @@ export class CleanWebpackPlugin {
     constructor(private readonly options: CleanWebpackPluginOptions) {
         if (!options) {
             throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
+        }
+
+        if (options.projectRoot) {
+            this.projectRoot = options.projectRoot;
         }
 
         const loggerOptions =
@@ -128,7 +135,7 @@ export class CleanWebpackPlugin {
 
     private async cleanTask(cleanOptions: BeforeRunCleanOptions, outputPath: string, compiler: webpack.Compiler):
         Promise<void> {
-        const cwd = process.cwd();
+        const cwd = this.projectRoot;
         const webpackContextDir = compiler.options.context;
 
         const pathsToClean: string[] = [];
@@ -315,7 +322,7 @@ export class CleanWebpackPlugin {
         }
 
         await Promise.all(filesToClean.map(async (f: string) => {
-            const fileRel = compiler.options.context ? path.relative(process.cwd(), f) : f;
+            const fileRel = compiler.options.context ? path.relative(this.projectRoot, f) : f;
             this.logger.debug(`Deleting ${fileRel}`);
 
             await new Promise((resolve: any, reject: any) => rimraf(f,
