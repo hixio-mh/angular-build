@@ -14,7 +14,6 @@ import { isInFolder, isSamePaths, normalizeRelativePath } from '../../../utils/p
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 
 export type CleanWebpackPluginOptions = {
-    projectRoot?: string;
     forceCleanToDisk?: boolean;
     persistedOutputFileSystemNames?: string[];
     loggerOptions?: LoggerOptions;
@@ -38,10 +37,6 @@ export class CleanWebpackPlugin {
             throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
         }
 
-        if (options.projectRoot) {
-            this.projectRoot = options.projectRoot;
-        }
-
         const loggerOptions =
             Object.assign({ name: `[${this.name}]` }, this.options.loggerOptions || {}) as LoggerOptions;
         this.logger = new Logger(loggerOptions);
@@ -55,6 +50,7 @@ export class CleanWebpackPlugin {
 
     apply(compiler: webpack.Compiler): void {
         const outputPath = compiler.options.output ? compiler.options.output.path : '';
+        this.projectRoot = compiler.options.context || process.cwd();
 
         compiler.plugin('before-run', (currCompiler: webpack.Compiler, cb: (err?: Error) => void) => {
             const startTime = Date.now();
