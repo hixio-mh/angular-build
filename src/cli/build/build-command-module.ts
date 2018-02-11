@@ -21,6 +21,12 @@ Usage:
                         alias: 'c',
                         describe: 'The angular-build.json file location',
                         type: 'string',
+                })
+                .option('forceUseLocalCli',
+                    {
+                        describe: 'To force use locally installed cli',
+                        type: 'boolean',
+                        boolean: true
                     })
                 .option('env',
                     {
