@@ -47,7 +47,8 @@ deploy_script:
   - ps: |
       if ($env:nodejs_version -eq "6")
       {
-        iex "npm publish dist --access=public"
+        iex "npm pack ./dist --access=public"
+        iex "npm publish ./dist --access=public"
       }
 cache:
   - node_modules -> package-lock.json
