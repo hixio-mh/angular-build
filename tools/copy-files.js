@@ -30,3 +30,6 @@ fs.copySync(path.resolve(rootDir, 'bin', 'ngb'), path.resolve(destDir, 'bin', 'n
 const destSchmaPath = path.resolve(rootDir, 'schemas');
 fs.ensureDirSync(destSchmaPath);
 fs.copySync(path.resolve(destDir, 'schemas'), destSchmaPath);
+
+// copy scripts
+fs.copy(path.resolve(rootDir, 'scripts'), path.resolve(destDir, 'scripts'));

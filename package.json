@@ -30,7 +30,8 @@
     "generate-schema": "node tools/generate-schema.js",
     "copy-files": "node tools/copy-files.js",
     "build": "npm run clean && npm run lint && npm run tsc && npm run generate-schema && npm run copy-files",
-    "test": "echo \"Error: no test specified\" "
+    "test": "echo \"Error: no test specified\" ",
+    "postinstall": "node ./scripts/postinstall.js"
   },
   "dependencies": {
     "@angular-devkit/build-optimizer": "^0.3.1",

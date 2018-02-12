@@ -64,6 +64,7 @@
   <ItemGroup>
     <Folder Include=".github\" />
     <Folder Include="bin\" />
+    <Folder Include="scripts\" />
     <Folder Include="src\plugins\telemetry-webpack-plugin\" />
     <Folder Include="src\plugins\telemetry-webpack-plugin\src\" />
     <Folder Include="test\" />
@@ -214,6 +215,7 @@
     <TypeScriptCompile Include="src\webpack-configs\lib\lib.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="scripts\postinstall.js" />
     <Compile Include="tools\generate-schema.js" />
     <Compile Include="tools\copy-files.js" />
   </ItemGroup>
