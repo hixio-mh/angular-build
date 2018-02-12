@@ -227,6 +227,23 @@ export class AngularBuildContext {
         return AngularBuildContext._angularVersion;
     }
 
+    private static _webpackVersion: string = '';
+    static get webpackVersion(): string {
+        if (typeof AngularBuildContext._webpackVersion !== 'undefined') {
+            return AngularBuildContext._webpackVersion;
+        }
+
+        const webpackPackageJsonPath = path.resolve(AngularBuildContext.nodeModulesPath, 'webpack/package.json');
+        if (existsSync(webpackPackageJsonPath)) {
+            const pkgJson = readJsonSync(webpackPackageJsonPath);
+            AngularBuildContext._webpackVersion = pkgJson.version;
+        } else {
+            AngularBuildContext._webpackVersion = '';
+        }
+
+        return AngularBuildContext._webpackVersion;
+    }
+
     private _bannerText?: string;
     get bannerText(): string | undefined {
         if (typeof this._bannerText !== 'undefined') {

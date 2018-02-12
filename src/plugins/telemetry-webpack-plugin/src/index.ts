@@ -8,6 +8,7 @@ const uuidv5 = require('uuid/v5');
 
 export class TelemetryWebpackPlugin {
     private static _telemetryInitialized = false;
+    private static _telemetryFlushing = false;
 
     apply(compiler: webpack.Compiler): void {
         compiler.plugin('before-run',
@@ -30,6 +31,11 @@ export class TelemetryWebpackPlugin {
                     return;
                 }
 
+                if (TelemetryWebpackPlugin._telemetryFlushing) {
+                    return;
+                }
+
+                TelemetryWebpackPlugin._telemetryFlushing = true;
                 const duration = Date.now() - AngularBuildContext.startTime;
                 const status = stats.hasErrors() ? 'failing' : 'passing';
 
@@ -48,6 +54,10 @@ export class TelemetryWebpackPlugin {
                 });
 
                 appInsights.defaultClient.flush();
+
+                const identifier = (global as any).angular_build_telemetry_identifier as string;
+                console.log('\n');
+                console.log(`Identifier: ${identifier}\n`);
             });
     }
 }
@@ -62,6 +72,7 @@ export function initAppInsights(): void {
 
     process.env.ANGULAR_BUILD_UUID_NS = `61c38600-38ac-411a-ad18-4daf41a5f0ad`;
     const identifier = `${uuidv5(`${uuidv4()}`, process.env.ANGULAR_BUILD_UUID_NS).substr(0, 8)}`;
+    (global as any).angular_build_telemetry_identifier = identifier;
 
     if (!process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY) {
         process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY = process.env.ANGULAR_BUILD_UUID_NS;
@@ -74,6 +85,7 @@ export function initAppInsights(): void {
     const angularBuildVersion = AngularBuildContext.angularBuildVersion;
     const cliIsGlobal = AngularBuildContext.cliIsGlobal;
     const angularVersion = AngularBuildContext.angularVersion;
+    const webpackVersion = AngularBuildContext.webpackVersion;
 
     let commonAppInsightsProps = {};
     if (process.env.ANGULAR_BUILD_APPINSIGHTS_commonAppInsightsProps &&
@@ -84,6 +96,7 @@ export function initAppInsights(): void {
             // do nothing
         }
     }
+
     commonAppInsightsProps = Object.assign({},
         commonAppInsightsProps,
         {
@@ -92,7 +105,8 @@ export function initAppInsights(): void {
             'angular-build version': `${angularBuildVersion}`,
             'from angular-build cli': `${fromAngularBuildCli}`,
             'angular build is global': `${cliIsGlobal}`,
-            'angular version': `${angularVersion}`
+            'angular version': `${angularVersion}`,
+            'webpack version': `${webpackVersion}`
         });
 
     appInsights.setup(process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY)
@@ -108,12 +122,14 @@ export function initAppInsights(): void {
     appInsights.defaultClient.config.disableAppInsights = AngularBuildContext.telemetryDisabled;
     appInsights.start();
 
-    process.on('exit',
-        code => {
-            if (verbose) {
-                console.log('\n');
-                console.log(`Identifier: ${identifier}`);
-                console.log(`\nProcess is exited with code: ${code}\n`);
-            }
-        });
+    if (fromAngularBuildCli) {
+        process.on('exit',
+            code => {
+                if (verbose) {
+                    console.log('\n');
+                    console.log(`Identifier: ${identifier}`);
+                    console.log(`\nProcess is exited with code: ${code}\n`);
+                }
+            });
+    }
 }

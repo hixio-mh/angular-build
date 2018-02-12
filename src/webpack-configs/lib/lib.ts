@@ -81,7 +81,6 @@ export function getLibWebpackConfig(angularBuildContext: AngularBuildContext): w
         plugins.push(new TelemetryWebpackPlugin());
     }
 
-
     if (!plugins.length) {
         return null;
     }
