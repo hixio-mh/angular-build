@@ -15,11 +15,7 @@ Usage:
 
     const yargsInstance = yargs
         .usage(cliUsage)
-        // .example('ngb new', 'Create a new angular application or library.')
-        // .example('ngb init', 'Create required config files for angular-build.')
         .example('ngb build', 'Build the project(s) using angular-build.json file')
-        // .example('ngb test', 'Run unit tests.')
-        // .example('ngb e2e', 'Run e2e tests.')
         .example('ngb -h', 'Show help')
         .option('h',
             {
@@ -34,10 +30,6 @@ Usage:
                 type: 'boolean',
                 global: false
             })
-        // .command(getNewCommandModule(cliVersion))
-        // .command(getInitCommandModule(cliVersion))
-        // .command(getTestCommandModule(cliVersion))
-        // .command(getE2ECommandModule(cliVersion))
         .command(getBuildCommandModule(cliVersion));
 
     return yargsInstance;
@@ -76,12 +68,7 @@ export default async function (cliOptions: CliOptions): Promise<number> {
         // Dynamic require
         // const cliBuildModule = await import('./build/cli-build');
         const cliBuild = require('./build/cli-build').cliBuild;
-        return cliBuild(cliOptions).then((exitCode: number) => {
-            if (commandOptions.verbose) {
-                console.log(`\nTotal time: ${Date.now() - cliOptions.startTime}\n`);
-            }
-            return exitCode;
-        });
+        return cliBuild(cliOptions);
     } if (commandOptions.version) {
         return Promise.resolve(cliOptions)
             .then(() => {
