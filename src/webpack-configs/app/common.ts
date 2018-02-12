@@ -129,16 +129,27 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
 
     // clean
     let shouldClean = outDir &&
-        (AngularBuildContext.cleanOutDirs ||
-            (appConfig.clean && Object.keys(appConfig.clean).length));
+        (AngularBuildContext.cleanOutDirs || appConfig.clean);
+    if (appConfig.clean === false) {
+        shouldClean = false;
+    }
     if (shouldClean) {
-        const cleanOptions = Object.assign({}, appConfig.clean || {}) as CleanOptions;
+        let cleanOptions: CleanOptions = {};
+        if (typeof appConfig.clean === 'object') {
+            cleanOptions = Object.assign(cleanOptions, appConfig.clean || {});
+        }
+
+        let beforeRunOptionsUndefined = false;
+        if (typeof cleanOptions.beforeRun === 'undefined') {
+            beforeRunOptionsUndefined = true;
+        }
+
         cleanOptions.beforeRun = cleanOptions.beforeRun || {} as BeforeRunCleanOptions;
         const beforeRunOption = cleanOptions.beforeRun;
-        if (typeof beforeRunOption.cleanOutDir === 'undefined' &&
-            AngularBuildContext.cleanOutDirs) {
+        if (beforeRunOptionsUndefined && AngularBuildContext.cleanOutDirs) {
             beforeRunOption.cleanOutDir = true;
         }
+
         if (!isDll && appConfig.referenceDll && beforeRunOption.cleanOutDir) {
             // logger.debug(
             //    `The 'apps[${projectConfig._index

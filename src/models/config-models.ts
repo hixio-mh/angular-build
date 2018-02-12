@@ -18,7 +18,7 @@ export interface ProjectConfigBase {
     /**
      * Clean options.
      */
-    clean?: CleanOptions;
+    clean?: CleanOptions | boolean;
     /**
      * Copy options.
      */

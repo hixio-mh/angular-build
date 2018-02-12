@@ -31,16 +31,28 @@ export function getLibWebpackConfig(angularBuildContext: AngularBuildContext): w
     const plugins: webpack.Plugin[] = [];
 
     // clean
-    const shouldClean = (AngularBuildContext.cleanOutDirs ||
-        (libConfig.clean && libConfig.clean.beforeRun));
+    let shouldClean = outDir &&
+        (AngularBuildContext.cleanOutDirs || libConfig.clean);
+    if (libConfig.clean === false) {
+        shouldClean = false;
+    }
     if (shouldClean) {
-        const cleanOptions = Object.assign({}, libConfig.clean || {}) as CleanOptions;
+        let cleanOptions: CleanOptions = {};
+        if (typeof libConfig.clean === 'object') {
+            cleanOptions = Object.assign(cleanOptions, libConfig.clean || {});
+        }
+
+        let beforeRunOptionsUndefined = false;
+        if (typeof cleanOptions.beforeRun === 'undefined') {
+            beforeRunOptionsUndefined = true;
+        }
+
         cleanOptions.beforeRun = cleanOptions.beforeRun || {} as BeforeRunCleanOptions;
         const beforeRunOption = cleanOptions.beforeRun;
-        if (typeof beforeRunOption.cleanOutDir === 'undefined' &&
-            AngularBuildContext.cleanOutDirs) {
+        if (beforeRunOptionsUndefined && AngularBuildContext.cleanOutDirs) {
             beforeRunOption.cleanOutDir = true;
         }
+
         plugins.push(new CleanWebpackPlugin(Object.assign(cleanOptions,
             {
                 forceCleanToDisk: true,
