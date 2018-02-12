@@ -80,13 +80,15 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
 
     // externals
     const externals: any = [];
+    let includeCommonJsModules = true;
     if (currentBundle.nodeModulesAsExternals !== false) {
         externals.push(nodeExternals());
+        includeCommonJsModules = false;
     }
 
     if (typeof currentBundle.externals === 'undefined') {
         if (currentBundle.angularAndRxJsAsExternals ||
-            (currentBundle.angularAndRxJsAsExternals !== false && !(currentBundle.nodeModulesAsExternals !== false))) {
+            (currentBundle.angularAndRxJsAsExternals !== false && !includeCommonJsModules)) {
             externals.push(Object.assign({}, defaultAngularAndRxJsExternals));
         }
     } else {

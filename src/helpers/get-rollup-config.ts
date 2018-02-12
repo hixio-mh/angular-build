@@ -48,7 +48,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
 
     if (typeof currentBundle.externals === 'undefined') {
         if (currentBundle.angularAndRxJsAsExternals ||
-            (currentBundle.angularAndRxJsAsExternals !== false && !(currentBundle.nodeModulesAsExternals !== false))) {
+            (currentBundle.angularAndRxJsAsExternals !== false && !includeCommonJsModules)) {
             if (libraryTarget === 'es') {
                 externalsRaw = Object.assign({
                     'tslib': 'tslib'
@@ -115,10 +115,8 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
 
     if (libraryTarget === 'umd' || libraryTarget === 'cjs' || isTsEntry || includeCommonJsModules) {
         const nodeResolveOptions: any = {
-            // use "jsnext:main" if possible
-            // – see https://github.com/rollup/rollup/wiki/jsnext:main
             // Default: false
-            jsnext: currentBundle._nodeResolveFields && currentBundle._nodeResolveFields.includes('jsnext'),
+            jsnext: true
         };
 
         const rollupNodeResolve = require('rollup-plugin-node-resolve');
