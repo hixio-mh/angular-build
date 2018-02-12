@@ -33,7 +33,8 @@
     "build": "npm run clean && npm run lint && npm run tsc && npm run generate-schema && npm run copy-files && npm run ngb:version",
     "test": "echo \"Error: no test specified\" ",
     "postinstall": "node ./scripts/postinstall.js",
-    "test:build-app": "node dist/bin/ngb build --config=test/hello-world-ng-app-build-test/angular-build.json"
+    "test:build-app": "node dist/bin/ngb build --config=test/hello-world-ng-app-build-test/angular-build.json",
+    "test:build-lib": "node dist/bin/ngb build --config=test/hello-world-ng-lib-build-test/angular-build.json"
   },
   "dependencies": {
     "@angular-devkit/build-optimizer": "^0.3.1",

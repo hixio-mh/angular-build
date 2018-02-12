@@ -62,6 +62,12 @@
     <Content Include="test\hello-world-ng-app-build-test\src\favicon.ico" />
     <Content Include="test\hello-world-ng-app-build-test\src\index.html" />
     <Content Include="test\hello-world-ng-app-build-test\src\tsconfig.json" />
+    <Content Include="test\hello-world-ng-lib-build-test\angular-build.json" />
+    <Content Include="test\hello-world-ng-lib-build-test\banner.txt" />
+    <Content Include="test\hello-world-ng-lib-build-test\LICENSE" />
+    <Content Include="test\hello-world-ng-lib-build-test\package.json" />
+    <Content Include="test\hello-world-ng-lib-build-test\README.md" />
+    <Content Include="test\hello-world-ng-lib-build-test\tsconfig.json" />
     <Content Include="tools\tsconfig-favicons-schema.json" />
     <Content Include="tools\tsconfig-schema.json" />
     <Content Include="tsconfig.json" />
@@ -125,6 +131,8 @@
     <Folder Include="test\hello-world-ng-app-build-test\" />
     <Folder Include="test\hello-world-ng-app-build-test\src\" />
     <Folder Include="test\hello-world-ng-app-build-test\src\app\" />
+    <Folder Include="test\hello-world-ng-lib-build-test\" />
+    <Folder Include="test\hello-world-ng-lib-build-test\src\" />
     <Folder Include="tools\" />
   </ItemGroup>
   <ItemGroup>
@@ -225,6 +233,10 @@
     <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\app\app.module.ts" />
     <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\main.ts" />
     <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\typings.d.ts" />
+    <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\index.ts" />
+    <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\public_api.ts" />
+    <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\src\hello-world.service.ts" />
+    <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\src\index.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="scripts\postinstall.js" />
