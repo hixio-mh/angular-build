@@ -55,9 +55,12 @@ export class TelemetryWebpackPlugin {
 
                 appInsights.defaultClient.flush();
 
-                const identifier = (global as any).angular_build_telemetry_identifier as string;
-                console.log('\n');
-                console.log(`Identifier: ${identifier}\n`);
+                const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
+                if (verbose) {
+                    const identifier = (global as any).angular_build_telemetry_identifier as string;
+                    console.log('\n');
+                    console.log(`Identifier: ${identifier}\n`);
+                }
             });
     }
 }
