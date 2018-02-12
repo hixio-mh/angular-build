@@ -1,3 +1,12 @@
+# v5.1.0
+
+- Bug fixes, Improvement in error handling and logging logic
+- Updated npm packages
+- Improvement in before run clean logic
+- Added ngb build --config option
+- Added telemetry client to collect usage statistics to improve user experience 
+- Added angular app and lib test projects for build integration tests
+
 # v5.0.2
 - Fix webpack loader module paths
 - Solve invalid configuration object webpack has been initialised - configuration[0] has an unknown property '_projectConfig' ... when building form webapck cli directly
