@@ -45,7 +45,7 @@ export async function processStyles(angularBuildContext: AngularBuildContext, cu
         });
     }
 
-    logger.debug(`Processing global styles`);
+    logger.info(`Processing global styles`);
 
     await Promise.all(libConfig._styleParsedEntries.map(async (styleParsedEntry: GlobalParsedEntry) => {
         const input = styleParsedEntry.paths[0];

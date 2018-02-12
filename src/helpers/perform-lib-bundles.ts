@@ -405,7 +405,7 @@ async function transformScriptTarget(bundleEntryFilePath: string,
     moduleKind: ts.ModuleKind,
     reMapSourceMap: boolean,
     logger: Logger): Promise<void> {
-    logger.debug(`Transforming script target to ${ts.ScriptTarget[scriptTarget]}`);
+    logger.info(`Transforming script target to ${ts.ScriptTarget[scriptTarget]}`);
     await transpileModule(bundleEntryFilePath,
         bundleDestFilePath,
         {

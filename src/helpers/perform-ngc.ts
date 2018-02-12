@@ -93,7 +93,7 @@ export async function performNgc(angularBuildContext: AngularBuildContext, custo
         commandArgs.push(tsTranspilation.i18nOutFormat);
     }
 
-    logger.debug(`Compiling typescript with ${path.relative(projectRoot, tsConfigPath)}`);
+    logger.info(`Compiling typescript with ${path.relative(projectRoot, tsConfigPath)}`);
 
     await new Promise((resolve, reject) => {
         const errors: string[] = [];

@@ -171,7 +171,7 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
         }
     }
 
-    logger.debug(`Copying and updating package.json`);
+    logger.info(`Copying and updating package.json`);
 
     // merge config
     const rootPackageJson = angularBuildContext.packageJson;
