@@ -7,10 +7,10 @@ import * as webpack from 'webpack';
 import { PurifyPlugin } from '@angular-devkit/build-optimizer';
 
 import {
+    AngularBuildContext,
     BundleOptionsInternal,
     InternalError,
     InvalidConfigError,
-    LibBuildContext,
     LibProjectConfigInternal
 } from '../../models';
 import { defaultAngularAndRxJsExternals } from '../../helpers/angular-rxjs-externals';
@@ -29,22 +29,25 @@ const webpackMerge = require('webpack-merge');
 
 type WebpackLibraryTarget = 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd';
 
-export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, currentBundle: BundleOptionsInternal,
+export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuildContext,
+    currentBundle: BundleOptionsInternal,
     outputFilePath: string): webpack.Configuration {
     if (!currentBundle._entryFilePath) {
         throw new InternalError(`The 'currentBundle._entryFilePath' is not set.`);
     }
 
-    const projectRoot = angularBuildContext.projectRoot;
-    const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
-    const environment = angularBuildContext.environment;
-    const cliIsGlobal = angularBuildContext.cliIsGlobal;
-    const fromAngularBuildCli = angularBuildContext.fromAngularBuildCli;
-    const logger = angularBuildContext.logger;
+    const environment = AngularBuildContext.environment;
+    const projectRoot = AngularBuildContext.projectRoot;
+    const cliIsGlobal = AngularBuildContext.cliIsGlobal;
+    const fromAngularBuildCli = AngularBuildContext.fromAngularBuildCli;
+    const logger = AngularBuildContext.logger;
+    const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
 
     const hot = environment.hot;
-    const watch = angularBuildContext.watch;
+    const watch = AngularBuildContext.watch;
     const devServer = isWebpackDevServer();
+
+    const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
 
     const isTsEntry = /\.ts$/i.test(currentBundle._entryFilePath);
     const moduleName = libConfig.libraryName || angularBuildContext.packageNameWithoutScope;
@@ -118,7 +121,7 @@ export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, 
     const resolvePlugins: webpack.Plugin[] = [];
 
     // progress
-    if (angularBuildContext.progress && fromAngularBuildCli && !devServer && !hot && !watch) {
+    if (AngularBuildContext.progress && fromAngularBuildCli && !devServer && !hot && !watch) {
         plugins.push(new webpack.ProgressPlugin());
     }
 
@@ -190,7 +193,7 @@ export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, 
                     // https://github.com/angular/angular-cli/pull/7931
                     typeofs: false
                 },
-                warnings: angularBuildContext.angularBuildConfig.logLevel === 'debug', // default false
+                warnings: verbose, // default false
                 output: {
                     ascii_only: true, // default false
                     // comments: false, // default false
@@ -200,13 +203,14 @@ export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, 
         }));
     }
 
-    const nodeModulePaths = ['node_modules', angularBuildContext.nodeModulesPath];
+    const nodeModulePaths = ['node_modules', AngularBuildContext.nodeModulesPath];
 
     const loaderModulePaths = [...nodeModulePaths];
-    if (angularBuildContext.angularBuildCliRootPath) {
-        loaderModulePaths.push(path.resolve(angularBuildContext.angularBuildCliRootPath, 'node_modules'));
+    if (AngularBuildContext.angularBuildCliRootPath) {
+        loaderModulePaths.push(path.resolve(AngularBuildContext.angularBuildCliRootPath, 'node_modules'));
     } else {
-        loaderModulePaths.push(path.resolve(angularBuildContext.nodeModulesPath, '@bizappframework/angular-build/node_modules'));
+        loaderModulePaths.push(path.resolve(AngularBuildContext.nodeModulesPath,
+            '@bizappframework/angular-build/node_modules'));
     }
 
     let symlinks = true;
@@ -220,14 +224,14 @@ export function getLibBundleWebpackConfig(angularBuildContext: LibBuildContext, 
     let alias: any = {};
     if (!currentBundle.nodeModulesAsExternals &&
         !currentBundle.angularAndRxJsAsExternals &&
-        existsSync(path.resolve(angularBuildContext.nodeModulesPath, 'rxjs'))) {
+        existsSync(path.resolve(AngularBuildContext.nodeModulesPath, 'rxjs'))) {
         try {
             const rxjsPathMappingImportModuleName =
                 currentBundle._ecmaVersion && currentBundle._ecmaVersion > 5
                     ? 'rxjs/_esm2015/path-mapping'
                     : 'rxjs/_esm5/path-mapping';
             const rxPaths = require(resolve.sync(rxjsPathMappingImportModuleName, { basedir: projectRoot }));
-            alias = rxPaths(angularBuildContext.nodeModulesPath);
+            alias = rxPaths(AngularBuildContext.nodeModulesPath);
         } catch (e) {
             logger.warn(`Failed rxjs path alias. ${e.message}`);
         }

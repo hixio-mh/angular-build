@@ -1,4 +1,4 @@
-﻿// fork from: https://github.com/angular/angular-cli
+// fork from: https://github.com/angular/angular-cli
 
 import { basename } from 'path';
 

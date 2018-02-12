@@ -1,4 +1,4 @@
-﻿import { readFile, readFileSync } from 'fs';
+import { readFile, readFileSync } from 'fs';
 
 import { stripComments } from './strip-comments';
 

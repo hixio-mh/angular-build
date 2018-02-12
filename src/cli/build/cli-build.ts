@@ -1,7 +1,9 @@
 import * as path from 'path';
+import * as appInsights from 'applicationinsights';
 import * as webpack from 'webpack';
 
 import {
+    AngularBuildContext,
     InternalError,
     InvalidConfigError,
     ProjectConfigInternal,
@@ -22,11 +24,15 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
 
     const cliIsGlobal = cliOptions.cliIsGlobal;
     const cliRootPath = cliOptions.cliRootPath;
+    const cliVersion = cliOptions.cliVersion;
+
     const commandOptions: { [key: string]: any } =
         cliOptions.commandOptions && typeof cliOptions.commandOptions === 'object' ? cliOptions.commandOptions : {};
     commandOptions.fromAngularBuildCli = true;
     commandOptions.cliIsGlobal = cliIsGlobal;
     commandOptions.cliRootPath = cliRootPath;
+    commandOptions.cliVersion = cliVersion;
+    commandOptions.startTime = startTime;
 
     let configPath = '';
     if (commandOptions.config) {
@@ -87,9 +93,30 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
             }
         }
 
-        logger.info(`\nBuild all completed in [${Date.now() - startTime}ms]`);
+        const duration = Date.now() - startTime;
+
+        logger.info(`\nBuild all completed in [${duration}ms]`);
         if (commandOptions.beep && process.stdout.isTTY) {
             process.stdout.write('\x07');
+        }
+
+        // appInsights
+        if (!AngularBuildContext.telemetryDisabled) {
+            const customProps = {
+                libs: `${AngularBuildContext.libCount}`,
+                apps: `${AngularBuildContext.appCount}`,
+                production: `${typeof AngularBuildContext.environment.prod !== 'undefined' &&
+                    AngularBuildContext.environment.prod}`,
+                duration: `${duration}`,
+                status: 'passing'
+            };
+
+            appInsights.defaultClient.trackEvent({
+                name: 'build',
+                properties: customProps
+            });
+
+            appInsights.defaultClient.flush();
         }
 
         return 0;
@@ -130,6 +157,29 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
         if (commandOptions.beep && process.stdout.isTTY) {
             process.stdout.write('\x07');
         }
+
+        const duration = Date.now() - startTime;
+
+        // appInsights
+        if (!AngularBuildContext.telemetryDisabled) {
+            const customProps = {
+                libs: `${AngularBuildContext.libCount}`,
+                apps: `${AngularBuildContext.appCount}`,
+                production: `${typeof AngularBuildContext.environment.prod !== 'undefined' &&
+                    AngularBuildContext.environment.prod}`,
+                duration: `${duration}`,
+                status: 'failing',
+                'error type': err.name
+            };
+
+            appInsights.defaultClient.trackEvent({
+                name: 'build',
+                properties: customProps
+            });
+
+            appInsights.defaultClient.flush();
+        }
+
         return -1;
     }
 }

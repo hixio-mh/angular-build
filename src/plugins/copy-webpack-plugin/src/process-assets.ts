@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import * as denodeify from 'denodeify';
 import * as glob from 'glob';

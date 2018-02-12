@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import { copy } from 'fs-extra';
 import * as webpack from 'webpack';
@@ -131,7 +131,7 @@ export class CopyWebpackPlugin {
                 }
             }
 
-            if (assetEntry.fromType !== 'directory'  && !this.fileDependencies.includes(processedAsset.absoluteFrom)) {
+            if (assetEntry.fromType !== 'directory' && !this.fileDependencies.includes(processedAsset.absoluteFrom)) {
                 this.fileDependencies.push(processedAsset.absoluteFrom);
             }
 

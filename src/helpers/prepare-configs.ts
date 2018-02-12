@@ -1,4 +1,4 @@
-﻿import { existsSync } from 'fs';
+import { existsSync } from 'fs';
 import * as path from 'path';
 
 import * as ts from 'typescript';

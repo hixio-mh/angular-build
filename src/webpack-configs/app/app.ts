@@ -5,7 +5,7 @@ import * as webpack from 'webpack';
 import { NamedLazyChunksWebpackPlugin } from '../../plugins/named-lazy-chunks-webpack-plugin';
 
 import {
-    AppBuildContext,
+    AngularBuildContext,
     AppProjectConfigInternal,
     PreDefinedEnvironment
 } from '../../models';
@@ -20,30 +20,30 @@ import { getAppStylesWebpackConfigPartial } from './styles';
 
 const webpackMerge = require('webpack-merge');
 
-export function getAppWebpackConfig(angularBuildContext: AppBuildContext): webpack.Configuration {
-    const projectRoot = angularBuildContext.projectRoot;
+export function getAppWebpackConfig(angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment): webpack.Configuration {
+    const projectRoot = AngularBuildContext.projectRoot;
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-
     let customWebpackConfig: webpack.Configuration = {};
+
     if (appConfig.webpackConfig) {
         customWebpackConfig =
-            getCustomWebpackConfig(path.resolve(projectRoot, appConfig.webpackConfig), angularBuildContext) || {};
+            getCustomWebpackConfig(path.resolve(projectRoot, appConfig.webpackConfig), angularBuildContext, env) || {};
     }
 
     const configs: webpack.Configuration[] = [
         // reference dll
-        getAppReferenceDllWebpackConfigPartial(angularBuildContext),
+        getAppReferenceDllWebpackConfigPartial(angularBuildContext, env),
 
         // common
-        getAppCommonWebpackConfigPartial(angularBuildContext),
-        getAppStylesWebpackConfigPartial(angularBuildContext),
-        getAppAngularTypescriptWebpackConfigPartial(angularBuildContext),
+        getAppCommonWebpackConfigPartial(angularBuildContext, env),
+        getAppStylesWebpackConfigPartial(angularBuildContext, env),
+        getAppAngularTypescriptWebpackConfigPartial(angularBuildContext, env),
 
         // browser only
-        getAppBrowserWebpackConfigPartial(angularBuildContext),
+        getAppBrowserWebpackConfigPartial(angularBuildContext, env),
 
         // Must be the last item(s) to merge
-        getAppWebpackConfigPartial(angularBuildContext),
+        getAppWebpackConfigPartial(angularBuildContext, env),
         customWebpackConfig
     ];
 
@@ -56,15 +56,16 @@ export function getAppWebpackConfig(angularBuildContext: AppBuildContext): webpa
     return mergedConfig;
 }
 
-export function getAppWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
+function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment): webpack.Configuration {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
 
     if (!appConfig.entry) {
         return {};
     }
 
-    const projectRoot = angularBuildContext.projectRoot;
-    const environment = angularBuildContext.environment as PreDefinedEnvironment;
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
+    const projectRoot = AngularBuildContext.projectRoot;
+
     const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
 
     // entry

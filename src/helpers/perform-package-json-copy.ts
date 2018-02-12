@@ -4,9 +4,9 @@ import { copy, remove, writeFile } from 'fs-extra';
 import { ModuleKind, ScriptTarget } from 'typescript';
 
 import {
+    AngularBuildContext,
     BundleOptionsInternal,
     InvalidConfigError,
-    LibBuildContext,
     LibProjectConfigInternal,
     TsTranspilationOptionsInternal
 } from '../models';
@@ -16,7 +16,7 @@ import { isSamePaths, normalizeRelativePath } from '../utils/path-helpers';
 
 const { exists } = require('fs-extra');
 
-export async function performPackageJsonCopy(angularBuildContext: LibBuildContext, customLogger?: Logger):
+export async function performPackageJsonCopy(angularBuildContext: AngularBuildContext, customLogger?: Logger):
     Promise<void> {
     const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
     if (!libConfig.packageOptions) {
@@ -28,9 +28,9 @@ export async function performPackageJsonCopy(angularBuildContext: LibBuildContex
             }].packageOptions.packageJsonFile' value is required.`);
     }
 
-    const logger = customLogger || angularBuildContext.logger;
+    const projectRoot = AngularBuildContext.projectRoot;
+    const logger = customLogger || AngularBuildContext.logger;
 
-    const projectRoot = angularBuildContext.projectRoot;
     const outDir = path.resolve(projectRoot, libConfig.outDir);
     let packageJsonOutDir = path.resolve(outDir, libConfig.packageOptions.packageJsonFileOutDir || '');
     packageJsonOutDir = replaceOutputTokens(packageJsonOutDir, angularBuildContext);
@@ -72,7 +72,7 @@ export async function performPackageJsonCopy(angularBuildContext: LibBuildContex
                     mainFields.module = normalizeRelativePath(path.relative(packageJsonOutDir,
                         path.join(tsTranspilation._tsOutDir, expectedMainEntryFile)));
                 } else if ((compilerOptions.module === ModuleKind.UMD ||
-                        compilerOptions.module === ModuleKind.CommonJS) &&
+                    compilerOptions.module === ModuleKind.CommonJS) &&
                     (compilerOptions.target === ScriptTarget.ES5 ||
                         compilerOptions.target === ScriptTarget.ES2015)) {
                     mainFields.main = normalizeRelativePath(path.relative(packageJsonOutDir,
@@ -183,34 +183,34 @@ export async function performPackageJsonCopy(angularBuildContext: LibBuildContex
         packageJson.version = angularBuildContext.projectVersion;
     }
     if (rootPackageJson.description &&
-    (packageJson.description === '' ||
-        packageJson.description === '[PLACEHOLDER]')) {
+        (packageJson.description === '' ||
+            packageJson.description === '[PLACEHOLDER]')) {
         packageJson.description = rootPackageJson.description;
     }
     if (rootPackageJson.keywords &&
-    (packageJson.keywords === '' ||
-        packageJson.keywords === '[PLACEHOLDER]' ||
-        (packageJson.keywords && !packageJson.keywords.length))) {
+        (packageJson.keywords === '' ||
+            packageJson.keywords === '[PLACEHOLDER]' ||
+            (packageJson.keywords && !packageJson.keywords.length))) {
         packageJson.keywords = rootPackageJson.keywords;
     }
     if (rootPackageJson.author &&
-    (packageJson.author === '' ||
-        packageJson.author === '[PLACEHOLDER]')) {
+        (packageJson.author === '' ||
+            packageJson.author === '[PLACEHOLDER]')) {
         packageJson.author = rootPackageJson.author;
     }
     if (rootPackageJson.license &&
-    (packageJson.license === '' ||
-        packageJson.license === '[PLACEHOLDER]')) {
+        (packageJson.license === '' ||
+            packageJson.license === '[PLACEHOLDER]')) {
         packageJson.license = rootPackageJson.license;
     }
     if (rootPackageJson.repository &&
-    (packageJson.repository === '' ||
-        packageJson.repository === '[PLACEHOLDER]')) {
+        (packageJson.repository === '' ||
+            packageJson.repository === '[PLACEHOLDER]')) {
         packageJson.repository = rootPackageJson.repository;
     }
     if (rootPackageJson.homepage &&
-    (packageJson.homepage === '' ||
-        packageJson.homepage === '[PLACEHOLDER]')) {
+        (packageJson.homepage === '' ||
+            packageJson.homepage === '[PLACEHOLDER]')) {
         packageJson.homepage = rootPackageJson.homepage;
     }
 
@@ -219,7 +219,7 @@ export async function performPackageJsonCopy(angularBuildContext: LibBuildContex
         JSON.stringify(packageJson, null, 2));
 }
 
-function replaceOutputTokens(input: string, angularBuildContext: LibBuildContext): string {
+function replaceOutputTokens(input: string, angularBuildContext: AngularBuildContext): string {
     input = input
         .replace(/\[package-?scope\]/g, angularBuildContext.packageScope || '')
         .replace(/\[parent-?package-?name\]/g, angularBuildContext.parentPackageName || '')

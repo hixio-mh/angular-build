@@ -1,4 +1,4 @@
-﻿export function prepareEnvironment(rawEnvironment: any): { [key: string]: boolean | string; } {
+export function prepareEnvironment(rawEnvironment: any): { [key: string]: boolean | string; } {
     let environment: { [key: string]: boolean | string; } = {};
     if (!rawEnvironment) {
         return environment;

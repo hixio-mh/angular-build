@@ -6,10 +6,10 @@ import * as rimraf from 'rimraf';
 import * as ts from 'typescript';
 
 import {
+    AngularBuildContext,
     BundleOptionsInternal,
     InternalError,
     InvalidConfigError,
-    LibBuildContext,
     LibProjectConfigInternal,
     TsTranspilationOptionsInternal,
     TypescriptCompileError
@@ -19,7 +19,7 @@ import { Logger } from '../utils/logger';
 import { isSamePaths } from '../utils/path-helpers';
 
 import { getRollupConfig } from './get-rollup-config';
-import { getLibBundleWebpackConfig } from '../webpack-configs/lib/get-lib-bundle-webpack-config';
+import { getLibBundleTargetWebpackConfig } from '../webpack-configs/lib/lib-bundle-target';
 
 import { runWebpack } from './run-webpack';
 import { minifyFile } from './minify-file';
@@ -27,15 +27,16 @@ import { minifyFile } from './minify-file';
 const { exists } = require('fs-extra');
 const sorcery = require('sorcery');
 
-export async function performLibBundles(angularBuildContext: LibBuildContext, customLogger?: Logger): Promise<void> {
+export async function performLibBundles(angularBuildContext: AngularBuildContext, customLogger?: Logger): Promise<void> {
     const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
     if (!libConfig.bundles || !libConfig.bundles.length) {
         return;
     }
 
-    const logger = customLogger || angularBuildContext.logger;
+    const projectRoot = AngularBuildContext.projectRoot;
+    const logger = customLogger || AngularBuildContext.logger;
+    const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
 
-    const projectRoot = angularBuildContext.projectRoot;
     const packageName = angularBuildContext.packageNameWithoutScope;
     const isPackagePrivate = angularBuildContext.isPackagePrivate;
     const bundles = libConfig.bundles;
@@ -294,7 +295,7 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
 
             // main bundling
             if (currentBundle.bundleTool === 'webpack') {
-                const wpOptions = getLibBundleWebpackConfig(angularBuildContext, currentBundle, tempOutputFilePath);
+                const wpOptions = getLibBundleTargetWebpackConfig(angularBuildContext, currentBundle, tempOutputFilePath);
                 logger.info(
                     `Bundling ${currentBundle.libraryTarget} module with webpack`);
                 try {
@@ -367,18 +368,18 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
 
         // minify umd es5 files
         if (currentBundle.bundleTool !== 'webpack' &&
-        (currentBundle.minify ||
-        (currentBundle.minify !== false &&
-            currentBundle.libraryTarget === 'umd' &&
-            (exactEntryScriptTarget === ts.ScriptTarget.ES5 ||
-                currentBundle.scriptTarget === 'es5')))) {
+            (currentBundle.minify ||
+                (currentBundle.minify !== false &&
+                    currentBundle.libraryTarget === 'umd' &&
+                    (exactEntryScriptTarget === ts.ScriptTarget.ES5 ||
+                        currentBundle.scriptTarget === 'es5')))) {
             const minFilePath = outputFilePath.replace(/\.js$/i, '.min.js');
             logger.debug(`Minifying ${path.basename(outputFilePath)}`);
 
             await minifyFile(outputFilePath,
                 minFilePath,
                 libConfig.sourceMap as boolean,
-                angularBuildContext.angularBuildConfig.logLevel === 'debug',
+                verbose,
                 logger);
 
             // Remapping sourcemaps
@@ -390,7 +391,7 @@ export async function performLibBundles(angularBuildContext: LibBuildContext, cu
     }
 }
 
-function replaceOutputTokens(input: string, angularBuildContext: LibBuildContext): string {
+function replaceOutputTokens(input: string, angularBuildContext: AngularBuildContext): string {
     input = input
         .replace(/\[package-?scope\]/g, angularBuildContext.packageScope || '')
         .replace(/\[parent-?package-?name\]/g, angularBuildContext.parentPackageName || '')

@@ -3,19 +3,20 @@ import * as path from 'path';
 import * as webpack from 'webpack';
 
 import {
+    AngularBuildContext,
     BeforeRunCleanOptions,
     CleanOptions,
     InternalError,
     InvalidConfigError,
-    LibBuildContext,
-    LibProjectConfigInternal } from '../../models';
+    LibProjectConfigInternal
+} from '../../models';
 
 import { CleanWebpackPlugin } from '../../plugins/clean-webpack-plugin';
 import { CopyWebpackPlugin } from '../../plugins/copy-webpack-plugin';
 import { LibBundleWebpackPlugin } from '../../plugins/lib-bundle-webpack-plugin';
+import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
-export function getLibWebpackConfig(angularBuildContext: LibBuildContext): webpack.Configuration | null {
-    const projectRoot = angularBuildContext.projectRoot;
+export function getLibWebpackConfig(angularBuildContext: AngularBuildContext): webpack.Configuration | null {
     const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
 
     if (!libConfig.outDir) {
@@ -23,26 +24,27 @@ export function getLibWebpackConfig(angularBuildContext: LibBuildContext): webpa
             }].outDir' value is required.`);
     }
 
+    const projectRoot = AngularBuildContext.projectRoot;
+
     const srcDir = path.resolve(projectRoot, libConfig.srcDir || '');
     const outDir = path.resolve(projectRoot, libConfig.outDir);
     const plugins: webpack.Plugin[] = [];
 
     // clean
-    const shouldClean = (angularBuildContext.cleanOutDirs ||
+    const shouldClean = (AngularBuildContext.cleanOutDirs ||
         (libConfig.clean && libConfig.clean.beforeRun));
-
     if (shouldClean) {
         const cleanOptions = Object.assign({}, libConfig.clean || {}) as CleanOptions;
         cleanOptions.beforeRun = cleanOptions.beforeRun || {} as BeforeRunCleanOptions;
         const beforeRunOption = cleanOptions.beforeRun;
         if (typeof beforeRunOption.cleanOutDir === 'undefined' &&
-            angularBuildContext.cleanOutDirs) {
+            AngularBuildContext.cleanOutDirs) {
             beforeRunOption.cleanOutDir = true;
         }
         plugins.push(new CleanWebpackPlugin(Object.assign(cleanOptions,
             {
                 forceCleanToDisk: true,
-                loggerOptions: angularBuildContext.logger.loggerOptions
+                loggerOptions: AngularBuildContext.logger.loggerOptions
             })));
     }
 
@@ -69,9 +71,16 @@ export function getLibWebpackConfig(angularBuildContext: LibBuildContext): webpa
             baseDir: srcDir,
             allowCopyOutsideOutputPath: true,
             forceWriteToDisk: true,
-            loggerOptions: angularBuildContext.logger.loggerOptions
+            loggerOptions: AngularBuildContext.logger.loggerOptions
         }));
     }
+
+    // telemetry plugin
+    if (!AngularBuildContext.telemetryPluginAdded) {
+        AngularBuildContext.telemetryPluginAdded = true;
+        plugins.push(new TelemetryWebpackPlugin());
+    }
+
 
     if (!plugins.length) {
         return null;

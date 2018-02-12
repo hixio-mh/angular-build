@@ -1,1 +1,1 @@
-﻿export { FaviconsWebpackPlugin, FaviconsWebpackPluginOptions } from './plugin';
+export { FaviconsWebpackPlugin, FaviconsWebpackPluginOptions } from './plugin';

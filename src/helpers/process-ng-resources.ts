@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import * as autoprefixer from 'autoprefixer';
 import { copy, existsSync, readFile, readJson, writeFile } from 'fs-extra';

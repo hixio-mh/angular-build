@@ -64,6 +64,8 @@
   <ItemGroup>
     <Folder Include=".github\" />
     <Folder Include="bin\" />
+    <Folder Include="src\plugins\telemetry-webpack-plugin\" />
+    <Folder Include="src\plugins\telemetry-webpack-plugin\src\" />
     <Folder Include="test\" />
     <Folder Include="src\cli\" />
     <Folder Include="src\cli\build\" />
@@ -125,7 +127,9 @@
     <TypeScriptCompile Include="src\helpers\angular-rxjs-externals.ts" />
     <TypeScriptCompile Include="src\helpers\get-custom-webpack-config.ts" />
     <TypeScriptCompile Include="src\plugins\postcss-cli-resources\index.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\lib\get-lib-bundle-webpack-config.ts" />
+    <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\lib\lib-bundle-target.ts" />
     <TypeScriptCompile Include="src\helpers\get-rollup-config.ts" />
     <TypeScriptCompile Include="src\helpers\is-webpack-dev-server.ts" />
     <TypeScriptCompile Include="src\helpers\minify-file.ts" />
@@ -207,7 +211,7 @@
     <TypeScriptCompile Include="src\webpack-configs\app\reference-dll.ts" />
     <TypeScriptCompile Include="src\webpack-configs\app\styles.ts" />
     <TypeScriptCompile Include="src\webpack-configs\index.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\lib\get-lib-webpack-config.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\lib\lib.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="tools\generate-schema.js" />

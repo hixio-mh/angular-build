@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import { ensureDir, writeFile } from 'fs-extra';
 import * as loaderUtils from 'loader-utils';
@@ -56,10 +56,10 @@ export class ChildComplier {
                 childCompilation.plugin('additional-assets',
                     (cb: (err?: Error) => void) => {
                         this.generateIcons(childCompilation,
-                                masterPictureFilesMap,
-                                isPersistedOutFileSystem,
-                                outputPath,
-                                cacheFilePath)
+                            masterPictureFilesMap,
+                            isPersistedOutFileSystem,
+                            outputPath,
+                            cacheFilePath)
                             .then(iconStatsInfo => {
                                 this.iconStatsInfo = iconStatsInfo;
                                 cb();

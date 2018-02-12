@@ -1,4 +1,4 @@
-﻿import * as webpack from 'webpack';
+import * as webpack from 'webpack';
 
 // const verbose = process.argv.indexOf('--verbose') > -1;
 
@@ -59,7 +59,7 @@ export function getWebpackToStringStatsOptions(verbose: boolean, options?: webpa
                 warnings: false,
                 publicPath: false,
                 performance: false
-            } as webpack.Stats.ToStringOptionsObject ;
+            } as webpack.Stats.ToStringOptionsObject;
         } else {
             const pn: any = options;
             return {
@@ -78,7 +78,7 @@ export function getWebpackToStringStatsOptions(verbose: boolean, options?: webpa
                 providedExports: pn === 'verbose',
                 colors: true,
                 performance: true
-            } as webpack.Stats.ToStringOptionsObject ;
+            } as webpack.Stats.ToStringOptionsObject;
         }
 
     } else {

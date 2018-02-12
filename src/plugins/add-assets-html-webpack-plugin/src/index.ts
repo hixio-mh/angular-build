@@ -315,9 +315,9 @@ export class AddAssetsHtmlWebpckPlugin {
                                 tagName: 'script',
                                 closeTag: true,
                                 attributes: Object.assign({
-                                        type: 'text/javascript',
-                                        src: s
-                                    },
+                                    type: 'text/javascript',
+                                    src: s
+                                },
                                     customScriptAttributes)
                             };
                         });

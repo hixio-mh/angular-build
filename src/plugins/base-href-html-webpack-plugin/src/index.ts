@@ -1,4 +1,4 @@
-﻿import { Logger, LoggerOptions } from '../../../utils/logger';
+import { Logger, LoggerOptions } from '../../../utils/logger';
 
 export interface BaseHrefHtmlWebpackPluginOptions {
     baseHref: string;

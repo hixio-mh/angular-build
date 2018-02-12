@@ -1,11 +1,11 @@
 import * as rollup from 'rollup';
 
 import { defaultAngularAndRxJsExternals } from '../helpers/angular-rxjs-externals';
-import { BundleOptionsInternal, InternalError, LibBuildContext, LibProjectConfigInternal } from '../models';
+import { AngularBuildContext, BundleOptionsInternal, InternalError, LibProjectConfigInternal } from '../models';
 
 const getBuiltins = require('builtins');
 
-export function getRollupConfig(angularBuildContext: LibBuildContext,
+export function getRollupConfig(angularBuildContext: AngularBuildContext,
     currentBundle: BundleOptionsInternal,
     outputFilePath: string): {
         inputOptions: rollup.InputOptions;
@@ -15,8 +15,8 @@ export function getRollupConfig(angularBuildContext: LibBuildContext,
         throw new InternalError(`The 'currentBundle._entryFilePath' is not set.`);
     }
 
+    const logger = AngularBuildContext.logger;
     const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
-    const logger = angularBuildContext.logger;
 
     const isTsEntry = /\.ts$/i.test(currentBundle._entryFilePath);
     const moduleName = libConfig.libraryName || angularBuildContext.packageNameWithoutScope;

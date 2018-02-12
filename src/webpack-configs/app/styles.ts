@@ -9,7 +9,7 @@ import { CleanCssWebpackPlugin } from '../../plugins/cleancss-webpack-plugin';
 import { SuppressEntryChunksWebpackPlugin } from '../../plugins/suppress-entry-chunks-webpack-plugin';
 import PostcssCliResources from '../../plugins/postcss-cli-resources';
 
-import { AppBuildContext, AppProjectConfigInternal } from '../../models';
+import { AngularBuildContext, AppProjectConfigInternal, PreDefinedEnvironment } from '../../models';
 import { parseDllEntries } from '../../helpers/parse-dll-entry';
 import { parseGlobalEntries } from '../../helpers/parse-global-entry';
 
@@ -32,12 +32,14 @@ interface PostcssUrlAsset {
     absolutePath: string;
 }
 
-export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
-    const projectRoot = angularBuildContext.projectRoot;
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    const environment = angularBuildContext.environment;
-    const cliIsGlobal = angularBuildContext.cliIsGlobal;
+export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBuildContext,
+    env?: PreDefinedEnvironment): webpack.Configuration {
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
+    const projectRoot = AngularBuildContext.projectRoot;
+    const cliIsGlobal = AngularBuildContext.cliIsGlobal;
     const isDll = environment.dll;
+
+    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
 
     const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
 
@@ -92,36 +94,41 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
                         url = url.substr(1);
                         hadTilde = true;
                     }
-                    loader.resolve(context, (hadTilde ? '' : './') + url, (err: Error, result: string) => {
-                        if (err) {
-                            if (hadTilde) {
-                                reject(err);
-                                return;
-                            }
-                            loader.resolve(context, url, (err: Error, result: string) => {
-                                if (err) {
+                    loader.resolve(context,
+                        (hadTilde ? '' : './') + url,
+                        (err: Error, result: string) => {
+                            if (err) {
+                                if (hadTilde) {
                                     reject(err);
-                                } else {
-                                    resolve(result);
+                                    return;
                                 }
-                            });
-                        } else {
-                            resolve(result);
-                        }
-                    });
+                                loader.resolve(context,
+                                    url,
+                                    (err: Error, result: string) => {
+                                        if (err) {
+                                            reject(err);
+                                        } else {
+                                            resolve(result);
+                                        }
+                                    });
+                            } else {
+                                resolve(result);
+                            }
+                        });
                 });
             },
             load: (filename: string) => {
                 return new Promise<string>((resolve, reject) => {
-                    loader.fs.readFile(filename, (err: Error, data: Buffer) => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
+                    loader.fs.readFile(filename,
+                        (err: Error, data: Buffer) => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
 
-                        const content = data.toString();
-                        resolve(content);
-                    });
+                            const content = data.toString();
+                            resolve(content);
+                        });
                 });
             }
         }),
@@ -166,7 +173,7 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AppBuildCo
         PostcssCliResources({
             deployUrl: loader.loaders[loader.loaderIndex].options.ident === 'extracted' ? '' : publicPath,
             loader,
-            filename: `[name]${resourceExtractHashFormat }.[ext]`,
+            filename: `[name]${resourceExtractHashFormat}.[ext]`,
         }),
         autoprefixer({ grid: true })
     ];

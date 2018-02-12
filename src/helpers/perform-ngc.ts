@@ -3,8 +3,8 @@ import * as path from 'path';
 import { ParsedCommandLine } from 'typescript';
 
 import {
+    AngularBuildContext,
     InvalidConfigError,
-    LibBuildContext,
     LibProjectConfigInternal,
     TsTranspilationOptionsInternal,
     TypescriptCompileError
@@ -17,15 +17,15 @@ import { processNgResources } from './process-ng-resources';
 const spawn = require('cross-spawn');
 const { exists } = require('fs-extra');
 
-export async function performNgc(angularBuildContext: LibBuildContext, customLogger?: Logger): Promise<void> {
+export async function performNgc(angularBuildContext: AngularBuildContext, customLogger?: Logger): Promise<void> {
     const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
     if (!libConfig.tsTranspilation) {
         return;
     }
 
-    const logger = customLogger || angularBuildContext.logger;
+    const projectRoot = AngularBuildContext.projectRoot;
+    const logger = customLogger ? customLogger : AngularBuildContext.logger;
 
-    const projectRoot = angularBuildContext.projectRoot;
     const tsTranspilation = libConfig.tsTranspilation as TsTranspilationOptionsInternal;
     const tsConfigPath = tsTranspilation._tsConfigPath;
 
@@ -34,7 +34,7 @@ export async function performNgc(angularBuildContext: LibBuildContext, customLog
             }].tsTranspilation.tsconfig' value is required.`);
     }
 
-    let ngcCommandPath = path.join(angularBuildContext.nodeModulesPath, '.bin/ngc');
+    let ngcCommandPath = path.join(AngularBuildContext.nodeModulesPath, '.bin/ngc');
 
     if (!await exists(ngcCommandPath)) {
         let internalNodeModulePath = path.dirname(require.resolve('@angular/compiler-cli'));
@@ -115,13 +115,13 @@ export async function performNgc(angularBuildContext: LibBuildContext, customLog
                     }
 
                     processNgResources(
-                            srcDir,
-                            tsOutDir,
-                            `${path.join(tsOutDir, '**/*.js')}`,
-                            stylePreprocessorIncludePaths,
-                            copyTemplateAndStyleUrls,
-                            inlineMetaDataResources,
-                            flatModuleOutFile
+                        srcDir,
+                        tsOutDir,
+                        `${path.join(tsOutDir, '**/*.js')}`,
+                        stylePreprocessorIncludePaths,
+                        copyTemplateAndStyleUrls,
+                        inlineMetaDataResources,
+                        flatModuleOutFile
                             ? flatModuleOutFile.replace(/\.js$/i, '.metadata.json')
                             : '')
                         .then(() => {

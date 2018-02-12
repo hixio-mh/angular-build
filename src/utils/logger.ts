@@ -1,4 +1,4 @@
-﻿import { colorize } from './colorize';
+import { colorize } from './colorize';
 
 export enum LogLevel {
     None = 0,
@@ -20,7 +20,6 @@ export type LoggerOptions = {
     color?: boolean;
 };
 
-
 export interface LoggerBase {
     debug?: (message: string, optionalParams?: any[]) => void;
     info?: (message: string, optionalParams?: any[]) => void;
@@ -29,7 +28,6 @@ export interface LoggerBase {
 }
 
 export class Logger implements LoggerBase {
-
     readonly loggerOptions: LoggerOptions;
     private minLogLevel: LogLevel = LogLevel.Info;
 

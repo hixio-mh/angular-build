@@ -1,22 +1,21 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 import * as webpack from 'webpack';
 
 import { DynamicDllWebpackPlugin } from '../../plugins/dynamic-dll-webpack-plugin';
 
 import {
-    AppBuildContext,
-    AngularBuildContextImpl,
+    AngularBuildContext,
     AppProjectConfigInternal,
     InvalidConfigError,
     PreDefinedEnvironment,
-    ProjectConfigInternal } from '../../models';
+    ProjectConfigInternal
+} from '../../models';
 import { applyProjectConfigWithEnvOverrides, applyProjectConfigDefaults } from '../../helpers/prepare-configs';
 
 import { getAppDllWebpackConfig } from './dll';
 
-export function getAppReferenceDllWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.
+export function getAppReferenceDllWebpackConfigPartial(angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment): webpack.
     Configuration {
-    const projectRoot = angularBuildContext.projectRoot;
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
 
     if (!appConfig.referenceDll || !appConfig.entry) {
@@ -28,8 +27,11 @@ export function getAppReferenceDllWebpackConfigPartial(angularBuildContext: AppB
             }].outDir' propertry is required at angular-build.json file.`);
     }
 
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
+    const projectRoot = AngularBuildContext.projectRoot;
+
     const dllEnvironment =
-        JSON.parse(JSON.stringify(angularBuildContext.environment)) as PreDefinedEnvironment;
+        JSON.parse(JSON.stringify(environment)) as PreDefinedEnvironment;
     dllEnvironment.aot = false;
     dllEnvironment.dll = true;
 
@@ -55,26 +57,17 @@ export function getAppReferenceDllWebpackConfigPartial(angularBuildContext: AppB
         }
     );
 
-    const dllAngularBuildContext = new AngularBuildContextImpl(
-        dllEnvironment,
-        angularBuildContext.configPath,
-        angularBuildContext.angularBuildConfig,
+    const dllAngularBuildContext = new AngularBuildContext(
         angularBuildContext.projectConfigMaster,
         dllProjectConfig as ProjectConfigInternal
     );
-    dllAngularBuildContext.fromAngularBuildCli = angularBuildContext.fromAngularBuildCli;
-    dllAngularBuildContext.angularBuildCliRootPath = angularBuildContext.angularBuildCliRootPath;
-    dllAngularBuildContext.cliIsGlobal = angularBuildContext.cliIsGlobal;
-    dllAngularBuildContext.watch = angularBuildContext.watch;
-    dllAngularBuildContext.progress = angularBuildContext.progress;
-    dllAngularBuildContext.cleanOutDirs = angularBuildContext.cleanOutDirs;
 
     // dynamic dll
     plugins.push(new DynamicDllWebpackPlugin({
         manifests: manifests,
-        getDllConfigFunc: () => getAppDllWebpackConfig(dllAngularBuildContext),
+        getDllConfigFunc: () => getAppDllWebpackConfig(dllAngularBuildContext, dllEnvironment),
         loggerOptions: {
-            logLevel: angularBuildContext.angularBuildConfig.logLevel
+            logLevel: AngularBuildContext.angularBuildConfig.logLevel
         }
     }));
 

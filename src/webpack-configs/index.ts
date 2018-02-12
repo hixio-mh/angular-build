@@ -5,8 +5,7 @@ import * as webpack from 'webpack';
 
 import {
     AngularBuildConfigInternal,
-    AngularBuildContextImpl,
-    AppBuildContext,
+    AngularBuildContext,
     InternalError,
     InvalidConfigError,
     LibProjectConfigInternal,
@@ -24,9 +23,13 @@ import { validateProjectConfig } from '../helpers/validate-project-config';
 import { readJsonSync } from '../utils/read-json';
 import { formatValidationError, validateSchema } from '../utils/validate-schema';
 
-const loadedModules: { [key: string]: any } = {};
+import { getAppWebpackConfig } from './app/app';
+import { getAppDllWebpackConfig } from './app/dll';
+import { getLibWebpackConfig } from './lib/lib';
 
 export function getWebpackConfig(configPath: string, env?: any, argv?: any): webpack.Configuration[] {
+    let startTime = Date.now();
+
     if (!configPath || !configPath.length) {
         throw new InternalError(`The 'configPath' is required.`);
     }
@@ -41,6 +44,24 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
     const verbose = argv && argv.verbose ? true : false;
     const watch = argv && (argv.watch || argv.w) ? true : false;
     const progress = argv && argv.progress ? true : false;
+
+    if (fromAngularBuildCli && argv && argv.startTime) {
+        startTime = argv.startTime;
+    }
+
+    let angularBuildVersion: string;
+    if (fromAngularBuildCli && argv && argv.cliVersion) {
+        angularBuildVersion = argv.cliVersion;
+    } else {
+        let angularBuildPackageJsonPath = path.resolve(projectRoot, 'node_modules/@bizappframework/angular-build/package.json');
+        if (!existsSync(angularBuildPackageJsonPath) && existsSync(path.resolve(__dirname, '../package.json'))) {
+            angularBuildPackageJsonPath = path.resolve(__dirname, '../package.json');
+        } else if (!existsSync(angularBuildPackageJsonPath) && existsSync(path.resolve(__dirname, '../../package.json'))) {
+            angularBuildPackageJsonPath = path.resolve(__dirname, '../../package.json');
+        }
+        const pkgJson = readJsonSync(angularBuildPackageJsonPath);
+        angularBuildVersion = pkgJson.version;
+    }
 
     // Prepare environment
     let environment: PreDefinedEnvironment = {};
@@ -152,6 +173,13 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
         throw new InvalidConfigError(`No app or lib project is available.`);
     }
 
+    AngularBuildContext.init(environment, angularBuildConfig, fromAngularBuildCli, angularBuildVersion, startTime);
+    AngularBuildContext.angularBuildCliRootPath = cliRootPath;
+    AngularBuildContext.cliIsGlobal = cliIsGlobal;
+    AngularBuildContext.watch = watch;
+    AngularBuildContext.progress = progress;
+    AngularBuildContext.cleanOutDirs = cleanOutDirs;
+
     const webpackConfigs: webpack.Configuration[] = [];
 
     if (libConfigs.length > 0) {
@@ -180,27 +208,11 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
                 validateProjectConfig(projectRoot, clonedLibConfig);
                 applyProjectConfigDefaults(projectRoot, clonedLibConfig, environment);
 
-                const angularBuildContext = new AngularBuildContextImpl(
-                    environment,
-                    configPath,
-                    angularBuildConfig,
+                const angularBuildContext = new AngularBuildContext(
                     libConfig as ProjectConfigInternal,
                     clonedLibConfig);
 
-                angularBuildContext.fromAngularBuildCli = true;
-                angularBuildContext.angularBuildCliRootPath = cliRootPath;
-                angularBuildContext.cliIsGlobal = cliIsGlobal;
-                angularBuildContext.watch = watch;
-                angularBuildContext.progress = progress;
-                angularBuildContext.cleanOutDirs = cleanOutDirs;
-
-                // Dynamic require
-                if (!loadedModules.getLibWebpackConfig) {
-                    const getAppWebpackConfigModule = require('./lib/get-lib-webpack-config');
-                    loadedModules.getLibWebpackConfig = getAppWebpackConfigModule.getLibWebpackConfig;
-                }
-
-                const wpConfig = loadedModules.getLibWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
+                const wpConfig = getLibWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
                 if (wpConfig) {
                     if (fromAngularBuildCli) {
                         (wpConfig as any)._projectConfig = clonedLibConfig;
@@ -238,30 +250,13 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
                 validateProjectConfig(projectRoot, clonedAppConfig);
                 applyProjectConfigDefaults(projectRoot, clonedAppConfig, environment);
 
-                const angularBuildContext = new AngularBuildContextImpl(
-                    environment,
-                    configPath,
-                    angularBuildConfig,
+                const angularBuildContext = new AngularBuildContext(
                     appConfig as ProjectConfigInternal,
                     clonedAppConfig);
 
-                angularBuildContext.fromAngularBuildCli = true;
-                angularBuildContext.cliIsGlobal = cliIsGlobal;
-                angularBuildContext.angularBuildCliRootPath = cliRootPath;
-                angularBuildContext.watch = watch;
-                angularBuildContext.progress = progress;
-                angularBuildContext.cleanOutDirs = cleanOutDirs;
-
                 if (environment.dll) {
-                    // Dynamic require
-                    if (!loadedModules.getAppDllWebpackConfig) {
-                        const getAppDllWebpackConfigModule = require('./app/dll');
-                        loadedModules.getAppDllWebpackConfig = getAppDllWebpackConfigModule.getAppDllWebpackConfig;
-                    }
-
-                    (angularBuildContext as AppBuildContext).dllBuildOnly = true;
-                    const wpConfig =
-                        loadedModules.getAppDllWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
+                    angularBuildContext.dllBuildOnly = true;
+                    const wpConfig = getAppDllWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
                     if (wpConfig) {
                         if (fromAngularBuildCli) {
                             (wpConfig as any)._projectConfig = clonedAppConfig;
@@ -270,13 +265,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
                         webpackConfigs.push(wpConfig);
                     }
                 } else {
-                    // Dynamic require
-                    if (!loadedModules.getAppWebpackConfig) {
-                        const getAppWebpackConfigModule = require('./app/app');
-                        loadedModules.getAppWebpackConfig = getAppWebpackConfigModule.getAppWebpackConfig;
-                    }
-
-                    const wpConfig = loadedModules.getAppWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
+                    const wpConfig = getAppWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
                     if (wpConfig) {
                         if (fromAngularBuildCli) {
                             (wpConfig as any)._projectConfig = clonedAppConfig;

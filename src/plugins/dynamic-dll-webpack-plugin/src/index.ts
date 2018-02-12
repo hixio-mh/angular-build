@@ -1,4 +1,4 @@
-﻿import * as webpack from 'webpack';
+import * as webpack from 'webpack';
 
 import { Logger, LoggerOptions } from '../../../utils/logger';
 

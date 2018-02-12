@@ -1,4 +1,4 @@
-﻿export function stripComments(content: string): string {
+export function stripComments(content: string): string {
     /**
      * First capturing group matches double quoted string
      * Second matches single quotes string

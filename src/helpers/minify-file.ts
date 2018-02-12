@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import { existsSync, readFile, writeFile } from 'fs-extra';
 import * as uglify from 'uglify-js';

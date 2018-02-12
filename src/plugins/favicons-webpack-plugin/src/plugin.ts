@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import * as rimraf from 'rimraf';
 import * as webpack from 'webpack';

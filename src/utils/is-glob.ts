@@ -1,4 +1,4 @@
-﻿// fork from: https://github.com/micromatch/is-glob
+// fork from: https://github.com/micromatch/is-glob
 // fork from: https://github.com/micromatch/is-extglob
 
 const chars: { [key: string]: string } = { '{': '}', '(': ')', '[': ']' };

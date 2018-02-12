@@ -1,4 +1,4 @@
-﻿export type MasterPicture = {
+export type MasterPicture = {
     type?: 'inline' | 'url';
     content?: string;
     url?: string;

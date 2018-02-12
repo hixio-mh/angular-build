@@ -1,4 +1,4 @@
-﻿import * as minimatch from 'minimatch';
+import * as minimatch from 'minimatch';
 import * as webpack from 'webpack';
 
 import { Logger, LoggerOptions } from '../../../utils/logger';

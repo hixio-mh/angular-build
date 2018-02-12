@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import { InternalError } from '../../../models';
 import { isGlob } from '../../../utils/is-glob';
@@ -112,7 +112,7 @@ export async function preProcessAssets(baseDir: string,
                 to?: string;
             }).from) {
             const assetParsedEntry: PreProcessedAssetEntry =
-                Object.assign({}, asset, { context: baseDir, fromType: 'glob' as any});
+                Object.assign({}, asset, { context: baseDir, fromType: 'glob' as any });
 
             if (assetParsedEntry.to) {
                 if (isTemplateLike.test(assetParsedEntry.to)) {

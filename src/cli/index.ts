@@ -22,18 +22,18 @@ Usage:
         // .example('ngb e2e', 'Run e2e tests.')
         .example('ngb -h', 'Show help')
         .option('h',
-        {
-            alias: ['help', '?'],
-            describe: 'Show help',
-            type: 'boolean'
-        })
+            {
+                alias: ['help', '?'],
+                describe: 'Show help',
+                type: 'boolean'
+            })
         .option('v',
-        {
-            alias: 'version',
-            describe: 'Show version',
-            type: 'boolean',
-            global: false
-        })
+            {
+                alias: 'version',
+                describe: 'Show version',
+                type: 'boolean',
+                global: false
+            })
         // .command(getNewCommandModule(cliVersion))
         // .command(getInitCommandModule(cliVersion))
         // .command(getTestCommandModule(cliVersion))

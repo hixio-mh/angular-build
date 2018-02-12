@@ -1,10 +1,17 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 import * as webpack from 'webpack';
 
 import { WriteAssetsToDiskWebpackPlugin } from '../../plugins/write-assets-to-disk-webpack-plugin';
 import { WriteStatsJsonWebpackPlugin } from '../../plugins/write-stats-json-webpack-plugin';
 
-import { AppBuildContext, AppProjectConfigInternal, InternalError, InvalidConfigError } from '../../models';
+import {
+    AngularBuildContext,
+    AppProjectConfigInternal,
+    InternalError,
+    InvalidConfigError,
+    PreDefinedEnvironment
+} from '../../models';
+import { getCustomWebpackConfig } from '../../helpers/get-custom-webpack-config';
 
 import { getAngularFixPlugins } from './angular';
 import { getAppCommonWebpackConfigPartial } from './common';
@@ -18,16 +25,26 @@ const webpackMerge = require('webpack-merge');
  * require('awesome-typescript-loader')
  */
 
-export function getAppDllWebpackConfig(angularBuildContext: AppBuildContext): webpack.Configuration {
-    if (!angularBuildContext.environment.dll ||
-        angularBuildContext.projectConfig._projectType !== 'app') {
+export function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment): webpack.Configuration {
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
+    const projectRoot = AngularBuildContext.projectRoot;
+    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    let customWebpackConfig: webpack.Configuration = {};
+
+    if (!environment.dll || angularBuildContext.projectConfig._projectType !== 'app') {
         return {};
     }
 
+    if (appConfig.webpackConfig) {
+        customWebpackConfig =
+            getCustomWebpackConfig(path.resolve(projectRoot, appConfig.webpackConfig), angularBuildContext, env) || {};
+    }
+
     const configs: webpack.Configuration[] = [
-        getAppCommonWebpackConfigPartial(angularBuildContext),
-        getAppStylesWebpackConfigPartial(angularBuildContext),
-        getAppDllWebpackConfigPartial(angularBuildContext)
+        getAppCommonWebpackConfigPartial(angularBuildContext, env),
+        getAppStylesWebpackConfigPartial(angularBuildContext, env),
+        getAppDllWebpackConfigPartial(angularBuildContext, env),
+        customWebpackConfig
     ];
 
     const mergedConfig = webpackMerge(configs) as webpack.Configuration;
@@ -38,12 +55,12 @@ export function getAppDllWebpackConfig(angularBuildContext: AppBuildContext): we
     return mergedConfig;
 }
 
-export function getAppDllWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
-    const projectRoot = angularBuildContext.projectRoot;
+function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment):
+    webpack.Configuration {
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    const cliIsGlobal = angularBuildContext.cliIsGlobal;
 
-    if (!angularBuildContext.environment.dll) {
+    if (!environment.dll) {
         return {};
     }
 
@@ -52,6 +69,9 @@ export function getAppDllWebpackConfigPartial(angularBuildContext: AppBuildConte
             `The 'apps[${angularBuildContext.projectConfig._index
             }].outDir' value is required.`);
     }
+
+    const projectRoot = AngularBuildContext.projectRoot;
+    const cliIsGlobal = AngularBuildContext.cliIsGlobal;
 
     const outDir = path.resolve(projectRoot, appConfig.outDir);
 
@@ -114,14 +134,14 @@ export function getAppDllWebpackConfigPartial(angularBuildContext: AppBuildConte
             path: path.resolve(outDir, `${vendorChunkName}-assets.json`),
             forceWriteToDisk: true,
             loggerOptions: {
-                logLevel: angularBuildContext.angularBuildConfig.logLevel
+                logLevel: AngularBuildContext.angularBuildConfig.logLevel
             }
         }),
         new WriteAssetsToDiskWebpackPlugin({
             emittedPaths: [path.resolve(outDir, `${vendorChunkName}-manifest.json`)],
             exclude: [`${vendorChunkName}-assets.json`],
             loggerOptions: {
-                logLevel: angularBuildContext.angularBuildConfig.logLevel
+                logLevel: AngularBuildContext.angularBuildConfig.logLevel
             }
         })
     ];

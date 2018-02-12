@@ -15,7 +15,7 @@ import {
     ProjectConfig,
     TsTranspilationOptions
 } from './config-models';
-import { InvalidConfigError } from './errors';
+import { InternalError, InvalidConfigError } from './errors';
 
 export interface DllParsedResult {
     tsEntries: string[];
@@ -30,9 +30,9 @@ export interface GlobalParsedEntry {
 }
 
 export interface AngularBuildConfigInternal extends AngularBuildConfig {
+    _configPath: string;
     _schema?: object;
     _schemaValidated?: boolean;
-    _configPath?: string;
 }
 
 export interface ProjectConfigSharedInternal {
@@ -84,92 +84,147 @@ export type AppProjectConfigInternal = AppProjectConfig & ProjectConfigSharedInt
 export type LibProjectConfigInternal = LibProjectConfig & ProjectConfigSharedInternal & {
 };
 
-export interface AngularBuildContext {
-    environment: PreDefinedEnvironment;
-    configPath: string;
-    angularBuildConfig: AngularBuildConfigInternal;
-    projectConfigMaster: ProjectConfigInternal;
-    projectConfig: ProjectConfigInternal;
-    logger: Logger;
+export class AngularBuildContext {
+    private static _initialized = false;
 
-    fromAngularBuildCli?: boolean;
-    angularBuildCliRootPath?: string;
-    cliIsGlobal?: boolean;
+    private static _environment: PreDefinedEnvironment = {};
+    static get environment(): PreDefinedEnvironment {
+        if (!AngularBuildContext._initialized) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+        return AngularBuildContext._environment;
+    }
 
-    projectRoot: string;
-    nodeModulesPath: string;
+    private static _angularBuildConfig: AngularBuildConfigInternal | null = null;
+    static get angularBuildConfig(): AngularBuildConfigInternal {
+        if (!AngularBuildContext._initialized || AngularBuildContext._angularBuildConfig == null) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+        return AngularBuildContext._angularBuildConfig;
+    }
 
-    watch?: boolean;
-    progress?: boolean;
-    cleanOutDirs?: boolean;
-    webpackArgv?: any;
+    private static _startTime = Date.now();
+    static get startTime(): number {
+        return AngularBuildContext._startTime;
+    }
 
-    bannerText?: string;
+    private static _angularBuildVersion: string | null = null;
+    static get angularBuildVersion(): string {
+        if (!AngularBuildContext._initialized || AngularBuildContext._angularBuildVersion == null) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+        return AngularBuildContext._angularBuildVersion;
+    }
 
-    projectName?: string;
-    projectVersion?: string;
-    projectDescription?: string;
-    projectAuthor?: string;
-    projectHomePage?: string;
+    private static _logger: Logger | null = null;
+    static get logger(): Logger {
+        if (!AngularBuildContext._initialized || AngularBuildContext._logger == null) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+        return AngularBuildContext._logger;
+    }
 
-    rootPackageConfigPath?: string;
-    rootPackageJson?: any;
+    private static _fromAngularBuildCli: boolean | null = null;
+    static get fromAngularBuildCli(): boolean {
+        if (!AngularBuildContext._initialized || AngularBuildContext._fromAngularBuildCli == null) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+        return AngularBuildContext._fromAngularBuildCli;
+    }
 
-    packageConfigPath?: string;
-    packageJson?: any;
+    private static _libCount: number = 0;
+    static get libCount(): number {
+        return AngularBuildContext._libCount;
+    }
 
-    packageScope?: string;
-    packageNameWithoutScope?: string;
-    parentPackageName?: string;
-    isPackagePrivate?: boolean;
-}
+    private static _appCount: number = 0;
+    static get appCount(): number {
+        return AngularBuildContext._appCount;
+    }
 
-export interface AppBuildContext extends AngularBuildContext {
+    static get telemetryDisabled(): boolean {
+        const disabled =
+            process.argv.includes('--disable-telemetry') || process.env.ANGULAR_BUILD_TELEMETRY_OPTOUT ? true : false;
+        return disabled;
+    }
+
+    static angularBuildCliRootPath?: string;
+    static cliIsGlobal?: boolean;
+
+    static watch?: boolean;
+    static progress?: boolean;
+    static cleanOutDirs?: boolean;
+    static webpackArgv?: any;
+
+    static telemetryPluginAdded: boolean = false;
+
+    // app only
     dllBuildOnly?: boolean;
-}
 
-export interface LibBuildContext extends AngularBuildContext {
-}
-
-export class AngularBuildContextImpl implements AngularBuildContext {
     constructor(
-        readonly environment: PreDefinedEnvironment,
-        readonly configPath: string,
-        readonly angularBuildConfig: AngularBuildConfigInternal,
         readonly projectConfigMaster: ProjectConfigInternal,
         readonly projectConfig: ProjectConfigInternal
     ) {
-        this.logger = new Logger({
+        if (projectConfig._projectType === 'lib') {
+            AngularBuildContext._libCount = AngularBuildContext._libCount + 1;
+        } else {
+            AngularBuildContext._appCount = AngularBuildContext._appCount + 1;
+        }
+    }
+
+    static init(environment: PreDefinedEnvironment,
+        angularBuildConfig: AngularBuildConfigInternal,
+        fromAngularBuildCli: boolean,
+        angularBuildVersion: string, startTime: number): void {
+        AngularBuildContext._environment = environment;
+        AngularBuildContext._angularBuildConfig = angularBuildConfig;
+        AngularBuildContext._fromAngularBuildCli = fromAngularBuildCli;
+        AngularBuildContext._angularBuildVersion = angularBuildVersion;
+        AngularBuildContext._startTime = startTime;
+
+        AngularBuildContext._logger = new Logger({
             name: '',
-            logLevel: this.angularBuildConfig.logLevel || 'info',
+            logLevel: AngularBuildContext.angularBuildConfig.logLevel || 'info',
             debugPrefix: 'DEBUG:',
             warnPrefix: 'WARNING:'
         });
+
+        AngularBuildContext._initialized = true;
     }
 
-    logger: Logger;
-
-    fromAngularBuildCli?: boolean;
-    angularBuildCliRootPath?: string;
-    cliIsGlobal?: boolean;
-
-    watch?: boolean;
-    progress?: boolean;
-    cleanOutDirs?: boolean;
-    webpackArgv?: any;
-
-    get projectRoot(): string {
-        return path.dirname(this.configPath);
-    }
-
-    private _nodeModulesPath: string = '';
-    get nodeModulesPath(): string {
-        if (this._nodeModulesPath) {
-            return this._nodeModulesPath;
+    static get projectRoot(): string {
+        if (!AngularBuildContext._initialized) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
         }
 
-        this._nodeModulesPath = path.resolve(this.projectRoot, 'node_modules');
-        return this._nodeModulesPath;
+        return path.dirname(AngularBuildContext.angularBuildConfig._configPath);
+    }
+
+    private static _nodeModulesPath: string = '';
+    static get nodeModulesPath(): string {
+        if (AngularBuildContext._nodeModulesPath) {
+            return AngularBuildContext._nodeModulesPath;
+        }
+
+        AngularBuildContext._nodeModulesPath = path.resolve(AngularBuildContext.projectRoot, 'node_modules');
+        return AngularBuildContext._nodeModulesPath;
+    }
+
+    private static _angularVersion: string = '';
+    static get angularVersion(): string {
+        if (typeof AngularBuildContext._angularVersion !== 'undefined') {
+            return AngularBuildContext._angularVersion;
+        }
+
+        const angularCorePackageJsonPath = path.resolve(AngularBuildContext.nodeModulesPath, '@angular/core/package.json');
+        if (existsSync(angularCorePackageJsonPath)) {
+            const pkgJson = readJsonSync(angularCorePackageJsonPath);
+            AngularBuildContext._angularVersion = pkgJson.version;
+        } else {
+            AngularBuildContext._angularVersion = '';
+        }
+
+        return AngularBuildContext._angularVersion;
     }
 
     private _bannerText?: string;
@@ -183,16 +238,16 @@ export class AngularBuildContextImpl implements AngularBuildContext {
             return this._bannerText;
         }
 
-        const srcDir = path.resolve(this.projectRoot, this.projectConfig.srcDir || '');
+        const srcDir = path.resolve(AngularBuildContext.projectRoot, this.projectConfig.srcDir || '');
         let tempBannerText = this.projectConfig.banner;
 
         // read banner
         if (/\.txt$/i.test(tempBannerText)) {
             if (this.projectConfig.srcDir && existsSync(path.resolve(srcDir, tempBannerText))) {
                 tempBannerText = readFileSync(path.resolve(srcDir, tempBannerText), 'utf-8');
-            } else if (srcDir !== this.projectRoot &&
-                existsSync(path.resolve(this.projectRoot, tempBannerText))) {
-                tempBannerText = readFileSync(path.resolve(this.projectRoot, tempBannerText), 'utf-8');
+            } else if (srcDir !== AngularBuildContext.projectRoot &&
+                existsSync(path.resolve(AngularBuildContext.projectRoot, tempBannerText))) {
+                tempBannerText = readFileSync(path.resolve(AngularBuildContext.projectRoot, tempBannerText), 'utf-8');
             } else {
                 throw new InvalidConfigError(
                     `The banner text file: ${path.resolve(srcDir, tempBannerText)} doesn't exists.`);
@@ -392,7 +447,7 @@ export class AngularBuildContextImpl implements AngularBuildContext {
             return;
         }
 
-        const srcDir = path.resolve(this.projectRoot, this.projectConfig.srcDir || '');
+        const srcDir = path.resolve(AngularBuildContext.projectRoot, this.projectConfig.srcDir || '');
         let pkgConfigPath = path.resolve(srcDir, 'package.json');
 
         if (this.projectConfig._projectType === 'lib') {
@@ -402,7 +457,7 @@ export class AngularBuildContextImpl implements AngularBuildContext {
                 pkgConfigPath = path.resolve(srcDir, libConfig.packageOptions.packageJsonFile);
                 if (existsSync(pkgConfigPath)) {
                     this._packageConfigPath = pkgConfigPath;
-                    if (pkgConfigPath === path.resolve(this.projectRoot, 'package.json')) {
+                    if (pkgConfigPath === path.resolve(AngularBuildContext.projectRoot, 'package.json')) {
                         this._rootPackageConfigPath = pkgConfigPath;
                     }
                 } else {
@@ -414,37 +469,37 @@ export class AngularBuildContextImpl implements AngularBuildContext {
 
         if (!this._packageConfigPath) {
             if (this.projectConfig.srcDir &&
-                srcDir !== this.projectRoot &&
+                srcDir !== AngularBuildContext.projectRoot &&
                 existsSync(pkgConfigPath)) {
                 this._packageConfigPath = pkgConfigPath;
 
-                if (pkgConfigPath === path.resolve(this.projectRoot, 'package.json')) {
+                if (pkgConfigPath === path.resolve(AngularBuildContext.projectRoot, 'package.json')) {
                     this._rootPackageConfigPath = pkgConfigPath;
                 }
             }
             if (!this._packageConfigPath &&
                 this.projectConfig.srcDir &&
-                srcDir !== this.projectRoot &&
+                srcDir !== AngularBuildContext.projectRoot &&
                 path.resolve(srcDir, '../package.json') !== pkgConfigPath) {
                 pkgConfigPath = path.resolve(srcDir, '../package.json');
                 if (existsSync(pkgConfigPath)) {
                     this._packageConfigPath = pkgConfigPath;
 
-                    if (pkgConfigPath === path.resolve(this.projectRoot, 'package.json')) {
+                    if (pkgConfigPath === path.resolve(AngularBuildContext.projectRoot, 'package.json')) {
                         this._rootPackageConfigPath = pkgConfigPath;
                     }
                 }
             }
             if (!this._packageConfigPath &&
-                path.resolve(this.projectRoot, 'package.json') !== pkgConfigPath &&
-                existsSync(path.resolve(this.projectRoot, 'package.json'))) {
-                pkgConfigPath = path.resolve(this.projectRoot, 'package.json');
+                path.resolve(AngularBuildContext.projectRoot, 'package.json') !== pkgConfigPath &&
+                existsSync(path.resolve(AngularBuildContext.projectRoot, 'package.json'))) {
+                pkgConfigPath = path.resolve(AngularBuildContext.projectRoot, 'package.json');
                 this._packageConfigPath = pkgConfigPath;
                 this._rootPackageConfigPath = pkgConfigPath;
             }
         }
 
-        const rootPkgConfigPath = path.resolve(this.projectRoot, 'package.json');
+        const rootPkgConfigPath = path.resolve(AngularBuildContext.projectRoot, 'package.json');
         if (!this._rootPackageConfigPath && existsSync(rootPkgConfigPath)) {
             this._rootPackageConfigPath = rootPkgConfigPath;
         }

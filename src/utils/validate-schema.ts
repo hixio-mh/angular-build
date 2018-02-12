@@ -1,4 +1,4 @@
-﻿// MIT License http://www.opensource.org/licenses/mit-license.php
+// MIT License http://www.opensource.org/licenses/mit-license.php
 // Author Gajus Kuizinas @gajus
 
 import * as Ajv from 'ajv';

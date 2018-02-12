@@ -6,17 +6,19 @@ import * as webpack from 'webpack';
 import { PurifyPlugin } from '@angular-devkit/build-optimizer';
 
 import { AngularBuildProjectConfigWebpackPlugin } from '../../plugins/angular-build-project-config-webpack-plugin';
+import { BundleAnalyzerWebpackPlugin } from '../../plugins/bundle-analyzer-webpack-plugin';
 import { CleanWebpackPlugin } from '../../plugins/clean-webpack-plugin';
 import { CopyWebpackPlugin } from '../../plugins/copy-webpack-plugin';
-import { BundleAnalyzerWebpackPlugin } from '../../plugins/bundle-analyzer-webpack-plugin';
+import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
 import {
-    AppBuildContext,
+    AngularBuildContext,
     AppProjectConfigInternal,
     BeforeRunCleanOptions,
     BundleAnalyzerOptions,
     CleanOptions,
-    InvalidConfigError
+    InvalidConfigError,
+    PreDefinedEnvironment
 } from '../../models';
 import { isWebpackDevServer } from '../../helpers/is-webpack-dev-server';
 import { getWebpackToStringStatsOptions } from '../../helpers/webpack-to-string-stats-options';
@@ -34,22 +36,23 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 type WebpackLibraryTarget = 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd';
 
-export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
-    const projectRoot = angularBuildContext.projectRoot;
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    const environment = angularBuildContext.environment;
-    const cliIsGlobal = angularBuildContext.cliIsGlobal;
-    const fromAngularBuildCli = angularBuildContext.fromAngularBuildCli;
-
-    const isDll = environment.dll;
-    const logger = angularBuildContext.logger;
-
-    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
-    let outDir = appConfig.outDir ? path.resolve(projectRoot, appConfig.outDir) : undefined;
+export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBuildContext,
+    env?: PreDefinedEnvironment): webpack.Configuration {
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
+    const projectRoot = AngularBuildContext.projectRoot;
+    const cliIsGlobal = AngularBuildContext.cliIsGlobal;
+    const fromAngularBuildCli = AngularBuildContext.fromAngularBuildCli;
+    const logger = AngularBuildContext.logger;
+    const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
 
     const hot = environment.hot;
-    const watch = angularBuildContext.watch;
+    const watch = AngularBuildContext.watch;
     const devServer = isWebpackDevServer();
+
+    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    const isDll = environment.dll;
+    const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
+    let outDir = appConfig.outDir ? path.resolve(projectRoot, appConfig.outDir) : undefined;
 
     const resourceExtractHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
         appConfig.appendOutputHash !== false
@@ -95,45 +98,45 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
 
     // hot || devServer ? 'errors-only'
     const statOptions: webpack.Options.Stats =
-        getWebpackToStringStatsOptions(angularBuildContext.angularBuildConfig.logLevel === 'debug', appConfig.stats);
+        getWebpackToStringStatsOptions(verbose, appConfig.stats);
 
     // plugins
     const plugins: webpack.Plugin[] = [new webpack.NoEmitOnErrorsPlugin()];
 
     // progress
-    if (angularBuildContext.progress && fromAngularBuildCli && !devServer && !hot && !watch) {
+    if (AngularBuildContext.progress && fromAngularBuildCli && !devServer && !hot && !watch) {
         plugins.push(new webpack.ProgressPlugin());
     }
 
     // angular-build bind
     if (!isDll) {
         plugins.push(new AngularBuildProjectConfigWebpackPlugin({
-            configPath: angularBuildContext.configPath,
-            environment: angularBuildContext.environment as { [key: string]: boolean | string; },
+            configPath: AngularBuildContext.angularBuildConfig._configPath,
+            environment: environment as { [key: string]: boolean | string; },
 
             initialProjectConfig: appConfig,
             configName: appConfig.name,
             projectType: appConfig._projectType,
 
-            schema: angularBuildContext.angularBuildConfig._schema,
+            schema: AngularBuildContext.angularBuildConfig._schema,
             validateSchema: true,
 
             loggerOptions: {
-                logLevel: angularBuildContext.angularBuildConfig.logLevel
+                logLevel: AngularBuildContext.angularBuildConfig.logLevel
             }
         }));
     }
 
     // clean
     let shouldClean = outDir &&
-        (angularBuildContext.cleanOutDirs ||
+        (AngularBuildContext.cleanOutDirs ||
             (appConfig.clean && Object.keys(appConfig.clean).length));
     if (shouldClean) {
         const cleanOptions = Object.assign({}, appConfig.clean || {}) as CleanOptions;
         cleanOptions.beforeRun = cleanOptions.beforeRun || {} as BeforeRunCleanOptions;
         const beforeRunOption = cleanOptions.beforeRun;
         if (typeof beforeRunOption.cleanOutDir === 'undefined' &&
-            angularBuildContext.cleanOutDirs) {
+            AngularBuildContext.cleanOutDirs) {
             beforeRunOption.cleanOutDir = true;
         }
         if (!isDll && appConfig.referenceDll && beforeRunOption.cleanOutDir) {
@@ -147,7 +150,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
             {
                 forceCleanToDisk: isDll,
                 loggerOptions: {
-                    logLevel: angularBuildContext.angularBuildConfig.logLevel
+                    logLevel: AngularBuildContext.angularBuildConfig.logLevel
                 }
             })));
     }
@@ -158,7 +161,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
             assets: appConfig.copy,
             baseDir: srcDir,
             loggerOptions: {
-                logLevel: angularBuildContext.angularBuildConfig.logLevel
+                logLevel: AngularBuildContext.angularBuildConfig.logLevel
             }
         }));
     }
@@ -201,7 +204,6 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
 
             plugins.push(new BundleAnalyzerWebpackPlugin(Object.assign({
                 loggerOptions: {
-                    // logLevel: angularBuildContext.logLevel === 'debug' ? 'debug' : 'error'
                     logLevel: 'error'
                 }
             },
@@ -210,7 +212,8 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
     }
 
     // banner
-    if (!isDll && appConfig.banner &&
+    if (!isDll &&
+        appConfig.banner &&
         angularBuildContext.bannerText &&
         appConfig.entry) {
         const bannerText = angularBuildContext.bannerText;
@@ -269,7 +272,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
                     ? 'rxjs/_esm2015/path-mapping'
                     : 'rxjs/_esm5/path-mapping';
             const rxPaths = require(resolve.sync(rxjsPathMappingImportModuleName, { basedir: projectRoot }));
-            alias = rxPaths(angularBuildContext.nodeModulesPath);
+            alias = rxPaths(AngularBuildContext.nodeModulesPath);
         } catch (e) {
             logger.warn(`Failed rxjs path alias. ${e.message}`);
         }
@@ -307,7 +310,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
                         // https://github.com/angular/angular-cli/pull/7931
                         typeofs: false
                     },
-                    warnings: angularBuildContext.angularBuildConfig.logLevel === 'debug', // default false
+                    warnings: verbose, // default false
                     output: {
                         ascii_only: true, // default false
                         // comments: false, // default false
@@ -320,13 +323,20 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
         plugins.push(new webpack.NamedModulesPlugin());
     }
 
-    const nodeModulePaths = ['node_modules', angularBuildContext.nodeModulesPath];
+    // telemetry plugin
+    if (!AngularBuildContext.telemetryPluginAdded) {
+        AngularBuildContext.telemetryPluginAdded = true;
+        plugins.push(new TelemetryWebpackPlugin());
+    }
+
+    const nodeModulePaths = ['node_modules', AngularBuildContext.nodeModulesPath];
 
     const loaderModulePaths = [...nodeModulePaths];
-    if (angularBuildContext.angularBuildCliRootPath) {
-        loaderModulePaths.push(path.resolve(angularBuildContext.angularBuildCliRootPath, 'node_modules'));
+    if (AngularBuildContext.angularBuildCliRootPath) {
+        loaderModulePaths.push(path.resolve(AngularBuildContext.angularBuildCliRootPath, 'node_modules'));
     } else {
-        loaderModulePaths.push(path.resolve(angularBuildContext.nodeModulesPath, '@bizappframework/angular-build/node_modules'));
+        loaderModulePaths.push(path.resolve(AngularBuildContext.nodeModulesPath,
+            '@bizappframework/angular-build/node_modules'));
     }
 
     // symlinks
@@ -388,7 +398,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AppBuildCo
         },
         plugins: plugins,
         stats: statOptions,
-        watchOptions: angularBuildContext.angularBuildConfig.watchOptions
+        watchOptions: AngularBuildContext.angularBuildConfig.watchOptions
     };
 
     // devServer

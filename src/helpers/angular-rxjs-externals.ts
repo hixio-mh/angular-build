@@ -1,4 +1,4 @@
-﻿export const defaultAngularAndRxJsExternals = {
+export const defaultAngularAndRxJsExternals = {
     // Angular dependencies
     '@angular/animations': 'ng.animations',
     '@angular/core': 'ng.core',

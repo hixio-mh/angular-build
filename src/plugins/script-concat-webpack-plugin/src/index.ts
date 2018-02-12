@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import * as uglify from 'uglify-js';
 import * as webpack from 'webpack';

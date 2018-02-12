@@ -1,4 +1,4 @@
-﻿import { existsSync, statSync } from 'fs';
+import { existsSync, statSync } from 'fs';
 import * as path from 'path';
 
 import { DllOptions, DllParsedResult, InvalidConfigError } from '../models';

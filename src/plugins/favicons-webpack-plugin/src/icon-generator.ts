@@ -1,4 +1,4 @@
-﻿// Ref: realfavicongenerator.net - http://realfavicongenerator.net/api/non_interactive_api#.WHMaFxt96Ul
+// Ref: realfavicongenerator.net - http://realfavicongenerator.net/api/non_interactive_api#.WHMaFxt96Ul
 // Ref: RealFaviconGenerator/rfg-api - https://github.com/RealFaviconGenerator/rfg-api
 // Ref: evilebottnawi/favicons - https://github.com/evilebottnawi/favicons (http://favicons.io/)
 
@@ -403,19 +403,19 @@ export class IconGenerator {
                 res =>
                     res.pipe(unzip.Parse())
                         .on('entry',
-                        (entry: any) => {
-                            const fileName = entry.path;
-                            const size = entry.size;
-                            const bufs: any[] = [];
-                            entry
-                                .on('data', (d: any) => bufs.push(d))
-                                .on('end',
-                                () => files.push({ name: fileName, size: size, content: Buffer.concat(bufs) }))
-                                .on('error', (err: Error) => reject(err));
-                            // Important: If you do not intend to consume an entry stream's raw data, call autodrain() to
-                            // dispose of the entry's contents.
-                            entry.autodrain();
-                        })
+                            (entry: any) => {
+                                const fileName = entry.path;
+                                const size = entry.size;
+                                const bufs: any[] = [];
+                                entry
+                                    .on('data', (d: any) => bufs.push(d))
+                                    .on('end',
+                                        () => files.push({ name: fileName, size: size, content: Buffer.concat(bufs) }))
+                                    .on('error', (err: Error) => reject(err));
+                                // Important: If you do not intend to consume an entry stream's raw data, call autodrain() to
+                                // dispose of the entry's contents.
+                                entry.autodrain();
+                            })
                         .on('close', () => resolve(files))
                         .on('error', (err: Error) => reject(err))
             )

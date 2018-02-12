@@ -1,8 +1,8 @@
 import * as webpack from 'webpack';
 
 import {
+    AngularBuildContext,
     InvalidConfigError,
-    LibBuildContext,
     LibProjectConfigInternal,
     TypescriptCompileError,
     UglifyError,
@@ -16,7 +16,7 @@ import { performPackageJsonCopy } from '../../../helpers/perform-package-json-co
 import { processStyles } from '../../../helpers/process-styles';
 
 export interface LibBundleWebpackPluginOptions {
-    angularBuildContext: LibBuildContext;
+    angularBuildContext: AngularBuildContext;
 }
 
 export class LibBundleWebpackPlugin {
@@ -50,7 +50,7 @@ export class LibBundleWebpackPlugin {
         });
     }
 
-    private async performBundleTask(angularBuildContext: LibBuildContext): Promise<void> {
+    private async performBundleTask(angularBuildContext: AngularBuildContext): Promise<void> {
         const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
         if (libConfig.tsTranspilation) {
             await performNgc(angularBuildContext);

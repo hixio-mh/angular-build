@@ -1,4 +1,4 @@
-﻿export class InternalError extends Error {
+export class InternalError extends Error {
     private _nativeError: Error;
 
     constructor(message: string) {

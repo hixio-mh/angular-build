@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 export function removeEndingSlash(p: string): string {
     if (!p) {

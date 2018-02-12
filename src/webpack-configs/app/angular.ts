@@ -12,10 +12,11 @@ import {
 } from '@ngtools/webpack';
 
 import {
-    AppBuildContext,
+    AngularBuildContext,
     AppProjectConfigInternal,
     InvalidConfigError,
-    ModuleReplacementEntry
+    ModuleReplacementEntry,
+    PreDefinedEnvironment
 } from '../../models';
 import { isWebpackDevServer } from '../../helpers/is-webpack-dev-server';
 
@@ -31,23 +32,24 @@ const { CheckerPlugin, TsConfigPathsPlugin } = require('awesome-typescript-loade
  * require('@angular-devkit/build-optimizer')
  */
 
-export function getAppAngularTypescriptWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
+export function getAppAngularTypescriptWebpackConfigPartial(angularBuildContext: AngularBuildContext,
+    env?: PreDefinedEnvironment): webpack.Configuration {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
     if (!appConfig.entry) {
         return {};
     }
 
     if (appConfig.useLegacyTsLoader) {
-        return getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext);
+        return getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext, env);
     }
 
-    return getAngularPluginWebpackConfigPartial(angularBuildContext);
+    return getAngularPluginWebpackConfigPartial(angularBuildContext, env);
 }
 
-export function getAngularFixPlugins(angularBuildContext: AppBuildContext): webpack.Plugin[] {
-    const projectRoot = angularBuildContext.projectRoot;
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+export function getAngularFixPlugins(angularBuildContext: AngularBuildContext): webpack.Plugin[] {
+    const projectRoot = AngularBuildContext.projectRoot;
 
+    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
     const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
 
     const angularFixPlugins: webpack.Plugin[] = [
@@ -80,14 +82,25 @@ export function getAngularFixPlugins(angularBuildContext: AppBuildContext): webp
     return angularFixPlugins;
 }
 
-function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
+function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: AngularBuildContext,
+    env?: PreDefinedEnvironment): webpack.Configuration {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    const cliIsGlobal = angularBuildContext.cliIsGlobal;
-    const projectRoot = angularBuildContext.projectRoot;
 
     if (!appConfig.entry) {
         return {};
     }
+
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
+
+    if (environment.aot) {
+        throw new InvalidConfigError(
+            `Can't use 'useLegacyTsLoader' ehen env = 'aot' - at '${appConfig._projectType}s[${appConfig._index
+            }].useLegacyTsLoader'.`);
+    }
+
+    const cliIsGlobal = AngularBuildContext.cliIsGlobal;
+    const projectRoot = AngularBuildContext.projectRoot;
+    const verbose = AngularBuildContext.angularBuildConfig.logLevel !== 'debug';
 
     const tsConfigFilePath = appConfig._tsConfigPath;
 
@@ -121,7 +134,7 @@ function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: App
                     options: {
                         instance: `at-${appConfig.name || 'apps[' + appConfig._index + ']'}-loader`,
                         configFileName: tsConfigFilePath,
-                        silent: angularBuildContext.angularBuildConfig.logLevel !== 'debug'
+                        silent: verbose
                     }
                 },
                 {
@@ -171,15 +184,17 @@ function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: App
     };
 }
 
-function getAngularPluginWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
+function getAngularPluginWebpackConfigPartial(angularBuildContext: AngularBuildContext,
+    env?: PreDefinedEnvironment): webpack.Configuration {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    const cliIsGlobal = angularBuildContext.cliIsGlobal;
-    const environment = angularBuildContext.environment;
-    const projectRoot = angularBuildContext.projectRoot;
 
     if (!appConfig.entry) {
         return {};
     }
+
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
+    const projectRoot = AngularBuildContext.projectRoot;
+    const cliIsGlobal = AngularBuildContext.cliIsGlobal;
 
     const tsConfigFilePath = appConfig._tsConfigPath;
 
@@ -276,9 +291,8 @@ function getAngularPluginWebpackConfigPartial(angularBuildContext: AppBuildConte
     };
 }
 
-function createAotPlugin(angularBuildContext: AppBuildContext,
+function createAotPlugin(angularBuildContext: AngularBuildContext,
     options: AotPluginOptions | AngularCompilerPluginOptions): webpack.Plugin {
-    const projectRoot = angularBuildContext.projectRoot;
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
 
     if (!appConfig.entry) {
@@ -286,6 +300,8 @@ function createAotPlugin(angularBuildContext: AppBuildContext,
             `The '${appConfig._projectType}s[${appConfig._index
             }].entry' value is required.`);
     }
+
+    const projectRoot = AngularBuildContext.projectRoot;
 
     options.compilerOptions = options.compilerOptions || {};
 

@@ -84,20 +84,20 @@ export class BundleAnalyzerWebpackPlugin {
         }
 
         const statsFileRelative = path.relative(outputPath, statsFilepath);
-         const isPersistedOutFileSystem =
+        const isPersistedOutFileSystem =
             this.persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name);
-         const content = new Buffer(JSON.stringify(stats, null, 2), 'utf8');
-         if (this.options.forceWriteToDisk && !isPersistedOutFileSystem) {
-             this.logger.debug(`Emitting ${statsFileRelative} to disk`);
-             await ensureDir(path.dirname(statsFilepath));
-             await writeFile(statsFilepath, content);
-         } else {
-             this.logger.debug(`Emitting ${statsFileRelative}`);
-             await new Promise((resolve, reject) => compiler.outputFileSystem.mkdirp(path.dirname(statsFilepath),
-                 (err: Error) => err ? reject(err) : resolve()));
-             await new Promise((resolve, reject) => compiler.outputFileSystem.writeFile(statsFilepath, content,
-                 (err: Error) => err ? reject(err) : resolve()));
-         }
+        const content = new Buffer(JSON.stringify(stats, null, 2), 'utf8');
+        if (this.options.forceWriteToDisk && !isPersistedOutFileSystem) {
+            this.logger.debug(`Emitting ${statsFileRelative} to disk`);
+            await ensureDir(path.dirname(statsFilepath));
+            await writeFile(statsFilepath, content);
+        } else {
+            this.logger.debug(`Emitting ${statsFileRelative}`);
+            await new Promise((resolve, reject) => compiler.outputFileSystem.mkdirp(path.dirname(statsFilepath),
+                (err: Error) => err ? reject(err) : resolve()));
+            await new Promise((resolve, reject) => compiler.outputFileSystem.writeFile(statsFilepath, content,
+                (err: Error) => err ? reject(err) : resolve()));
+        }
     }
 
     private async generateStaticReport(stats: any, compiler: webpack.Compiler, outputPath?: string): Promise<void> {
@@ -130,19 +130,19 @@ export class BundleAnalyzerWebpackPlugin {
         }
 
         const reportFileRelative = path.relative(outputPath, reportFilepath);
-         const isPersistedOutFileSystem =
+        const isPersistedOutFileSystem =
             this.persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name);
-         if (this.options.forceWriteToDisk && !isPersistedOutFileSystem) {
-             this.logger.debug(`Emitting ${reportFileRelative} to disk`);
-             await ensureDir(path.dirname(reportFilepath));
-             await writeFile(reportFilepath, reportHtml);
-         } else {
-             this.logger.debug(`Emitting ${reportFileRelative}`);
-             await new Promise((resolve, reject) => compiler.outputFileSystem.mkdirp(path.dirname(reportFilepath),
-                 (err2: Error) => err2 ? reject(err2) : resolve()));
-             await new Promise((resolve, reject) => compiler.outputFileSystem.writeFile(reportFilepath, reportHtml,
-                 (err2: Error) => err2 ? reject(err2) : resolve()));
-         }
+        if (this.options.forceWriteToDisk && !isPersistedOutFileSystem) {
+            this.logger.debug(`Emitting ${reportFileRelative} to disk`);
+            await ensureDir(path.dirname(reportFilepath));
+            await writeFile(reportFilepath, reportHtml);
+        } else {
+            this.logger.debug(`Emitting ${reportFileRelative}`);
+            await new Promise((resolve, reject) => compiler.outputFileSystem.mkdirp(path.dirname(reportFilepath),
+                (err2: Error) => err2 ? reject(err2) : resolve()));
+            await new Promise((resolve, reject) => compiler.outputFileSystem.writeFile(reportFilepath, reportHtml,
+                (err2: Error) => err2 ? reject(err2) : resolve()));
+        }
 
         if (this.options.openAnalyzer && (isPersistedOutFileSystem || this.options.forceWriteToDisk)) {
             try {
@@ -151,8 +151,8 @@ export class BundleAnalyzerWebpackPlugin {
                 const command = process.platform === 'win32'
                     ? 'cmd'
                     : process.platform === 'darwin'
-                    ? 'open'
-                    : 'xdg-open';
+                        ? 'open'
+                        : 'xdg-open';
                 let args = [`file://${reportFilepath}`];
                 if (process.platform === 'win32') {
                     // On Windows, we really want to use the "start" command. But, the rules regarding arguments with spaces, and

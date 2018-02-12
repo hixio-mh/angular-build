@@ -1,4 +1,4 @@
-﻿import * as path from 'path';
+import * as path from 'path';
 
 import * as webpack from 'webpack';
 
@@ -12,30 +12,34 @@ import { ResourceHintsHtmlWebpackPlugin } from '../../plugins/resource-hints-htm
 import { ScriptsConcatWebpackPlugin } from '../../plugins/script-concat-webpack-plugin';
 
 import {
-    AppBuildContext,
+    AngularBuildContext,
     AppProjectConfigInternal,
     FaviconsConfig,
     GlobalParsedEntry,
     InternalError,
     InvalidConfigError,
-    PreDefinedEnvironment } from '../../models';
+    PreDefinedEnvironment
+} from '../../models';
 import { applyProjectConfigDefaults, applyProjectConfigWithEnvOverrides } from '../../helpers/prepare-configs';
 
-export function getAppBrowserWebpackConfigPartial(angularBuildContext: AppBuildContext): webpack.Configuration {
+export function
+    getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment): webpack.
+    Configuration {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
 
     // browser only
     if ((appConfig.platformTarget && appConfig.platformTarget !== 'web') ||
-    (!appConfig.entry &&
-        (!appConfig.polyfills || !appConfig.polyfills.length) &&
-        (!appConfig.scripts || !appConfig.scripts.length) &&
-        (!appConfig.htmlInject || !Object.keys(appConfig.htmlInject).length) &&
-        !appConfig.favicons)) {
+        (!appConfig.entry &&
+            (!appConfig.polyfills || !appConfig.polyfills.length) &&
+            (!appConfig.scripts || !appConfig.scripts.length) &&
+            (!appConfig.htmlInject || !Object.keys(appConfig.htmlInject).length) &&
+            !appConfig.favicons)) {
         return {};
     }
 
-    const environment = angularBuildContext.environment as PreDefinedEnvironment;
-    const projectRoot = angularBuildContext.projectRoot;
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
+    const projectRoot = AngularBuildContext.projectRoot;
+
     const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
 
     const entryPoints: { [key: string]: string[] } = {};
@@ -65,8 +69,8 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AppBuildC
     }
 
     // plugins
-    plugins.push(...getHtmlInjectPlugins(angularBuildContext));
-    plugins.push(...getChunkPlugins(angularBuildContext));
+    plugins.push(...getHtmlInjectPlugins(angularBuildContext, env));
+    plugins.push(...getChunkPlugins(angularBuildContext, env));
 
     // global scripts
     if (appConfig.scripts && appConfig.scripts.length > 0) {
@@ -88,7 +92,8 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AppBuildC
                     });
                 }
                 return prev;
-            }, []);
+            },
+                []);
 
         plugins.push(new ScriptsConcatWebpackPlugin({
             scripts: globalScriptsByEntry,
@@ -97,7 +102,7 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AppBuildC
             sourceMap: appConfig.sourceMap,
             minify: environment.prod,
             loggerOptions: {
-                logLevel: angularBuildContext.angularBuildConfig.logLevel
+                logLevel: AngularBuildContext.angularBuildConfig.logLevel
             }
         }));
     }
@@ -136,7 +141,7 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AppBuildC
             lang: appConfig.locale,
 
             loggerOptions: {
-                logLevel: angularBuildContext.angularBuildConfig.logLevel
+                logLevel: AngularBuildContext.angularBuildConfig.logLevel
             }
         }));
     }
@@ -175,7 +180,7 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AppBuildC
     return webpackBrowserConfig;
 }
 
-function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plugin[] {
+function getHtmlInjectPlugins(angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment): webpack.Plugin[] {
     const plugins: webpack.Plugin[] = [];
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
 
@@ -188,8 +193,9 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
             }].outDir' value is required.`);
     }
 
-    const environment = angularBuildContext.environment;
-    const projectRoot = angularBuildContext.projectRoot;
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
+    const projectRoot = AngularBuildContext.projectRoot;
+
     const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
@@ -282,7 +288,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
         const targetLinkIds = [defaultHtmlWebpackPluginId, stylesHtmlWebpackPluginId, resourceHintsHtmlWebpackPluginId];
 
         const dllEnvironment =
-            JSON.parse(JSON.stringify(angularBuildContext.environment)) as PreDefinedEnvironment;
+            JSON.parse(JSON.stringify(environment)) as PreDefinedEnvironment;
         dllEnvironment.aot = false;
         dllEnvironment.dll = true;
         const dllProjectConfig =
@@ -291,7 +297,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
         applyProjectConfigDefaults(projectRoot, dllProjectConfig, dllEnvironment);
 
         if (dllProjectConfig.dll &&
-        ((Array.isArray(dllProjectConfig.dll) && dllProjectConfig.dll.length > 0) ||
+            ((Array.isArray(dllProjectConfig.dll) && dllProjectConfig.dll.length > 0) ||
                 (typeof dllProjectConfig.dll === 'object' && Object.keys(dllProjectConfig.dll).length > 0))) {
             plugins.push(new AddAssetsHtmlWebpckPlugin({
                 source: 'json',
@@ -426,7 +432,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
                 rawTagsHtmlPluginOptionsKey: 'favicons',
                 targetHtmlWebpackPluginIdsForRawTags: targetHtmlWebpackPluginIds,
                 loggerOptions: {
-                    logLevel: angularBuildContext.angularBuildConfig.logLevel
+                    logLevel: AngularBuildContext.angularBuildConfig.logLevel
                 }
             }));
         }
@@ -462,7 +468,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
             prefetches: appConfig.htmlInject.prefetches || [],
             customAttributes: customPreloadPrefetchAttributes,
             loggerOptions: {
-                logLevel: angularBuildContext.angularBuildConfig.logLevel
+                logLevel: AngularBuildContext.angularBuildConfig.logLevel
             }
         }));
 
@@ -507,7 +513,7 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
             },
             targetHtmlWebpackPluginIds: targetHtmlWebpackPluginIds,
             loggerOptions: {
-                logLevel: angularBuildContext.angularBuildConfig.logLevel
+                logLevel: AngularBuildContext.angularBuildConfig.logLevel
             }
         }));
 
@@ -546,15 +552,15 @@ function getHtmlInjectPlugins(angularBuildContext: AppBuildContext): webpack.Plu
     return plugins;
 }
 
-function getChunkPlugins(angularBuildContext: AppBuildContext): webpack.Plugin[] {
-    const plugins: webpack.Plugin[] = [];
+function getChunkPlugins(angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment): webpack.Plugin[] {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    const plugins: webpack.Plugin[] = [];
 
     if (!appConfig.entry) {
         return plugins;
     }
 
-    const environment = angularBuildContext.environment;
+    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
     const commonChunkName = appConfig.commonChunkName || 'common';

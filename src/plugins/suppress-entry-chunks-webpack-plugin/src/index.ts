@@ -1,8 +1,8 @@
-﻿// Ref: angular-cli - https://github.com/angular/angular-cli
+// Ref: angular-cli - https://github.com/angular/angular-cli
 
 import * as webpack from 'webpack';
 
-import {InternalError} from '../../../models';
+import { InternalError } from '../../../models';
 
 export interface SuppressEntryChunksWebpackPluginOptions {
     chunks?: string[];
