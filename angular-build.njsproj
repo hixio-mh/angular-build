@@ -127,7 +127,6 @@
     <Folder Include="src\webpack-configs\" />
     <Folder Include="src\webpack-configs\app\" />
     <Folder Include="src\webpack-configs\lib\" />
-    <Folder Include="test\e2e\" />
     <Folder Include="test\hello-world-ng-app-build-test\" />
     <Folder Include="test\hello-world-ng-app-build-test\src\" />
     <Folder Include="test\hello-world-ng-app-build-test\src\app\" />

@@ -34,7 +34,9 @@
     "test": "echo \"Error: no test specified\" ",
     "postinstall": "node ./scripts/postinstall.js",
     "test:build-app": "node dist/bin/ngb build --config=test/hello-world-ng-app-build-test/angular-build.json",
-    "test:build-lib": "node dist/bin/ngb build --config=test/hello-world-ng-lib-build-test/angular-build.json"
+    "test:build-app:prod": "node dist/bin/ngb build --config=test/hello-world-ng-app-build-test/angular-build.json --env.prod --env.aot",
+    "test:build-lib": "node dist/bin/ngb build --config=test/hello-world-ng-lib-build-test/angular-build.json",
+    "test:build-lib:prod": "node dist/bin/ngb build --config=test/hello-world-ng-lib-build-test/angular-build.json --env.prod"
   },
   "dependencies": {
     "@angular-devkit/build-optimizer": "^0.3.1",
