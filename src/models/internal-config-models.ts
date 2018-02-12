@@ -184,7 +184,7 @@ export class AngularBuildContext {
 
         AngularBuildContext._logger = new Logger({
             name: '',
-            logLevel: AngularBuildContext.angularBuildConfig.logLevel || 'info',
+            logLevel: angularBuildConfig.logLevel || 'info',
             debugPrefix: 'DEBUG:',
             warnPrefix: 'WARNING:'
         });
