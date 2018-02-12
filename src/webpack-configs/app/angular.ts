@@ -94,7 +94,7 @@ function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: Ang
 
     if (environment.aot) {
         throw new InvalidConfigError(
-            `Can't use 'useLegacyTsLoader' ehen env = 'aot' - at '${appConfig._projectType}s[${appConfig._index
+            `Can't use 'useLegacyTsLoader' when env = 'aot' - at '${appConfig._projectType}s[${appConfig._index
             }].useLegacyTsLoader'.`);
     }
 

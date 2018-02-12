@@ -135,7 +135,6 @@ export function parseDllEntries(srcDir: string,
             } else {
                 throw new InvalidConfigError(`Error in parsing dll entry, path doesn't exists, path: ${packagePath}.`);
             }
-
         });
 
     return result;

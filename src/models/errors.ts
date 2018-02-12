@@ -84,6 +84,49 @@ export class InvalidConfigError extends Error {
     }
 }
 
+export class InvalidOptionError extends Error {
+    private _nativeError: Error;
+
+    constructor(message: string) {
+        super(message);
+        // Required for TS 2.1, see
+        // https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+        (Object as any).setPrototypeOf(this, InvalidOptionError.prototype);
+
+        const nativeError = new Error(message) as any as Error;
+        nativeError.name = 'InvalidOptionError';
+        this._nativeError = nativeError;
+    }
+
+    get message(): string {
+        return this._nativeError.message;
+    }
+    set message(message: string) {
+        if (this._nativeError) {
+            this._nativeError.message = message;
+        }
+    }
+    get name(): string {
+        return this._nativeError.name;
+    }
+    set name(name: string) {
+        if (this._nativeError) {
+            this._nativeError.name = name;
+        }
+    }
+    get stack(): any {
+        return (this._nativeError as any).stack;
+    }
+    set stack(value: any) {
+        if (this._nativeError) {
+            (this._nativeError as any).stack = value;
+        }
+    }
+    toString(): string {
+        return this._nativeError.toString();
+    }
+}
+
 export class TypescriptCompileError extends Error {
     private _nativeError: Error;
 

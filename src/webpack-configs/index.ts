@@ -8,6 +8,7 @@ import {
     AngularBuildContext,
     InternalError,
     InvalidConfigError,
+    InvalidOptionError,
     LibProjectConfigInternal,
     PreDefinedEnvironment,
     ProjectConfigInternal
@@ -31,7 +32,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
     let startTime = Date.now();
 
     if (!configPath || !configPath.length) {
-        throw new InternalError(`The 'configPath' is required.`);
+        throw new InvalidOptionError(`The 'configPath' is required.`);
     }
 
     const projectRoot = path.dirname(configPath);
@@ -53,10 +54,12 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
     if (fromAngularBuildCli && argv && argv.cliVersion) {
         angularBuildVersion = argv.cliVersion;
     } else {
-        let angularBuildPackageJsonPath = path.resolve(projectRoot, 'node_modules/@bizappframework/angular-build/package.json');
+        let angularBuildPackageJsonPath =
+            path.resolve(projectRoot, 'node_modules/@bizappframework/angular-build/package.json');
         if (!existsSync(angularBuildPackageJsonPath) && existsSync(path.resolve(__dirname, '../package.json'))) {
             angularBuildPackageJsonPath = path.resolve(__dirname, '../package.json');
-        } else if (!existsSync(angularBuildPackageJsonPath) && existsSync(path.resolve(__dirname, '../../package.json'))) {
+        } else if (!existsSync(angularBuildPackageJsonPath) &&
+            existsSync(path.resolve(__dirname, '../../package.json'))) {
             angularBuildPackageJsonPath = path.resolve(__dirname, '../../package.json');
         }
         const pkgJson = readJsonSync(angularBuildPackageJsonPath);
@@ -100,11 +103,11 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
 
     // Prepare angular-build.json config
     if (!/\.json$/i.test(configPath)) {
-        throw new InternalError(`Invalid config file, path: ${configPath}.`);
+        throw new InvalidOptionError(`Invalid config file, path: ${configPath}.`);
     }
 
     if (!existsSync(configPath)) {
-        throw new InternalError(`The angular-build.json config file does not exist at ${configPath}.`);
+        throw new InvalidOptionError(`The angular-build.json config file does not exist at ${configPath}.`);
     }
 
     let angularBuildConfig: AngularBuildConfigInternal | null = null;
@@ -150,7 +153,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
             const errMsg = errors.map(err => formatValidationError(schema, err)).join('\n');
             throw new InvalidConfigError(
                 `Invalid configuration.\n\n${
-                errMsg}\n`);
+                errMsg}`);
         }
 
         angularBuildConfig._schema = schema;

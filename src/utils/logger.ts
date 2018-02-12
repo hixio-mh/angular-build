@@ -104,8 +104,8 @@ export class Logger implements LoggerBase {
                 ? this.loggerOptions.warnPrefix + ' '
                 : ''}`;
         const logMsg = this.loggerOptions.color !== false
-            ? colorize(`${prefix}${message.trim()}`, 'yellow')
-            : `${prefix}${message.trim()}`;
+            ? colorize(`${prefix}${message}`, 'yellow')
+            : `${prefix}${message.trimLeft()}`;
 
         if (optionalParams) {
             console.warn(logMsg, optionalParams);
@@ -115,7 +115,7 @@ export class Logger implements LoggerBase {
     }
 
     error(message: string, optionalParams?: any[]): void {
-        if (this.minLogLevel < LogLevel.Warn || !message) {
+        if (this.minLogLevel < LogLevel.Error || !message) {
             return;
         }
 
@@ -125,8 +125,8 @@ export class Logger implements LoggerBase {
                 ? this.loggerOptions.errorPrefix + ' '
                 : ''}`;
         const logMsg = this.loggerOptions.color !== false
-            ? colorize(`${prefix}${message.trim()}`, 'red')
-            : `${prefix}${message.trim()}`;
+            ? colorize(`${prefix}${message}`, 'red')
+            : `${prefix}${message.trimLeft()}`;
 
         if (optionalParams) {
             console.error(logMsg, optionalParams);
