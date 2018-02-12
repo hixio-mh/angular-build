@@ -31,12 +31,13 @@
     "copy-files": "node tools/copy-files.js",
     "ngb:version": "node dist/bin/ngb --version",
     "build": "npm run clean && npm run lint && npm run tsc && npm run generate-schema && npm run copy-files && npm run ngb:version",
-    "test": "echo \"Error: no test specified\" ",
     "postinstall": "node ./scripts/postinstall.js",
+    "test": "echo \"Error: no test specified\" ",
+    "test:build-all": "npm run test:build-app && npm run test:build-app:prod && npm run test:build-lib && npm run test:build-lib:prod",
     "test:build-app": "node dist/bin/ngb build --config=test/hello-world-ng-app-build-test/angular-build.json",
-    "test:build-app:prod": "node dist/bin/ngb build --config=test/hello-world-ng-app-build-test/angular-build.json --env.prod --env.aot",
+    "test:build-app:prod": "node dist/bin/ngb build --config=test/hello-world-ng-app-build-test/angular-build.json --env.prod --env.aot --clean",
     "test:build-lib": "node dist/bin/ngb build --config=test/hello-world-ng-lib-build-test/angular-build.json",
-    "test:build-lib:prod": "node dist/bin/ngb build --config=test/hello-world-ng-lib-build-test/angular-build.json --env.prod"
+    "test:build-lib:prod": "node dist/bin/ngb build --config=test/hello-world-ng-lib-build-test/angular-build.json --env.prod --clean"
   },
   "dependencies": {
     "@angular-devkit/build-optimizer": "^0.3.1",
