@@ -1,0 +1,15 @@
+{
+  "apps": [
+    {
+      "srcDir": "src",
+      "outDir": "dist",
+      "entry": "main.ts",
+
+      "copy": [ "favicon.ico" ],
+      "publicPath": "/",
+      "htmlInject": {
+        "index": "index.html"
+      }
+    }
+  ]
+}

@@ -56,6 +56,12 @@
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="src\plugins\favicons-webpack-plugin\package.json" />
+    <Content Include="test\hello-world-ng-app-build-test\angular-build.json" />
+    <Content Include="test\hello-world-ng-app-build-test\src\app\app.component.css" />
+    <Content Include="test\hello-world-ng-app-build-test\src\app\app.component.html" />
+    <Content Include="test\hello-world-ng-app-build-test\src\favicon.ico" />
+    <Content Include="test\hello-world-ng-app-build-test\src\index.html" />
+    <Content Include="test\hello-world-ng-app-build-test\src\tsconfig.json" />
     <Content Include="tools\tsconfig-favicons-schema.json" />
     <Content Include="tools\tsconfig-schema.json" />
     <Content Include="tsconfig.json" />
@@ -116,7 +122,9 @@
     <Folder Include="src\webpack-configs\app\" />
     <Folder Include="src\webpack-configs\lib\" />
     <Folder Include="test\e2e\" />
-    <Folder Include="test\e2e\build\" />
+    <Folder Include="test\hello-world-ng-app-build-test\" />
+    <Folder Include="test\hello-world-ng-app-build-test\src\" />
+    <Folder Include="test\hello-world-ng-app-build-test\src\app\" />
     <Folder Include="tools\" />
   </ItemGroup>
   <ItemGroup>
@@ -213,6 +221,10 @@
     <TypeScriptCompile Include="src\webpack-configs\app\styles.ts" />
     <TypeScriptCompile Include="src\webpack-configs\index.ts" />
     <TypeScriptCompile Include="src\webpack-configs\lib\lib.ts" />
+    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\app\app.component.ts" />
+    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\app\app.module.ts" />
+    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\main.ts" />
+    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\typings.d.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="scripts\postinstall.js" />
