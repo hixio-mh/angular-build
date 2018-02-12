@@ -18,14 +18,14 @@ export class TelemetryWebpackPlugin {
                     return;
                 }
 
+                TelemetryWebpackPlugin._telemetryInitialized = true;
                 initAppInsights();
                 cb();
             });
 
         compiler.plugin('done',
             (stats: webpack.Stats) => {
-                if (process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY ||
-                    AngularBuildContext.telemetryDisabled ||
+                if (AngularBuildContext.telemetryDisabled ||
                     AngularBuildContext.fromAngularBuildCli) {
                     return;
                 }
@@ -61,12 +61,13 @@ export function initAppInsights(): void {
     (global as any).angular_build_telemetry_initialized = true;
 
     process.env.ANGULAR_BUILD_UUID_NS = `61c38600-38ac-411a-ad18-4daf41a5f0ad`;
-    const identifier = `${uuidv5(`${uuidv4()}`, process.env.ANGULAR_BUILD_UUID_NS)}`;
+    const identifier = `${uuidv5(`${uuidv4()}`, process.env.ANGULAR_BUILD_UUID_NS).substr(0, 8)}`;
 
     if (!process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY) {
         process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY = process.env.ANGULAR_BUILD_UUID_NS;
     }
 
+    const telemetryVerbose = process.argv.indexOf('--telemetry-verbose') > -1;
     const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
     const fromAngularBuildCli =
         typeof AngularBuildContext.fromAngularBuildCli !== 'undefined' && AngularBuildContext.fromAngularBuildCli;
@@ -79,7 +80,7 @@ export function initAppInsights(): void {
         typeof process.env.ANGULAR_BUILD_APPINSIGHTS_commonAppInsightsProps === 'string') {
         try {
             commonAppInsightsProps = JSON.parse(process.env.ANGULAR_BUILD_APPINSIGHTS_commonAppInsightsProps as string);
-        } catch (err2) {
+        } catch (err) {
             // do nothing
         }
     }
@@ -102,9 +103,17 @@ export function initAppInsights(): void {
         .setAutoCollectExceptions(false)
         .setAutoDependencyCorrelation(false)
         .setAutoCollectDependencies(false)
-        .setInternalLogging(verbose, verbose);
+        .setInternalLogging(telemetryVerbose, telemetryVerbose);
     appInsights.defaultClient.commonProperties = commonAppInsightsProps;
-
     appInsights.defaultClient.config.disableAppInsights = AngularBuildContext.telemetryDisabled;
     appInsights.start();
+
+    process.on('exit',
+        code => {
+            if (verbose) {
+                console.log('\n');
+                console.log(`Identifier: ${identifier}`);
+                console.log(`\nProcess is exited with code: ${code}\n`);
+            }
+        });
 }
