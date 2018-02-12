@@ -48,6 +48,11 @@ function _invokeCli(cli, cliOptions) {
       process.exitCode = typeof exitCode === 'number' ? exitCode : 0;
       _exit(process.exitCode);
     });
+    ret.catch(err => {
+      process.exitCode = -1;
+      console.error(`${err.stack || err.message}`);
+      _exit(process.exitCode);
+    });
   } else if (ret && typeof ret === 'number') {
     process.exitCode = ret;
     _exit(process.exitCode);
