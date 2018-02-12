@@ -18,10 +18,10 @@ environment:
     secure: 2G57TJwGR3m40UD1G7YdkowFzezrhOxEzMKwehKpb1vNPbsbFzfKRIFYVQ7WzZzE
   matrix:
     # node.js
-    - nodejs_version: "6"
-    - nodejs_version: "7"
-    - nodejs_version: "8"
     - nodejs_version: "9"
+    - nodejs_version: "8"
+    - nodejs_version: "7"
+    - nodejs_version: "6"
 
 matrix:
   fast_finish: true
@@ -45,7 +45,7 @@ test_script:
 
 deploy_script:
   - ps: |
-      if ($env:nodejs_version -eq "8")
+      if ($env:nodejs_version -eq "6")
       {
         iex "npm publish dist --access=public"
       }
