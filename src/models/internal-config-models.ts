@@ -313,8 +313,8 @@ export class AngularBuildContext {
         return this._rootPackageConfigPath;
     }
 
-    private _packageJson?: any;
-    get packageJson(): any {
+    private _packageJson: { [key: string]: string } | undefined | null = undefined;
+    get packageJson(): { [key: string]: string } | undefined | null {
         if (typeof this._packageJson !== 'undefined') {
             return this._packageJson;
         }
@@ -329,8 +329,8 @@ export class AngularBuildContext {
         return this._packageJson;
     }
 
-    private _rootPackageJson?: any;
-    get rootPackageJson(): any {
+    private _rootPackageJson: { [key: string]: string } | undefined | null = undefined;
+    get rootPackageJson(): { [key: string]: string } | undefined | null {
         if (typeof this._rootPackageJson !== 'undefined') {
             return this._rootPackageJson;
         }
@@ -359,17 +359,19 @@ export class AngularBuildContext {
         const packageJson = this.packageJson;
         const rootPackageJson = this.rootPackageJson;
 
-        if (rootPackageJson &&
-            rootPackageJson.version &&
-            (!packageJson.version || packageJson.version === '0.0.0' ||
+        if (!packageJson ||
+            (!packageJson.version ||
+                packageJson.version === '0.0.0' ||
                 packageJson.version === '[PLACEHOLDER]' ||
                 packageJson.version === '0.0.0-[PLACEHOLDER]')) {
-            return rootPackageJson.version;
-        } else {
-            if (packageJson && packageJson.version) {
-                return packageJson.version;
+            if (rootPackageJson &&
+                rootPackageJson.version) {
+                return rootPackageJson.version;
             }
+
             return undefined;
+        } else {
+            return packageJson.version;
         }
     }
 
@@ -450,13 +452,13 @@ export class AngularBuildContext {
         return undefined;
     }
 
-    get isPackagePrivate(): boolean | undefined {
+    get isPackagePrivate(): boolean {
         const packageJson = this.packageJson;
-        if (packageJson) {
-            return packageJson.private;
+        if (packageJson && packageJson.private) {
+            return true;
         }
 
-        return undefined;
+        return false;
     }
 
     private initPackageConfigPaths(): void {
@@ -505,6 +507,12 @@ export class AngularBuildContext {
                     if (pkgConfigPath === path.resolve(AngularBuildContext.projectRoot, 'package.json')) {
                         this._rootPackageConfigPath = pkgConfigPath;
                     }
+                }
+            }
+            if (!this._packageConfigPath && existsSync(pkgConfigPath)) {
+                this._packageConfigPath = pkgConfigPath;
+                if (pkgConfigPath === path.resolve(AngularBuildContext.projectRoot, 'package.json')) {
+                    this._rootPackageConfigPath = pkgConfigPath;
                 }
             }
             if (!this._packageConfigPath &&
