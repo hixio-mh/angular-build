@@ -39,6 +39,8 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
     const fromAngularBuildCli = argv && argv.fromAngularBuildCli ? true : false;
     const cliRootPath = fromAngularBuildCli && argv && argv.cliRootPath ? argv.cliRootPath as string : undefined;
     const cliIsGlobal = fromAngularBuildCli && argv && argv.cliIsGlobal ? true : false;
+    const cliVersion = fromAngularBuildCli && argv && argv.cliVersion ? argv.cliVersion : undefined;
+
     let cleanOutDirs = fromAngularBuildCli && argv && (argv.clean || argv.cleanOutDirs) ? true : false;
     let filterNames = fromAngularBuildCli && argv && argv.filter ? prepareFilterNames(argv.filter) : [];
 
@@ -48,22 +50,6 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
 
     if (fromAngularBuildCli && argv && argv.startTime) {
         startTime = argv.startTime;
-    }
-
-    let angularBuildVersion: string;
-    if (fromAngularBuildCli && argv && argv.cliVersion) {
-        angularBuildVersion = argv.cliVersion;
-    } else {
-        let angularBuildPackageJsonPath =
-            path.resolve(projectRoot, 'node_modules/@bizappframework/angular-build/package.json');
-        if (!existsSync(angularBuildPackageJsonPath) && existsSync(path.resolve(__dirname, '../package.json'))) {
-            angularBuildPackageJsonPath = path.resolve(__dirname, '../package.json');
-        } else if (!existsSync(angularBuildPackageJsonPath) &&
-            existsSync(path.resolve(__dirname, '../../package.json'))) {
-            angularBuildPackageJsonPath = path.resolve(__dirname, '../../package.json');
-        }
-        const pkgJson = readJsonSync(angularBuildPackageJsonPath);
-        angularBuildVersion = pkgJson.version;
     }
 
     // Prepare environment
@@ -176,9 +162,14 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
         throw new InvalidConfigError(`No app or lib project is available.`);
     }
 
-    AngularBuildContext.init(environment, angularBuildConfig, fromAngularBuildCli, angularBuildVersion, startTime);
-    AngularBuildContext.angularBuildCliRootPath = cliRootPath;
-    AngularBuildContext.cliIsGlobal = cliIsGlobal;
+    AngularBuildContext.init(environment,
+        angularBuildConfig,
+        fromAngularBuildCli,
+        startTime,
+        cliRootPath,
+        cliVersion,
+        cliIsGlobal);
+
     AngularBuildContext.watch = watch;
     AngularBuildContext.progress = progress;
     AngularBuildContext.cleanOutDirs = cleanOutDirs;

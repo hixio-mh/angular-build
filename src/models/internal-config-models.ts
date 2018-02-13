@@ -88,9 +88,6 @@ export type LibProjectConfigInternal = LibProjectConfig & ProjectConfigSharedInt
 export class AngularBuildContext {
     private static _initialized = false;
 
-    static angularBuildCliRootPath?: string;
-    static cliIsGlobal?: boolean;
-
     static watch?: boolean;
     static progress?: boolean;
     static cleanOutDirs?: boolean;
@@ -139,12 +136,22 @@ export class AngularBuildContext {
         return AngularBuildContext._fromAngularBuildCli;
     }
 
-    private static _angularBuildVersion: string | null = null;
-    static get angularBuildVersion(): string {
-        if (!AngularBuildContext._initialized || AngularBuildContext._angularBuildVersion == null) {
+    private static _cliRootPath: string | undefined = undefined;
+    static get cliRootPath(): string | undefined {
+        if (!AngularBuildContext._initialized) {
             throw new InternalError('AngularBuildContext has not been initialized.');
         }
-        return AngularBuildContext._angularBuildVersion;
+
+        return AngularBuildContext._cliRootPath;
+    }
+
+    private static _cliIsGlobal: boolean | undefined = undefined;
+    static get cliIsGlobal(): boolean | undefined {
+        if (!AngularBuildContext._initialized) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+
+        return AngularBuildContext._cliIsGlobal;
     }
 
     private static _projectRoot: string | undefined = undefined;
@@ -200,6 +207,50 @@ export class AngularBuildContext {
         }
 
         return AngularBuildContext._nodeModulesPath;
+    }
+
+    private static _cliVersion: string | undefined | null = undefined;
+    static get cliVersion(): string | undefined | null {
+        if (!AngularBuildContext._initialized) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+
+        if (typeof AngularBuildContext._cliVersion !== 'undefined') {
+            return AngularBuildContext._cliVersion;
+        }
+
+        if (!AngularBuildContext.nodeModulesPath) {
+            AngularBuildContext._cliVersion = null;
+            return AngularBuildContext._cliVersion;
+        }
+
+        let foundJson = false;
+        let angularBuildPackageJsonPath =
+            path.resolve(AngularBuildContext.nodeModulesPath, '@bizappframework/angular-build/package.json');
+        if (existsSync(angularBuildPackageJsonPath)) {
+            foundJson = true;
+        } else {
+            if (existsSync(path.resolve(__dirname, '../package.json'))) {
+                angularBuildPackageJsonPath = path.resolve(__dirname, '../package.json');
+                foundJson = true;
+            } else if (existsSync(path.resolve(__dirname, '../../package.json'))) {
+                angularBuildPackageJsonPath = path.resolve(__dirname, '../../package.json');
+                foundJson = true;
+            } else if (AngularBuildContext.cliRootPath &&
+                existsSync(path.resolve(AngularBuildContext.cliRootPath, 'package.json'))) {
+                angularBuildPackageJsonPath = path.resolve(AngularBuildContext.cliRootPath, 'package.json');
+                foundJson = true;
+            }
+        }
+
+        if (foundJson) {
+            const pkgJson = readJsonSync(angularBuildPackageJsonPath);
+            AngularBuildContext._cliVersion = pkgJson.version;
+        } else {
+            AngularBuildContext._cliVersion = null;
+        }
+
+        return AngularBuildContext._cliVersion;
     }
 
     private static _angularVersion: string | undefined | null = undefined;
@@ -495,12 +546,18 @@ export class AngularBuildContext {
     static init(environment: PreDefinedEnvironment,
         angularBuildConfig: AngularBuildConfigInternal,
         fromAngularBuildCli: boolean,
-        angularBuildVersion: string, startTime: number): void {
+        startTime: number,
+        cliRootPath?: string,
+        cliVersion?: string,
+        cliIsGlobal?: boolean): void {
         AngularBuildContext._environment = environment;
         AngularBuildContext._angularBuildConfig = angularBuildConfig;
         AngularBuildContext._fromAngularBuildCli = fromAngularBuildCli;
-        AngularBuildContext._angularBuildVersion = angularBuildVersion;
         AngularBuildContext._startTime = startTime;
+
+        AngularBuildContext._cliRootPath = cliRootPath;
+        AngularBuildContext._cliVersion = cliVersion;
+        AngularBuildContext._cliIsGlobal = cliIsGlobal;
 
         AngularBuildContext._logger = new Logger({
             name: '',
