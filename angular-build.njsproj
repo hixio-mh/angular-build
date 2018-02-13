@@ -47,6 +47,7 @@
   <ItemGroup>
     <Content Include=".appveyor.yml" />
     <Content Include=".editorconfig" />
+    <Content Include=".eslintignore" />
     <Content Include=".github\ISSUE_TEMPLATE.md" />
     <Content Include=".gitignore" />
     <Content Include=".travis.yml" />
