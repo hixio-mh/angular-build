@@ -13,153 +13,152 @@ const SemVer = require('semver').SemVer;
 const appInsightsDisabled = process.argv.indexOf('--disable-appinsights') > -1 || process.env.ANGULAR_BUILD_TELEMETRY_OPTOUT ? true : false;
 
 function _colorize(str, key) {
-  if (!supportsColor) {
-    return str;
-  }
+    if (!supportsColor) {
+        return str;
+    }
 
-  const buf = [];
-  buf.push(key);
-  buf.push(str);
-  buf.push('\u001b[37m');
-  buf.push('\u001b[39m\u001b[22m');
-  return buf.join('');
+    const buf = [];
+    buf.push(key);
+    buf.push(str);
+    buf.push('\u001b[37m');
+    buf.push('\u001b[39m\u001b[22m');
+    return buf.join('');
 }
 
 function _yellow(str) {
-  return _colorize(str, '\u001b[1m\u001b[33m');
+    return _colorize(str, '\u001b[1m\u001b[33m');
 }
 
 function _exit(code) {
-  if (process.platform === 'win32' && process.stdout.bufferSize) {
-    process.stdout.once('drain', function () {
-      process.exit(code);
-    });
-    return;
-  }
-  process.exit(code);
+    if (process.platform === 'win32' && process.stdout.bufferSize) {
+        process.stdout.once('drain', function () {
+            process.exit(code);
+        });
+        return;
+    }
+    process.exit(code);
 }
 
 function _invokeCli(cli, cliOptions) {
-  if ('default' in cli) {
-    cli = cli.default;
-  }
-
-  const ret = cli(cliOptions);
-  if (ret && typeof ret.then === 'function') {
-    ret.then((exitCode) => {
-      process.exitCode = typeof exitCode === 'number' ? exitCode : 0;
-      if (appInsightsDisabled) {
-        _exit(process.exitCode);
-      }
-    });
-    ret.catch(err => {
-      process.exitCode = -1;
-      console.error(`${err.stack || err.message}`);
-      _exit(process.exitCode);
-    });
-  } else if (ret && typeof ret === 'number') {
-    process.exitCode = ret;
-    if (appInsightsDisabled) {
-      _exit(process.exitCode);
+    if ('default' in cli) {
+        cli = cli.default;
     }
-  }
+
+    const ret = cli(cliOptions);
+    if (ret && typeof ret.then === 'function') {
+        ret.then((exitCode) => {
+            process.exitCode = typeof exitCode === 'number' ? exitCode : 0;
+            if (appInsightsDisabled) {
+                _exit(process.exitCode);
+            }
+        });
+        ret.catch(err => {
+            process.exitCode = -1;
+            console.error(`${err.stack || err.message}`);
+            _exit(process.exitCode);
+        });
+    } else if (ret && typeof ret === 'number') {
+        process.exitCode = ret;
+        if (appInsightsDisabled) {
+            _exit(process.exitCode);
+        }
+    }
 }
 
 function _cliGlobal() {
-  let cliRootPath = path.resolve(__dirname, '..');
-  if (!fs.existsSync(path.resolve(cliRootPath, 'node_modules'))) {
-    cliRootPath = path.dirname(cliRootPath);
-  }
-  const packageJson = require(path.resolve(cliRootPath, './package.json'));
-  let cliVersion = packageJson['version'];
+    let cliRootPath = path.resolve(__dirname, '..');
+    if (!fs.existsSync(path.resolve(cliRootPath, 'node_modules'))) {
+        cliRootPath = path.dirname(cliRootPath);
+    }
+    const packageJson = require(path.resolve(cliRootPath, './package.json'));
+    let cliVersion = packageJson['version'];
 
-  const updateNotifier = require('update-notifier');
-  updateNotifier({
-    pkg: packageJson
-  })
-    .notify({
-      defer: false
-    });
+    const updateNotifier = require('update-notifier');
+    updateNotifier({
+        pkg: packageJson
+    })
+        .notify({
+            defer: false
+        });
 
-  let cli = null;
-  if (fs.existsSync(path.resolve(__dirname, '../cli/index.js'))) {
-    cli = require('../cli');
-  } else {
-    cli = require('../dist/cli');
-  }
+    let cli = null;
+    if (fs.existsSync(path.resolve(__dirname, '../cli/index.js'))) {
+        cli = require('../cli');
+    } else {
+        cli = require('../dist/cli');
+    }
 
-  const cliOptions = {
-    args: process.argv.slice(2),
-    cliVersion: cliVersion,
-    cliIsGlobal: true,
-    cliRootPath: cliRootPath,
-    startTime: startTime
-  };
+    const cliOptions = {
+        args: process.argv.slice(2),
+        cliVersion: cliVersion,
+        cliIsGlobal: true,
+        cliRootPath: cliRootPath,
+        startTime: startTime
+    };
 
-  _invokeCli(cli, cliOptions);
+    _invokeCli(cli, cliOptions);
 
 }
 
 function _cliLocal(projectRoot) {
-  const resolve = require('resolve');
+    const resolve = require('resolve');
 
-  resolve('@bizappframework/angular-build', {
-    basedir: projectRoot
-  },
-    (error, projectLocalCli) => {
-      if (error) {
-        _cliGlobal();
-        return;
-      }
+    resolve('@bizappframework/angular-build', {
+        basedir: projectRoot
+    }, (error, projectLocalCli) => {
+        if (error) {
+            _cliGlobal();
+            return;
+        }
 
-      // projectLocalCli -> node_modules\@bizappframework\angular-build\index.js
-      let cliRootPath = path.dirname(projectLocalCli);
-      const packageJson = require(path.resolve(cliRootPath, './package.json'));
-      let cliVersion = packageJson['version'];
+        // projectLocalCli -> node_modules\@bizappframework\angular-build\index.js
+        let cliRootPath = path.dirname(projectLocalCli);
+        const packageJson = require(path.resolve(cliRootPath, './package.json'));
+        let cliVersion = packageJson['version'];
 
-      let localCliPath = path.resolve(cliRootPath, './cli');
-      const cli = require(localCliPath);
+        let localCliPath = path.resolve(cliRootPath, './cli');
+        const cli = require(localCliPath);
 
-      const cliOptions = {
-        args: process.argv.slice(2),
-        cliVersion: cliVersion,
-        cliIsGlobal: false,
-        startTime: startTime
-      };
+        const cliOptions = {
+            args: process.argv.slice(2),
+            cliVersion: cliVersion,
+            cliIsGlobal: false,
+            startTime: startTime
+        };
 
-      _invokeCli(cli, cliOptions);
+        _invokeCli(cli, cliOptions);
     });
 }
 
 // main
 const _version = new SemVer(process.version);
 if (_version.compare(new SemVer('6.9.0')) < 0) {
-  console.warn(_yellow(`You are running version ${_version.version} of Node, which will not be supported by the angular-build cli.\n` +
-    `The official Node version that will be supported is 6.9 and greater.`));
+    console.warn(_yellow(`You are running version ${_version.version} of Node, which will not be supported by the angular-build cli.\n` +
+        'The official Node version that will be supported is 6.9 and greater.'));
 }
 
 let _projectRoot = process.cwd();
 const _args = process.argv.slice(2);
 let forceUseLocalCli = false;
 if (_args.length >= 2 && _args[0] === 'build') {
-  const argv = require('yargs')
-    .option('config', {
-      alias: 'c',
-      type: 'string'
-    })
-    .option('forceUseLocalCli', {
-      type: 'boolean',
-      boolean: true
-    })
-    .argv;
+    const argv = require('yargs')
+        .option('config', {
+            alias: 'c',
+            type: 'string'
+        })
+        .option('forceUseLocalCli', {
+            type: 'boolean',
+            boolean: true
+        })
+        .argv;
 
-  if (argv.config) {
-    let configPath = argv.config;
-    configPath = path.isAbsolute(configPath) ? path.resolve(configPath) : path.resolve(_projectRoot, configPath);
-    _projectRoot = path.dirname(configPath);
-  }
+    if (argv.config) {
+        let configPath = argv.config;
+        configPath = path.isAbsolute(configPath) ? path.resolve(configPath) : path.resolve(_projectRoot, configPath);
+        _projectRoot = path.dirname(configPath);
+    }
 
-  forceUseLocalCli = argv.forceUseLocalCli;
+    forceUseLocalCli = argv.forceUseLocalCli;
 }
 
 const _localCliPath = path.resolve(forceUseLocalCli ? _projectRoot : process.cwd(), 'node_modules/@bizappframework/angular-build');
