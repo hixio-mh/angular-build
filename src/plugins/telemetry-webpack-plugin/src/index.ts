@@ -85,19 +85,22 @@ export function initAppInsights(): void {
     const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
     const fromAngularBuildCli =
         typeof AngularBuildContext.fromAngularBuildCli !== 'undefined' && AngularBuildContext.fromAngularBuildCli;
-    const angularBuildVersion = AngularBuildContext.angularBuildVersion;
+    const cliVersion = AngularBuildContext.cliVersion;
     const cliIsGlobal = AngularBuildContext.cliIsGlobal;
     const angularVersion = AngularBuildContext.angularVersion;
     const webpackVersion = AngularBuildContext.webpackVersion;
 
     let commonAppInsightsProps = {};
-    if (process.env.ANGULAR_BUILD_APPINSIGHTS_commonAppInsightsProps &&
-        typeof process.env.ANGULAR_BUILD_APPINSIGHTS_commonAppInsightsProps === 'string') {
+    const rawCommonAppInsightsProps = process.env.ANGULAR_BUILD_APPINSIGHTS_COMMON_PROPS ||
+        process.env.ANGULAR_BUILD_APPINSIGHTS_commonAppInsightsProps;
+    if (rawCommonAppInsightsProps && typeof rawCommonAppInsightsProps === 'string') {
         try {
-            commonAppInsightsProps = JSON.parse(process.env.ANGULAR_BUILD_APPINSIGHTS_commonAppInsightsProps as string);
+            commonAppInsightsProps = JSON.parse(rawCommonAppInsightsProps as string);
         } catch (err) {
             // do nothing
         }
+    } else if (rawCommonAppInsightsProps && typeof rawCommonAppInsightsProps === 'object') {
+        commonAppInsightsProps = rawCommonAppInsightsProps;
     }
 
     commonAppInsightsProps = Object.assign({},
@@ -105,7 +108,7 @@ export function initAppInsights(): void {
         {
             'Identifier': identifier,
             'command': 'build',
-            'angular-build version': `${angularBuildVersion}`,
+            'angular-build version': `${cliVersion}`,
             'from angular-build cli': `${fromAngularBuildCli}`,
             'angular build is global': `${cliIsGlobal}`,
             'angular version': `${angularVersion}`,
