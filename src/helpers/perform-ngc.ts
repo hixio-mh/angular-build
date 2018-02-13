@@ -34,7 +34,18 @@ export async function performNgc(angularBuildContext: AngularBuildContext, custo
             }].tsTranspilation.tsconfig' value is required.`);
     }
 
-    let ngcCommandPath = path.join(AngularBuildContext.nodeModulesPath, '.bin/ngc');
+    let ngcCommandPath = 'ngc';
+    if (AngularBuildContext.nodeModulesPath &&
+        await exists(path.join(AngularBuildContext.nodeModulesPath, '.bin/ngc'))) {
+        ngcCommandPath = path.join(AngularBuildContext.nodeModulesPath, '.bin/ngc');
+    } else if (AngularBuildContext.cliRootPath && await exists(path.join(AngularBuildContext.cliRootPath, 'node_modules/.bin/ngc'))) {
+        ngcCommandPath = path.join(AngularBuildContext.cliRootPath, 'node_modules/.bin/ngc');
+    } else if (AngularBuildContext.nodeModulesPath &&
+        await exists(path.join(AngularBuildContext.nodeModulesPath,
+            '@bizappframework/angular-build/node_modules/.bin/ngc'))) {
+        ngcCommandPath = path.join(AngularBuildContext.nodeModulesPath,
+            '@bizappframework/angular-build/node_modules/.bin/ngc');
+    }
 
     if (!await exists(ngcCommandPath)) {
         let internalNodeModulePath = path.dirname(require.resolve('@angular/compiler-cli'));

@@ -205,14 +205,23 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
         }));
     }
 
-    const nodeModulePaths = ['node_modules', AngularBuildContext.nodeModulesPath];
+    const nodeModulePaths = ['node_modules'];
+    if (AngularBuildContext.nodeModulesPath) {
+        nodeModulePaths.push(AngularBuildContext.nodeModulesPath);
+    }
 
     const loaderModulePaths = [...nodeModulePaths];
-    if (AngularBuildContext.angularBuildCliRootPath) {
-        loaderModulePaths.push(path.resolve(AngularBuildContext.angularBuildCliRootPath, 'node_modules'));
-    } else {
-        loaderModulePaths.push(path.resolve(AngularBuildContext.nodeModulesPath,
-            '@bizappframework/angular-build/node_modules'));
+    if (AngularBuildContext.cliRootPath) {
+        const cliNodeModulePath = path.resolve(AngularBuildContext.cliRootPath, 'node_modules');
+        if (!loaderModulePaths.includes(cliNodeModulePath)) {
+            loaderModulePaths.push(cliNodeModulePath);
+        }
+    } else if (AngularBuildContext.nodeModulesPath) {
+        const cliNodeModulePath = path.resolve(AngularBuildContext.nodeModulesPath,
+            '@bizappframework/angular-build/node_modules');
+        if (!loaderModulePaths.includes(cliNodeModulePath)) {
+            loaderModulePaths.push(cliNodeModulePath);
+        }
     }
 
     let symlinks = true;
@@ -226,6 +235,7 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
     let alias: any = {};
     if (!currentBundle.nodeModulesAsExternals &&
         !currentBundle.angularAndRxJsAsExternals &&
+        AngularBuildContext.nodeModulesPath &&
         existsSync(path.resolve(AngularBuildContext.nodeModulesPath, 'rxjs'))) {
         try {
             const rxjsPathMappingImportModuleName =

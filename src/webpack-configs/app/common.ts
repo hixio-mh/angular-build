@@ -340,16 +340,24 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         plugins.push(new TelemetryWebpackPlugin());
     }
 
-    const nodeModulePaths = ['node_modules', AngularBuildContext.nodeModulesPath];
-
-    const loaderModulePaths = [...nodeModulePaths];
-    if (AngularBuildContext.angularBuildCliRootPath) {
-        loaderModulePaths.push(path.resolve(AngularBuildContext.angularBuildCliRootPath, 'node_modules'));
-    } else {
-        loaderModulePaths.push(path.resolve(AngularBuildContext.nodeModulesPath,
-            '@bizappframework/angular-build/node_modules'));
+    const nodeModulePaths = ['node_modules'];
+    if (AngularBuildContext.nodeModulesPath) {
+        nodeModulePaths.push(AngularBuildContext.nodeModulesPath);
     }
 
+    const loaderModulePaths = [...nodeModulePaths];
+    if (AngularBuildContext.cliRootPath) {
+        const cliNodeModulePath = path.resolve(AngularBuildContext.cliRootPath, 'node_modules');
+        if (!loaderModulePaths.includes(cliNodeModulePath)) {
+            loaderModulePaths.push(cliNodeModulePath);
+        }
+    } else if (AngularBuildContext.nodeModulesPath) {
+        const cliNodeModulePath = path.resolve(AngularBuildContext.nodeModulesPath,
+            '@bizappframework/angular-build/node_modules');
+        if (!loaderModulePaths.includes(cliNodeModulePath)) {
+            loaderModulePaths.push(cliNodeModulePath);
+        }
+    }
     // symlinks
     let symlinks = true;
     if (appConfig._tsConfigPath &&

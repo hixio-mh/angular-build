@@ -135,7 +135,8 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
         postcssUrl({
             filter: ({ url }: PostcssUrlAsset) => url.startsWith('~'),
             url: ({ url }: PostcssUrlAsset) => {
-                const fullPath = path.join(projectRoot, 'node_modules', url.substr(1));
+                const nodeModulePath = AngularBuildContext.nodeModulesPath || path.resolve(projectRoot, 'node_modules');
+                const fullPath = path.join(nodeModulePath, url.substr(1));
                 return path.relative(loader.context, fullPath).replace(/\\/g, '/');
             }
         }),
