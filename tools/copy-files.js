@@ -20,7 +20,7 @@ if (packageJson.scripts) {
     // delete packageJson.scripts;
     packageJson.scripts = {
         postinstall: 'node ./scripts/postinstall.js',
-    }
+    };
 }
 fs.writeFileSync(path.resolve(destDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 

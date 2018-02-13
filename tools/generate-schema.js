@@ -23,21 +23,15 @@ function generateSchema() {
     spawn.sync(path.join(process.cwd(), 'node_modules', '.bin', 'typescript-json-schema'),
         [angularBuildConfigModelInput, angularBuildConfigSymbol, '-o', angularBuildConfigSchemaOutput],
         { cwd: __dirname, stdio: 'inherit' });
-    spawn.sync(path.join(process.cwd(),
-        'node_modules',
-        '.bin',
-        'ajv'),
+    spawn.sync(path.join(process.cwd(), 'node_modules/.bin/ajv'),
         ['migrate', '-s', angularBuildConfigSchemaOutput, '-o', angularBuildConfigSchemav6Output],
         { stdio: 'inherit', cwd: process.cwd() });
 
     // favicon schema
-    spawn.sync(path.join(process.cwd(), 'node_modules', '.bin', 'typescript-json-schema'),
+    spawn.sync(path.join(process.cwd(), 'node_modules/.bin/typescript-json-schema'),
         [faviconConfigModelInput, faviconConfigSymbol, '-o', faviconConfigSchemaOutput],
         { cwd: __dirname, stdio: 'inherit' });
-    spawn.sync(path.join(process.cwd(),
-        'node_modules',
-        '.bin',
-        'ajv'),
+    spawn.sync(path.join(process.cwd(), 'node_modules/.bin/ajv'),
         ['migrate', '-s', faviconConfigSchemaOutput, '-o', faviconConfigSchemav6Output],
         { stdio: 'inherit', cwd: process.cwd() });
 }
