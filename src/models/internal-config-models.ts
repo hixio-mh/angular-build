@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 
 import { Logger } from '../utils/logger';
+import { isInFolder, isSamePaths } from '../utils/path-helpers';
 import { readJsonSync } from '../utils/read-json';
 
 import {
@@ -87,6 +88,20 @@ export type LibProjectConfigInternal = LibProjectConfig & ProjectConfigSharedInt
 export class AngularBuildContext {
     private static _initialized = false;
 
+    static angularBuildCliRootPath?: string;
+    static cliIsGlobal?: boolean;
+
+    static watch?: boolean;
+    static progress?: boolean;
+    static cleanOutDirs?: boolean;
+
+    static webpackArgv?: any;
+
+    static telemetryPluginAdded: boolean = false;
+
+    // app only
+    dllBuildOnly?: boolean;
+
     private static _environment: PreDefinedEnvironment = {};
     static get environment(): PreDefinedEnvironment {
         if (!AngularBuildContext._initialized) {
@@ -108,14 +123,6 @@ export class AngularBuildContext {
         return AngularBuildContext._startTime;
     }
 
-    private static _angularBuildVersion: string | null = null;
-    static get angularBuildVersion(): string {
-        if (!AngularBuildContext._initialized || AngularBuildContext._angularBuildVersion == null) {
-            throw new InternalError('AngularBuildContext has not been initialized.');
-        }
-        return AngularBuildContext._angularBuildVersion;
-    }
-
     private static _logger: Logger | null = null;
     static get logger(): Logger {
         if (!AngularBuildContext._initialized || AngularBuildContext._logger == null) {
@@ -130,6 +137,113 @@ export class AngularBuildContext {
             throw new InternalError('AngularBuildContext has not been initialized.');
         }
         return AngularBuildContext._fromAngularBuildCli;
+    }
+
+    private static _angularBuildVersion: string | null = null;
+    static get angularBuildVersion(): string {
+        if (!AngularBuildContext._initialized || AngularBuildContext._angularBuildVersion == null) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+        return AngularBuildContext._angularBuildVersion;
+    }
+
+    private static _projectRoot: string | undefined = undefined;
+    static get projectRoot(): string {
+        if (AngularBuildContext._projectRoot) {
+            return AngularBuildContext._projectRoot;
+        }
+
+        if (!AngularBuildContext._initialized ||
+            !AngularBuildContext.angularBuildConfig ||
+            !AngularBuildContext.angularBuildConfig._configPath) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+
+        AngularBuildContext._projectRoot = path.dirname(AngularBuildContext.angularBuildConfig._configPath);
+        return AngularBuildContext._projectRoot;
+    }
+
+    private static _nodeModulesPath: string | undefined | null = undefined;
+    static get nodeModulesPath(): string | null {
+        if (AngularBuildContext._nodeModulesPath) {
+            return AngularBuildContext._nodeModulesPath;
+        }
+
+        let nodeModulesPath = path.resolve(AngularBuildContext.projectRoot, 'node_modules');
+        if (existsSync(nodeModulesPath)) {
+            AngularBuildContext._nodeModulesPath = nodeModulesPath;
+            return AngularBuildContext._nodeModulesPath;
+        }
+
+        let foundNodeModulesPath = false;
+        let upDir = path.dirname(AngularBuildContext.projectRoot);
+        while (isInFolder(process.cwd(), upDir) &&
+            !isSamePaths(process.cwd(), upDir)) {
+            nodeModulesPath = path.resolve(upDir, 'node_modules');
+            if (existsSync(nodeModulesPath)) {
+                foundNodeModulesPath = true;
+                break;
+            } else {
+                upDir = path.dirname(upDir);
+            }
+        }
+
+        if (foundNodeModulesPath) {
+            AngularBuildContext._nodeModulesPath = nodeModulesPath;
+        } else {
+            nodeModulesPath = path.resolve(process.cwd(), 'node_modules');
+            if (existsSync(nodeModulesPath)) {
+                AngularBuildContext._nodeModulesPath = nodeModulesPath;
+            } else {
+                AngularBuildContext._nodeModulesPath = null;
+            }
+        }
+
+        return AngularBuildContext._nodeModulesPath;
+    }
+
+    private static _angularVersion: string | undefined | null = undefined;
+    static get angularVersion(): string | undefined | null {
+        if (typeof AngularBuildContext._angularVersion !== 'undefined') {
+            return AngularBuildContext._angularVersion;
+        }
+
+        if (!AngularBuildContext.nodeModulesPath) {
+            AngularBuildContext._angularVersion = null;
+            return AngularBuildContext._angularVersion;
+        }
+
+        const angularCorePackageJsonPath = path.resolve(AngularBuildContext.nodeModulesPath, '@angular/core/package.json');
+        if (existsSync(angularCorePackageJsonPath)) {
+            const pkgJson = readJsonSync(angularCorePackageJsonPath);
+            AngularBuildContext._angularVersion = pkgJson.version;
+        } else {
+            AngularBuildContext._angularVersion = null;
+        }
+
+        return AngularBuildContext._angularVersion;
+    }
+
+    private static _webpackVersion: string | undefined | null = undefined;
+    static get webpackVersion(): string | undefined | null {
+        if (typeof AngularBuildContext._webpackVersion !== 'undefined') {
+            return AngularBuildContext._webpackVersion;
+        }
+
+        if (!AngularBuildContext.nodeModulesPath) {
+            AngularBuildContext._webpackVersion = null;
+            return AngularBuildContext._webpackVersion;
+        }
+
+        const webpackPackageJsonPath = path.resolve(AngularBuildContext.nodeModulesPath, 'webpack/package.json');
+        if (existsSync(webpackPackageJsonPath)) {
+            const pkgJson = readJsonSync(webpackPackageJsonPath);
+            AngularBuildContext._webpackVersion = pkgJson.version;
+        } else {
+            AngularBuildContext._webpackVersion = null;
+        }
+
+        return AngularBuildContext._webpackVersion;
     }
 
     private static _libCount: number = 0;
@@ -148,102 +262,8 @@ export class AngularBuildContext {
         return disabled;
     }
 
-    static angularBuildCliRootPath?: string;
-    static cliIsGlobal?: boolean;
-
-    static watch?: boolean;
-    static progress?: boolean;
-    static cleanOutDirs?: boolean;
-    static webpackArgv?: any;
-
-    static telemetryPluginAdded: boolean = false;
-
-    // app only
-    dllBuildOnly?: boolean;
-
-    constructor(
-        readonly projectConfigMaster: ProjectConfigInternal,
-        readonly projectConfig: ProjectConfigInternal
-    ) {
-        if (projectConfig._projectType === 'lib') {
-            AngularBuildContext._libCount = AngularBuildContext._libCount + 1;
-        } else {
-            AngularBuildContext._appCount = AngularBuildContext._appCount + 1;
-        }
-    }
-
-    static init(environment: PreDefinedEnvironment,
-        angularBuildConfig: AngularBuildConfigInternal,
-        fromAngularBuildCli: boolean,
-        angularBuildVersion: string, startTime: number): void {
-        AngularBuildContext._environment = environment;
-        AngularBuildContext._angularBuildConfig = angularBuildConfig;
-        AngularBuildContext._fromAngularBuildCli = fromAngularBuildCli;
-        AngularBuildContext._angularBuildVersion = angularBuildVersion;
-        AngularBuildContext._startTime = startTime;
-
-        AngularBuildContext._logger = new Logger({
-            name: '',
-            logLevel: angularBuildConfig.logLevel || 'info',
-            debugPrefix: 'DEBUG:',
-            warnPrefix: 'WARNING:'
-        });
-
-        AngularBuildContext._initialized = true;
-    }
-
-    static get projectRoot(): string {
-        if (!AngularBuildContext._initialized) {
-            throw new InternalError('AngularBuildContext has not been initialized.');
-        }
-
-        return path.dirname(AngularBuildContext.angularBuildConfig._configPath);
-    }
-
-    private static _nodeModulesPath: string = '';
-    static get nodeModulesPath(): string {
-        if (AngularBuildContext._nodeModulesPath) {
-            return AngularBuildContext._nodeModulesPath;
-        }
-
-        AngularBuildContext._nodeModulesPath = path.resolve(AngularBuildContext.projectRoot, 'node_modules');
-        return AngularBuildContext._nodeModulesPath;
-    }
-
-    private static _angularVersion: string = '';
-    static get angularVersion(): string {
-        if (typeof AngularBuildContext._angularVersion !== 'undefined') {
-            return AngularBuildContext._angularVersion;
-        }
-
-        const angularCorePackageJsonPath = path.resolve(AngularBuildContext.nodeModulesPath, '@angular/core/package.json');
-        if (existsSync(angularCorePackageJsonPath)) {
-            const pkgJson = readJsonSync(angularCorePackageJsonPath);
-            AngularBuildContext._angularVersion = pkgJson.version;
-        } else {
-            AngularBuildContext._angularVersion = '';
-        }
-
-        return AngularBuildContext._angularVersion;
-    }
-
-    private static _webpackVersion: string = '';
-    static get webpackVersion(): string {
-        if (typeof AngularBuildContext._webpackVersion !== 'undefined') {
-            return AngularBuildContext._webpackVersion;
-        }
-
-        const webpackPackageJsonPath = path.resolve(AngularBuildContext.nodeModulesPath, 'webpack/package.json');
-        if (existsSync(webpackPackageJsonPath)) {
-            const pkgJson = readJsonSync(webpackPackageJsonPath);
-            AngularBuildContext._webpackVersion = pkgJson.version;
-        } else {
-            AngularBuildContext._webpackVersion = '';
-        }
-
-        return AngularBuildContext._webpackVersion;
-    }
-
+    // project config specific
+    // ----------------------------------------------------------------------
     private _bannerText?: string;
     get bannerText(): string | undefined {
         if (typeof this._bannerText !== 'undefined') {
@@ -459,6 +479,37 @@ export class AngularBuildContext {
         }
 
         return false;
+    }
+
+    constructor(
+        readonly projectConfigMaster: ProjectConfigInternal,
+        readonly projectConfig: ProjectConfigInternal
+    ) {
+        if (projectConfig._projectType === 'lib') {
+            AngularBuildContext._libCount = AngularBuildContext._libCount + 1;
+        } else {
+            AngularBuildContext._appCount = AngularBuildContext._appCount + 1;
+        }
+    }
+
+    static init(environment: PreDefinedEnvironment,
+        angularBuildConfig: AngularBuildConfigInternal,
+        fromAngularBuildCli: boolean,
+        angularBuildVersion: string, startTime: number): void {
+        AngularBuildContext._environment = environment;
+        AngularBuildContext._angularBuildConfig = angularBuildConfig;
+        AngularBuildContext._fromAngularBuildCli = fromAngularBuildCli;
+        AngularBuildContext._angularBuildVersion = angularBuildVersion;
+        AngularBuildContext._startTime = startTime;
+
+        AngularBuildContext._logger = new Logger({
+            name: '',
+            logLevel: angularBuildConfig.logLevel || 'info',
+            debugPrefix: 'DEBUG:',
+            warnPrefix: 'WARNING:'
+        });
+
+        AngularBuildContext._initialized = true;
     }
 
     private initPackageConfigPaths(): void {
