@@ -259,3 +259,5 @@ node_modules/
 **/obj/
 
 schemas/
+
+bin/Microsoft.NodejsTools.WebRole.dll
