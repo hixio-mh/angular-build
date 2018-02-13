@@ -24,9 +24,9 @@ function generateSchema() {
         [angularBuildConfigModelInput, angularBuildConfigSymbol, '-o', angularBuildConfigSchemaOutput],
         { cwd: __dirname, stdio: 'inherit' });
     spawn.sync(path.join(process.cwd(),
-            'node_modules',
-            '.bin',
-            'ajv'),
+        'node_modules',
+        '.bin',
+        'ajv'),
         ['migrate', '-s', angularBuildConfigSchemaOutput, '-o', angularBuildConfigSchemav6Output],
         { stdio: 'inherit', cwd: process.cwd() });
 
@@ -35,9 +35,9 @@ function generateSchema() {
         [faviconConfigModelInput, faviconConfigSymbol, '-o', faviconConfigSchemaOutput],
         { cwd: __dirname, stdio: 'inherit' });
     spawn.sync(path.join(process.cwd(),
-            'node_modules',
-            '.bin',
-            'ajv'),
+        'node_modules',
+        '.bin',
+        'ajv'),
         ['migrate', '-s', faviconConfigSchemaOutput, '-o', faviconConfigSchemav6Output],
         { stdio: 'inherit', cwd: process.cwd() });
 }
