@@ -12,7 +12,7 @@ For feature requests, delete the form below and describe the requirements and us
 [ ] Documentation issue or request
 </code></pre>
 
-## Current behavior?
+## Current behavior
 <!-- Describe the current behavior. -->
 
 ## Expected behavior
