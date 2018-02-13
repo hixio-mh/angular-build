@@ -1,6 +1,18 @@
-{  
+{
+  "vsicons.presets.angular": true,
   "files.exclude": {
     "**/.vs": true,
-    "obj": true
-  }
+    "obj": true,
+    "bin/Microsoft.NodejsTools.WebRole.dll": true,
+    "angular-build.njsproj.user": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/dist": true,
+    "angular-build.njsproj": true,
+    "angular-build.njsproj.user": true,
+    "angular-build.sln": true,
+    "package-lock.json": true
+  },
 }
