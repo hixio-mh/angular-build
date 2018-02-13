@@ -11,20 +11,20 @@ const ImportDependency = require('webpack/lib/dependencies/ImportDependency');
 // this just extends webpack.NamedChunksPlugin to prevent name collisions.
 export class NamedLazyChunksWebpackPlugin extends webpack.NamedChunksPlugin {
     constructor() {
-        // append a dot and number if the name already exists.
-        const nameMap = new Map<string, boolean>();
-        function getUniqueName(baseName: string): string {
+        // Append a dot and number if the name already exists.
+        const nameMap = new Map<string, string>();
+        function getUniqueName(baseName: string, request: string): string {
             let name = baseName;
             let num = 0;
-            while (nameMap.has(name)) {
+            while (nameMap.has(name) && nameMap.get(name) !== request) {
                 name = `${baseName}.${num++}`;
             }
-            nameMap.set(name, true);
+            nameMap.set(name, request);
             return name;
         }
 
         const nameResolver = (chunk: any) => {
-            // entry chunks have a name already, use it.
+            // Entry chunks have a name already, use it.
             if (chunk.name) {
                 return chunk.name;
             }
@@ -37,14 +37,14 @@ export class NamedLazyChunksWebpackPlugin extends webpack.NamedChunksPlugin {
                 && (chunk.blocks[0].dependencies[0] instanceof ContextElementDependency
                     || chunk.blocks[0].dependencies[0] instanceof ImportDependency)
             ) {
-                // create chunkname from file request, stripping ngfactory and extension.
-                const req = chunk.blocks[0].dependencies[0].request;
-                const chunkName = basename(req).replace(/(\.ngfactory)?\.(js|ts)$/, '');
-                if (!chunkName) {
+                // Create chunkname from file request, stripping ngfactory and extension.
+                const request = chunk.blocks[0].dependencies[0].request;
+                const chunkName = basename(request).replace(/(\.ngfactory)?\.(js|ts)$/, '');
+                if (!chunkName || chunkName.trim() === '') {
                     // Bail out if something went wrong with the name.
                     return null;
                 }
-                return getUniqueName(chunkName);
+                return getUniqueName(chunkName, request);
             }
 
             return null;
