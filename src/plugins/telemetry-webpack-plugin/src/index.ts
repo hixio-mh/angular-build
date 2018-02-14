@@ -90,14 +90,26 @@ export function initAppInsights(): void {
     const angularVersion = AngularBuildContext.angularVersion;
     const webpackVersion = AngularBuildContext.webpackVersion;
 
-    let commonAppInsightsProps = {};
+    let commonAppInsightsProps: { [key: string]: any } = {};
     const rawCommonAppInsightsProps = process.env.ANGULAR_BUILD_APPINSIGHTS_COMMON_PROPS ||
         process.env.ANGULAR_BUILD_APPINSIGHTS_commonAppInsightsProps;
     if (rawCommonAppInsightsProps && typeof rawCommonAppInsightsProps === 'string') {
-        try {
-            commonAppInsightsProps = JSON.parse(rawCommonAppInsightsProps as string);
-        } catch (err) {
-            // do nothing
+        if ((rawCommonAppInsightsProps as string).trim()[0] === '{') {
+            try {
+                commonAppInsightsProps = JSON.parse(rawCommonAppInsightsProps as string);
+            } catch (err) {
+                // do nothing
+            }
+        } else {
+            const props = rawCommonAppInsightsProps.split(';');
+            props.forEach(s => {
+                if (s && s.length >= 3) {
+                    const items = s.split('=');
+                    if (items.length === 2) {
+                        commonAppInsightsProps[items[0].trim()] = items[1].trim();
+                    }
+                }
+            });
         }
     } else if (rawCommonAppInsightsProps && typeof rawCommonAppInsightsProps === 'object') {
         commonAppInsightsProps = rawCommonAppInsightsProps;
