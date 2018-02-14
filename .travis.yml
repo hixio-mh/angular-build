@@ -10,7 +10,7 @@ node_js:
 
 env:
   - NODE_ENV=TEST
-
+  - ANGULAR_BUILD_APPINSIGHTS_COMMON_PROPS="ci=true;travis=true;Organization=Octalhouse"
 cache:
   directories:
     - ./node_modules
