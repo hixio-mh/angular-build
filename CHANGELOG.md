@@ -1,5 +1,9 @@
-# v5.1.0
+# v5.2.0
+- Added fature for separate output hashing for bundle scripts, css, extracted assets and chunks
+- Fixed node_modules path resolution
+- Updated npm packages
 
+# v5.1.0
 - Bug fixes, Improvement in error handling and logging logic
 - Updated npm packages
 - Improvement in before run clean logic
