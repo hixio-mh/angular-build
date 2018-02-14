@@ -9,8 +9,7 @@ node_js:
   - "node"
 
 env:
-  - NODE_ENV=TEST
-  - ANGULAR_BUILD_APPINSIGHTS_COMMON_PROPS="ci=true;travis=true;Organization=Octalhouse"
+  - ANGULAR_BUILD_APPINSIGHTS_COMMON_PROPS=ci=true;travis=true;Organization=Octalhouse
 cache:
   directories:
     - ./node_modules
