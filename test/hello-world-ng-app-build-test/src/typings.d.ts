@@ -5,19 +5,19 @@ interface NodeModule {
     id: string;
 }
 
-declare var ENV: {
-    PRODUCTION: boolean;
-    [key: string]: string | boolean;
-};
-declare var PRODUCTION: boolean;
+declare var process: GlobalEnvironment;
 
 interface GlobalEnvironment {
-    ENV: {
-        PRODUCTION: boolean;
+    env: {
+        production: boolean;
         [key: string]: string | boolean;
     };
-    PRODUCTION: boolean;
 }
 
-// tslint:disable-next-line:no-empty-interface
-interface Global extends GlobalEnvironment { }
+// declare var env: {
+//     production: boolean;
+//     [key: string]: string | boolean;
+// };
+
+// // tslint:disable-next-line:no-empty-interface
+// interface Global extends GlobalEnvironment { }

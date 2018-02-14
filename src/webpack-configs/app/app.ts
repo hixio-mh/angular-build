@@ -91,7 +91,18 @@ function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext, en
         const defaultEnvironments: { [key: string]: any } = {
             'process.env.NODE_ENV': environment.prod ? 'production' : JSON.stringify(process.env.NODE_ENV)
         };
+
+        if (environment.prod) {
+            defaultEnvironments[`process.env.production`] = JSON.stringify(true);
+        }
+
         const envVariables = Object.assign({}, defaultEnvironments);
+
+        Object.keys(environment)
+            .filter((key: string) => key !== 'prod' && !(`process.env.${key}` in defaultEnvironments))
+            .forEach((key: string) => {
+                envVariables[`process.env.${key}`] = JSON.stringify((environment as any)[key]);
+            });
 
         if (appConfig.environmentVariables && typeof appConfig.environmentVariables === 'object') {
             const userEnvVariables = appConfig.environmentVariables as any;
