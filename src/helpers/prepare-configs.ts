@@ -266,18 +266,16 @@ function applyAppProjectConfigDefaults(projectRoot: string,
         }
     }
 
-    if (typeof appConfig.appendOutputHash === 'undefined') {
+    if (typeof appConfig.bundlesHash === 'undefined') {
         if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
             if (hasAspAppendVersion(appConfig)) {
-                appConfig.appendOutputHash = false;
+                appConfig.bundlesHash = false;
             } else {
-                appConfig.appendOutputHash = environment.prod && !isWebpackDevServer();
+                appConfig.bundlesHash = environment.prod && !isWebpackDevServer();
             }
         } else {
-            appConfig.appendOutputHash = false;
+            appConfig.bundlesHash = false;
         }
-    } else if (appConfig.appendOutputHash && hasAspAppendVersion(appConfig)) {
-        appConfig.appendOutputHash = false;
     }
 
     if (environment.dll) {

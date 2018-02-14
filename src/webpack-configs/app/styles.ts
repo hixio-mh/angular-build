@@ -10,6 +10,7 @@ import { SuppressEntryChunksWebpackPlugin } from '../../plugins/suppress-entry-c
 import PostcssCliResources from '../../plugins/postcss-cli-resources';
 
 import { AngularBuildContext, AppProjectConfigInternal, PreDefinedEnvironment } from '../../models';
+import { outputHashFormat } from '../../helpers/output-hash-format';
 import { parseDllEntries } from '../../helpers/parse-dll-entry';
 import { parseGlobalEntries } from '../../helpers/parse-global-entry';
 
@@ -45,14 +46,15 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
 
     let extractCss = appConfig.extractCss;
 
-    const resourceExtractHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
-        appConfig.appendOutputHash !== false
-        ? `.[hash:${20}]`
+    const extractedAssetsHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
+        appConfig.extractedAssetsHash !== false
+        ? outputHashFormat.extractedAssets
         : '';
-    const cssExtractHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
-        appConfig.appendOutputHash
-        ? `.[contenthash:${20}]`
+    const extractedCssHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
+        appConfig.bundlesHash
+        ? outputHashFormat.extractedCss
         : '';
+
 
     // style-loader does not support sourcemaps without absolute publicPath, so it's
     // better to disable them when not extracting css
@@ -174,7 +176,7 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
         PostcssCliResources({
             deployUrl: loader.loaders[loader.loaderIndex].options.ident === 'extracted' ? '' : publicPath,
             loader,
-            filename: `[name]${resourceExtractHashFormat}.[ext]`,
+            filename: `[name]${extractedAssetsHashFormat}.[ext]`,
         }),
         autoprefixer({ grid: true })
     ];
@@ -293,7 +295,7 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
             // extract global css from js files into own css file
             plugins.push(
                 new ExtractTextPlugin({
-                    filename: `[name]${cssExtractHashFormat}.css`
+                    filename: `[name]${extractedCssHashFormat}.css`
                 }));
 
             if (shouldSuppressChunk) {

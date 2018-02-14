@@ -12,6 +12,7 @@ import {
     PreDefinedEnvironment
 } from '../../models';
 import { getCustomWebpackConfig } from '../../helpers/get-custom-webpack-config';
+import { outputHashFormat } from '../../helpers/output-hash-format';
 
 import { getAngularFixPlugins } from './angular';
 import { getAppCommonWebpackConfigPartial } from './common';
@@ -75,11 +76,12 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext,
 
     const outDir = path.resolve(projectRoot, appConfig.outDir);
 
-    const hashLibFormat =
-        (!appConfig.platformTarget || appConfig.platformTarget === 'web') && appConfig.appendOutputHash
-            ? `[chunkhash]`
-            : '';
-    const libraryName = `[name]_${hashLibFormat || 'lib'}`;
+    const libHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
+        appConfig.bundlesHash
+        ? outputHashFormat.bundle
+        : '';
+
+    const libraryName = `[name]_${libHashFormat || 'lib'}`;
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
 
     const entryPoints: { [key: string]: string[] } = {};

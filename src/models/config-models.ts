@@ -195,9 +195,17 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     referenceDll?: boolean;
     /**
-     * Appends version hash to the output bundled files if 'platformTarget' value is web.
+     * Appends version hash to output bundles.
      */
-    appendOutputHash?: boolean;
+    bundlesHash?: boolean;
+    /**
+     * Appends version hash to output chunks.
+     */
+    chunksHash?: boolean;
+    /**
+     * Appends version hash to output resources extracted by file-loader and url-loader.
+     */
+    extractedAssetsHash?: boolean;
     /**
      * If true, build process will extracts css specified in styles entry as styles.css.
      */
@@ -215,7 +223,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * @default true
      */
     namedLazyChunks?: boolean;
-
     /**
      * This option controls if and how source maps are generated.
      * Also check out {@link https://webpack.js.org/configuration/devtool Webpack}.
@@ -260,7 +267,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * If true, detect modules with circular dependencies.
      */
     showCircularDependencies?: boolean;
-
     /**
      * The externals configuration option provides a way of excluding dependencies from the output bundle.
      */
@@ -269,7 +275,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Custom Node.js resolution main fields.
      */
     nodeResolveFields?: string[];
-
     /**
      * Path to the translation file.
      */

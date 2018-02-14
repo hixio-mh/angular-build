@@ -22,6 +22,7 @@ import {
 } from '../../models';
 import { isWebpackDevServer } from '../../helpers/is-webpack-dev-server';
 import { getWebpackToStringStatsOptions } from '../../helpers/webpack-to-string-stats-options';
+import { outputHashFormat } from '../../helpers/output-hash-format';
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
@@ -54,14 +55,19 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
     let outDir = appConfig.outDir ? path.resolve(projectRoot, appConfig.outDir) : undefined;
 
-    const resourceExtractHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
-        appConfig.appendOutputHash !== false
-        ? `.[hash:${20}]`
+    const extractedAssetsHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
+        appConfig.extractedAssetsHash !== false
+        ? outputHashFormat.extractedAssets
         : '';
 
-    const chunkHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
-        appConfig.appendOutputHash
-        ? `.[chunkhash:${20}]`
+    const chunksHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
+        appConfig.chunksHash !== false
+        ? outputHashFormat.chunk
+        : '';
+
+    const bundleHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
+        appConfig.bundlesHash
+        ? outputHashFormat.bundle
         : '';
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
@@ -82,7 +88,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
             test: /\.(jpg|png|webp|gif|otf|ttf|woff|woff2|ani)$/,
             loader: urlLoader,
             options: {
-                name: `[name]${resourceExtractHashFormat}.[ext]`,
+                name: `[name]${extractedAssetsHashFormat}.[ext]`,
                 limit: 10000
             }
         },
@@ -90,7 +96,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
             test: /\.(eot|svg|cur)$/,
             loader: fileLoader,
             options: {
-                name: `[name]${resourceExtractHashFormat}.[ext]`,
+                name: `[name]${extractedAssetsHashFormat}.[ext]`,
                 limit: 10000
             }
         }
@@ -405,8 +411,8 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         output: {
             libraryTarget: libraryTarget,
             path: outDir,
-            filename: `[name]${chunkHashFormat}.js`,
-            chunkFilename: `[id]${chunkHashFormat}.chunk.js`,
+            filename: `[name]${bundleHashFormat}.js`,
+            chunkFilename: `[id]${chunksHashFormat}.chunk.js`,
             devtoolModuleFilenameTemplate: devtool ? appConfig.sourceMapDevToolModuleFilenameTemplate : undefined,
             devtoolFallbackModuleFilenameTemplate: devtool
                 ? appConfig.sourceMapDevToolFallbackModuleFilenameTemplate

@@ -98,7 +98,7 @@ export function
         plugins.push(new ScriptsConcatWebpackPlugin({
             scripts: globalScriptsByEntry,
             htmlPluginOptionsKey: 'globalScripts',
-            appendHash: appConfig.appendOutputHash,
+            appendHash: appConfig.bundlesHash,
             sourceMap: appConfig.sourceMap,
             minify: environment.prod,
             loggerOptions: {
