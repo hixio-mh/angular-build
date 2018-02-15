@@ -25,7 +25,7 @@
   "homepage": "https://github.com/bizappframework/angular-build",
   "scripts": {
     "clean": "rimraf -- dist",
-    "lint": "node node_modules/tslint/bin/tslint -p tsconfig.json -c tslint.json",
+    "lint": "node node_modules/tslint/bin/tslint -t verbose -p tsconfig.json -c tslint.json",
     "tsc": "node node_modules/typescript/bin/tsc -p tsconfig.json",
     "generate-schema": "node tools/generate-schema.js",
     "copy-files": "node tools/copy-files.js",
