@@ -300,6 +300,11 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Export format (xlf, xlf2 or xmb).
      */
     i18nOutFormat?: string;
+    /**
+     * Set true to enable scope hoisting.
+     * Default true for production.
+     */
+    moduleConcatenation?: boolean;
 }
 
 /**
