@@ -58,8 +58,7 @@ export class TelemetryWebpackPlugin {
                 const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
                 if (verbose) {
                     const identifier = (global as any).angular_build_telemetry_identifier as string;
-                    console.log('\n');
-                    console.log(`Identifier: ${identifier}\n`);
+                    console.log(`\nIdentifier: ${identifier}\n`);
                 }
             });
     }
@@ -144,9 +143,8 @@ export function initAppInsights(): void {
         process.on('exit',
             code => {
                 if (verbose) {
-                    console.log('\n');
-                    console.log(`Identifier: ${identifier}`);
-                    console.log(`\nProcess is exited with code: ${code}\n`);
+                    console.log(`\nIdentifier: ${identifier}`);
+                    console.log(`\nProcess is exited with code: ${code}`);
                 }
             });
     }
