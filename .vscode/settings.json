@@ -4,15 +4,15 @@
     "**/.vs": true,
     "obj": true,
     "bin/Microsoft.NodejsTools.WebRole.dll": true,
-    "angular-build.njsproj.user": true
+    "*.njsproj": true,
+    "*.sln": true,
+    "*.user": true
   },
   "search.exclude": {
     "**/node_modules": true,
     "**/bower_components": true,
     "**/dist": true,
-    "angular-build.njsproj": true,
-    "angular-build.njsproj.user": true,
-    "angular-build.sln": true,
+    "schemas": true,
     "package-lock.json": true
   },
 }
