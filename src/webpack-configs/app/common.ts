@@ -183,51 +183,6 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         }));
     }
 
-    // bundle analyzer report
-    if (appConfig.bundleAnalyzer) {
-        let hasEntry = false;
-        if (isDll) {
-            if (appConfig.dll) {
-                const dllEntry = appConfig.dll;
-                if ((Array.isArray(dllEntry) && dllEntry.length > 0) ||
-                    (typeof dllEntry === 'object' && Object.keys(dllEntry).length > 0)) {
-                    hasEntry = true;
-                }
-            }
-        } else {
-            if (appConfig.entry) {
-                hasEntry = true;
-            } else if (appConfig.polyfills) {
-                const polyfills = appConfig.polyfills as string[];
-                hasEntry = polyfills.length > 0;
-            }
-        }
-
-        if (hasEntry) {
-            profile = true;
-            const bundleAnalyzerOptions = Object.assign({},
-                typeof appConfig.bundleAnalyzer === 'object' ? appConfig.bundleAnalyzer : {}) as
-                BundleAnalyzerOptions;
-            if (devServer || hot || watch) {
-                bundleAnalyzerOptions.openAnalyzer = false;
-            }
-
-            if (isDll) {
-                const vendorStatsFile = `${vendorChunkName}-stats.json`;
-                const vendorStatsReportFile = `${vendorChunkName}-stats-report.html`;
-                bundleAnalyzerOptions.statsFilename = bundleAnalyzerOptions.statsFilename || vendorStatsFile;
-                bundleAnalyzerOptions.reportFilename = bundleAnalyzerOptions.reportFilename || vendorStatsReportFile;
-            }
-
-            plugins.push(new BundleAnalyzerWebpackPlugin(Object.assign({
-                loggerOptions: {
-                    logLevel: 'error'
-                }
-            },
-                bundleAnalyzerOptions)));
-        }
-    }
-
     // banner
     if (!isDll &&
         appConfig.banner &&
@@ -300,7 +255,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         plugins.push(new webpack.HashedModuleIdsPlugin());
 
         if (!devServer) {
-            if (appConfig.platformTarget !== 'node') {
+            if (appConfig.platformTarget !== 'node' && appConfig.moduleConcatenation !== false) {
                 plugins.push(new webpack.optimize.ModuleConcatenationPlugin());
             }
 
@@ -338,6 +293,52 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         }
     } else {
         plugins.push(new webpack.NamedModulesPlugin());
+    }
+
+    // bundle analyzer report
+    if (appConfig.bundleAnalyzer) {
+        let hasEntry = false;
+        if (isDll) {
+            if (appConfig.dll) {
+                const dllEntry = appConfig.dll;
+                if ((Array.isArray(dllEntry) && dllEntry.length > 0) ||
+                    (typeof dllEntry === 'object' && Object.keys(dllEntry).length > 0)) {
+                    hasEntry = true;
+                }
+            }
+        } else {
+            if (appConfig.entry) {
+                hasEntry = true;
+            } else if (appConfig.polyfills) {
+                const polyfills = appConfig.polyfills as string[];
+                hasEntry = polyfills.length > 0;
+            }
+        }
+
+        if (hasEntry) {
+            profile = true;
+            const bundleAnalyzerOptions = Object.assign({},
+                typeof appConfig.bundleAnalyzer === 'object' ? appConfig.bundleAnalyzer : {}) as
+                BundleAnalyzerOptions;
+            if (devServer || hot || watch) {
+                bundleAnalyzerOptions.openAnalyzer = false;
+            }
+
+            if (isDll) {
+                const vendorStatsFile = `${vendorChunkName}-stats.json`;
+                const vendorStatsReportFile = `${vendorChunkName}-stats-report.html`;
+                bundleAnalyzerOptions.statsFilename = bundleAnalyzerOptions.statsFilename || vendorStatsFile;
+                bundleAnalyzerOptions.reportFilename = bundleAnalyzerOptions.reportFilename || vendorStatsReportFile;
+            }
+
+            plugins.push(new BundleAnalyzerWebpackPlugin(Object.assign({
+                    loggerOptions: {
+                        logLevel: 'error'
+                    },
+                    stats: appConfig.stats
+                },
+                bundleAnalyzerOptions)));
+        }
     }
 
     // telemetry plugin

@@ -13,17 +13,24 @@ const spawn = require('cross-spawn');
 
 const analyzer = require(path.join(require.resolve('webpack-bundle-analyzer'), '..', 'analyzer'));
 const webpackBundleAnalyzerRoot = path.resolve(require.resolve('webpack-bundle-analyzer'), '../..');
-// const Logger = require(path.join(require.resolve('webpack-bundle-analyzer'), '..', 'Logger'));
 
 export interface BundleAnalyzerWebpackPluginOptions extends BundleAnalyzerOptions {
     forceWriteToDisk?: boolean;
     persistedOutputFileSystemNames?: string[];
+    stats?: webpack.Stats.ToJsonOptionsObject;
     loggerOptions?: LoggerOptions;
 }
 
 export class BundleAnalyzerWebpackPlugin {
     private readonly logger: Logger;
     private readonly persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
+
+    private readonly defaultOutputOptions: webpack.Stats.ToJsonOptionsObject = {
+        modules: true,
+        chunks: true,
+        chunkModules: true,
+        entrypoints: true
+    };
 
     private readonly defaultOptions: any = {
         reportFilename: 'stats-report.html',
@@ -38,6 +45,7 @@ export class BundleAnalyzerWebpackPlugin {
 
     constructor(private readonly options: BundleAnalyzerWebpackPluginOptions) {
         this.options = Object.assign({}, this.defaultOptions, options) as BundleAnalyzerWebpackPluginOptions;
+        this.options.stats = this.options.stats || this.defaultOutputOptions;
 
         const loggerOptions =
             Object.assign({ name: `[${this.name}]` }, this.options.loggerOptions || {}) as LoggerOptions;
@@ -52,24 +60,39 @@ export class BundleAnalyzerWebpackPlugin {
 
     apply(compiler: webpack.Compiler): void {
         const outputPath = compiler.options.output ? compiler.options.output.path : undefined;
+        const forceExit = process.argv.indexOf('--force-exit') > -1;
 
         compiler.plugin('after-emit',
             (compilation: any, cb: Function) => {
-                const outputOptions: webpack.Stats.ToJsonOptionsObject = {
-                    chunks: true,
-                    modules: true,
-                    chunkModules: true,
-                    reasons: true,
-                    cached: true
-                };
-                (outputOptions as any).entrypoints = true;
-                (outputOptions as any).cachedAssets = true;
-                const stats = compilation.getStats().toJson(outputOptions);
+                if (!forceExit) {
+                    cb();
+                    return;
+                }
+
+                const stats = compilation.getStats().toJson(this.options.stats);
 
                 this.generateStatsFile(stats, compiler, outputPath)
                     .then(() => this.generateStaticReport(stats, compiler, outputPath))
                     .then(() => cb())
                     .catch((err) => cb(err));
+            });
+
+        compiler.plugin('done',
+            (stats: any) => {
+                if (forceExit) {
+                    return;
+                }
+
+                const statsJson = stats.toJson(this.options.stats);
+
+                // Making analyzer logs to be after all webpack logs in the console
+                setImmediate(() => {
+                    this.generateStatsFile(statsJson, compiler, outputPath)
+                        .then(() => this.generateStaticReport(statsJson, compiler, outputPath))
+                        .catch((err) => {
+                            this.logger.error(`${err.message || err}`);
+                        });
+                });
             });
     }
 
