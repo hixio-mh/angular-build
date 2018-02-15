@@ -1,7 +1,7 @@
 import * as rollup from 'rollup';
 
 import { defaultAngularAndRxJsExternals } from '../helpers/angular-rxjs-externals';
-import { AngularBuildContext, BundleOptionsInternal, InternalError, LibProjectConfigInternal } from '../models';
+import { AngularBuildContext, BundleOptionsInternal, ExternalsEntry, InternalError, LibProjectConfigInternal } from '../models';
 
 const getBuiltins = require('builtins');
 
@@ -37,7 +37,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
 
     // externals
     let includeCommonJsModules = true;
-    let externalsRaw = currentBundle.externals as any;
+    let rawExternals: ExternalsEntry[] = [];
     const rollupExternalMap = {
         externals: [] as string[],
         globals: {}
@@ -50,12 +50,12 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
         if (currentBundle.angularAndRxJsAsExternals ||
             (currentBundle.angularAndRxJsAsExternals !== false && !includeCommonJsModules)) {
             if (libraryTarget === 'es') {
-                externalsRaw = Object.assign({
+                rawExternals.push(Object.assign({
                     'tslib': 'tslib'
                 },
-                    defaultAngularAndRxJsExternals);
+                    defaultAngularAndRxJsExternals));
             } else {
-                externalsRaw = Object.assign({}, defaultAngularAndRxJsExternals);
+                rawExternals.push(Object.assign({}, defaultAngularAndRxJsExternals));
             }
         }
     } else {
@@ -75,7 +75,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
                     },
                         defaultExternals);
                 }
-                externalsRaw = defaultExternals;
+                rawExternals.push(defaultExternals);
             }
         } else {
             if (currentBundle.angularAndRxJsAsExternals !== false) {
@@ -86,25 +86,23 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
                     },
                         defaultExternals);
                 }
-                if (Array.isArray(externalsRaw)) {
-                    (externalsRaw as any[]).push(defaultExternals);
+
+                rawExternals.push(defaultExternals);
+                if (Array.isArray(currentBundle.externals)) {
+                    rawExternals.push(...currentBundle.externals);
                 } else {
-                    externalsRaw = [defaultExternals, externalsRaw];
+                    rawExternals.push(currentBundle.externals);
                 }
             }
         }
     }
 
-    mapToRollupGlobalsAndExternals(externalsRaw, rollupExternalMap);
-    if (Object.keys(rollupExternalMap.globals).length) {
-        rollupExternalMap.externals = rollupExternalMap.externals || [];
-
-        Object.keys(rollupExternalMap.globals).forEach((key: string) => {
-            if (rollupExternalMap.externals.indexOf(key) === -1) {
-                rollupExternalMap.externals.push(key);
-            }
+    if (rawExternals.length) {
+        rawExternals.forEach((external: any) => {
+            mapToRollupGlobalsAndExternals(external, rollupExternalMap);
         });
     }
+
     const externals = rollupExternalMap.externals || [];
     if (libConfig.platformTarget === 'node') {
         externals.push(...getBuiltins());
@@ -193,36 +191,35 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
     };
 }
 
-function mapToRollupGlobalsAndExternals(externals: any,
-    mapResult: { externals: string[], globals: { [key: string]: string } },
-    subExternals?: any): void {
-    if (externals) {
-        if (Array.isArray(externals)) {
-            externals.forEach((external: any) => {
-                mapToRollupGlobalsAndExternals(externals, mapResult, external);
-            });
-        } else {
-            subExternals = subExternals || externals;
-            if (typeof subExternals === 'object') {
-                Object.keys(subExternals).forEach((k: string) => {
-                    const tempValue = subExternals[k];
-                    if (typeof tempValue === 'object') {
-                        const firstKey = Object.keys(tempValue)[0];
-                        mapResult.globals = mapResult.globals || {};
-                        mapResult.globals[k] = tempValue[firstKey];
+function mapToRollupGlobalsAndExternals(external: ExternalsEntry,
+    mapResult: { externals: string[], globals: { [key: string]: string } }): void {
+    if (!external) {
+        return;
+    }
 
-                    } else if (typeof tempValue === 'string') {
-                        mapResult.globals = mapResult.globals || {};
-                        mapResult.globals[k] = tempValue;
-                    } else {
-                        mapResult.externals = mapResult.externals || [];
-                        mapResult.externals.push(k);
-                    }
-                });
-            } else if (typeof subExternals === 'string') {
-                mapResult.externals = mapResult.externals || [];
-                mapResult.externals.push(subExternals);
-            }
+    if (typeof external === 'string') {
+        if (!mapResult.externals.includes(external)) {
+            mapResult.externals.push(external);
         }
+    } else if (typeof external === 'object') {
+        Object.keys(external).forEach((k: string) => {
+            const tempValue = external[k];
+            if (typeof tempValue === 'string') {
+                mapResult.globals[k] = tempValue;
+                if (!mapResult.externals.includes(k)) {
+                    mapResult.externals.push(k);
+                }
+            } else if (typeof tempValue === 'object' && Object.keys(tempValue).length) {
+                const selectedKey = (tempValue as any).root ? (tempValue as any).root : Object.keys(tempValue)[0];
+                mapResult.globals[k] = (tempValue as any)[selectedKey];
+                if (!mapResult.externals.includes(k)) {
+                    mapResult.externals.push(k);
+                }
+            } else {
+                if (!mapResult.externals.includes(k)) {
+                    mapResult.externals.push(k);
+                }
+            }
+        });
     }
 }
