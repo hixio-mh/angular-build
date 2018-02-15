@@ -10,7 +10,7 @@ const path = require('path');
 const supportsColor = require('supports-color');
 const SemVer = require('semver').SemVer;
 
-const appInsightsDisabled = process.argv.indexOf('--disable-appinsights') > -1 || process.env.ANGULAR_BUILD_TELEMETRY_OPTOUT ? true : false;
+const forceExit = process.argv.indexOf('--force-exit') > -1;
 
 function _colorize(str, key) {
     if (!supportsColor) {
@@ -48,7 +48,7 @@ function _invokeCli(cli, cliOptions) {
     if (ret && typeof ret.then === 'function') {
         ret.then((exitCode) => {
             process.exitCode = typeof exitCode === 'number' ? exitCode : 0;
-            if (appInsightsDisabled) {
+            if (forceExit) {
                 _exit(process.exitCode);
             }
         });
@@ -59,7 +59,7 @@ function _invokeCli(cli, cliOptions) {
         });
     } else if (ret && typeof ret === 'number') {
         process.exitCode = ret;
-        if (appInsightsDisabled) {
+        if (forceExit) {
             _exit(process.exitCode);
         }
     }
