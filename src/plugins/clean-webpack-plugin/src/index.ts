@@ -52,7 +52,7 @@ export class CleanWebpackPlugin {
         const outputPath = compiler.options.output ? compiler.options.output.path : '';
         this.projectRoot = compiler.options.context || process.cwd();
 
-        compiler.plugin('before-run', (currCompiler: webpack.Compiler, cb: (err?: Error) => void) => {
+        compiler.plugin('before-run', (_: any, cb: (err?: Error) => void) => {
             const startTime = Date.now();
 
             if (this.beforeRunCleaned || !this.options.beforeRun) {
@@ -93,7 +93,7 @@ export class CleanWebpackPlugin {
                 .catch(err => cb(err));
         });
 
-        compiler.plugin('after-emit', (compilation: any, cb: (err?: Error) => void) => {
+        compiler.plugin('after-emit', (_: any, cb: (err?: Error) => void) => {
             const startTime = Date.now();
 
             if (this.afterEmitCleaned || !this.options.afterEmit) {

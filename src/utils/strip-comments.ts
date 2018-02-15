@@ -8,7 +8,7 @@ export function stripComments(content: string): string {
     const regexp =
         /("(?:[^\\\"]*(?:\\.)?)*")|('(?:[^\\\']*(?:\\.)?)*')|(\/\*(?:\r?\n|.)*?\*\/)|(\/{2,}.*?(?:(?:\r?\n)|$))/g;
     const result = content.replace(regexp,
-        (match, m1, m2, m3, m4) => {
+        (match, _0, _1, m3, m4) => {
             // Only one of m1, m2, m3, m4 matches
             if (m3) {
                 // A block comment. Replace with nothing

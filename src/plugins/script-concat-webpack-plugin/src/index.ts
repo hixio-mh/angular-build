@@ -65,7 +65,7 @@ export class ScriptsConcatWebpackPlugin {
         const outputPath = compiler.options.output ? compiler.options.output.path : undefined;
 
         compiler.plugin('before-compile',
-            (params: any, cb: (err?: Error) => void) => {
+            (_, cb: (err?: Error) => void) => {
                 if (this.concatEntries || !this.options.scripts || !this.options.scripts.length) {
                     return cb();
                 }
@@ -127,7 +127,7 @@ export class ScriptsConcatWebpackPlugin {
                 });
         });
 
-        compiler.plugin('after-emit', (compilation: any, cb: (err?: Error) => void) => {
+        compiler.plugin('after-emit', (_: any, cb: (err?: Error) => void) => {
             if (this.concatEntries) {
                 this.logger.debug(`Cleaning cache`);
                 this.concatEntries = null;

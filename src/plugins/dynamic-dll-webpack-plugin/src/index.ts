@@ -23,7 +23,7 @@ export class DynamicDllWebpackPlugin {
 
 
     apply(compiler: webpack.Compiler): void {
-        compiler.plugin(['run', 'watch-run'], (c: any, cb: (err?: Error) => void) => {
+        compiler.plugin(['run', 'watch-run'], (_, cb: (err?: Error) => void) => {
             this.checkAndBundleDll(compiler)
                 .then(() => cb())
                 .catch((err) => cb(err));

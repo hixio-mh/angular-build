@@ -69,7 +69,7 @@ export class ChildComplier {
             });
 
         return new Promise<IconStatsInfo>((resolve, reject) => {
-            childCompiler.runAsChild((err: Error, entries: any[], childCompilation: any) => {
+            childCompiler.runAsChild((err: Error, _: any, childCompilation: any) => {
                 if (childCompilation && childCompilation.errors && childCompilation.errors.length) {
                     const errorDetails = childCompilation.errors
                         .map((error: any) => error.message + (error.error ? `:\n${error.error}` : '')).join('\n');
