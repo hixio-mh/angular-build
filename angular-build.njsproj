@@ -147,6 +147,7 @@
     <TypeScriptCompile Include="src\plugins\postcss-cli-resources\index.ts" />
     <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\utils\regexp-helpers.ts" />
     <TypeScriptCompile Include="src\webpack-configs\lib\lib-bundle-target.ts" />
     <TypeScriptCompile Include="src\helpers\get-rollup-config.ts" />
     <TypeScriptCompile Include="src\helpers\is-webpack-dev-server.ts" />
