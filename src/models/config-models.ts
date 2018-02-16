@@ -554,6 +554,8 @@ export interface WebpackStatsToJsonOptions {
     assetsSort?: string;
     /** Add information about cached (not built) modules */
     cached?: boolean;
+    /** Show cached assets (setting this to `false` only shows emitted files) */
+    cachedAssets?: boolean;
     /** Add children information */
     children?: boolean;
     /** Add built modules information to chunk information */
@@ -566,16 +568,32 @@ export interface WebpackStatsToJsonOptions {
     chunksSort?: string;
     /** Context directory for request shortening */
     context?: string;
-    /** Add details to errors (like resolving log) */
-    errorDetails?: boolean;
+    /** Display the distance from the entry point for each module */
+    depth?: boolean;
+    /** Display the entry points with the corresponding bundles */
+    entrypoints?: boolean;
+    /** Add --env information */
+    env?: boolean;
     /** Add errors */
     errors?: boolean;
+    /** Add details to errors (like resolving log) */
+    errorDetails?: boolean;
+    /** Exclude assets from being displayed in stats */
+    excludeAssets?: string | string[];
+    /** Exclude modules from being displayed in stats */
+    excludeModules?: string | string[];
+    /** See excludeModules */
+    exclude?: string | string[];
     /** Add the hash of the compilation */
     hash?: boolean;
+    /** Set the maximum number of modules to be shown */
+    maxModules?: number;
     /** Add built modules information */
     modules?: boolean;
     /** Sort the modules by a field */
     modulesSort?: string;
+    /** Show dependencies and origin of warnings/errors */
+    moduleTrace?: boolean;
     /** Add public path information */
     publicPath?: boolean;
     /** Add information about the reasons why modules are included */
@@ -588,6 +606,14 @@ export interface WebpackStatsToJsonOptions {
     version?: boolean;
     /** Add warnings */
     warnings?: boolean;
+    /** Show which exports of a module are used */
+    usedExports?: boolean;
+    /** Filter warnings to be shown */
+    warningsFilter?: string | string[];
+    /** Show performance hint when file size exceeds `performance.maxAssetSize` */
+    performance?: boolean;
+    /** Show the exports of the modules */
+    providedExports?: boolean;
 }
 
 export interface WebpackStatsToStringOptions extends WebpackStatsToJsonOptions {
