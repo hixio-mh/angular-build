@@ -174,9 +174,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
     AngularBuildContext.watch = watch;
     AngularBuildContext.progress = progress;
     AngularBuildContext.cleanOutDirs = cleanOutDirs;
-    if (!fromAngularBuildCli) {
-        AngularBuildContext.webpackArgv = argv;
-    }
+    AngularBuildContext.commandOptions = argv;
 
     const webpackConfigs: webpack.Configuration[] = [];
 

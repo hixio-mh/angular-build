@@ -92,7 +92,7 @@ export class AngularBuildContext {
     static progress?: boolean;
     static cleanOutDirs?: boolean;
 
-    static webpackArgv?: any;
+    static commandOptions?: any;
 
     static telemetryPluginAdded: boolean = false;
 
