@@ -2,10 +2,19 @@
   "extends": "../tsconfig.json",
 
   "compilerOptions": {
-    "types": []
+    "types": [],
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "rootDir": "."
   },
 
   "files": [
-    "../src/models/favicons-config-models.ts"
+    "../src/models/config-models.ts"
+  ],
+  "include": [
+    "../src/models/config-models.ts"
+  ],
+  "exclude": [
+    "../node_modules/**"
   ]
 }
