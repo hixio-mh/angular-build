@@ -129,6 +129,7 @@
     <Folder Include="test\hello-world-ng-app-build-test\" />
     <Folder Include="test\hello-world-ng-app-build-test\src\" />
     <Folder Include="test\hello-world-ng-app-build-test\src\app\" />
+    <Folder Include="test\hello-world-ng-app-build-test\src\environments\" />
     <Folder Include="test\hello-world-ng-lib-build-test\" />
     <Folder Include="test\hello-world-ng-lib-build-test\src\" />
     <Folder Include="tools\" />
@@ -228,8 +229,9 @@
     <TypeScriptCompile Include="src\webpack-configs\lib\lib.ts" />
     <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\app\app.component.ts" />
     <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\app\app.module.ts" />
+    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\environments\environment.prod.ts" />
+    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\environments\environment.ts" />
     <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\main.ts" />
-    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\typings.d.ts" />
     <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\index.ts" />
     <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\public_api.ts" />
     <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\src\hello-world.service.ts" />

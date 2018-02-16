@@ -8,6 +8,7 @@ import { PurifyPlugin } from '@angular-devkit/build-optimizer';
 import { BundleAnalyzerWebpackPlugin } from '../../plugins/bundle-analyzer-webpack-plugin';
 import { CleanWebpackPlugin } from '../../plugins/clean-webpack-plugin';
 import { CopyWebpackPlugin } from '../../plugins/copy-webpack-plugin';
+import { NamedLazyChunksWebpackPlugin } from '../../plugins/named-lazy-chunks-webpack-plugin';
 import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
 import {
@@ -226,6 +227,38 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
             alias = rxPaths(AngularBuildContext.nodeModulesPath);
         } catch (e) {
             logger.warn(`Failed rxjs path alias. ${e.message}`);
+        }
+    }
+
+    if (!isDll) {
+        // EnvironmentPlugin
+        let shouldDefineEnvVar = true;
+        if (appConfig.environmentVariables === false) {
+            shouldDefineEnvVar = false;
+        }
+        if (shouldDefineEnvVar) {
+            const envVariables: { [key: string]: any } = {};
+            if (environment.prod) {
+                envVariables.NODE_ENV = 'production';
+            }
+
+            if (appConfig.environmentVariables && typeof appConfig.environmentVariables === 'object') {
+                const userEnvVariables = appConfig.environmentVariables as any;
+                Object.keys(userEnvVariables)
+                    .filter((key: string) => !(key in envVariables))
+                    .forEach((key: string) => {
+                        envVariables[key] = userEnvVariables[key];
+                    });
+            }
+
+            plugins.push(
+                new webpack.EnvironmentPlugin(envVariables)
+            );
+        }
+
+        // NamedLazyChunksWebpackPlugin
+        if (appConfig.namedLazyChunks !== false) {
+            plugins.push(new NamedLazyChunksWebpackPlugin());
         }
     }
 

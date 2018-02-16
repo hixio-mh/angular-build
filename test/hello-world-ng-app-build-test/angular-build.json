@@ -9,6 +9,17 @@
       "publicPath": "/",
       "htmlInject": {
         "index": "index.html"
+      },
+
+      "envOverrides": {
+        "prod": {
+          "moduleReplacements": [
+            {
+              "resourcePath": "./environments/environment.ts",
+              "newResourcePath": "./environments/environment.prod.ts"
+            }
+          ]
+        }
       }
     }
   ]

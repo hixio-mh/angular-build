@@ -2,8 +2,6 @@ import * as path from 'path';
 
 import * as webpack from 'webpack';
 
-import { NamedLazyChunksWebpackPlugin } from '../../plugins/named-lazy-chunks-webpack-plugin';
-
 import {
     AngularBuildContext,
     AppProjectConfigInternal,
@@ -43,7 +41,7 @@ export function getAppWebpackConfig(angularBuildContext: AngularBuildContext, en
         getAppBrowserWebpackConfigPartial(angularBuildContext, env),
 
         // Must be the last item(s) to merge
-        getAppWebpackConfigPartial(angularBuildContext, env),
+        getAppWebpackConfigPartial(angularBuildContext),
         customWebpackConfig
     ];
 
@@ -56,14 +54,13 @@ export function getAppWebpackConfig(angularBuildContext: AngularBuildContext, en
     return mergedConfig;
 }
 
-function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment): webpack.Configuration {
+function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext): webpack.Configuration {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
 
     if (!appConfig.entry) {
         return {};
     }
 
-    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
     const projectRoot = AngularBuildContext.projectRoot;
 
     const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
@@ -74,53 +71,8 @@ function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext, en
     const mainEntry = path.resolve(srcDir, appConfig.entry);
     entryPoints[mainChunkName] = [mainEntry];
 
-    // plugins
-    const plugins: webpack.Plugin[] = [];
-
-    // NamedLazyChunksWebpackPlugin
-    if (appConfig.namedLazyChunks !== false) {
-        plugins.push(new NamedLazyChunksWebpackPlugin());
-    }
-
-    // DefinePlugin
-    let shouldDefineEnvVar = true;
-    if (appConfig.environmentVariables === false) {
-        shouldDefineEnvVar = false;
-    }
-    if (shouldDefineEnvVar) {
-        const defaultEnvironments: { [key: string]: any } = {
-            'process.env.NODE_ENV': environment.prod ? 'production' : JSON.stringify(process.env.NODE_ENV)
-        };
-
-        if (environment.prod) {
-            defaultEnvironments[`process.env.production`] = JSON.stringify(true);
-        }
-
-        const envVariables = Object.assign({}, defaultEnvironments);
-
-        Object.keys(environment)
-            .filter((key: string) => key !== 'prod' && !(`process.env.${key}` in defaultEnvironments))
-            .forEach((key: string) => {
-                envVariables[`process.env.${key}`] = JSON.stringify((environment as any)[key]);
-            });
-
-        if (appConfig.environmentVariables && typeof appConfig.environmentVariables === 'object') {
-            const userEnvVariables = appConfig.environmentVariables as any;
-            Object.keys(userEnvVariables)
-                .filter((key: string) => !(`process.env.${key}` in defaultEnvironments))
-                .forEach((key: string) => {
-                    envVariables[`process.env.${key}`] = JSON.stringify(userEnvVariables[key]);
-                });
-        }
-
-        plugins.push(
-            new webpack.DefinePlugin(envVariables)
-        );
-    }
-
     const webpackAppConfig: webpack.Configuration = {
-        entry: entryPoints,
-        plugins: plugins
+        entry: entryPoints
     };
 
     return webpackAppConfig;
