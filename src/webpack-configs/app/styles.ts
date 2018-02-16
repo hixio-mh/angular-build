@@ -55,18 +55,6 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
         ? outputHashFormat.extractedCss
         : '';
 
-
-    // style-loader does not support sourcemaps without absolute publicPath, so it's
-    // better to disable them when not extracting css
-    // https://github.com/webpack-contrib/style-loader#recommended-configuration
-    const cssSourceMap = extractCss && appConfig.sourceMap;
-
-    const minimizeCss = environment.prod;
-
-    // Convert absolute resource URLs to account for base-href and deploy-url.
-    const publicPath = appConfig.publicPath || '';
-    const baseHref = appConfig.baseHref || '';
-
     const includePaths: string[] = [];
     if (appConfig.stylePreprocessorOptions &&
         appConfig.stylePreprocessorOptions.includePaths &&
@@ -78,14 +66,17 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
         });
     }
 
-
     // const exportsLoader = cliIsGlobal ? require.resolve('exports-loader') : 'exports-loader';
     const postcssLoader = cliIsGlobal ? require.resolve('postcss-loader') : 'postcss-loader';
     const rawLoader = cliIsGlobal ? require.resolve('raw-loader') : 'raw-loader';
     const sassLoader = cliIsGlobal ? require.resolve('sass-loader') : 'sass-loader';
     const styleLoader = cliIsGlobal ? require.resolve('style-loader') : 'style-loader';
 
+    const cssSourceMap = extractCss && appConfig.sourceMap;
+    const minimizeCss = environment.prod;
     const maximumInlineSize = 10;
+    const deployUrl = appConfig.publicPath || '';
+    const baseHref = appConfig.baseHref || '';
 
     const postcssPluginCreator = (loader: webpack.loader.LoaderContext) => [
         postcssImports({
@@ -106,11 +97,11 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
                                 }
                                 loader.resolve(context,
                                     url,
-                                    (err: Error, result: string) => {
-                                        if (err) {
-                                            reject(err);
+                                    (err2: Error, result2: string) => {
+                                        if (err2) {
+                                            reject(err2);
                                         } else {
-                                            resolve(result);
+                                            resolve(result2);
                                         }
                                     });
                             } else {
@@ -137,8 +128,9 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
         postcssUrl({
             filter: ({ url }: PostcssUrlAsset) => url.startsWith('~'),
             url: ({ url }: PostcssUrlAsset) => {
-                const nodeModulePath = AngularBuildContext.nodeModulesPath || path.resolve(projectRoot, 'node_modules');
-                const fullPath = path.join(nodeModulePath, url.substr(1));
+                const fullPath =
+                    path.join(AngularBuildContext.nodeModulesPath || path.resolve(projectRoot, 'node_modules'),
+                        url.substr(1));
                 return path.relative(loader.context, fullPath).replace(/\\/g, '/');
             }
         }),
@@ -147,17 +139,17 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
                 // Only convert root relative URLs, which CSS-Loader won't process into require().
                 filter: ({ url }: PostcssUrlAsset) => url.startsWith('/') && !url.startsWith('//'),
                 url: ({ url }: PostcssUrlAsset) => {
-                    if (publicPath.match(/:\/\//) || publicPath.startsWith('/')) {
+                    if (deployUrl.match(/:\/\//) || deployUrl.startsWith('/')) {
                         // If deployUrl is absolute or root relative, ignore baseHref & use deployUrl as is.
-                        return `${publicPath.replace(/\/$/, '')}${url}`;
+                        return `${deployUrl.replace(/\/$/, '')}${url}`;
                     } else if (baseHref.match(/:\/\//)) {
                         // If baseHref contains a scheme, include it as is.
                         return baseHref.replace(/\/$/, '') +
-                            `/${publicPath}/${url}`.replace(/\/\/+/g, '/');
+                            `/${deployUrl}/${url}`.replace(/\/\/+/g, '/');
                     } else {
                         // Join together base-href, deploy-url and the original URL.
                         // Also dedupe multiple slashes into single ones.
-                        return `/${baseHref}/${publicPath}/${url}`.replace(/\/\/+/g, '/');
+                        return `/${baseHref}/${deployUrl}/${url}`.replace(/\/\/+/g, '/');
                     }
                 }
             },
@@ -174,7 +166,7 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
             { url: 'rebase' }
         ]),
         PostcssCliResources({
-            deployUrl: loader.loaders[loader.loaderIndex].options.ident === 'extracted' ? '' : publicPath,
+            deployUrl: loader.loaders[loader.loaderIndex].options.ident === 'extracted' ? '' : deployUrl,
             loader,
             filename: `[name]${extractedAssetsHashFormat}.[ext]`,
         }),
@@ -335,7 +327,11 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
     rules.push(...componentStyleRules);
 
     if (minimizeCss) {
-        plugins.push(new CleanCssWebpackPlugin({ sourceMap: cssSourceMap }));
+        plugins.push(new CleanCssWebpackPlugin({
+            sourceMap: cssSourceMap,
+            // component styles retain their original file name
+            test: (file) => /\.(?:css|scss|sass|less|styl)$/.test(file),
+        }));
     }
 
     return {
