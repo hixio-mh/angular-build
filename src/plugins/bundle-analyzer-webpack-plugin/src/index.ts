@@ -29,7 +29,8 @@ export class BundleAnalyzerWebpackPlugin {
         modules: true,
         chunks: true,
         chunkModules: true,
-        entrypoints: true
+        entrypoints: true,
+        maxModules: Infinity
     };
 
     private readonly defaultOptions: any = {
@@ -64,7 +65,7 @@ export class BundleAnalyzerWebpackPlugin {
 
         compiler.plugin('after-emit',
             (compilation: any, cb: Function) => {
-                if (!forceExit) {
+                if (!forceExit || compilation.errors.length) {
                     cb();
                     return;
                 }
@@ -78,8 +79,8 @@ export class BundleAnalyzerWebpackPlugin {
             });
 
         compiler.plugin('done',
-            (stats: any) => {
-                if (forceExit) {
+            (stats: webpack.Stats) => {
+                if (forceExit || stats.hasErrors()) {
                     return;
                 }
 
