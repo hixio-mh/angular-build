@@ -1,5 +1,11 @@
 # Change Logs
 
+## 5.2.3
+
+- Simplify paths module resolution [#fb38acaa](https://github.com/BizAppFramework/angular-build/commit/fb38acaa422b31272e888d66e512b96987f5b30b)
+- Updated webpack stats option [#cd4224f0](https://github.com/BizAppFramework/angular-build/commit/cd4224f0f4575d12f8bf65ba96d66f0c460258ff)
+- Updated npm packages [#77eb7e3a](https://github.com/BizAppFramework/angular-build/commit/77eb7e3ab996f776013f156060a05ffce4258043)
+
 ## 5.2.2
 
 - Added moduleConcatenation option to app config model [#bd471e0c](https://github.com/BizAppFramework/angular-build/commit/bd471e0c93536db07644fb7cac1e0f4a1d121ad9)
