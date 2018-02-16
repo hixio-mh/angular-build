@@ -73,52 +73,49 @@ export default postcss.plugin('postcss-cli-resources',
             const search = urlWithStringQuery.search;
 
             const resolver = (file: string, base: string) => new Promise<string>((resolve, reject) => {
-                loader.resolve(base,
-                    file,
-                    (err, result) => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
-                        resolve(result);
-                    });
+                loader.resolve(base, file, (err, result) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    resolve(result);
+                });
             });
 
             const result = await resolve(pathname || '', loader.context, resolver);
 
             return new Promise<string>((resolve, reject) => {
-                loader.fs.readFile(result,
-                    (err: Error, data: Buffer) => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
+                loader.fs.readFile(result, (err: Error, content: Buffer) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
 
-                        const content = data.toString();
-                        const outputPath = interpolateName(
-                            { resourcePath: result } as webpack.loader.LoaderContext,
-                            filename,
-                            { content },
-                        );
+                    const outputPath = interpolateName(
+                        { resourcePath: result } as webpack.loader.LoaderContext,
+                        filename,
+                        { content },
+                    );
 
-                        loader.addDependency(result);
-                        loader.emitFile(outputPath, content, undefined);
+                    loader.addDependency(result);
+                    loader.emitFile(outputPath, content, undefined);
 
-                        let outputUrl = outputPath.replace(/\\/g, '/');
-                        if (hash || search) {
-                            outputUrl = url.format({ pathname: outputUrl, hash, search });
-                        }
+                    let outputUrl = outputPath.replace(/\\/g, '/');
+                    if (hash || search) {
+                        outputUrl = url.format({ pathname: outputUrl, hash, search });
+                    }
 
-                        if (deployUrl) {
-                            outputUrl = url.resolve(deployUrl, outputUrl);
-                        }
+                    if (deployUrl) {
+                        outputUrl = url.resolve(deployUrl, outputUrl);
+                    }
 
-                        resourceCache.set(inputUrl, outputUrl);
+                    resourceCache.set(inputUrl, outputUrl);
 
-                        resolve(outputUrl);
-                    });
+                    resolve(outputUrl);
+                });
             });
         };
+
 
         return (root: postcss.Root) => {
             const urlDeclarations: Array<postcss.Declaration> = [];
@@ -142,7 +139,6 @@ export default postcss.plugin('postcss-cli-resources',
                 let match = urlRegex.exec(value);
                 let lastIndex = 0;
                 let modified = false;
-                // tslint:disable-next-line:no-conditional-assignment
                 while (match) {
                     let processedUrl: string;
                     try {
