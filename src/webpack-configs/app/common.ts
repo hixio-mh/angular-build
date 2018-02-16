@@ -344,11 +344,11 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
             }
 
             plugins.push(new BundleAnalyzerWebpackPlugin(Object.assign({
-                    loggerOptions: {
-                        logLevel: 'error'
-                    },
-                    stats: appConfig.stats
+                loggerOptions: {
+                    logLevel: 'error'
                 },
+                stats: appConfig.stats
+            },
                 bundleAnalyzerOptions)));
         }
     }
@@ -412,7 +412,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         resolve: {
             extensions: ['.ts', '.js'],
             symlinks: symlinks,
-            modules: nodeModulePaths,
+            modules: [srcDir, ...nodeModulePaths],
             mainFields: appConfig._nodeResolveFields,
             alias: alias
         },
