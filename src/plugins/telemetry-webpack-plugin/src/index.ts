@@ -26,8 +26,7 @@ export class TelemetryWebpackPlugin {
 
         compiler.plugin('done',
             (stats: webpack.Stats) => {
-                if (AngularBuildContext.telemetryDisabled ||
-                    AngularBuildContext.fromAngularBuildCli) {
+                if (AngularBuildContext.telemetryDisabled) {
                     return;
                 }
 
@@ -53,13 +52,15 @@ export class TelemetryWebpackPlugin {
                     properties: customProps
                 });
 
-                appInsights.defaultClient.flush();
+                setImmediate(() => {
+                    appInsights.defaultClient.flush();
 
-                const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
-                if (verbose) {
-                    const identifier = (global as any).angular_build_telemetry_identifier as string;
-                    console.log(`\nIdentifier: ${identifier}\n`);
-                }
+                    const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
+                    if (verbose) {
+                        const identifier = (global as any).angular_build_telemetry_identifier as string;
+                        console.log(`\nIdentifier: ${identifier}\n`);
+                    }
+                });
             });
     }
 }
@@ -81,7 +82,6 @@ export function initAppInsights(): void {
     }
 
     const telemetryVerbose = process.argv.indexOf('--telemetry-verbose') > -1;
-    const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
     const fromAngularBuildCli =
         typeof AngularBuildContext.fromAngularBuildCli !== 'undefined' && AngularBuildContext.fromAngularBuildCli;
     const cliVersion = AngularBuildContext.cliVersion;
@@ -138,14 +138,4 @@ export function initAppInsights(): void {
     appInsights.defaultClient.commonProperties = commonAppInsightsProps;
     appInsights.defaultClient.config.disableAppInsights = AngularBuildContext.telemetryDisabled;
     appInsights.start();
-
-    if (fromAngularBuildCli) {
-        process.on('exit',
-            code => {
-                if (verbose) {
-                    console.log(`\nIdentifier: ${identifier}`);
-                    console.log(`\nProcess is exited with code: ${code}`);
-                }
-            });
-    }
 }

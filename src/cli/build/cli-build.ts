@@ -1,9 +1,7 @@
 import * as path from 'path';
-import * as appInsights from 'applicationinsights';
 import * as webpack from 'webpack';
 
 import {
-    AngularBuildContext,
     InvalidConfigError,
     ProjectConfigInternal,
     TypescriptCompileError,
@@ -98,89 +96,46 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
         }
 
         const duration = Date.now() - startTime;
-
         logger.info(`\nBuild all completed in [${duration}ms]\n`);
+
         if (commandOptions.beep && process.stdout.isTTY) {
             process.stdout.write('\x07');
-        }
-
-        // appInsights
-        if (!AngularBuildContext.telemetryDisabled) {
-            const customProps = {
-                libs: `${AngularBuildContext.libCount}`,
-                apps: `${AngularBuildContext.appCount}`,
-                production: `${typeof AngularBuildContext.environment.prod !== 'undefined' &&
-                    AngularBuildContext.environment.prod}`,
-                duration: `${duration}`,
-                status: 'passing'
-            };
-
-            appInsights.defaultClient.trackEvent({
-                name: 'build',
-                properties: customProps
-            });
-
-            appInsights.defaultClient.flush();
         }
 
         return 0;
     } catch (err) {
-        if (!err) {
-            return -1;
-        }
-
-        if (err instanceof InvalidConfigError ||
-            err instanceof TypescriptCompileError ||
-            err instanceof UglifyError ||
-            err instanceof UnSupportedStyleExtError) {
-            logger.error(`\n${err.message.trim()}\n`);
-        } else {
-            let errMsg = '\n';
-            if (err.message && err.message.length && err.message !== err.stack) {
-                errMsg += err.message;
-            }
-            if ((err as any).details &&
-                (err as any).details.length &&
-                (err as any).details !== err.stack &&
-                (err as any).details !== err.message) {
-                if (errMsg.trim()) {
-                    errMsg += '\nError Details:\n';
+        if (err) {
+            if (err instanceof InvalidConfigError ||
+                err instanceof TypescriptCompileError ||
+                err instanceof UglifyError ||
+                err instanceof UnSupportedStyleExtError) {
+                logger.error(`\n${err.message.trim()}\n`);
+            } else {
+                let errMsg = '\n';
+                if (err.message && err.message.length && err.message !== err.stack) {
+                    errMsg += err.message;
                 }
-                errMsg += (err as any).details;
-            } else if (err.stack && err.stack.length && err.stack !== err.message) {
-                if (errMsg.trim()) {
-                    errMsg += '\nCall Stack:\n';
+                if ((err as any).details &&
+                    (err as any).details.length &&
+                    (err as any).details !== err.stack &&
+                    (err as any).details !== err.message) {
+                    if (errMsg.trim()) {
+                        errMsg += '\nError Details:\n';
+                    }
+                    errMsg += (err as any).details;
+                } else if (err.stack && err.stack.length && err.stack !== err.message) {
+                    if (errMsg.trim()) {
+                        errMsg += '\nCall Stack:\n';
+                    }
+                    errMsg += err.stack;
                 }
-                errMsg += err.stack;
-            }
 
-            logger.error(errMsg + '\n');
+                logger.error(errMsg + '\n');
+            }
         }
 
         if (commandOptions.beep && process.stdout.isTTY) {
             process.stdout.write('\x07');
-        }
-
-        const duration = Date.now() - startTime;
-
-        // appInsights
-        if (!AngularBuildContext.telemetryDisabled) {
-            const customProps = {
-                libs: `${AngularBuildContext.libCount}`,
-                apps: `${AngularBuildContext.appCount}`,
-                production: `${typeof AngularBuildContext.environment.prod !== 'undefined' &&
-                    AngularBuildContext.environment.prod}`,
-                duration: `${duration}`,
-                status: 'failing',
-                'error type': err.name
-            };
-
-            appInsights.defaultClient.trackEvent({
-                name: 'build',
-                properties: customProps
-            });
-
-            appInsights.defaultClient.flush();
         }
 
         return -1;
