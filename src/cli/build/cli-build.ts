@@ -53,7 +53,8 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
     });
 
     if (!await exists(configPath)) {
-        logger.error(`The angular-build.json config file does not exist at ${configPath}.\n`);
+        logger.error(`angular-build.json config file does not exist - search location: ${configPath}. ` +
+            `Please use --config=<your config file> option or make sure angular-build.json is existed in current working directory.\n`);
         return -1;
     }
 

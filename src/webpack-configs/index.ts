@@ -93,8 +93,8 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
     }
 
     if (!existsSync(configPath)) {
-        throw new InvalidOptionError(`angular-build.json config file does not exist - search location: ${configPath}.` +
-            `Please use --config=<your config file> option or make sure angular-build.json is existed in current working directory`);
+        throw new InvalidOptionError(`angular-build.json config file does not exist - search location: ${configPath}. ` +
+            `Please use --config=<your config file> option or make sure angular-build.json is existed in current working directory.`);
     }
 
     let angularBuildConfig: AngularBuildConfigInternal | null = null;
