@@ -5,7 +5,6 @@ import * as webpack from 'webpack';
 
 import { PurifyPlugin } from '@angular-devkit/build-optimizer';
 
-import { AngularBuildProjectConfigWebpackPlugin } from '../../plugins/angular-build-project-config-webpack-plugin';
 import { BundleAnalyzerWebpackPlugin } from '../../plugins/bundle-analyzer-webpack-plugin';
 import { CleanWebpackPlugin } from '../../plugins/clean-webpack-plugin';
 import { CopyWebpackPlugin } from '../../plugins/copy-webpack-plugin';
@@ -113,26 +112,6 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     if (AngularBuildContext.progress && fromAngularBuildCli && !devServer && !hot && !watch) {
         plugins.push(new webpack.ProgressPlugin());
     }
-
-    // angular-build bind
-    if (!isDll) {
-        plugins.push(new AngularBuildProjectConfigWebpackPlugin({
-            configPath: AngularBuildContext.angularBuildConfig._configPath,
-            environment: environment as { [key: string]: boolean | string; },
-
-            initialProjectConfig: appConfig,
-            configName: appConfig.name,
-            projectType: appConfig._projectType,
-
-            schema: AngularBuildContext.angularBuildConfig._schema,
-            validateSchema: true,
-
-            loggerOptions: {
-                logLevel: AngularBuildContext.angularBuildConfig.logLevel
-            }
-        }));
-    }
-
     // clean
     let shouldClean = outDir &&
         (AngularBuildContext.cleanOutDirs || appConfig.clean);

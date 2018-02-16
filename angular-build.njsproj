@@ -93,8 +93,6 @@
     <Folder Include="src\plugins\add-assets-html-webpack-plugin\src\" />
     <Folder Include="src\plugins\add-static-asset-webpack-plugin\" />
     <Folder Include="src\plugins\add-static-asset-webpack-plugin\src\" />
-    <Folder Include="src\plugins\angular-build-project-config-webpack-plugin\" />
-    <Folder Include="src\plugins\angular-build-project-config-webpack-plugin\src\" />
     <Folder Include="src\plugins\base-href-html-webpack-plugin\" />
     <Folder Include="src\plugins\base-href-html-webpack-plugin\src\" />
     <Folder Include="src\plugins\bundle-analyzer-webpack-plugin\" />
@@ -173,8 +171,6 @@
     <TypeScriptCompile Include="src\plugins\add-assets-html-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\add-static-asset-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\add-static-asset-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\angular-build-project-config-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\angular-build-project-config-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\base-href-html-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\base-href-html-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\bundle-analyzer-webpack-plugin\index.ts" />
