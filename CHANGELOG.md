@@ -1,5 +1,12 @@
 # Change Logs
 
+## 5.2.4
+
+- Added cliIsLink flag to cli option [#962bb0be](https://github.com/BizAppFramework/angular-build/commit/962bb0be75eef907d6517098e48404a7d6c30361)
+- Fixed error - cannot find module ..../@bizappframework\angular-build\dist\package.json when link [#493719ac](https://github.com/BizAppFramework/angular-build/commit/493719ac417ce265bb05451edc0006282d31eed8)
+- Fixed not copying some root package.json options [#41c97d2a](https://github.com/BizAppFramework/angular-build/commit/41c97d2a725034909e867e3ae8428f9425f17f23)
+- Updated npm packages [#f7d69eda](https://github.com/BizAppFramework/angular-build/commit/f7d69eda0f91500b76c0845ee449a999b9c27eb7)
+
 ## 5.2.3
 
 - Simplify paths module resolution [#fb38acaa](https://github.com/BizAppFramework/angular-build/commit/fb38acaa422b31272e888d66e512b96987f5b30b)
