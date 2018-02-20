@@ -174,14 +174,15 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
     logger.info(`Copying and updating package.json`);
 
     // merge config
-    const rootPackageJson = angularBuildContext.packageJson;
-    const packageJson: any = Object.assign(JSON.parse(JSON.stringify(angularBuildContext.packageJson)), mainFields);
+    const rootPackageJson = angularBuildContext.rootPackageJson || {};
+    const packageJson: any = Object.assign({}, JSON.parse(JSON.stringify(angularBuildContext.packageJson)), mainFields);
     if (packageJson.devDependencies) {
         delete packageJson.devDependencies;
     }
     if (angularBuildContext.projectVersion) {
         packageJson.version = angularBuildContext.projectVersion;
     }
+
     if (rootPackageJson.description &&
         (packageJson.description === '' ||
             packageJson.description === '[PLACEHOLDER]')) {
