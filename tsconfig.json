@@ -38,6 +38,6 @@
   },
   "include": [
     "./src"
-  ],
-  "compileOnSave": false
+  ]
+  // "compileOnSave": false
 }
