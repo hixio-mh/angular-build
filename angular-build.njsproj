@@ -4,7 +4,6 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Name>angular-build</Name>
     <RootNamespace>angular-build</RootNamespace>
-    <ToolsVersionPromptShown>0.0</ToolsVersionPromptShown>
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -13,13 +12,11 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5501ef62-d153-4eb9-8b74-9777cb071551</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile></StartupFile>
     <StartWebBrowser>False</StartWebBrowser>
-    <SearchPath>
-    </SearchPath>
+    <SearchPath></SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
-    <OutputPath>.</OutputPath>
+    <OutputPath>dist</OutputPath>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
@@ -34,12 +31,10 @@
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
     <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
     <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
-    <TypeScriptOutFile />
-    <TypeScriptOutDir />
+    <TypeScriptOutFile /><TypeScriptOutDir />
     <TypeScriptGeneratesDeclarations>True</TypeScriptGeneratesDeclarations>
     <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
-    <TypeScriptMapRoot />
-    <TypeScriptSourceRoot />
+    <TypeScriptMapRoot /><TypeScriptSourceRoot />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugSymbols>true</DebugSymbols>
@@ -284,8 +279,12 @@
     </VisualStudio>
   </ProjectExtensions>
   <Target Name="ReleaseBuild" AfterTargets="Build" Condition=" '$(Configuration)' == 'Release' ">
-    <Message Importance="high" Text="Performing npm run build..." />
+    <Message Importance="high" Text="Performing release build..." />
     <Exec Command="npm run build" />
+  </Target>
+  <Target Name="GenerateSchema" AfterTargets="Build" Condition=" '$(Configuration)' == 'Debug' ">
+    <Message Importance="high" Text="Generating schema..." />
+    <Exec Command="npm run generate-schema" />
   </Target>
   <Target Name="CleanDist" AfterTargets="Clean">
     <ItemGroup>
