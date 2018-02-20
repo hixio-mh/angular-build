@@ -76,10 +76,7 @@ function _cliGlobal() {
     const updateNotifier = require('update-notifier');
     updateNotifier({
         pkg: packageJson
-    })
-        .notify({
-            defer: false
-        });
+    }).notify({ defer: false });
 
     let cli = null;
     if (fs.existsSync(path.resolve(__dirname, '../cli/index.js'))) {
@@ -111,23 +108,33 @@ function _cliLocal(projectRoot) {
             return;
         }
 
-        // projectLocalCli -> node_modules\@bizappframework\angular-build\index.js
-        let cliRootPath = path.dirname(projectLocalCli);
-        let packageJsonPath = path.resolve(cliRootPath, './package.json');
-        if (!fs.existsSync(packageJsonPath) && fs.existsSync(path.resolve(cliRootPath, '..', './package.json'))) {
-            packageJsonPath = path.resolve(cliRootPath, '..', './package.json');
+        let cliIsLink = false;
+        const projectLocalCliRealPath = fs.realpathSync(projectLocalCli);
+        if (projectLocalCliRealPath !== projectLocalCli) {
+            cliIsLink = true;
+        }
+
+        // projectLocalCli -> node_modules\@bizappframework\angular-build\index.js for locally installed
+        // projectLocalCli -> node_modules\@bizappframework\angular-build\dist\index.js for link
+        let cliPath = path.dirname(projectLocalCli);
+        let packageJsonPath = path.resolve(cliPath, './package.json');
+        if ((!fs.existsSync(packageJsonPath) || !fs.existsSync(path.resolve(cliPath, 'node_modules'))) &&
+            fs.existsSync(path.resolve(cliPath, '..', './package.json'))) {
+            packageJsonPath = path.resolve(cliPath, '..', './package.json');
         }
 
         const packageJson = require(packageJsonPath);
         let cliVersion = packageJson['version'];
 
-        let localCliPath = path.resolve(cliRootPath, './cli');
+        let localCliPath = path.resolve(cliPath, './cli');
         const cli = require(localCliPath);
 
         const cliOptions = {
             args: process.argv.slice(2),
             cliVersion: cliVersion,
             cliIsGlobal: false,
+            cliIsLink: cliIsLink,
+            cliRootPath: path.dirname(packageJsonPath),
             startTime: startTime
         };
 
@@ -169,3 +176,4 @@ if (_args.length >= 2 && _args[0] === 'build') {
 const _localCliPath = path.resolve(forceUseLocalCli ? _projectRoot : process.cwd(), 'node_modules/@bizappframework/angular-build');
 const _localCliPathExists = fs.existsSync(_localCliPath);
 _localCliPathExists ? _cliLocal(_projectRoot) : _cliGlobal();
+

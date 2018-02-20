@@ -37,11 +37,15 @@ Usage:
 
 function displayAngularBuildVersion(cliOptions: CliOptions): void {
     console.log(`${colorize(
-        `\nangular-build ${cliOptions.cliVersion} [${cliOptions.cliIsGlobal ? 'Global' : 'Local'}]`,
+        `\nangular-build ${cliOptions.cliVersion} [${cliOptions.cliIsGlobal
+        ? 'Global'
+        : cliOptions.cliIsLink
+        ? 'Local - link'
+        : 'Local'}]`,
         'white')}\n`);
 }
 
-export default async function (cliOptions: CliOptions): Promise<number> {
+export default async function(cliOptions: CliOptions): Promise<number> {
     let isHelpCommand = false;
     if (cliOptions.args && (cliOptions.args as string[]).includes('help')) {
         isHelpCommand = true;
@@ -70,7 +74,8 @@ export default async function (cliOptions: CliOptions): Promise<number> {
         const cliBuild = cliBuildModule.cliBuild;
         // const cliBuild = require('./build/cli-build').cliBuild;
         return cliBuild(cliOptions);
-    } if (commandOptions.version) {
+    }
+    if (commandOptions.version) {
         return Promise.resolve(cliOptions)
             .then(() => {
                 console.log(cliOptions.cliVersion);
