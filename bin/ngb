@@ -113,7 +113,12 @@ function _cliLocal(projectRoot) {
 
         // projectLocalCli -> node_modules\@bizappframework\angular-build\index.js
         let cliRootPath = path.dirname(projectLocalCli);
-        const packageJson = require(path.resolve(cliRootPath, './package.json'));
+        let packageJsonPath = path.resolve(cliRootPath, './package.json');
+        if (!fs.existsSync(packageJsonPath) && fs.existsSync(path.resolve(cliRootPath, '..', './package.json'))) {
+            packageJsonPath = path.resolve(cliRootPath, '..', './package.json');
+        }
+
+        const packageJson = require(packageJsonPath);
         let cliVersion = packageJson['version'];
 
         let localCliPath = path.resolve(cliRootPath, './cli');
