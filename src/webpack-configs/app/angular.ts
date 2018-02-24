@@ -1,6 +1,5 @@
 import * as path from 'path';
 
-import * as resolve from 'resolve';
 import * as webpack from 'webpack';
 
 import {
@@ -233,10 +232,8 @@ function getAngularPluginWebpackConfigPartial(angularBuildContext: AngularBuildC
             }
         ];
 
-        // Set the cache directory to the Build Optimizer dir, so that package updates will delete it.
-        const buildOptimizerDir = path.dirname(
-            resolve.sync('@angular-devkit/build-optimizer', { basedir: projectRoot }));
-        const cacheDirectory = path.resolve(buildOptimizerDir, './.cache/');
+        const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
+        const cacheDirectory = path.resolve(srcDir, './.bo-cache/');
 
         rules.push({
             test: /\.js$/,
