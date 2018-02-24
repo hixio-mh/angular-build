@@ -1,5 +1,11 @@
 # Change Logs
 
+## 5.2.5
+
+- Fixed error 'Cannot find module @angular-devkit/build-optimizer ...' [#89d00657](https://github.com/BizAppFramework/angular-build/commit/89d0065787a08d835f7eb43f5c12c3f76984a29b)
+- Set rollup-plugin-typescript2 cacheRoot directory to srcDir/.rts2_cache [#50e7850f](https://github.com/BizAppFramework/angular-build/commit/50e7850f861ace19e21b103179b998631cad4350)
+- Updated npm dependencies [#f7d69eda](https://github.com/BizAppFramework/angular-build/commit/f7d69eda0f91500b76c0845ee449a999b9c27eb7)
+
 ## 5.2.4
 
 - Added cliIsLink flag to cli option [#962bb0be](https://github.com/BizAppFramework/angular-build/commit/962bb0be75eef907d6517098e48404a7d6c30361)
