@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as rollup from 'rollup';
 
 import { defaultAngularAndRxJsExternals } from '../helpers/angular-rxjs-externals';
@@ -121,6 +122,8 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
         plugins.push(rollupNodeResolve(nodeResolveOptions));
 
         if (isTsEntry) {
+            const projectRoot = AngularBuildContext.projectRoot;
+            const srcDir = path.resolve(projectRoot, libConfig.srcDir || '');
             const typescript = require('rollup-plugin-typescript2');
 
             // rollup-plugin-typescript@0.8.1 doesn't support custom tsconfig path
@@ -128,8 +131,8 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
             plugins.push(typescript({
                 tsconfig: currentBundle._tsConfigPath,
                 typescript: require('typescript'),
-                rollupCommonJSResolveHack: libraryTarget === 'cjs'
-                // cacheRoot: './.rts2_cache'
+                rollupCommonJSResolveHack: libraryTarget === 'cjs',
+                cacheRoot: path.resolve(srcDir, './.rts2_cache')
             }));
         }
 
