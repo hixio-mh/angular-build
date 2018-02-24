@@ -170,6 +170,31 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     commonChunk?: boolean;
     /**
+     * The output chunk name for main entry.
+     * @default main
+     */
+    mainEntryChunkName?: string;
+    /**
+     * The output chunk name for polyfills.
+     * @default polyfills
+     */
+    polyfillsChunkName?: string;
+    /**
+     * The output chunk name for vendor or dll chunk.
+     * @default vendor
+     */
+    vendorChunkName?: string;
+    /**
+     * The output chunk name for inline.
+     * @default inline
+     */
+    inlineChunkName?: string;
+    /**
+     * The output chunk name for vendor or dll chunk.
+     * @default common
+     */
+    commonChunkName?: string;
+    /**
      *  To load global modules automatically  with alias key.
      */
     provides?: { [key: string]: any };
@@ -311,31 +336,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
  * @additionalProperties false
  */
 export interface AppProjectConfig extends AppProjectConfigBase, ProjectConfig {
-    /**
-     * The output chunk name for main entry.
-     * @default main
-     */
-    mainEntryChunkName?: string;
-    /**
-     * The output chunk name for polyfills.
-     * @default polyfills
-     */
-    polyfillsChunkName?: string;
-    /**
-     * The output chunk name for vendor or dll chunk.
-     * @default vendor
-     */
-    vendorChunkName?: string;
-    /**
-     * The output chunk name for inline.
-     * @default inline
-     */
-    inlineChunkName?: string;
-    /**
-     * The output chunk name for vendor or dll chunk.
-     * @default common
-     */
-    commonChunkName?: string;
     /**
      * To override properties based on build targets.
      */
