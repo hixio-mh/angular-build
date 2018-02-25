@@ -243,11 +243,23 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
             }
 
             if (appConfig.environmentVariables && typeof appConfig.environmentVariables === 'object') {
-                const userEnvVariables = appConfig.environmentVariables as any;
+                const userEnvVariables = appConfig.environmentVariables as { [key: string]: boolean | string };
                 Object.keys(userEnvVariables)
                     .filter((key: string) => !(key in envVariables))
                     .forEach((key: string) => {
-                        envVariables[key] = userEnvVariables[key];
+                        let envValue = userEnvVariables[key];
+                        const envStr = 'process.env.';
+                        if (typeof envValue === 'string' &&
+                            envValue.startsWith(envStr) &&
+                            envValue.length > envStr.length) {
+                            const envKey = envValue.substr(envStr.length);
+                            const processEnvValue = process.env[envKey];
+                            if (processEnvValue !== undefined) {
+                                envValue = processEnvValue;
+                            }
+                        }
+
+                        envVariables[key] = envValue;
                     });
             }
 
