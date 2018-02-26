@@ -375,6 +375,15 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     if (AngularBuildContext.nodeModulesPath) {
         nodeModulePaths.push(AngularBuildContext.nodeModulesPath);
     }
+    if (appConfig.moduleRoots && appConfig.moduleRoots.length) {
+        appConfig.moduleRoots.forEach(p => {
+            if (path.isAbsolute(p)) {
+                nodeModulePaths.push(path.resolve(p));
+            } else {
+                nodeModulePaths.push(path.resolve(projectRoot, p));
+            }
+        });
+    }
 
     const loaderModulePaths = [...nodeModulePaths];
     if (AngularBuildContext.cliRootPath) {

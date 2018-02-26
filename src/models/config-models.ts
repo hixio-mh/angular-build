@@ -330,6 +330,10 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Default true for production.
      */
     moduleConcatenation?: boolean;
+    /**
+     * Tell webpack what directories should be searched when resolving modules.
+     */
+    moduleRoots?: string[];
 }
 
 /**
