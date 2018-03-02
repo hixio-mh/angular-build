@@ -24,7 +24,7 @@ import { parseGlobalEntries } from './parse-global-entry';
 
 export function applyAngularBuildConfigDefaults(angularBuildConfig: AngularBuildConfigInternal): void {
     if (!angularBuildConfig) {
-        throw new InternalError(`The 'angularBuildConfig' is required.`);
+        throw new InternalError("The 'angularBuildConfig' is required.");
     }
 
     angularBuildConfig.apps = angularBuildConfig.apps || [];
@@ -50,7 +50,7 @@ export function applyAngularBuildConfigDefaults(angularBuildConfig: AngularBuild
 export function applyProjectConfigWithEnvOverrides(projectConfig: AppProjectConfig | LibProjectConfig,
     env: { [key: string]: boolean | string; } | PreDefinedEnvironment): void {
     if (!env) {
-        throw new InternalError(`The 'env' is required.`);
+        throw new InternalError("The 'env' is required.");
     }
 
     if (!projectConfig ||
@@ -116,8 +116,7 @@ export function applyProjectConfigWithEnvOverrides(projectConfig: AppProjectConf
 
 export function applyProjectConfigDefaults(projectRoot: string,
     projectConfig: AppProjectConfigInternal | LibProjectConfigInternal,
-    environment: PreDefinedEnvironment): void {
-
+    environment: PreDefinedEnvironment, isProduction: boolean, commandOptions: { [key: string]: any }): void {
     if (projectConfig.skip) {
         return;
     }
@@ -128,9 +127,13 @@ export function applyProjectConfigDefaults(projectRoot: string,
     }
 
     if (projectConfig._projectType === 'lib') {
-        applyLibProjectConfigDefaults(projectRoot, projectConfig as LibProjectConfigInternal);
+        applyLibProjectConfigDefaults(projectRoot, projectConfig as LibProjectConfigInternal, commandOptions);
     } else {
-        applyAppProjectConfigDefaults(projectRoot, projectConfig as AppProjectConfigInternal, environment);
+        applyAppProjectConfigDefaults(projectRoot,
+            projectConfig as AppProjectConfigInternal,
+            environment,
+            isProduction,
+            commandOptions);
     }
 }
 
@@ -172,9 +175,15 @@ function overrideProjectConfig(oldConfig: any, newConfig: any): void {
     });
 }
 
-function applyLibProjectConfigDefaults(projectRoot: string, libConfig: LibProjectConfigInternal): void {
+function applyLibProjectConfigDefaults(projectRoot: string,
+    libConfig: LibProjectConfigInternal,
+    commandOptions: { [key: string]: any }): void {
     if (libConfig.skip) {
         return;
+    }
+
+    if (!libConfig.platformTarget && commandOptions.target) {
+        libConfig.platformTarget = commandOptions.target;
     }
 
     const srcDir = path.resolve(projectRoot, libConfig.srcDir || '');
@@ -231,36 +240,48 @@ function applyLibProjectConfigDefaults(projectRoot: string, libConfig: LibProjec
 
 function applyAppProjectConfigDefaults(projectRoot: string,
     appConfig: AppProjectConfigInternal,
-    environment: PreDefinedEnvironment): void {
+    environment: PreDefinedEnvironment,
+    isProduction: boolean,
+    commandOptions: { [key: string]: any }): void {
     if (appConfig.skip) {
         return;
     }
 
     if (!appConfig.platformTarget) {
-        appConfig.platformTarget = 'web';
+        if (commandOptions.target) {
+            appConfig.platformTarget = commandOptions.target;
+        } else {
+            appConfig.platformTarget = 'web';
+        }
     }
 
-    if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
-        appConfig.publicPath = appConfig.publicPath || '/';
+    if (appConfig.publicPath == null) {
+        if (commandOptions['output-public-path'] || commandOptions.outputPublicPath) {
+            appConfig.publicPath = commandOptions['output-public-path'] || commandOptions.outputPublicPath;
+        } else if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
+            appConfig.publicPath = '/';
+        }
     }
 
     if (appConfig.publicPath) {
         appConfig.publicPath = /\/$/.test(appConfig.publicPath) ? appConfig.publicPath : appConfig.publicPath + '/';
     }
 
-    appConfig.mainEntryChunkName = appConfig.mainEntryChunkName || 'main';
+    appConfig.mainChunkName = appConfig.mainChunkName || 'main';
     appConfig.polyfillsChunkName = appConfig.polyfillsChunkName || 'polyfills';
     appConfig.vendorChunkName = appConfig.vendorChunkName || 'vendor';
-    appConfig.inlineChunkName = appConfig.inlineChunkName || 'inline';
-    appConfig.commonChunkName = appConfig.commonChunkName || 'common';
 
     if (typeof appConfig.sourceMap === 'undefined') {
-        appConfig.sourceMap = !environment.prod || isWebpackDevServer();
+        if (commandOptions.devtool) {
+            appConfig.sourceMap = true;
+        } else {
+            appConfig.sourceMap = !isProduction;
+        }
     }
 
     if (typeof appConfig.extractCss === 'undefined') {
         if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
-            appConfig.extractCss = (environment.prod || environment.dll) && !isWebpackDevServer();
+            appConfig.extractCss = (isProduction || environment.dll) && !isWebpackDevServer();
         } else {
             appConfig.extractCss = false;
         }
@@ -271,10 +292,30 @@ function applyAppProjectConfigDefaults(projectRoot: string,
             if (hasAspAppendVersion(appConfig)) {
                 appConfig.bundlesHash = false;
             } else {
-                appConfig.bundlesHash = environment.prod && !isWebpackDevServer();
+                appConfig.bundlesHash = isProduction && !isWebpackDevServer();
             }
         } else {
             appConfig.bundlesHash = false;
+        }
+    }
+
+    if (typeof appConfig.chunksHash === 'undefined') {
+        if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
+            if (isProduction && !isWebpackDevServer()) {
+                appConfig.chunksHash = true;
+            }
+        } else {
+            appConfig.chunksHash = false;
+        }
+    }
+
+    if (typeof appConfig.extractedAssetsHash === 'undefined') {
+        if (!appConfig.platformTarget || appConfig.platformTarget === 'web') {
+            if (isProduction && !isWebpackDevServer()) {
+                appConfig.extractedAssetsHash = true;
+            }
+        } else {
+            appConfig.chunksHash = false;
         }
     }
 
@@ -402,6 +443,10 @@ function applyAppProjectConfigDefaults(projectRoot: string,
     if (!environment.dll && appConfig.polyfills && appConfig.polyfills.length > 0) {
         const polyfills = Array.isArray(appConfig.polyfills) ? appConfig.polyfills : [appConfig.polyfills];
         appConfig._polyfillParsedResult = parseDllEntries(srcDir, polyfills);
+    }
+
+    if (!environment.dll && appConfig.styles && appConfig.styles.length > 0) {
+        appConfig._styleParsedEntries = parseGlobalEntries(appConfig.styles, srcDir, 'styles');
     }
 
     if (!environment.dll && appConfig.scripts && appConfig.scripts.length > 0) {

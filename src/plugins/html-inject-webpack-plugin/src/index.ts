@@ -1,0 +1,679 @@
+import * as path from 'path';
+import { EOL } from 'os';
+
+import * as minimatch from 'minimatch';
+import { RawSource } from 'webpack-sources';
+
+import * as htmlMinifier from 'html-minifier';
+import * as parse5 from 'parse5';
+
+import { HtmlInjectOptions } from '../../../models';
+import { Logger, LoggerOptions } from '../../../utils/logger';
+import { normalizeRelativePath } from '../../../utils/path-helpers';
+
+const sourceMapUrl = require('source-map-url');
+
+interface TagDefinition {
+    tagName: string;
+    attributes: { [key: string]: string | boolean };
+    innerHtml?: string;
+    voidTag?: boolean;
+    closeTag?: boolean;
+    selfClosingTag?: boolean;
+}
+
+export interface HtmlInjectWebpackPluginOptions extends HtmlInjectOptions {
+    srcDir: string;
+    outDir: string;
+    entrypoints: string[];
+
+    baseHref?: string;
+    publicPath?: string;
+    runtimeChunkFileName?: string;
+    iconsCacheFile?: string;
+    dllAssetsFile?: string;
+
+    minify?: boolean | htmlMinifier.Options;
+    loggerOptions?: LoggerOptions;
+}
+
+function readFile(filename: string, compilation: any): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        compilation.inputFileSystem.readFile(filename, (err: Error, data: Buffer) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+
+            const content = data.toString();
+            resolve(content);
+        });
+    });
+}
+
+export class HtmlInjectWebpackPlugin {
+    private readonly _logger: Logger;
+
+    get name(): string {
+        return 'html-inject-webpack-plugin';
+    }
+
+    constructor(private readonly _options: HtmlInjectWebpackPluginOptions) {
+        this._options.runtimeChunkFileName = this._options.runtimeChunkFileName || 'runtime.js';
+        this._options.dllAssetsFile = this._options.dllAssetsFile || 'vendor-assets.json';
+        this._options.iconsCacheFile = this._options.iconsCacheFile || '.icons-cache';
+
+        const loggerOptions =
+            Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
+        this._logger = new Logger(loggerOptions);
+    }
+
+    apply(compiler: any): void {
+        compiler.hooks.emit.tapPromise(this.name, async (compilation: any) => {
+            const treeAdapter = parse5.treeAdapters.default;
+            let document: parse5.AST.Default.Document | null = null;
+            let headElement: parse5.AST.Default.Element | null = null;
+            let bodyElement: parse5.AST.Default.Element | null = null;
+
+            const additionalAssetsEntry: { [key: string]: RawSource } = {};
+            const styleTags: string[] = [];
+            const scriptTags: string[] = [];
+
+            let indexRelative: string | null = null;
+            let indexInputFilePath: string | null = null;
+            let indexOutFilePath: string | null = null;
+
+            const customLinkAttributes = this._options.customLinkAttributes || this._options.customAttributes || {};
+            const customScriptAttributes = this._options.customScriptAttributes || this._options.customAttributes || {};
+            const customResourceHintAttributes =
+                this._options.customResourceHintAttributes || this._options.customAttributes || {};
+
+            let separateRuntimeInlineOut = false;
+            let runtimeInlineRelative: string | null = null;
+            if (this._options.runtimeInlineOut) {
+                const filePath = path.isAbsolute(this._options.runtimeInlineOut)
+                    ? path.resolve(this._options.runtimeInlineOut)
+                    : path.resolve(this._options.outDir, this._options.runtimeInlineOut);
+                if (filePath !== indexInputFilePath && filePath !== indexOutFilePath) {
+                    separateRuntimeInlineOut = true;
+                    runtimeInlineRelative = normalizeRelativePath(path.relative(this._options.outDir, filePath));
+                }
+            }
+
+            let separateStylesOut = false;
+            let stylesOutRelative: string | null = null;
+            if (this._options.stylesOut) {
+                const filePath = path.isAbsolute(this._options.stylesOut)
+                    ? path.resolve(this._options.stylesOut)
+                    : path.resolve(this._options.outDir, this._options.stylesOut);
+                if (filePath !== indexInputFilePath && filePath !== indexOutFilePath) {
+                    separateStylesOut = true;
+                    stylesOutRelative = normalizeRelativePath(path.relative(this._options.outDir, filePath));
+                }
+            }
+
+            let separateScriptsOut = false;
+            let scriptsOutRelative: string | null = null;
+            if (this._options.scriptsOut) {
+                const filePath = path.isAbsolute(this._options.scriptsOut)
+                    ? path.resolve(this._options.scriptsOut)
+                    : path.resolve(this._options.outDir, this._options.scriptsOut);
+                if (filePath !== indexInputFilePath && filePath !== indexOutFilePath) {
+                    separateScriptsOut = true;
+                    scriptsOutRelative = normalizeRelativePath(path.relative(this._options.outDir, filePath));
+                }
+            }
+
+            // link tag definition
+            const createLinkTagDefinition = (url: string): TagDefinition => {
+                return {
+                    tagName: 'link',
+                    attributes: {
+                        rel: 'stylesheet',
+                        href: (this._options.publicPath || '') + url,
+                        ...customLinkAttributes
+                    },
+                    selfClosingTag: true
+                };
+            };
+
+            // script tag definition
+            const createScriptTagDefinition = (url: string): TagDefinition => {
+                return {
+                    tagName: 'script',
+                    attributes: {
+                        type: 'text/javascript',
+                        src: (this._options.publicPath || '') + url,
+                        ...customScriptAttributes
+                    },
+                    closeTag: true
+                };
+            };
+
+            // Get input html file
+            if (this._options.index) {
+                indexInputFilePath = path.isAbsolute(this._options.index)
+                    ? path.resolve(this._options.index)
+                    : path.resolve(this._options.srcDir, this._options.index);
+                const indexOut = this._options.indexOut || path.basename(indexInputFilePath);
+                indexOutFilePath = path.isAbsolute(indexOut)
+                    ? path.resolve(indexOut)
+                    : path.resolve(this._options.outDir, indexOut);
+                indexRelative = normalizeRelativePath(path.relative(this._options.outDir, indexOutFilePath));
+
+                const inputContent = await readFile(indexInputFilePath, compilation);
+                compilation.fileDependencies.add(indexInputFilePath);
+
+                // Find the head and body elements
+                document = parse5.parse(inputContent, { treeAdapter }) as parse5.AST.Default.Document;
+                for (const topNode of document.childNodes) {
+                    if ((topNode as parse5.AST.Default.Element).tagName === 'html') {
+                        for (const htmlNode of (topNode as parse5.AST.Default.Element).childNodes) {
+                            if ((htmlNode as parse5.AST.Default.Element).tagName === 'head') {
+                                headElement = htmlNode as parse5.AST.Default.Element;
+                            }
+                            if ((htmlNode as parse5.AST.Default.Element).tagName === 'body') {
+                                bodyElement = htmlNode as parse5.AST.Default.Element;
+                            }
+                        }
+                    }
+                }
+
+                if (!headElement || !bodyElement) {
+                    compilation.errors.push(new Error('Missing head and/or body elements.'));
+                    return;
+                }
+            }
+
+            // Get all files for selected entrypoints
+            const unfilteredSortedFiles: string[] = [];
+            for (const entryName of this._options.entrypoints) {
+                const entrypoint = compilation.entrypoints.get(entryName);
+                if (entrypoint) {
+                    unfilteredSortedFiles.push(...entrypoint.getFiles());
+                }
+            }
+
+            // Filter files
+            const existingFiles = new Set<string>();
+            const stylesheets: string[] = [];
+            const scripts: string[] = [];
+            for (const file of unfilteredSortedFiles) {
+                if (existingFiles.has(file)) {
+                    continue;
+                }
+
+                existingFiles.add(file);
+
+                if (this._options.runtimeChunkInline &&
+                    this._options.runtimeChunkFileName === path.basename(file)) {
+                    continue;
+                }
+
+                if (file.endsWith('.js')) {
+                    scripts.push(file);
+                } else if (file.endsWith('.css')) {
+                    stylesheets.push(file);
+                }
+            }
+
+            // BaseHref
+            let separateBaseHrefOut = false;
+            let baseHrefOutRelative: string | null = null;
+            if (this._options.baseHrefOut && this._options.baseHref != null) {
+                const filePath = path.isAbsolute(this._options.baseHrefOut)
+                    ? path.resolve(this._options.baseHrefOut)
+                    : path.resolve(this._options.outDir, this._options.baseHrefOut);
+                if (filePath !== indexInputFilePath && filePath !== indexOutFilePath) {
+                    separateBaseHrefOut = true;
+                    baseHrefOutRelative = normalizeRelativePath(path.relative(this._options.outDir, filePath));
+                }
+            }
+            if (this._options.baseHref != null) {
+                const tagDefinition: TagDefinition = {
+                    tagName: 'base',
+                    attributes: {
+                        href: this._options.baseHref
+                    },
+                    selfClosingTag: true
+                };
+
+                if (headElement) {
+                    let baseElement: parse5.AST.Default.Element | null = null;
+                    for (const node of headElement.childNodes) {
+                        if ((node as parse5.AST.Default.Element).tagName === 'base') {
+                            baseElement = node as parse5.AST.Default.Element;
+                            break;
+                        }
+                    }
+
+                    this._logger.debug(`Injecting base href: '${this._options.baseHref}'`);
+
+                    const attributes = Object.keys(tagDefinition.attributes).map(key => {
+                        return {
+                            name: key,
+                            value: tagDefinition.attributes[key] as string
+                        };
+                    });
+
+                    if (!baseElement) {
+                        const element = treeAdapter.createElement(
+                            tagDefinition.tagName,
+                            undefined as any,
+                            attributes
+                        );
+
+                        treeAdapter.appendChild(headElement, element);
+                    } else {
+                        let hrefAttribute: parse5.AST.Default.Attribute | null = null;
+                        for (const attribute of baseElement.attrs) {
+                            if (attribute.name === 'href') {
+                                hrefAttribute = attribute;
+                            }
+                        }
+                        if (hrefAttribute) {
+                            hrefAttribute.value = this._options.baseHref;
+                        } else {
+                            baseElement.attrs.push({ name: 'href', value: this._options.baseHref });
+                        }
+                    }
+                }
+
+                if (separateBaseHrefOut && baseHrefOutRelative) {
+                    this._logger.debug(`Injecting base href: '${this._options.baseHref}' to ${baseHrefOutRelative}`);
+
+                    const content = HtmlInjectWebpackPlugin.createHtmlTag(tagDefinition);
+                    additionalAssetsEntry[baseHrefOutRelative] = new RawSource(content);
+                }
+            }
+
+            // ResourceHints
+            let separateResourceHintsOut = false;
+            let resourceHintsOutRelative: string | null = null;
+            if (this._options.resourceHintsOut && this._options.resourceHints !== false) {
+                const filePath = path.isAbsolute(this._options.resourceHintsOut)
+                    ? path.resolve(this._options.resourceHintsOut)
+                    : path.resolve(this._options.outDir, this._options.resourceHintsOut);
+                if (filePath !== indexInputFilePath && filePath !== indexOutFilePath) {
+                    separateResourceHintsOut = true;
+                    resourceHintsOutRelative = normalizeRelativePath(path.relative(this._options.outDir, filePath));
+                }
+            }
+            if (this._options.resourceHints || separateResourceHintsOut) {
+                const preloads = this._options.preloads || ['**/*.js'];
+                const prefetches = this._options.prefetches || [];
+                const resourceHintTags: string[] = [];
+
+                // resource hints
+                // See - https://w3c.github.io/preload/#link-type-preload
+                // See - https://hackernoon.com/10-things-i-learned-making-the-fastest-site-in-the-world-18a0e1cdf4a7
+                const createResourceHintTag = (href: string, rel: string): TagDefinition | null => {
+                    const tag: TagDefinition = {
+                        tagName: 'link',
+                        selfClosingTag: true,
+                        attributes: {
+                            rel: rel,
+                            href: href,
+                            ...customResourceHintAttributes
+                        }
+                    };
+
+                    if (/\.js$/i.test(href)) {
+                        tag.attributes.as = 'script';
+                    } else if (/\.css$/i.test(href)) {
+                        tag.attributes.as = 'style';
+                    } else if (/\.(otf|ttf|woff|woff2|eot)(\?v=\d+\.\d+\.\d+)?$/i.test(href)) {
+                        tag.attributes.as = 'font';
+                    } else if (/\.(jpe?g|png|webp|gif|cur|ani|svg)$/i.test(href)) {
+                        tag.attributes.as = 'image';
+                    } else {
+                        return null;
+                    }
+
+                    return tag;
+                };
+
+                const createReourceHints = (category: string, url: string, f: string): void => {
+                    if (!minimatch(url, f)) {
+                        return;
+                    }
+
+                    const tagDefinition = createResourceHintTag((this._options.publicPath || '') + url, category);
+                    if (tagDefinition == null) {
+                        return;
+                    }
+
+                    if (headElement) {
+                        this._logger.debug(`Injecting ${category}: '${url}'`);
+
+                        const attributes = Object.keys(tagDefinition.attributes).map(key => {
+                            return { name: key, value: tagDefinition.attributes[key] as string };
+                        });
+
+                        const element = treeAdapter.createElement(
+                            tagDefinition.tagName,
+                            undefined as any,
+                            attributes
+                        );
+
+                        treeAdapter.appendChild(headElement, element);
+                    }
+
+                    if (separateResourceHintsOut && resourceHintsOutRelative) {
+                        this._logger.debug(`Injecting ${category}: '${url}' to ${resourceHintsOutRelative}`);
+
+                        const content = HtmlInjectWebpackPlugin.createHtmlTag(tagDefinition);
+                        resourceHintTags.push(content);
+                    }
+                };
+
+                preloads.forEach(f => {
+                    for (const url of stylesheets) {
+                        createReourceHints('preload', url, f);
+                    }
+                    for (const url of scripts) {
+                        createReourceHints('preload', url, f);
+                    }
+                });
+
+                prefetches.forEach(f => {
+                    for (const url of stylesheets) {
+                        createReourceHints('prefetch', url, f);
+                    }
+                    for (const url of scripts) {
+                        createReourceHints('prefetch', url, f);
+                    }
+                });
+
+                if (separateResourceHintsOut && resourceHintsOutRelative) {
+                    const content = resourceHintTags.join(EOL);
+                    additionalAssetsEntry[resourceHintsOutRelative] = new RawSource(content);
+                }
+            }
+
+            // Icons
+            let separateIconsOut = false;
+            let iconsOutRelative: string | null = null;
+            if (this._options.iconsOut && this._options.icons !== false) {
+                const filePath = path.isAbsolute(this._options.iconsOut)
+                    ? path.resolve(this._options.iconsOut)
+                    : path.resolve(this._options.outDir, this._options.iconsOut);
+                if (filePath !== indexInputFilePath && filePath !== indexOutFilePath) {
+                    separateIconsOut = true;
+                    iconsOutRelative = normalizeRelativePath(path.relative(this._options.outDir, filePath));
+                }
+            }
+            if (this._options.icons || separateIconsOut) {
+                let iconHtmls: string[] = [];
+                if (compilation._htmlInjectOptions &&
+                    compilation._htmlInjectOptions.iconHtmls &&
+                    Array.isArray(compilation._htmlInjectOptions.iconHtmls)) {
+                    iconHtmls = compilation._htmlInjectOptions.iconHtmls;
+                } else if (this._options.iconsCacheFile) {
+                    let cacheFilePath = this._options.iconsCacheFile as string;
+                    cacheFilePath = path.isAbsolute(cacheFilePath)
+                        ? path.resolve(cacheFilePath)
+                        : path.resolve(this._options.outDir, cacheFilePath);
+                    const cacheContent = await readFile(cacheFilePath, compilation);
+                    const data = JSON.parse(cacheContent);
+                    if (data.stats && data.stats.htmls) {
+                        iconHtmls = data.stats.htmls as string[];
+                    }
+                }
+
+                if (headElement && iconHtmls.length) {
+                    this._logger.debug('Injecting icon tags');
+                }
+
+                const faviconsTags = iconHtmls.map((tag: string) => {
+                    const tagStr = tag.replace(/href=\"/i, `href="${this._options.publicPath || ''}`);
+                    if (headElement) {
+                        const documentFragment = parse5.parseFragment(tagStr, { treeAdapter }) as parse5.AST.Default.ParentNode;
+                        treeAdapter.appendChild(headElement, documentFragment.childNodes[0]);
+                    }
+
+                    return tagStr;
+                });
+
+                if (separateIconsOut && iconsOutRelative) {
+                    this._logger.debug(`Injecting icon tags to ${iconsOutRelative}`);
+
+                    additionalAssetsEntry[iconsOutRelative] = new RawSource(faviconsTags.join(EOL));
+                }
+            }
+
+            // Dll assets
+            if (this._options.dlls && this._options.dllAssetsFile) {
+                const cssAssets: string[] = [];
+                const scriptAssets: string[] = [];
+                let assetJsonPath = this._options.dllAssetsFile;
+                assetJsonPath = path.isAbsolute(assetJsonPath)
+                    ? path.resolve(assetJsonPath)
+                    : path.resolve(this._options.outDir, assetJsonPath);
+                const rawContent = await readFile(assetJsonPath, compilation);
+                const assetJson = JSON.parse(rawContent);
+                Object.keys(assetJson).forEach(key => {
+                    const assets = assetJson[key];
+                    if (Array.isArray(assets)) {
+                        assets.filter(asset => asset && /\.(js|css)$/i.test(asset)).forEach(asset => {
+                            if (/\.js$/i.test(asset)) {
+                                scriptAssets.push(asset);
+                            } else {
+                                cssAssets.push(asset);
+                            }
+                        });
+                    }
+                });
+
+                for (const stylesheet of cssAssets) {
+                    const tagDefinition = createLinkTagDefinition(stylesheet);
+
+                    if (headElement) {
+                        this._logger.debug(`Injecting dll stylesheet: '${stylesheet}'`);
+
+                        const attributes = Object.keys(tagDefinition.attributes).map(key => {
+                            return { name: key, value: tagDefinition.attributes[key] as string };
+                        });
+
+                        const element = treeAdapter.createElement(
+                            tagDefinition.tagName,
+                            undefined as any,
+                            attributes
+                        );
+
+                        treeAdapter.appendChild(headElement, element);
+                    }
+
+                    if (separateStylesOut && stylesOutRelative) {
+                        this._logger.debug(`Injecting dll stylesheet: '${stylesheet}' to ${stylesOutRelative}`);
+
+                        const content = HtmlInjectWebpackPlugin.createHtmlTag(tagDefinition);
+                        styleTags.push(content);
+                    }
+                }
+
+                for (const script of scriptAssets) {
+                    const tagDefinition = createScriptTagDefinition(script);
+
+                    if (bodyElement) {
+                        this._logger.debug(`Injecting dll script: '${script}'`);
+
+                        const attributes = Object.keys(tagDefinition.attributes).map(key => {
+                            return { name: key, value: tagDefinition.attributes[key] as string };
+                        });
+
+                        const element = treeAdapter.createElement(
+                            tagDefinition.tagName,
+                            undefined as any,
+                            attributes
+                        );
+
+                        treeAdapter.appendChild(bodyElement, element);
+                    }
+
+                    if (separateScriptsOut && scriptsOutRelative) {
+                        this._logger.debug(`Injecting dll script: '${script}' to ${scriptsOutRelative}`);
+
+                        const content = HtmlInjectWebpackPlugin.createHtmlTag(tagDefinition);
+                        scriptTags.push(content);
+                    }
+                }
+            }
+
+            // Runtime chunk
+            if (this._options.runtimeChunkInline &&
+                this._options.runtimeChunkFileName &&
+                compilation.assets[this._options.runtimeChunkFileName]) {
+                const asset = compilation.assets[this._options.runtimeChunkFileName];
+                let source = asset.source();
+                if (typeof source !== 'string') {
+                    source = source.toString();
+                }
+                source = EOL + sourceMapUrl.removeFrom(source) + EOL;
+
+                const tagDefinition: TagDefinition = {
+                    tagName: 'srcipt',
+                    attributes: {
+                        type: 'text/javascript'
+                    },
+                    innerHtml: source,
+                    closeTag: true
+                };
+                const content = HtmlInjectWebpackPlugin.createHtmlTag(tagDefinition);
+
+                if (headElement) {
+                    const attributes = Object.keys(tagDefinition.attributes).map(key => {
+                        return {
+                            name: key,
+                            value: tagDefinition.attributes[key] as string
+                        };
+                    });
+
+                    const element = treeAdapter.createElement(
+                        tagDefinition.tagName,
+                        undefined as any,
+                        attributes
+                    );
+                    treeAdapter.appendChild(headElement, element);
+                    treeAdapter.insertText(element, tagDefinition.innerHtml || '');
+                }
+
+                if (separateRuntimeInlineOut && runtimeInlineRelative) {
+                    this._logger.debug(`Injecting runtime to ${runtimeInlineRelative}`);
+
+                    additionalAssetsEntry[runtimeInlineRelative] = new RawSource(content);
+                }
+
+                delete compilation.assets[this._options.runtimeChunkFileName];
+            }
+
+
+            // Styles
+            for (const stylesheet of stylesheets) {
+                const tagDefinition = createLinkTagDefinition(stylesheet);
+
+                if (headElement) {
+                    this._logger.debug(`Injecting stylesheet: '${stylesheet}'`);
+
+                    const attributes = Object.keys(tagDefinition.attributes).map(key => {
+                        return { name: key, value: tagDefinition.attributes[key] as string };
+                    });
+
+                    const element = treeAdapter.createElement(
+                        tagDefinition.tagName,
+                        undefined as any,
+                        attributes
+                    );
+
+                    treeAdapter.appendChild(headElement, element);
+                }
+
+                if (separateStylesOut && stylesOutRelative) {
+                    this._logger.debug(`Injecting stylesheet: '${stylesheet}' to ${stylesOutRelative}`);
+
+                    const content = HtmlInjectWebpackPlugin.createHtmlTag(tagDefinition);
+                    styleTags.push(content);
+                }
+            }
+
+            // Scripts
+            for (const script of scripts) {
+                const tagDefinition = createScriptTagDefinition(script);
+
+                if (bodyElement) {
+                    this._logger.debug(`Injecting script: '${script}'`);
+
+                    const attributes = Object.keys(tagDefinition.attributes).map(key => {
+                        return { name: key, value: tagDefinition.attributes[key] as string };
+                    });
+
+                    const element = treeAdapter.createElement(
+                        tagDefinition.tagName,
+                        undefined as any,
+                        attributes
+                    );
+
+                    treeAdapter.appendChild(bodyElement, element);
+                }
+
+                if (separateScriptsOut && scriptsOutRelative) {
+                    this._logger.debug(`Injecting script: '${script}' to ${scriptsOutRelative}`);
+
+                    const content = HtmlInjectWebpackPlugin.createHtmlTag(tagDefinition);
+                    scriptTags.push(content);
+                }
+            }
+
+            if (separateStylesOut && stylesOutRelative) {
+                const content = styleTags.join(EOL);
+                additionalAssetsEntry[stylesOutRelative] = new RawSource(content);
+            }
+            if (separateScriptsOut && scriptsOutRelative) {
+                const content = scriptTags.join(EOL);
+                additionalAssetsEntry[scriptsOutRelative] = new RawSource(content);
+            }
+            if (document && indexRelative) {
+                let indexContent = parse5.serialize(document, { treeAdapter });
+
+                if (this._options.minify) {
+                    const minify = this._options.minify;
+                    const minifyOptions = typeof minify === 'boolean'
+                        ? {}
+                        : minify as htmlMinifier.Options;
+
+                    this._logger.debug(`Minifying '${indexRelative}'`);
+                    indexContent = htmlMinifier.minify(indexContent, minifyOptions);
+                }
+
+                this._logger.debug(`Injecting '${indexRelative}'`);
+                compilation.assets[indexRelative] = new RawSource(indexContent);
+            }
+
+            Object.keys(additionalAssetsEntry).forEach(key => {
+                compilation.assets[key] = additionalAssetsEntry[key];
+            });
+
+        });
+    }
+
+    private static createHtmlTag(tagDefinition: TagDefinition): string {
+        const attributes = Object.keys(tagDefinition.attributes || {})
+            .filter(attributeName => tagDefinition.attributes[attributeName] !== false)
+            .map(attributeName => {
+                if (tagDefinition.attributes[attributeName] === true) {
+                    return attributeName;
+                }
+                return attributeName + '="' + tagDefinition.attributes[attributeName] + '"';
+            });
+        // Backport of 3.x void tag definition
+        const voidTag = tagDefinition.voidTag !== undefined ? tagDefinition.voidTag : !tagDefinition.closeTag;
+        const selfClosingTag =
+            tagDefinition.voidTag !== undefined ? tagDefinition.voidTag : tagDefinition.selfClosingTag;
+        return '<' +
+            [tagDefinition.tagName].concat(attributes).join(' ') +
+            (selfClosingTag ? '/' : '') +
+            '>' +
+            (tagDefinition.innerHtml || (tagDefinition as any).innerHTML || '') +
+            (voidTag ? '' : `</${tagDefinition.tagName}>`);
+    }
+}

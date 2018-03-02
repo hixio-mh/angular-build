@@ -52,12 +52,12 @@ interface OfflineOptions {
 
     appDescription?: string;
     developerName?: string;
-    developerURL?: string;
+    developerUrl?: string;
     background?: string;
-    theme_color?: string;
+    themeColor?: string;
     display?: string;
     orientation?: string;
-    start_url?: string;
+    startUrl?: string;
     version?: string;
 }
 
@@ -74,7 +74,7 @@ export interface IconFileInfo {
 }
 
 export class IconGenerator {
-    private readonly androidChromeDefault: AndroidChromeDesign = {
+    private readonly _androidChromeDefault: AndroidChromeDesign = {
         pictureAspect: 'noChange',
         manifest: {
             onConflict: 'override',
@@ -86,7 +86,7 @@ export class IconGenerator {
         }
     };
 
-    private readonly iosDefault: IoSDesign = {
+    private readonly _iosDefault: IoSDesign = {
         pictureAspect: 'backgroundAndMargin',
         margin: 0, // Default 4
         assets: {
@@ -98,9 +98,9 @@ export class IconGenerator {
         startupImage: {}
     };
 
-    private readonly desktopBrowserDefault = {};
+    private readonly _desktopBrowserDefault = {};
 
-    private readonly windowsDefault: WindowsDesign = {
+    private readonly _windowsDefault: WindowsDesign = {
         pictureAspect: 'noChange',
         onConflict: 'override',
         assets: {
@@ -114,35 +114,35 @@ export class IconGenerator {
         }
     };
 
-    private readonly safariPinnedTabDefault: SafariPinnedTabDesign = {
+    private readonly _safariPinnedTabDefault: SafariPinnedTabDesign = {
         pictureAspect: 'blackAndWhite',
         threshold: 60
     };
 
-    private readonly firefoxAppDefault: FirefoxAppDesign = {
+    private readonly _firefoxAppDefault: FirefoxAppDesign = {
         pictureAspect: 'circle',
         keepPictureInCircle: 'true',
         manifest: {}
     };
 
-    private readonly yandexBrowserDefault: YandexBrowserDesign = {
+    private readonly _yandexBrowserDefault: YandexBrowserDesign = {
         manifest: {
             showTitle: true,
             version: '1.0'
         }
     };
 
-    private readonly coastDefault: CoastDesign = {
+    private readonly _coastDefault: CoastDesign = {
         pictureAspect: 'backgroundAndMargin',
         margin: 0 // "12%"
     };
 
-    private readonly openGraphDefault: OpenGraphDesign = {
+    private readonly _openGraphDefault: OpenGraphDesign = {
         pictureAspect: 'backgroundAndMargin',
         margin: 0 // "12%"
     };
 
-    private readonly offlineDesignDefault: OfflineIconDesign = {
+    private readonly _offlineDesignDefault: OfflineIconDesign = {
         android: true,
         appleIcon: true,
         appleStartup: true,
@@ -153,11 +153,11 @@ export class IconGenerator {
         yandex: false
     };
 
-    constructor(private readonly options: FaviconsConfig,
-        private readonly baseDir: string,
-        private readonly masterPictureFilesMap: { [key: string]: Buffer },
-        private readonly iconsPath: string,
-        private readonly logger: Logger) {
+    constructor(private readonly _options: FaviconsConfig,
+        private readonly _baseDir: string,
+        private readonly _masterPictureFilesMap: { [key: string]: Buffer },
+        private readonly _iconsPath: string,
+        private readonly _logger: Logger) {
     }
 
     // Offline
@@ -165,13 +165,13 @@ export class IconGenerator {
         const startTime = Date.now();
 
         const offlineOptions = this.getOfflineOptions();
-        const firstKey = Object.keys(this.masterPictureFilesMap)[0];
-        const imageFileStream = this.masterPictureFilesMap[firstKey];
+        const firstKey = Object.keys(this._masterPictureFilesMap)[0];
+        const imageFileStream = this._masterPictureFilesMap[firstKey];
 
         if (isFallback) {
-            this.logger.debug('Trying generating icons using offline option');
+            this._logger.debug('Trying generating icons using offline option');
         } else {
-            this.logger.debug('Generating icons using offline option');
+            this._logger.debug('Generating icons using offline option');
         }
 
         return new Promise<IconGenerateResult>((resolve, reject) => {
@@ -183,11 +183,11 @@ export class IconGenerator {
                     }
 
                     const htmls = (result.html as string[]).filter(entry => entry.indexOf('manifest') === -1)
-                        .map(entry => entry.replace(/(href=[""])/g, `$1${this.iconsPath || ''}`)
+                        .map(entry => entry.replace(/(href=[""])/g, `$1${this._iconsPath || ''}`)
                             .replace(/\"\>$/, '"/>'));
 
                     const iconResult: IconGenerateResult = {
-                        iconsPath: this.iconsPath || '',
+                        iconsPath: this._iconsPath || '',
                         htmls: htmls,
                         files: []
                     };
@@ -211,7 +211,7 @@ export class IconGenerator {
                     });
 
                     const duration = Date.now() - startTime;
-                    this.logger.debug(
+                    this._logger.debug(
                         `Offline icons generation success in [${duration}ms], total files: ${iconResult.files.length}`);
 
                     resolve(iconResult);
@@ -219,8 +219,35 @@ export class IconGenerator {
         });
     }
 
+    // Online
+    async generateRfgOnline(): Promise<IconGenerateResult> {
+        const startTime = Date.now();
+        const rfgRequestData = this.getRfgRequestData();
+
+        this._logger.debug('Generating icons using online option');
+
+        const data = await this.performRfgRequest(rfgRequestData);
+        const htmls = data.favicon_generation_result.favicon.html_code.split('\n')
+            .map((html: string) => html.replace(/\"\>$/, '"/>'));
+
+        const iconResult: IconGenerateResult = {
+            iconsPath: this._iconsPath || '',
+            htmls: htmls,
+            files: []
+        };
+
+        const files = await this.fetchRfgIconPack(data.favicon_generation_result.favicon.package_url);
+        iconResult.files = files;
+
+        const duration = Date.now() - startTime;
+        this._logger.debug(
+            `Online icons generation success in [${duration}ms], total files: ${iconResult.files.length}`);
+
+        return iconResult;
+    }
+
     private getOfflineOptions(): OfflineOptions {
-        const options = JSON.parse(JSON.stringify(this.options)) as FaviconsConfig;
+        const options = JSON.parse(JSON.stringify(this._options)) as FaviconsConfig;
 
         const offlineOptions: OfflineOptions = {
             appName: options.appName || '',
@@ -233,7 +260,7 @@ export class IconGenerator {
         };
 
         if (!options.design || !Object.keys(options.design).length) {
-            offlineOptions.icons = Object.assign({}, this.offlineDesignDefault) as OfflineIconDesign;
+            offlineOptions.icons = Object.assign({}, this._offlineDesignDefault) as OfflineIconDesign;
         }
 
         const design = options.design || {} as IconDesign;
@@ -243,7 +270,7 @@ export class IconGenerator {
         }
 
         if (options.developerUrl) {
-            offlineOptions.developerURL = options.developerUrl;
+            offlineOptions.developerUrl = options.developerUrl;
         }
 
         // Android
@@ -267,8 +294,8 @@ export class IconGenerator {
                 }
                 if (androidChrome.manifest &&
                     androidChrome.manifest.startUrl &&
-                    !offlineOptions.start_url) {
-                    offlineOptions.start_url = androidChrome.manifest.startUrl;
+                    !offlineOptions.startUrl) {
+                    offlineOptions.startUrl = androidChrome.manifest.startUrl;
                 }
             }
         }
@@ -328,8 +355,8 @@ export class IconGenerator {
                 }
                 if (firefoxApp.manifest &&
                     firefoxApp.manifest.developerUrl &&
-                    !offlineOptions.developerURL) {
-                    offlineOptions.developerURL = firefoxApp.manifest.developerUrl;
+                    !offlineOptions.developerUrl) {
+                    offlineOptions.developerUrl = firefoxApp.manifest.developerUrl;
                 }
             }
         }
@@ -369,33 +396,6 @@ export class IconGenerator {
         return offlineOptions;
     }
 
-    // Online
-    async generateRfgOnline(): Promise<IconGenerateResult> {
-        const startTime = Date.now();
-        const rfgRequestData = this.getRfgRequestData();
-
-        this.logger.debug('Generating icons using online option');
-
-        const data = await this.performRfgRequest(rfgRequestData);
-        const htmls = data.favicon_generation_result.favicon.html_code.split('\n')
-            .map((html: string) => html.replace(/\"\>$/, '"/>'));
-
-        const iconResult: IconGenerateResult = {
-            iconsPath: this.iconsPath || '',
-            htmls: htmls,
-            files: []
-        };
-
-        const files = await this.fetchRfgIconPack(data.favicon_generation_result.favicon.package_url);
-        iconResult.files = files;
-
-        const duration = Date.now() - startTime;
-        this.logger.debug(
-            `Online icons generation success in [${duration}ms], total files: ${iconResult.files.length}`);
-
-        return iconResult;
-    }
-
     private fetchRfgIconPack(url: string): Promise<IconFileInfo[]> {
         return new Promise<IconFileInfo[]>((resolve, reject) => {
             const files: IconFileInfo[] = [];
@@ -424,7 +424,7 @@ export class IconGenerator {
     }
 
     private getRfgRequestData(): any {
-        const options = JSON.parse(JSON.stringify(this.options)) as FaviconsConfig;
+        const options = JSON.parse(JSON.stringify(this._options)) as FaviconsConfig;
         options.apiKey = options.apiKey || (options as any).api_key || API_KEY;
 
         // masterPicture
@@ -434,30 +434,30 @@ export class IconGenerator {
         if (!options.design || !Object.keys(options.design).length) {
             options.design = {
                 desktopBrowser: {},
-                androidChrome: Object.assign({}, this.androidChromeDefault),
-                coast: Object.assign({}, this.coastDefault),
-                firefoxApp: Object.assign({}, this.firefoxAppDefault),
-                ios: Object.assign({}, this.iosDefault),
-                openGraph: Object.assign({}, this.openGraphDefault),
-                safariPinnedTab: Object.assign({}, this.safariPinnedTabDefault),
-                windows: Object.assign({}, this.windowsDefault),
-                yandexBrowser: Object.assign({}, this.yandexBrowserDefault)
+                androidChrome: Object.assign({}, this._androidChromeDefault),
+                coast: Object.assign({}, this._coastDefault),
+                firefoxApp: Object.assign({}, this._firefoxAppDefault),
+                ios: Object.assign({}, this._iosDefault),
+                openGraph: Object.assign({}, this._openGraphDefault),
+                safariPinnedTab: Object.assign({}, this._safariPinnedTabDefault),
+                windows: Object.assign({}, this._windowsDefault),
+                yandexBrowser: Object.assign({}, this._yandexBrowserDefault)
             };
         }
 
         // desktopBrower
         if (options.design.desktopBrowser && typeof options.design.desktopBrowser !== 'object') {
-            options.design.desktopBrowser = Object.assign({}, this.desktopBrowserDefault);
+            options.design.desktopBrowser = Object.assign({}, this._desktopBrowserDefault);
         }
 
         // androidChrome
         let androidChrome: AndroidChromeDesign | undefined;
         if (options.design.androidChrome && typeof options.design.androidChrome !== 'object') {
-            androidChrome = Object.assign({}, this.androidChromeDefault);
+            androidChrome = Object.assign({}, this._androidChromeDefault);
             options.design.androidChrome = androidChrome;
         } else if (options.design.androidChrome) {
             androidChrome =
-                Object.assign({}, this.androidChromeDefault, options.design.androidChrome);
+                Object.assign({}, this._androidChromeDefault, options.design.androidChrome);
             options.design.androidChrome = androidChrome;
         }
         if (androidChrome) {
@@ -475,10 +475,10 @@ export class IconGenerator {
         // ios
         let ios: IoSDesign | undefined;
         if (options.design.ios && typeof options.design.ios !== 'object') {
-            ios = Object.assign({}, this.iosDefault);
+            ios = Object.assign({}, this._iosDefault);
             options.design.ios = ios;
         } else if (options.design.ios) {
-            ios = Object.assign({}, this.iosDefault, options.design.ios);
+            ios = Object.assign({}, this._iosDefault, options.design.ios);
             options.design.ios = ios;
         }
         if (ios) {
@@ -504,10 +504,10 @@ export class IconGenerator {
         // safariPinnedTab
         let safariPinnedTab: SafariPinnedTabDesign | undefined;
         if (options.design.safariPinnedTab && typeof options.design.safariPinnedTab !== 'object') {
-            safariPinnedTab = Object.assign({}, this.safariPinnedTabDefault);
+            safariPinnedTab = Object.assign({}, this._safariPinnedTabDefault);
             options.design.safariPinnedTab = safariPinnedTab;
         } else if (options.design.safariPinnedTab) {
-            safariPinnedTab = Object.assign({}, this.safariPinnedTabDefault, options.design.safariPinnedTab);
+            safariPinnedTab = Object.assign({}, this._safariPinnedTabDefault, options.design.safariPinnedTab);
             options.design.safariPinnedTab = safariPinnedTab;
         }
         if (safariPinnedTab) {
@@ -519,10 +519,10 @@ export class IconGenerator {
         // firefoxApp
         let firefoxApp: FirefoxAppDesign | undefined;
         if (options.design.firefoxApp && typeof options.design.firefoxApp !== 'object') {
-            firefoxApp = Object.assign({}, this.firefoxAppDefault);
+            firefoxApp = Object.assign({}, this._firefoxAppDefault);
             options.design.firefoxApp = firefoxApp;
         } else if (options.design.firefoxApp) {
-            firefoxApp = Object.assign({}, this.firefoxAppDefault, options.design.firefoxApp);
+            firefoxApp = Object.assign({}, this._firefoxAppDefault, options.design.firefoxApp);
             options.design.firefoxApp = firefoxApp;
         }
         if (firefoxApp) {
@@ -552,10 +552,10 @@ export class IconGenerator {
         // yandexBrowser
         let yandexBrowser: YandexBrowserDesign | undefined;
         if (options.design.yandexBrowser && typeof options.design.yandexBrowser !== 'object') {
-            yandexBrowser = Object.assign({}, this.yandexBrowserDefault);
+            yandexBrowser = Object.assign({}, this._yandexBrowserDefault);
             options.design.yandexBrowser = yandexBrowser;
         } else if (options.design.yandexBrowser) {
-            yandexBrowser = Object.assign({}, this.yandexBrowserDefault, options.design.yandexBrowser);
+            yandexBrowser = Object.assign({}, this._yandexBrowserDefault, options.design.yandexBrowser);
             options.design.yandexBrowser = yandexBrowser;
         }
         if (yandexBrowser) {
@@ -572,10 +572,10 @@ export class IconGenerator {
         // windows
         let windows: WindowsDesign | undefined;
         if (options.design.windows && typeof options.design.windows !== 'object') {
-            windows = Object.assign({}, this.windowsDefault);
+            windows = Object.assign({}, this._windowsDefault);
             options.design.windows = windows;
         } else if (options.design.windows) {
-            windows = Object.assign({}, this.windowsDefault, options.design.windows);
+            windows = Object.assign({}, this._windowsDefault, options.design.windows);
             options.design.windows = windows;
         }
         if (windows) {
@@ -587,10 +587,10 @@ export class IconGenerator {
         // coast
         let coast: CoastDesign | undefined;
         if (options.design.coast && typeof options.design.coast !== 'object') {
-            coast = Object.assign({}, this.coastDefault);
+            coast = Object.assign({}, this._coastDefault);
             options.design.coast = coast;
         } else if (options.design.coast) {
-            coast = Object.assign({}, this.coastDefault, options.design.coast);
+            coast = Object.assign({}, this._coastDefault, options.design.coast);
             options.design.coast = coast;
         }
         if (coast) {
@@ -606,10 +606,10 @@ export class IconGenerator {
         // openGraph
         let openGraph: OpenGraphDesign | undefined;
         if (options.design.openGraph && typeof options.design.openGraph !== 'object') {
-            openGraph = Object.assign({}, this.openGraphDefault);
+            openGraph = Object.assign({}, this._openGraphDefault);
             options.design.openGraph = openGraph;
         } else if (options.design.openGraph) {
-            openGraph = Object.assign({}, this.openGraphDefault, options.design.openGraph);
+            openGraph = Object.assign({}, this._openGraphDefault, options.design.openGraph);
             options.design.openGraph = openGraph;
         }
         if (openGraph) {
@@ -622,7 +622,7 @@ export class IconGenerator {
             api_key: options.apiKey,
             master_picture: options.masterPicture,
             files_location: {
-                type: this.iconsPath === undefined ? 'root' : 'path'
+                type: this._iconsPath === undefined ? 'root' : 'path'
             },
             favicon_design: this.normalizeAllMasterPictures(
                 this.camelCaseToUnderscoreRequest(options.design)),
@@ -631,8 +631,8 @@ export class IconGenerator {
         };
 
         // path
-        if (typeof this.iconsPath !== 'undefined') {
-            rfgRequestOptions.files_location.path = this.iconsPath;
+        if (typeof this._iconsPath !== 'undefined') {
+            rfgRequestOptions.files_location.path = this._iconsPath;
         }
 
         return {
@@ -653,10 +653,10 @@ export class IconGenerator {
             } else {
                 const masterPicturePath = path.isAbsolute(masterPicture)
                     ? path.resolve(masterPicture)
-                    : path.resolve(this.baseDir, masterPicture);
+                    : path.resolve(this._baseDir, masterPicture);
 
                 masterPictureObject.type = 'inline';
-                masterPictureObject.content = this.masterPictureFilesMap[masterPicturePath].toString('base64');
+                masterPictureObject.content = this._masterPictureFilesMap[masterPicturePath].toString('base64');
             }
         } else {
             if (masterPicture.type === 'inline' || masterPicture.content !== undefined) {
@@ -664,8 +664,8 @@ export class IconGenerator {
                 if (!isBase64(masterPicture.content)) {
                     const masterPicturePath = path.isAbsolute(masterPicture.content)
                         ? path.resolve(masterPicture.content)
-                        : path.resolve(this.baseDir, masterPicture.content);
-                    masterPictureObject.content = this.masterPictureFilesMap[masterPicturePath].toString('base64');
+                        : path.resolve(this._baseDir, masterPicture.content);
+                    masterPictureObject.content = this._masterPictureFilesMap[masterPicturePath].toString('base64');
                 }
             } else if (masterPicture.url) {
                 masterPictureObject.type = 'url';
@@ -745,7 +745,7 @@ export class IconGenerator {
     private performRfgRequest(requestData: any): Promise<any> {
         const reqestDataStr = JSON.stringify(requestData);
 
-        const options: https.RequestOptions = {
+        const options = {
             hostname: 'realfavicongenerator.net',
             path: '/api/favicon',
             method: 'POST',
@@ -756,7 +756,7 @@ export class IconGenerator {
         };
 
         return new Promise((resolve, reject) => {
-            const req = https.request(options, res => {
+            const req = https.request(options as any, res => {
                 // Temporary data holder
                 const resposeBuffer: any[] = [];
 

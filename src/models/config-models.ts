@@ -1,3 +1,4 @@
+
 import { FaviconsConfig } from './favicons-config-models';
 
 /**
@@ -66,6 +67,7 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
     /**
      * List of global style entries.
      * Default supported styles are .css and .scss/.sass.
+     * @additionalProperties false
      */
     styles?: (string | {
         /**
@@ -162,18 +164,14 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     vendorChunk?: boolean;
     /**
-     * If true, chunk main into [inlineChunkName].js.
-     */
-    inlineChunk?: boolean;
-    /**
-     * If true, chunk main into [commonChunkName].js.
+     * If true, chunk a separate bundle containing common code used across multiple bundles.
      */
     commonChunk?: boolean;
     /**
      * The output chunk name for main entry.
      * @default main
      */
-    mainEntryChunkName?: string;
+    mainChunkName?: string;
     /**
      * The output chunk name for polyfills.
      * @default polyfills
@@ -184,16 +182,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * @default vendor
      */
     vendorChunkName?: string;
-    /**
-     * The output chunk name for inline.
-     * @default inline
-     */
-    inlineChunkName?: string;
-    /**
-     * The output chunk name for vendor or dll chunk.
-     * @default common
-     */
-    commonChunkName?: string;
     /**
      *  To load global modules automatically  with alias key.
      */
@@ -243,6 +231,10 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Performance options.
      */
     performance?: PerformanceOptions;
+    /**
+     * List of additional NgModule files that will be lazy loaded (lazy router modules will be discovered automatically).
+     */
+    lazyModules?: string[];
     /**
      * Use file name for lazy loaded chunks.
      * @default true
@@ -346,7 +338,7 @@ export interface AppProjectConfig extends AppProjectConfigBase, ProjectConfig {
     envOverrides?: { [name: string]: AppProjectConfigBase };
 }
 
-export type CleanOptions = {
+export interface CleanOptions {
     /**
      * Before run clean option.
      */
@@ -364,20 +356,20 @@ export type CleanOptions = {
      * Allows cleaning outside of output directory.
      */
     allowOutsideWorkingDir?: boolean;
-};
+}
 
-export type BeforeRunCleanOptions = {
+export interface BeforeRunCleanOptions {
     cleanOutDir?: boolean;
     paths?: string[];
     exclude?: string[];
-};
+}
 
-export type AfterEmitCleanOptions = {
+export interface AfterEmitCleanOptions {
     paths?: string[];
     exclude?: string[];
-};
+}
 
-export type ExternalsObjectElement = {
+export interface ExternalsObjectElement {
     [key: string]: boolean |
     string |
     {
@@ -386,7 +378,7 @@ export type ExternalsObjectElement = {
         root: string;
         [key: string]: string | boolean;
     };
-};
+}
 
 export type ExternalsEntry = string | ExternalsObjectElement;
 
@@ -398,7 +390,7 @@ export interface StylePreprocessorOptions {
     includePaths: string[];
 }
 
-export type AssetEntry = {
+export interface AssetEntry {
     /**
      * The source file, it can be absolute or relative path or glob pattern.
      */
@@ -411,7 +403,7 @@ export type AssetEntry = {
      * The ignore list.
      */
     exclude?: string[];
-};
+}
 
 export interface TsTranspilationOptions {
     /**
@@ -646,7 +638,7 @@ export interface BundleAnalyzerOptions {
     openAnalyzer?: boolean;
 }
 
-export type GlobalEntry = {
+export interface GlobalEntry {
     /**
      * The source style file, it can be .scss/.sass, .less or .css
      */
@@ -659,30 +651,35 @@ export type GlobalEntry = {
      * If true, it will not be injected to target html.
      */
     lazy?: boolean;
-};
+}
 
-export type DllOptions = {
+export interface DllOptions {
     entry: string | string[];
     exclude?: string[];
-};
+}
 
 export interface HtmlInjectOptions {
+    runtimeChunkInline?: boolean;
+    dlls?: boolean;
+    icons?: boolean;
+    resourceHints?: boolean;
+
     index?: string;
     indexOut?: string;
-    scriptsOut?: string;
-    stylesOut?: string;
+    baseHrefOut?: string;
     iconsOut?: string;
     resourceHintsOut?: string;
-    baseHrefOut?: string;
+    stylesOut?: string;
+    runtimeInlineOut?: string;
+    scriptsOut?: string;
 
-    resourceHints?: boolean;
     preloads?: string[];
     prefetches?: string[];
 
-    customAttributes?: { [key: string]: string | boolean };
-    customScriptAttributes?: { [key: string]: string | boolean };
-    customLinkAttributes?: { [key: string]: string | boolean };
-    customPreloadPrefetchAttributes?: { [key: string]: string | boolean };
+    customAttributes?: { [key: string]: string };
+    customScriptAttributes?: { [key: string]: string };
+    customLinkAttributes?: { [key: string]: string };
+    customResourceHintAttributes?: { [key: string]: string };
 }
 
 export interface PerformanceOptions {
@@ -721,13 +718,13 @@ export interface WebpackWatchOptions {
     poll?: boolean | number;
 }
 
-export type PreDefinedEnvironment = {
+export interface PreDefinedEnvironment {
     aot?: boolean;
     dev?: boolean;
     prod?: boolean;
     hot?: boolean;
     dll?: boolean;
-};
+}
 
 /**
  * @additionalProperties true
@@ -736,11 +733,11 @@ export interface AngularBuildConfig {
     /**
      * The library project configs.
      */
-    libs?: LibProjectConfig[];
+    libs: LibProjectConfig[];
     /**
      * The application project configs.
      */
-    apps?: AppProjectConfig[];
+    apps: AppProjectConfig[];
     /**
      * Log level.
      */

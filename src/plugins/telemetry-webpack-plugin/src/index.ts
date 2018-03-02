@@ -10,61 +10,62 @@ export class TelemetryWebpackPlugin {
     private static _telemetryInitialized = false;
     private static _telemetryFlushing = false;
 
-    apply(compiler: webpack.Compiler): void {
-        compiler.plugin('before-run',
-            (_compiler: webpack.Compiler, cb: (err?: Error) => void) => {
-                if ((global as any).angular_build_telemetry_initialized ||
-                    TelemetryWebpackPlugin._telemetryInitialized) {
-                    cb();
-                    return;
-                }
+    get name(): string {
+        return 'telemetry-webpack-plugin';
+    }
 
-                TelemetryWebpackPlugin._telemetryInitialized = true;
-                initAppInsights();
-                cb();
+    apply(compiler: any): void {
+        compiler.hooks.beforeRun.tap(this.name, () => {
+            if ((global as any).angular_build_telemetry_initialized ||
+                TelemetryWebpackPlugin._telemetryInitialized) {
+                return;
+            }
+
+            TelemetryWebpackPlugin._telemetryInitialized = true;
+            initAppInsights();
+        });
+
+        compiler.hooks.done.tap(this.name, (stats: webpack.Stats) => {
+            if (AngularBuildContext.telemetryDisabled) {
+                return;
+            }
+
+            if (TelemetryWebpackPlugin._telemetryFlushing) {
+                return;
+            }
+
+            TelemetryWebpackPlugin._telemetryFlushing = true;
+            const duration = Date.now() - AngularBuildContext.startTime;
+            const status = stats.hasErrors() ? 'failing' : 'passing';
+
+            const customProps = {
+                libs: `${AngularBuildContext.libCount}`,
+                apps: `${AngularBuildContext.appCount}`,
+                production: `${typeof AngularBuildContext.environment.prod !== 'undefined' &&
+                    AngularBuildContext.environment.prod}`,
+                duration: `${duration}`,
+                status: status
+            };
+
+            appInsights.defaultClient.trackEvent({
+                name: 'build',
+                properties: customProps
             });
 
-        compiler.plugin('done',
-            (stats: webpack.Stats) => {
-                if (AngularBuildContext.telemetryDisabled) {
-                    return;
+            setImmediate(() => {
+                appInsights.defaultClient.flush();
+
+                const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
+                if (verbose) {
+                    const identifier = (global as any).angular_build_telemetry_identifier as string;
+
+                    // tslint:disable-next-line:no-console
+                    console.log(`\nIdentifier: ${identifier}\n`);
                 }
-
-                if (TelemetryWebpackPlugin._telemetryFlushing) {
-                    return;
-                }
-
-                TelemetryWebpackPlugin._telemetryFlushing = true;
-                const duration = Date.now() - AngularBuildContext.startTime;
-                const status = stats.hasErrors() ? 'failing' : 'passing';
-
-                const customProps = {
-                    libs: `${AngularBuildContext.libCount}`,
-                    apps: `${AngularBuildContext.appCount}`,
-                    production: `${typeof AngularBuildContext.environment.prod !== 'undefined' &&
-                        AngularBuildContext.environment.prod}`,
-                    duration: `${duration}`,
-                    status: status
-                };
-
-                appInsights.defaultClient.trackEvent({
-                    name: 'build',
-                    properties: customProps
-                });
-
-                setImmediate(() => {
-                    appInsights.defaultClient.flush();
-
-                    const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
-                    if (verbose) {
-                        const identifier = (global as any).angular_build_telemetry_identifier as string;
-                        console.log(`\nIdentifier: ${identifier}\n`);
-                    }
-                });
             });
+        });
     }
 }
-
 
 export function initAppInsights(): void {
     if ((global as any).angular_build_telemetry_initialized) {
@@ -73,7 +74,7 @@ export function initAppInsights(): void {
 
     (global as any).angular_build_telemetry_initialized = true;
 
-    process.env.ANGULAR_BUILD_UUID_NS = `61c38600-38ac-411a-ad18-4daf41a5f0ad`;
+    process.env.ANGULAR_BUILD_UUID_NS = '61c38600-38ac-411a-ad18-4daf41a5f0ad';
     const identifier = `${uuidv5(`${uuidv4()}`, process.env.ANGULAR_BUILD_UUID_NS).substr(0, 8)}`;
     (global as any).angular_build_telemetry_identifier = identifier;
 

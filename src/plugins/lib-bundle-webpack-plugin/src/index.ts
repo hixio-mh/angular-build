@@ -1,13 +1,4 @@
-import * as webpack from 'webpack';
-
-import {
-    AngularBuildContext,
-    InvalidConfigError,
-    LibProjectConfigInternal,
-    TypescriptCompileError,
-    UglifyError,
-    UnSupportedStyleExtError
-} from '../../../models';
+import { AngularBuildContext, LibProjectConfigInternal, } from '../../../models';
 
 import { performNgc } from '../../../helpers/perform-ngc';
 
@@ -21,32 +12,14 @@ export interface LibBundleWebpackPluginOptions {
 
 export class LibBundleWebpackPlugin {
     get name(): string {
-        return 'LibBundleWebpackPlugin';
+        return 'lib-bundle-webpack-plugin';
     }
 
-    constructor(private readonly options: LibBundleWebpackPluginOptions) { }
+    constructor(private readonly _options: LibBundleWebpackPluginOptions) { }
 
-    apply(compiler: webpack.Compiler): void {
-        compiler.plugin('emit', (compilation: any, cb: (err?: Error) => void) => {
-            this.performBundleTask(this.options.angularBuildContext)
-                .then(() => cb())
-                .catch(err => {
-                    // TODO: to review for
-                    // SassError
-                    // RenderError
-                    // CssSyntaxError
-
-                    if (compilation.errors &&
-                        (err instanceof InvalidConfigError ||
-                            err instanceof TypescriptCompileError ||
-                            err instanceof UglifyError ||
-                            err instanceof UnSupportedStyleExtError)) {
-                        compilation.errors.push(err);
-                        return cb();
-                    }
-
-                    return cb(err);
-                });
+    apply(compiler: any): void {
+        compiler.hooks.emit.tapPromise(this.name, () => {
+            return this.performBundleTask(this._options.angularBuildContext);
         });
     }
 

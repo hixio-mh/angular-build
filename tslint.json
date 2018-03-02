@@ -1,26 +1,70 @@
 {
-  // "extends": "tslint:recommended",
+  "extends": [
+    // "tslint:recommended",
+    "tslint-eslint-rules",
+    "vrsource-tslint-rules"
+  ],
+  "rulesDirectory": [
+    "node_modules/tslint-eslint-rules/dist/rules",
+    "node_modules/vrsource-tslint-rules/rules"
+  ],
   "rules": {
+    "align": false,
+    "arrow-return-shorthand": true,
+    "callable-types": true,
     "class-name": true,
     "comment-format": [
       true,
       "check-space"
     ],
     "curly": true,
+    "deprecation": {
+      "severity": "warn"
+    },
     "eofline": true,
     "forin": true,
+    "import-blacklist": [ true, "rxjs", "rxjs/Rx" ],
+    "import-spacing": true,
     "indent": [
       true,
       "spaces",
       4
     ],
-    "interface-name": [ true, "never-prefix" ],
+    // custom
+    "interface-over-type-literal": true,
+    "interface-name": [
+      true,
+      "never-prefix"
+    ],
     "jsdoc-format": true,
     "label-position": true,
-    //"label-undefined": true,
+    "linebreak-style": [
+      true,
+      "CRLF"
+    ],
     "max-line-length": [
       true,
       140
+    ],
+    "member-access": [
+      true,
+      "no-public"
+    ],
+    "member-ordering": [
+      true,
+      {
+        "order": [
+          "public-static-field",
+          "public-instance-field",
+          "private-static-field",
+          "private-instance-field",
+          "public-constructor",
+          "private-constructor",
+          "public-instance-method",
+          "protected-instance-method",
+          "private-instance-method"
+        ]
+      }
     ],
     "no-arg": true,
     "no-bitwise": true,
@@ -28,20 +72,38 @@
       true,
       "debug",
       "info",
+      "log",
       "time",
       "timeEnd",
       "trace"
     ],
     "no-construct": true,
     "no-debugger": true,
-    "no-duplicate-variable": true,
-    "no-empty": true,
+    "no-duplicate-super": true,
+    "no-empty": false,
+    "no-empty-interface": true,
     "no-eval": true,
-    "no-string-literal": true,
+    "no-implicit-dependencies": false,
+    "no-inferrable-types": [
+      true,
+      "ignore-params"
+    ],
+    "no-misused-new": true,
+    "no-non-null-assertion": true,
+    "no-parameter-properties": false,
+    "no-shadowed-variable": true,
+    "no-string-literal": false,
+    "no-string-throw": true,
+    "no-submodule-imports": false,
+    "no-switch-case-fall-through": true,
     "no-trailing-whitespace": true,
+    "no-unnecessary-class": false,
+    "no-unnecessary-initializer": true,
+    "no-unsafe-any": false,
     "no-unused-expression": true,
-    "no-unused-variable": true,
     "no-use-before-declare": true,
+    "no-var-keyword": true,
+    "object-literal-sort-keys": false,
     "one-line": [
       true,
       "check-open-brace",
@@ -49,16 +111,18 @@
       "check-else",
       "check-whitespace"
     ],
+    "prefer-const": true,
     "quotemark": [
       true,
       "single",
-      "avoid-escape"
+      "avoid-escape",
+      "avoid-template"
     ],
     "radix": true,
-    "semicolon": [
-      true,
-      "always"
-    ],
+    "semicolon": [ true, "always" ],
+    "space-within-parens": false,
+    "strict-boolean-expressions": false,
+    "trailing-comma": false,
     "triple-equals": [
       true,
       "allow-null-check"
@@ -74,19 +138,20 @@
       {
         "call-signature": "nospace",
         "index-signature": "nospace",
-
         "parameter": "nospace",
         "property-declaration": "nospace",
         "variable-declaration": "nospace"
+      },
+      {
+        "call-signature": "onespace",
+        "index-signature": "onespace",
+        "parameter": "onespace",
+        "property-declaration": "onespace",
+        "variable-declaration": "onespace"
       }
     ],
-    "variable-name": [
-      true,
-      "ban-keywords",
-      "check-format",
-      "allow-leading-underscore",
-      "allow-pascal-case"
-    ],
+    "unified-signatures": true,
+    "variable-name": false,
     "whitespace": [
       true,
       "check-branch",
@@ -94,6 +159,13 @@
       "check-operator",
       "check-separator",
       "check-type"
-    ]
+    ],
+
+    // tslint-microsoft-contrib overides
+    "missing-jsdoc": false,
+    "completed-docs": false,
+    "no-relative-imports": false,
+    "export-name": false,
+    "function-name": false
   }
 }

@@ -1,10 +1,10 @@
-export type MasterPicture = {
+export interface MasterPicture {
     type?: 'inline' | 'url';
     content?: string;
     url?: string;
-};
+}
 
-export type AndroidChromeDesign = {
+export interface AndroidChromeDesign {
     /**
      * The picture aspect.
      */
@@ -55,9 +55,9 @@ export type AndroidChromeDesign = {
          */
         lowResolutionIcons?: boolean;
     };
-};
+}
 
-export type IoSDesign = {
+export interface IoSDesign {
     pictureAspect?: 'noChange' | 'backgroundAndMargin';
     margin?: number | string;
     backgroundColor?: string;
@@ -76,15 +76,15 @@ export type IoSDesign = {
         precomposedIcons?: boolean;
         declareOnlyDefaultIcon?: boolean;
     };
-};
+}
 
-export type SafariPinnedTabDesign = {
+export interface SafariPinnedTabDesign {
     pictureAspect?: 'noChange' | 'silhouette' | 'blackAndWhite';
     threshold?: number;
     themeColor?: string;
-};
+}
 
-export type WindowsDesign = {
+export interface WindowsDesign {
     pictureAspect?: 'noChange' | 'whiteSilhouette';
     backgroundColor?: string;
     onConflict: string;
@@ -102,24 +102,24 @@ export type WindowsDesign = {
             big?: boolean;
             rectangle?: boolean;
         };
-    }
-};
+    };
+}
 
-export type CoastDesign = {
+export interface CoastDesign {
     pictureAspect?: 'noChange' | 'backgroundAndMargin';
     backgroundColor?: string;
     margin?: number | string;
-};
+}
 
 
-export type OpenGraphDesign = {
+export interface OpenGraphDesign {
     pictureAspect?: 'noChange' | 'backgroundAndMargin';
     backgroundColor?: string;
     margin?: number | string;
     ratio?: string;
-};
+}
 
-export type FirefoxAppDesign = {
+export interface FirefoxAppDesign {
     pictureAspect?: 'noChange' | 'circle';
     keepPictureInCircle?: string | boolean;
     circleInnerMargin?: string;
@@ -134,10 +134,10 @@ export type FirefoxAppDesign = {
         developerName?: string;
         developerUrl?: string;
     };
-};
+}
 
 
-export type YandexBrowserDesign = {
+export interface YandexBrowserDesign {
     backgroundColor?: string;
     /**
      * @additionalProperties true
@@ -146,7 +146,7 @@ export type YandexBrowserDesign = {
         showTitle?: boolean;
         version?: string;
     };
-};
+}
 
 export interface IconDesign {
     androidChrome?: AndroidChromeDesign | boolean;
@@ -160,6 +160,10 @@ export interface IconDesign {
     yandexBrowser?: YandexBrowserDesign | boolean;
 }
 
+/**
+ * Favicons config
+ * @additionalProperties false
+ */
 export interface FaviconsConfig {
     /**
      * Your API key. Register at {@link https://realfavicongenerator.net/api/#register_key realfavicongenerator.net}

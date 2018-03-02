@@ -1,4 +1,4 @@
-﻿{
+{
   "compilerOptions": {
     "target": "es2015",
     "module": "commonjs",
@@ -34,10 +34,14 @@
 
     "types": [
       "node"
-    ]
+    ],
+
+    "paths": {
+      "parse5": [ "./node_modules/parse5/lib/index.d.ts" ]
+    }
   },
   "include": [
     "./src"
-  ]
-  // "compileOnSave": false
+  ],
+  "compileOnSave": false
 }

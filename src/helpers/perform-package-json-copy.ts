@@ -51,7 +51,7 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
             const compilerOptions = tsTranspilation._tsCompilerConfig.options;
             const bundles = libConfig.bundles || [];
             let expectedMainEntryFile = '';
-            let foundBundle = bundles.find(b => b.entryRoot === 'tsOutDir');
+            const foundBundle = bundles.find(b => b.entryRoot === 'tsOutDir');
             if (foundBundle && foundBundle.entry) {
                 expectedMainEntryFile = foundBundle.entry;
             } else if (!expectedMainEntryFile && await exists(path.resolve(tsTranspilation._tsOutDir, 'index.js'))) {
@@ -92,7 +92,7 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
     }
 
     if (libConfig.bundles && libConfig.bundles.length) {
-        for (let b of libConfig.bundles) {
+        for (const b of libConfig.bundles) {
             const bundle = b as BundleOptionsInternal;
             if (bundle._outputFilePath &&
                 bundle.libraryTarget === 'es' &&
@@ -124,8 +124,8 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
         }
         reEportTypingsFileName = replaceOutputTokens(reEportTypingsFileName, angularBuildContext);
 
-        let reEportTypingsFileAbs = path.resolve(packageJsonOutDir, reEportTypingsFileName);
-        let reExportTypingsFileRelToPackageJson =
+        const reEportTypingsFileAbs = path.resolve(packageJsonOutDir, reEportTypingsFileName);
+        const reExportTypingsFileRelToPackageJson =
             normalizeRelativePath(path.relative(packageJsonOutDir, reEportTypingsFileAbs));
         mainFields.typings = reExportTypingsFileRelToPackageJson;
 
@@ -142,7 +142,7 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
             await remove(typingsEntryFileAbs.replace(/\.d\.ts$/i, '.metadata.json'));
         } else {
             // add banner to index
-            let bannerContent = angularBuildContext.bannerText ? angularBuildContext.bannerText + '\n' : '';
+            const bannerContent = angularBuildContext.bannerText ? angularBuildContext.bannerText + '\n' : '';
 
             // typings re-exports
             let typingsEntryExportFromRel =
@@ -171,7 +171,7 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
         }
     }
 
-    logger.info(`Copying and updating package.json`);
+    logger.info('Copying and updating package.json');
 
     // merge config
     const rootPackageJson = angularBuildContext.rootPackageJson || {};

@@ -86,18 +86,20 @@ export type LibProjectConfigInternal = LibProjectConfig & ProjectConfigSharedInt
 };
 
 export class AngularBuildContext {
-    private static _initialized = false;
-
     static watch?: boolean;
     static progress?: boolean;
     static cleanOutDirs?: boolean;
-
-    static commandOptions?: any;
-
-    static telemetryPluginAdded: boolean = false;
+    static telemetryPluginAdded = false;
 
     // app only
     dllBuildOnly?: boolean;
+
+    private static _initialized = false;
+
+    private static _commandOptions?: { [key: string]: any };
+    static get commandOptions(): { [key: string]: any } {
+        return AngularBuildContext._commandOptions || {};
+    }
 
     private static _environment: PreDefinedEnvironment = {};
     static get environment(): PreDefinedEnvironment {
@@ -105,6 +107,34 @@ export class AngularBuildContext {
             throw new InternalError('AngularBuildContext has not been initialized.');
         }
         return AngularBuildContext._environment;
+    }
+
+    private static _isProductionMode: boolean | undefined;
+    static get isProductionMode(): boolean {
+        if (!AngularBuildContext._initialized) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+
+        if (typeof AngularBuildContext._isProductionMode === 'undefined') {
+            if (AngularBuildContext.environment.prod) {
+                AngularBuildContext._isProductionMode = true;
+            } else if (AngularBuildContext.environment.dev) {
+                AngularBuildContext._isProductionMode = false;
+            } else {
+                if (AngularBuildContext.commandOptions && AngularBuildContext.commandOptions.mode) {
+                    if (AngularBuildContext.commandOptions.mode === 'production') {
+                        AngularBuildContext._isProductionMode = true;
+                    } else {
+                        AngularBuildContext._isProductionMode = false;
+                    }
+                } else {
+                    AngularBuildContext._isProductionMode = false;
+                }
+
+            }
+        }
+
+        return AngularBuildContext._isProductionMode;
     }
 
     private static _angularBuildConfig: AngularBuildConfigInternal | null = null;
@@ -297,12 +327,12 @@ export class AngularBuildContext {
         return AngularBuildContext._webpackVersion;
     }
 
-    private static _libCount: number = 0;
+    private static _libCount = 0;
     static get libCount(): number {
         return AngularBuildContext._libCount;
     }
 
-    private static _appCount: number = 0;
+    private static _appCount = 0;
     static get appCount(): number {
         return AngularBuildContext._appCount;
     }
@@ -549,7 +579,7 @@ export class AngularBuildContext {
         startTime: number,
         cliRootPath?: string,
         cliVersion?: string,
-        cliIsGlobal?: boolean): void {
+        cliIsGlobal?: boolean, commandOptions?: { [key: string]: any }): void {
         AngularBuildContext._environment = environment;
         AngularBuildContext._angularBuildConfig = angularBuildConfig;
         AngularBuildContext._fromAngularBuildCli = fromAngularBuildCli;
@@ -558,6 +588,8 @@ export class AngularBuildContext {
         AngularBuildContext._cliRootPath = cliRootPath;
         AngularBuildContext._cliVersion = cliVersion;
         AngularBuildContext._cliIsGlobal = cliIsGlobal;
+
+        AngularBuildContext._commandOptions = commandOptions || {};
 
         AngularBuildContext._logger = new Logger({
             name: '',

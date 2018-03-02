@@ -12,7 +12,6 @@ Usage:
         describe: 'Build the project(s)',
         builder: (yargv: yargs.Argv) => {
             const yargvObj = yargv
-                .reset()
                 .usage(buildCommandUsage)
                 .example('ngb build', 'Build the project(s) using angular-build.json file')
                 .help('h')

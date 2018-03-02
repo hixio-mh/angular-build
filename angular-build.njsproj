@@ -12,9 +12,11 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>5501ef62-d153-4eb9-8b74-9777cb071551</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile></StartupFile>
+    <StartupFile>
+    </StartupFile>
     <StartWebBrowser>False</StartWebBrowser>
-    <SearchPath></SearchPath>
+    <SearchPath>
+    </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>dist</OutputPath>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
@@ -31,10 +33,12 @@
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
     <TypeScriptNoImplicitAny>True</TypeScriptNoImplicitAny>
     <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
-    <TypeScriptOutFile /><TypeScriptOutDir />
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
     <TypeScriptGeneratesDeclarations>True</TypeScriptGeneratesDeclarations>
     <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
-    <TypeScriptMapRoot /><TypeScriptSourceRoot />
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,19 +55,26 @@
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\assets\.gitkeep" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\favicon-config.json" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\favicon.svg" />
+    <Content Include="schemas\favicon-config-schema-draft-04.json" />
+    <Content Include="schemas\favicon-config-schema.json" />
+    <Content Include="schemas\schema-draft-04.json" />
+    <Content Include="schemas\schema.json" />
     <Content Include="src\plugins\favicons-webpack-plugin\package.json" />
-    <Content Include="test\hello-world-ng-app-build-test\angular-build.json" />
-    <Content Include="test\hello-world-ng-app-build-test\src\app\app.component.css" />
-    <Content Include="test\hello-world-ng-app-build-test\src\app\app.component.html" />
-    <Content Include="test\hello-world-ng-app-build-test\src\favicon.ico" />
-    <Content Include="test\hello-world-ng-app-build-test\src\index.html" />
-    <Content Include="test\hello-world-ng-app-build-test\src\tsconfig.json" />
-    <Content Include="test\hello-world-ng-lib-build-test\angular-build.json" />
-    <Content Include="test\hello-world-ng-lib-build-test\banner.txt" />
-    <Content Include="test\hello-world-ng-lib-build-test\LICENSE" />
-    <Content Include="test\hello-world-ng-lib-build-test\package.json" />
-    <Content Include="test\hello-world-ng-lib-build-test\README.md" />
-    <Content Include="test\hello-world-ng-lib-build-test\tsconfig.json" />
+    <Content Include="samples\hello-world-ng-app-build-test\angular-build.json" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.css" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.html" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\favicon.ico" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\index.html" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\tsconfig.json" />
+    <Content Include="samples\hello-world-ng-lib-build-test\angular-build.json" />
+    <Content Include="samples\hello-world-ng-lib-build-test\banner.txt" />
+    <Content Include="samples\hello-world-ng-lib-build-test\LICENSE" />
+    <Content Include="samples\hello-world-ng-lib-build-test\package.json" />
+    <Content Include="samples\hello-world-ng-lib-build-test\README.md" />
+    <Content Include="samples\hello-world-ng-lib-build-test\tsconfig.json" />
     <Content Include="tools\tsconfig-favicons-schema.json" />
     <Content Include="tools\tsconfig-schema.json" />
     <Content Include="tsconfig.json" />
@@ -72,7 +83,14 @@
   <ItemGroup>
     <Folder Include=".github\" />
     <Folder Include="bin\" />
+    <Folder Include="samples\" />
+    <Folder Include="samples\hello-world-ng-app-build-test\src\assets\" />
+    <Folder Include="schemas\" />
     <Folder Include="scripts\" />
+    <Folder Include="src\plugins\html-inject-webpack-plugin\" />
+    <Folder Include="src\plugins\html-inject-webpack-plugin\src\" />
+    <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
+    <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\" />
     <Folder Include="src\plugins\telemetry-webpack-plugin\" />
     <Folder Include="src\plugins\telemetry-webpack-plugin\src\" />
     <Folder Include="test\" />
@@ -84,49 +102,35 @@
     <Folder Include="src\models\" />
     <Folder Include="src\helpers\" />
     <Folder Include="src\plugins\" />
-    <Folder Include="src\plugins\add-assets-html-webpack-plugin\" />
-    <Folder Include="src\plugins\add-assets-html-webpack-plugin\src\" />
-    <Folder Include="src\plugins\add-static-asset-webpack-plugin\" />
-    <Folder Include="src\plugins\add-static-asset-webpack-plugin\src\" />
-    <Folder Include="src\plugins\base-href-html-webpack-plugin\" />
-    <Folder Include="src\plugins\base-href-html-webpack-plugin\src\" />
     <Folder Include="src\plugins\bundle-analyzer-webpack-plugin\" />
     <Folder Include="src\plugins\bundle-analyzer-webpack-plugin\src\" />
     <Folder Include="src\plugins\clean-webpack-plugin\" />
     <Folder Include="src\plugins\clean-webpack-plugin\src\" />
     <Folder Include="src\plugins\copy-webpack-plugin\" />
     <Folder Include="src\plugins\copy-webpack-plugin\src\" />
-    <Folder Include="src\plugins\customize-assets-html-webpack-plugin\" />
-    <Folder Include="src\plugins\customize-assets-html-webpack-plugin\src\" />
     <Folder Include="src\plugins\dynamic-dll-webpack-plugin\" />
     <Folder Include="src\plugins\dynamic-dll-webpack-plugin\src\" />
     <Folder Include="src\plugins\favicons-webpack-plugin\" />
     <Folder Include="src\plugins\favicons-webpack-plugin\src\" />
     <Folder Include="src\plugins\lib-bundle-webpack-plugin\" />
     <Folder Include="src\plugins\lib-bundle-webpack-plugin\src\" />
-    <Folder Include="src\plugins\named-lazy-chunks-webpack-plugin\" />
-    <Folder Include="src\plugins\named-lazy-chunks-webpack-plugin\src\" />
     <Folder Include="src\plugins\postcss-cli-resources\" />
-    <Folder Include="src\plugins\resource-hints-html-webpack-plugin\" />
-    <Folder Include="src\plugins\resource-hints-html-webpack-plugin\src\" />
-    <Folder Include="src\plugins\script-concat-webpack-plugin\" />
-    <Folder Include="src\plugins\script-concat-webpack-plugin\src\" />
-    <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
-    <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\" />
+    <Folder Include="src\plugins\scripts-webpack-plugin\" />
+    <Folder Include="src\plugins\scripts-webpack-plugin\src\" />
     <Folder Include="src\plugins\write-assets-to-disk-webpack-plugin\" />
     <Folder Include="src\plugins\write-assets-to-disk-webpack-plugin\src\" />
     <Folder Include="src\plugins\write-stats-json-webpack-plugin\" />
     <Folder Include="src\plugins\write-stats-json-webpack-plugin\src\" />
     <Folder Include="src\utils\" />
     <Folder Include="src\webpack-configs\" />
-    <Folder Include="src\webpack-configs\app\" />
-    <Folder Include="src\webpack-configs\lib\" />
-    <Folder Include="test\hello-world-ng-app-build-test\" />
-    <Folder Include="test\hello-world-ng-app-build-test\src\" />
-    <Folder Include="test\hello-world-ng-app-build-test\src\app\" />
-    <Folder Include="test\hello-world-ng-app-build-test\src\environments\" />
-    <Folder Include="test\hello-world-ng-lib-build-test\" />
-    <Folder Include="test\hello-world-ng-lib-build-test\src\" />
+    <Folder Include="src\webpack-configs\app-configs\" />
+    <Folder Include="src\webpack-configs\lib-configs\" />
+    <Folder Include="samples\hello-world-ng-app-build-test\" />
+    <Folder Include="samples\hello-world-ng-app-build-test\src\" />
+    <Folder Include="samples\hello-world-ng-app-build-test\src\app\" />
+    <Folder Include="samples\hello-world-ng-app-build-test\src\environments\" />
+    <Folder Include="samples\hello-world-ng-lib-build-test\" />
+    <Folder Include="samples\hello-world-ng-lib-build-test\src\" />
     <Folder Include="tools\" />
   </ItemGroup>
   <ItemGroup>
@@ -138,10 +142,14 @@
     <TypeScriptCompile Include="src\cli\index.ts" />
     <TypeScriptCompile Include="src\helpers\angular-rxjs-externals.ts" />
     <TypeScriptCompile Include="src\helpers\get-custom-webpack-config.ts" />
+    <TypeScriptCompile Include="src\plugins\html-inject-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\html-inject-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\postcss-cli-resources\index.ts" />
+    <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\lib\lib-bundle-target.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\lib-configs\lib-bundle-target.ts" />
     <TypeScriptCompile Include="src\helpers\get-rollup-config.ts" />
     <TypeScriptCompile Include="src\helpers\is-webpack-dev-server.ts" />
     <TypeScriptCompile Include="src\helpers\minify-file.ts" />
@@ -162,12 +170,6 @@
     <TypeScriptCompile Include="src\models\favicons-config-models.ts" />
     <TypeScriptCompile Include="src\models\index.ts" />
     <TypeScriptCompile Include="src\models\internal-config-models.ts" />
-    <TypeScriptCompile Include="src\plugins\add-assets-html-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\add-assets-html-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\add-static-asset-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\add-static-asset-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\base-href-html-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\base-href-html-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\bundle-analyzer-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\bundle-analyzer-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\clean-webpack-plugin\index.ts" />
@@ -178,8 +180,6 @@
     <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\src\pre-process-assets.ts" />
     <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\src\process-assets.ts" />
-    <TypeScriptCompile Include="src\plugins\customize-assets-html-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\customize-assets-html-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\dynamic-dll-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\dynamic-dll-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\index.ts" />
@@ -190,14 +190,8 @@
     <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\plugin.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\named-lazy-chunks-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\named-lazy-chunks-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\resource-hints-html-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\resource-hints-html-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\script-concat-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\script-concat-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\plugins\scripts-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\scripts-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\write-assets-to-disk-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\write-assets-to-disk-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\write-stats-json-webpack-plugin\index.ts" />
@@ -213,24 +207,24 @@
     <TypeScriptCompile Include="src\utils\read-json.ts" />
     <TypeScriptCompile Include="src\utils\strip-comments.ts" />
     <TypeScriptCompile Include="src\utils\validate-schema.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\app\angular.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\app\app.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\app\browser.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\app\common.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\app\dll.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\app\reference-dll.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\app\styles.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app-configs\angular.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app-configs\app.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app-configs\browser.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app-configs\common.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app-configs\dll.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app-configs\reference-dll.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\app-configs\styles.ts" />
     <TypeScriptCompile Include="src\webpack-configs\index.ts" />
-    <TypeScriptCompile Include="src\webpack-configs\lib\lib.ts" />
-    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\app\app.component.ts" />
-    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\app\app.module.ts" />
-    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\environments\environment.prod.ts" />
-    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\environments\environment.ts" />
-    <TypeScriptCompile Include="test\hello-world-ng-app-build-test\src\main.ts" />
-    <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\index.ts" />
-    <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\public_api.ts" />
-    <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\src\hello-world.service.ts" />
-    <TypeScriptCompile Include="test\hello-world-ng-lib-build-test\src\index.ts" />
+    <TypeScriptCompile Include="src\webpack-configs\lib-configs\lib.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\app\app.component.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\app\app.module.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\environments\environment.prod.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\environments\environment.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\main.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-lib-build-test\index.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-lib-build-test\public_api.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-lib-build-test\src\hello-world.service.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-lib-build-test\src\index.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="scripts\postinstall.js" />

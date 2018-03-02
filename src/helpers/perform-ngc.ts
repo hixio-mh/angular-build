@@ -109,13 +109,15 @@ export async function performNgc(angularBuildContext: AngularBuildContext, custo
     await new Promise((resolve, reject) => {
         const errors: string[] = [];
         const child = spawn(ngcCommandPath, commandArgs, {});
-        child.stdout.on('data', (data: any) => console.log(`${data}`));
+        child.stdout.on('data', (data: any) => {
+            logger.debug(`${data}`);
+        });
         child.stderr.on('data', (data: any) => errors.push(data.toString().trim()));
         child.on('error', (err: Error) => reject(err));
         child.on('exit', (exitCode: number) => {
             if (exitCode === 0) {
                 if (copyTemplateAndStyleUrls || inlineMetaDataResources) {
-                    logger.debug(`Processing template and style urls`);
+                    logger.debug('Processing template and style urls');
 
                     let stylePreprocessorIncludePaths: string[] = [];
                     if (stylePreprocessorOptions &&

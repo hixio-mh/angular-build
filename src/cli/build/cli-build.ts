@@ -40,8 +40,8 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
         configPath = path.resolve(process.cwd(), 'angular-build.json');
     }
 
-    let watch = commandOptions.watch ? true : false;
-    let environment =
+    const watch = commandOptions.watch ? true : false;
+    const environment =
         commandOptions.env && typeof commandOptions.env === 'object' ? commandOptions.env : {};
 
     const logger = new Logger({
@@ -52,7 +52,7 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
 
     if (!await exists(configPath)) {
         logger.error(`angular-build.json config file does not exist - search location: ${configPath}. ` +
-            `Please use --config=<your config file> option or make sure angular-build.json is existed in current working directory.\n`);
+            'Please use --config=<your config file> option or make sure angular-build.json is existed in current working directory.\n');
         return -1;
     }
 
@@ -70,20 +70,20 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
     }
 
     if (webpackConfigs.length === 0) {
-        logger.error(`No app or lib project is available.\n`);
+        logger.error('No app or lib project is available.\n');
         return -1;
     }
 
     try {
         if (watch) {
-            for (let wpConfig of webpackConfigs) {
+            for (const wpConfig of webpackConfigs) {
                 delete (wpConfig as any)._projectConfig;
             }
 
             await runWebpack(webpackConfigs, watch, logger);
         } else {
             let i = 0;
-            for (let wpConfig of webpackConfigs) {
+            for (const wpConfig of webpackConfigs) {
                 const mappedConfig = (wpConfig as any)._projectConfig as ProjectConfigInternal;
 
                 logger.info(`${i > 0 ? '\n' : ''}Processing ${mappedConfig.name

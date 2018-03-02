@@ -9,42 +9,42 @@ export interface DynamicDllWebpackPluginOptions {
 }
 
 export class DynamicDllWebpackPlugin {
-    private readonly logger: Logger;
+    private readonly _logger: Logger;
 
     get name(): string {
-        return 'DynamicDllWebpackPlugin';
+        return 'dynamic-dll-webpack-plugin';
     }
 
-    constructor(private readonly options: DynamicDllWebpackPluginOptions) {
+    constructor(private readonly _options: DynamicDllWebpackPluginOptions) {
         const loggerOptions =
-            Object.assign({ name: `[${this.name}]` }, this.options.loggerOptions || {}) as LoggerOptions;
-        this.logger = new Logger(loggerOptions);
+            Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
+        this._logger = new Logger(loggerOptions);
     }
 
+    apply(compiler: any): void {
+        const runFn = () => {
+            return this.checkAndBundleDll(compiler);
+        };
 
-    apply(compiler: webpack.Compiler): void {
-        compiler.plugin(['run', 'watch-run'], (_, cb: (err?: Error) => void) => {
-            this.checkAndBundleDll(compiler)
-                .then(() => cb())
-                .catch((err) => cb(err));
-        });
+        compiler.hooks.run.tapPromise(this.name, runFn);
+        compiler.hooks.watchRun.tapPromise(this.name, runFn);
     }
 
-    private async checkAndBundleDll(compiler: webpack.Compiler): Promise<void> {
-        const manifestFilesExists = await this.checkManifestFiles((compiler as any).inputFileSystem);
+    private async checkAndBundleDll(compiler: any): Promise<void> {
+        const manifestFilesExists = await this.checkManifestFiles(compiler.inputFileSystem);
         if (manifestFilesExists) {
-            this.logger.debug(`Found manifest file`);
+            this._logger.debug('Found manifest file');
             return;
         } else {
-            this.logger.debug(`Initializing dll config`);
-            const webpackDllConfig = this.options.getDllConfigFunc();
+            this._logger.debug('Initializing dll config');
+            const webpackDllConfig = this._options.getDllConfigFunc();
             if (webpackDllConfig.watch) {
                 delete webpackDllConfig.watch;
             }
 
             const statsConfig = webpackDllConfig.stats || {};
 
-            this.logger.debug(`Creating webpack compiler for dll bundling`);
+            this._logger.debug('Creating webpack compiler for dll bundling');
             const webpackCompiler = webpack(webpackDllConfig);
 
             await new Promise((resolve, reject) => {
@@ -57,6 +57,7 @@ export class DynamicDllWebpackPlugin {
                         return reject(new Error(stats.toString('errors-only')));
                     }
 
+                    // tslint:disable-next-line:no-console
                     console.log(stats.toString(statsConfig));
                     resolve();
                 });
@@ -65,8 +66,8 @@ export class DynamicDllWebpackPlugin {
     }
 
     private checkManifestFiles(inputFileSystem: any): Promise<boolean> {
-        this.logger.debug(`Checking dll manifest file`);
-        const tasks = this.options.manifests.map(manifest => {
+        this._logger.debug('Checking dll manifest file');
+        const tasks = this._options.manifests.map(manifest => {
             return new Promise<boolean>((resolve) => {
                 return inputFileSystem.stat(manifest.file,
                     (err: Error, stats: any) => {

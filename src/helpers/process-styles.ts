@@ -24,7 +24,7 @@ export async function processStyles(angularBuildContext: AngularBuildContext, cu
     }
 
     if (!libConfig._styleParsedEntries) {
-        throw new InternalError(`The 'libConfig._styleParsedEntries' is not set.`);
+        throw new InternalError("The 'libConfig._styleParsedEntries' is not set.");
     }
 
     const projectRoot = AngularBuildContext.projectRoot;
@@ -45,7 +45,7 @@ export async function processStyles(angularBuildContext: AngularBuildContext, cu
         });
     }
 
-    logger.info(`Processing global styles`);
+    logger.info('Processing global styles');
 
     await Promise.all(libConfig._styleParsedEntries.map(async (styleParsedEntry: GlobalParsedEntry) => {
         const input = styleParsedEntry.paths[0];

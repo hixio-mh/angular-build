@@ -19,7 +19,7 @@ import { Logger } from '../utils/logger';
 import { isSamePaths } from '../utils/path-helpers';
 
 import { getRollupConfig } from './get-rollup-config';
-import { getLibBundleTargetWebpackConfig } from '../webpack-configs/lib/lib-bundle-target';
+import { getLibBundleTargetWebpackConfig } from '../webpack-configs/lib-configs/lib-bundle-target';
 
 import { runWebpack } from './run-webpack';
 import { minifyFile } from './minify-file';
@@ -49,13 +49,13 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
 
         currentBundle._index = i;
 
-        let expectedEntryScriptTarget: ts.ScriptTarget | undefined = undefined;
-        let exactEntryScriptTarget: ts.ScriptTarget | undefined = undefined;
+        let expectedEntryScriptTarget: ts.ScriptTarget | undefined;
+        let exactEntryScriptTarget: ts.ScriptTarget | undefined;
 
         // entry
         let entryFilePath = '';
         if (currentBundle.entryRoot && currentBundle.entryRoot === 'prevBundleOutDir') {
-            let foundBundleTarget: BundleOptionsInternal | undefined = undefined;
+            let foundBundleTarget: BundleOptionsInternal | undefined;
             if (i > 0) {
                 foundBundleTarget = bundles[i - 1];
             }
@@ -67,7 +67,7 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
 
             if (!foundBundleTarget._outputFilePath) {
                 throw new InternalError(
-                    `The 'foundBundleTarget._outputFilePath' is not set.`);
+                    "The 'foundBundleTarget._outputFilePath' is not set.");
             }
 
             entryFilePath = foundBundleTarget._outputFilePath;
@@ -95,12 +95,12 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
             const tsTranspilation = libConfig.tsTranspilation as TsTranspilationOptionsInternal;
             if (!tsTranspilation._tsOutDir) {
                 throw new InternalError(
-                    `The 'tsTranspilation._tsOutDir' is not set.`);
+                    "The 'tsTranspilation._tsOutDir' is not set.");
             }
 
             if (!tsTranspilation._tsCompilerConfig) {
                 throw new InternalError(
-                    `The 'tsTranspilation._tsCompilerConfig' is not set.`);
+                    "The 'tsTranspilation._tsCompilerConfig' is not set.");
             }
 
             const entryRootDir = tsTranspilation._tsOutDir;
@@ -138,7 +138,7 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
             entryFilePath = path.resolve(srcDir, currentBundle.entry);
         }
 
-        let entryFileExists = await exists(entryFilePath);
+        const entryFileExists = await exists(entryFilePath);
         if (!entryFileExists) {
             throw new InvalidConfigError(
                 `The entry file path: ${entryFilePath} doesn't exist. Please correct in 'libs[${libConfig._index
@@ -184,7 +184,7 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
             }
 
             // _nodeResolveFields
-            let nodeResolveFields: string[] = [];
+            const nodeResolveFields: string[] = [];
             if (compilerOptions.target === ts.ScriptTarget.ES2017) {
                 nodeResolveFields.push('es2017');
                 nodeResolveFields.push('es2016');
@@ -231,7 +231,7 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
         let formatSuffix = '';
         if (i > 0 && !/\-?esm?(\d{1,4})$/i.test(bundleOutDir) && !/\-?umd$/i.test(bundleOutDir)) {
             if (currentBundle.libraryTarget === 'es') {
-                formatSuffix = `.esm`;
+                formatSuffix = '.esm';
             } else {
                 formatSuffix = `.${currentBundle.libraryTarget}`;
             }

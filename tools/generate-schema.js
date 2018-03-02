@@ -34,6 +34,10 @@ function generateSchema() {
     spawn.sync(path.join(process.cwd(), 'node_modules/.bin/ajv'),
         ['migrate', '-s', faviconConfigSchemaOutput, '-o', faviconConfigSchemav6Output],
         { stdio: 'inherit', cwd: process.cwd() });
+
+    const schemaCopyDir = path.resolve(__dirname, '../schemas');
+    fs.ensureDirSync(schemaCopyDir);
+    fs.copySync(schemaOutDir, schemaCopyDir);
 }
 
 if (process.argv.length >= 2 && process.argv[1] === path.resolve(__filename)) {

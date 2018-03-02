@@ -259,3 +259,5 @@ node_modules/
 **/obj/
 
 bin/Microsoft.NodejsTools.WebRole.dll
+
+**/.bo-cache

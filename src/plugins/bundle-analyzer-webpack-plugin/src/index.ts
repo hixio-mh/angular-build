@@ -1,4 +1,5 @@
-// Ref: https://github.com/th0r/webpack-bundle-analyzer
+// Ref: https://github.com/webpack-contrib/webpack-bundle-analyzer
+// Wrapper for webpack-contrib/webpack-bundle-analyzer
 
 import * as path from 'path';
 
@@ -15,6 +16,7 @@ const analyzer = require(path.join(require.resolve('webpack-bundle-analyzer'), '
 const webpackBundleAnalyzerRoot = path.resolve(require.resolve('webpack-bundle-analyzer'), '../..');
 
 export interface BundleAnalyzerWebpackPluginOptions extends BundleAnalyzerOptions {
+    outputPath?: string;
     forceWriteToDisk?: boolean;
     persistedOutputFileSystemNames?: string[];
     stats?: webpack.Stats.ToJsonOptionsObject;
@@ -22,18 +24,17 @@ export interface BundleAnalyzerWebpackPluginOptions extends BundleAnalyzerOption
 }
 
 export class BundleAnalyzerWebpackPlugin {
-    private readonly logger: Logger;
-    private readonly persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
-
-    private readonly defaultOutputOptions: webpack.Stats.ToJsonOptionsObject = {
+    private readonly _options: BundleAnalyzerWebpackPluginOptions;
+    private readonly _logger: Logger;
+    private readonly _persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
+    private readonly _defaultOutputOptions: webpack.Stats.ToJsonOptionsObject = {
         modules: true,
         chunks: true,
         chunkModules: true,
         entrypoints: true,
         maxModules: Infinity
     };
-
-    private readonly defaultOptions: any = {
+    private readonly _defaultOptions: any = {
         reportFilename: 'stats-report.html',
         openAnalyzer: false,
         generateStatsFile: false,
@@ -41,82 +42,69 @@ export class BundleAnalyzerWebpackPlugin {
     };
 
     get name(): string {
-        return 'BundleAnalyzerWebpackPlugin';
+        return 'bundle-analyzer-webpack-plugin';
     }
 
-    constructor(private readonly options: BundleAnalyzerWebpackPluginOptions) {
-        this.options = Object.assign({}, this.defaultOptions, options) as BundleAnalyzerWebpackPluginOptions;
-        this.options.stats = this.options.stats || this.defaultOutputOptions;
+    constructor(options: BundleAnalyzerWebpackPluginOptions) {
+        this._options = {
+            ...this._defaultOptions,
+            stats: {
+                ...this._defaultOutputOptions
+            },
+            ...options,
+        };
 
         const loggerOptions =
-            Object.assign({ name: `[${this.name}]` }, this.options.loggerOptions || {}) as LoggerOptions;
-        this.logger = new Logger(loggerOptions);
+            Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
+        this._logger = new Logger(loggerOptions);
 
-        if (this.options.persistedOutputFileSystemNames && this.options.persistedOutputFileSystemNames.length) {
-            this.options.persistedOutputFileSystemNames
-                .filter(pfs => !this.persistedOutputFileSystemNames.includes(pfs))
-                .forEach(pfs => this.persistedOutputFileSystemNames.push(pfs));
+        if (this._options.persistedOutputFileSystemNames && this._options.persistedOutputFileSystemNames.length) {
+            this._options.persistedOutputFileSystemNames
+                .filter(pfs => !this._persistedOutputFileSystemNames.includes(pfs))
+                .forEach(pfs => this._persistedOutputFileSystemNames.push(pfs));
         }
     }
 
-    apply(compiler: webpack.Compiler): void {
-        const outputPath = compiler.options.output ? compiler.options.output.path : undefined;
-        const forceExit = process.argv.indexOf('--force-exit') > -1;
+    apply(compiler: any): void {
+        compiler.hooks.done.tap(this.name, (stats: webpack.Stats) => {
+            if (stats.hasErrors()) {
+                return;
+            }
 
-        compiler.plugin('after-emit',
-            (compilation: any, cb: Function) => {
-                if (!forceExit || compilation.errors.length) {
-                    cb();
-                    return;
-                }
+            const outputPath = this._options.outputPath || compiler.outputPath;
+            const statsJson = stats.toJson(this._options.stats);
 
-                const stats = compilation.getStats().toJson(this.options.stats);
-
-                this.generateStatsFile(stats, compiler, outputPath)
-                    .then(() => this.generateStaticReport(stats, compiler, outputPath))
-                    .then(() => cb())
-                    .catch((err) => cb(err));
+            // Making analyzer logs to be after all webpack logs in the console
+            setImmediate(() => {
+                this.generateStatsFile(statsJson, compiler, outputPath)
+                    .then(() => this.generateStaticReport(statsJson, compiler, outputPath))
+                    .catch((err) => {
+                        this._logger.error(`${err.message || err}`);
+                    });
             });
-
-        compiler.plugin('done',
-            (stats: webpack.Stats) => {
-                if (forceExit || stats.hasErrors()) {
-                    return;
-                }
-
-                const statsJson = stats.toJson(this.options.stats);
-
-                // Making analyzer logs to be after all webpack logs in the console
-                setImmediate(() => {
-                    this.generateStatsFile(statsJson, compiler, outputPath)
-                        .then(() => this.generateStaticReport(statsJson, compiler, outputPath))
-                        .catch((err) => {
-                            this.logger.error(`${err.message || err}`);
-                        });
-                });
-            });
+        });
     }
 
     private async generateStatsFile(stats: any, compiler: webpack.Compiler, outputPath?: string): Promise<void> {
-        if (!this.options.generateStatsFile || !outputPath || outputPath === '/' || !path.isAbsolute(outputPath)) {
+        if (!this._options.generateStatsFile || !outputPath || outputPath === '/' || !path.isAbsolute(outputPath)) {
             return;
         }
 
-        let statsFilepath = this.options.statsFilename || 'stats.json';
+        let statsFilepath = this._options.statsFilename || 'stats.json';
         if (!path.isAbsolute(statsFilepath)) {
             statsFilepath = path.resolve(outputPath, statsFilepath);
         }
 
         const statsFileRelative = path.relative(outputPath, statsFilepath);
         const isPersistedOutFileSystem =
-            this.persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name);
+            this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name);
         const content = new Buffer(JSON.stringify(stats, null, 2), 'utf8');
-        if (this.options.forceWriteToDisk && !isPersistedOutFileSystem) {
-            this.logger.debug(`Emitting ${statsFileRelative} to disk`);
+        if (this._options.forceWriteToDisk && !isPersistedOutFileSystem) {
+            this._logger.debug(`Emitting ${statsFileRelative} to disk`);
             await ensureDir(path.dirname(statsFilepath));
             await writeFile(statsFilepath, content);
         } else {
-            this.logger.debug(`Emitting ${statsFileRelative}`);
+            this._logger.debug(`Emitting ${statsFileRelative}`);
             await new Promise((resolve, reject) => compiler.outputFileSystem.mkdirp(path.dirname(statsFilepath),
                 (err: Error) => err ? reject(err) : resolve()));
             await new Promise((resolve, reject) => compiler.outputFileSystem.writeFile(statsFilepath, content,
@@ -148,27 +136,27 @@ export class BundleAnalyzerWebpackPlugin {
             }
         ));
 
-        let reportFilepath = this.options.reportFilename || 'stats-report.html';
+        let reportFilepath = this._options.reportFilename || 'stats-report.html';
         if (!path.isAbsolute(reportFilepath)) {
             reportFilepath = path.resolve(outputPath, reportFilepath);
         }
 
         const reportFileRelative = path.relative(outputPath, reportFilepath);
         const isPersistedOutFileSystem =
-            this.persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name);
-        if (this.options.forceWriteToDisk && !isPersistedOutFileSystem) {
-            this.logger.debug(`Emitting ${reportFileRelative} to disk`);
+            this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name);
+        if (this._options.forceWriteToDisk && !isPersistedOutFileSystem) {
+            this._logger.debug(`Emitting ${reportFileRelative} to disk`);
             await ensureDir(path.dirname(reportFilepath));
             await writeFile(reportFilepath, reportHtml);
         } else {
-            this.logger.debug(`Emitting ${reportFileRelative}`);
+            this._logger.debug(`Emitting ${reportFileRelative}`);
             await new Promise((resolve, reject) => compiler.outputFileSystem.mkdirp(path.dirname(reportFilepath),
                 (err2: Error) => err2 ? reject(err2) : resolve()));
             await new Promise((resolve, reject) => compiler.outputFileSystem.writeFile(reportFilepath, reportHtml,
                 (err2: Error) => err2 ? reject(err2) : resolve()));
         }
 
-        if (this.options.openAnalyzer && (isPersistedOutFileSystem || this.options.forceWriteToDisk)) {
+        if (this._options.openAnalyzer && (isPersistedOutFileSystem || this._options.forceWriteToDisk)) {
             try {
                 // opener(`file://${reportFilepath}`);
                 // http://stackoverflow.com/q/1480971/3191, but see below for Windows.
@@ -192,7 +180,7 @@ export class BundleAnalyzerWebpackPlugin {
                 }
                 spawn.sync(command, args, { stdio: 'inherit' });
             } catch (err) {
-                this.logger.error(`${err.message || err}`);
+                this._logger.error(`${err.message || err}`);
             }
         }
     }
@@ -204,20 +192,19 @@ export class BundleAnalyzerWebpackPlugin {
 
     private getChartData(...args: any[]): any | null {
         let chartData: any;
-        const logger = this.logger;
+        const logger = this._logger;
         try {
             chartData = analyzer.getViewerData(...args, { logger });
         } catch (err) {
-            this.logger.error(`Couldn't analyze webpack bundle, Error: ${err.message || err}`);
+            this._logger.error(`Couldn't analyze webpack bundle, Error: ${err.message || err}`);
             chartData = null;
         }
 
         if (!chartData) {
-            this.logger.error(`Couldn't find any javascript bundles in provided stats file`);
+            this._logger.error("Couldn't find any javascript bundles in provided stats file");
             chartData = null;
         }
 
         return chartData;
     }
 }
-

@@ -10,14 +10,14 @@ import * as postcss from 'postcss';
 import * as url from 'url';
 import * as webpack from 'webpack';
 
-function wrapUrl(url: string): string {
+function wrapUrl(urlStr: string): string {
     let wrappedUrl: string;
-    const hasSingleQuotes = url.indexOf('\'') >= 0;
+    const hasSingleQuotes = urlStr.indexOf('\'') >= 0;
 
     if (hasSingleQuotes) {
-        wrappedUrl = `"${url}"`;
+        wrappedUrl = `"${urlStr}"`;
     } else {
-        wrappedUrl = `'${url}'`;
+        wrappedUrl = `'${urlStr}'`;
     }
 
     return `url(${wrappedUrl})`;
@@ -44,7 +44,7 @@ async function resolve(
 export default postcss.plugin('postcss-cli-resources',
     ((options?: PostcssCliResourcesOptions) => {
         if (!options) {
-            throw new Error(`The 'options' is required.`);
+            throw new Error("The 'options' is required.");
         }
 
         const deployUrl = options.deployUrl;
@@ -72,19 +72,19 @@ export default postcss.plugin('postcss-cli-resources',
             const hash = urlWithStringQuery.hash;
             const search = urlWithStringQuery.search;
 
-            const resolver = (file: string, base: string) => new Promise<string>((resolve, reject) => {
-                loader.resolve(base, file, (err, result) => {
+            const resolver = (file: string, base: string) => new Promise<string>((res, reject) => {
+                loader.resolve(base, file, (err, r) => {
                     if (err) {
                         reject(err);
                         return;
                     }
-                    resolve(result);
+                    res(r);
                 });
             });
 
             const result = await resolve(pathname || '', loader.context, resolver);
 
-            return new Promise<string>((resolve, reject) => {
+            return new Promise<string>((res, reject) => {
                 loader.fs.readFile(result, (err: Error, content: Buffer) => {
                     if (err) {
                         reject(err);
@@ -111,11 +111,10 @@ export default postcss.plugin('postcss-cli-resources',
 
                     resourceCache.set(inputUrl, outputUrl);
 
-                    resolve(outputUrl);
+                    res(outputUrl);
                 });
             });
         };
-
 
         return (root: postcss.Root) => {
             const urlDeclarations: Array<postcss.Declaration> = [];

@@ -1,14 +1,13 @@
 import * as path from 'path';
 
-import * as minimatch from 'minimatch';
-import * as webpack from 'webpack';
-
 import { ensureDir, writeFile } from 'fs-extra';
+import * as minimatch from 'minimatch';
 
 import { InternalError } from '../../../models';
 import { Logger, LoggerOptions } from '../../../utils/logger';
 
 export interface WriteAssetsToDiskWebpackPluginOptions {
+    outputPath?: string;
     emittedPaths?: string[];
     exclude?: string[];
     persistedOutputFileSystemNames?: string[];
@@ -16,66 +15,60 @@ export interface WriteAssetsToDiskWebpackPluginOptions {
 }
 
 export class WriteAssetsToDiskWebpackPlugin {
-    private readonly logger: Logger;
-    private readonly persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
+    private readonly _options: WriteAssetsToDiskWebpackPluginOptions;
+    private readonly _logger: Logger;
+    private readonly _persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
 
     get name(): string {
-        return 'WriteAssetsToDiskWebpackPlugin';
+        return 'write-assets-to-disk-webpack-plugin';
     }
 
-    constructor(private readonly options: WriteAssetsToDiskWebpackPluginOptions) {
-        if (!options) {
-            throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
-        }
+    constructor(options: Partial<WriteAssetsToDiskWebpackPluginOptions>) {
+        this._options = {
+            ...options
+        };
 
         const loggerOptions =
-            Object.assign({ name: `[${this.name}]` }, this.options.loggerOptions || {}) as LoggerOptions;
-        this.logger = new Logger(loggerOptions);
+            Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
+        this._logger = new Logger(loggerOptions);
 
-        if (this.options.persistedOutputFileSystemNames && this.options.persistedOutputFileSystemNames.length) {
-            this.options.persistedOutputFileSystemNames
-                .filter(pfs => !this.persistedOutputFileSystemNames.includes(pfs))
-                .forEach(pfs => this.persistedOutputFileSystemNames.push(pfs));
+        if (this._options.persistedOutputFileSystemNames && this._options.persistedOutputFileSystemNames.length) {
+            this._options.persistedOutputFileSystemNames
+                .filter(pfs => !this._persistedOutputFileSystemNames.includes(pfs))
+                .forEach(pfs => this._persistedOutputFileSystemNames.push(pfs));
         }
     }
 
-    apply(compiler: webpack.Compiler): void {
-        const outputPath = compiler.options.output ? compiler.options.output.path : undefined;
+    apply(compiler: any): void {
+        const outputPath = this._options.outputPath || compiler.outputPath;
 
-        compiler.plugin('after-emit',
-            (compilation: any, cb: (err?: Error, request?: any) => void) => {
-                if (this.persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name)) {
-                    return cb();
-                }
+        compiler.hooks.afterEmit.tapPromise(this.name, async (compilation: any) => {
+            if (this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name)) {
+                return;
+            }
 
-                if (!outputPath || outputPath === '/' || !path.isAbsolute(outputPath)) {
-                    return cb(new InternalError(
-                        `[${this.name}] Absolute output path must be specified in webpack config -> output -> path.`));
-                }
+            if (!outputPath || outputPath === '/' || !path.isAbsolute(outputPath)) {
+                compilation.errors.push(new InternalError(
+                    `[${this.name}] Absolute output path must be specified in webpack config -> output -> path.`));
+                return;
+            }
 
-                this.writeAssets(outputPath, compilation)
-                    .then(() => {
-                        if (!this.options.emittedPaths || !this.options.emittedPaths.length) {
-                            return cb();
-                        }
+            await this.writeAssets(outputPath, compilation);
+            if (!this._options.emittedPaths || !this._options.emittedPaths.length) {
+                return;
+            }
 
-                        const emittedPaths = this.options.emittedPaths;
-                        this.writeMemoryEmittedFiles(outputPath, emittedPaths, compiler).then(() => cb());
-                    })
-                    .catch(e => {
-                        compilation.errors.push(`[${this.name}] ${e.message || e}.`);
-                        cb();
-                    });
+            const emittedPaths = this._options.emittedPaths;
+            await this.writeMemoryEmittedFiles(outputPath, emittedPaths, compiler);
 
-
-            });
+        });
     }
 
     private async writeAssets(outputPath: string, compilation: any): Promise<void> {
         await Promise.all(Object.keys(compilation.assets).map(async (assetName: any) => {
             // check the ignore list
             let shouldIgnore = false;
-            const ignores = this.options.exclude || [];
+            const ignores = this._options.exclude || [];
             let il = ignores.length;
             while (il--) {
                 const ignoreGlob = ignores[il];
@@ -92,7 +85,7 @@ export class WriteAssetsToDiskWebpackPlugin {
             const asset = compilation.assets[assetName];
             const assetSource = Array.isArray(asset.source()) ? asset.source().join('\n') : asset.source();
 
-            this.logger.debug(`Writing ${assetName} to disk`);
+            this._logger.debug(`Writing ${assetName} to disk`);
 
             const assetFilePath = path.resolve(outputPath, assetName);
             await ensureDir(path.dirname(assetFilePath));
@@ -101,20 +94,20 @@ export class WriteAssetsToDiskWebpackPlugin {
 
     }
 
-    private async writeMemoryEmittedFiles(outputPath: string, emittedPaths: string[], compiler: webpack.Compiler): Promise<void> {
+    private async writeMemoryEmittedFiles(outputPath: string, emittedPaths: string[], compiler: any):
+        Promise<void> {
         await Promise.all(emittedPaths.map(async (targetPath: string) => {
             const content = await new Promise((resolve, reject) => {
                 // TODO: to review
-                (compiler as any).inputFileSystem.readFile(targetPath,
+                compiler.inputFileSystem.readFile(targetPath,
                     (err: Error, data: Buffer) => {
                         err ? reject(err) : resolve(data);
                     });
             });
 
 
-            this.logger.debug(`Writing ${path.relative(outputPath, targetPath)} to disk`);
+            this._logger.debug(`Writing ${path.relative(outputPath, targetPath)} to disk`);
             await writeFile(targetPath, content);
-
         }));
     }
 }

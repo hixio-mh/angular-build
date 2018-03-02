@@ -19,20 +19,21 @@ import {
     applyProjectConfigDefaults,
     applyProjectConfigWithEnvOverrides
 } from '../helpers/prepare-configs';
+import { prepareEnvironment } from '../helpers/prepare-environment';
 import { validateProjectConfig } from '../helpers/validate-project-config';
 
 import { readJsonSync } from '../utils/read-json';
 import { formatValidationError, validateSchema } from '../utils/validate-schema';
 
-import { getAppWebpackConfig } from './app/app';
-import { getAppDllWebpackConfig } from './app/dll';
-import { getLibWebpackConfig } from './lib/lib';
+import { getAppWebpackConfig } from './app-configs/app';
+import { getAppDllWebpackConfig } from './app-configs/dll';
+import { getLibWebpackConfig } from './lib-configs/lib';
 
 export function getWebpackConfig(configPath: string, env?: any, argv?: any): webpack.Configuration[] {
     let startTime = Date.now();
 
     if (!configPath || !configPath.length) {
-        throw new InvalidOptionError(`The 'configPath' is required.`);
+        throw new InvalidOptionError("The 'configPath' is required.");
     }
 
     const projectRoot = path.dirname(configPath);
@@ -43,6 +44,9 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
 
     let cleanOutDirs = fromAngularBuildCli && argv && (argv.clean || argv.cleanOutDirs) ? true : false;
     let filterNames = fromAngularBuildCli && argv && argv.filter ? prepareFilterNames(argv.filter) : [];
+    if (!fromAngularBuildCli && argv && (argv.configName || argv['config-name'])) {
+        filterNames.push((argv.configName || argv['config-name']));
+    }
 
     const verbose = argv && argv.verbose ? true : false;
     const watch = argv && (argv.watch || argv.w) ? true : false;
@@ -66,7 +70,19 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
     if (env && typeof env === 'object') {
         environment = Object.assign(environment, env);
     }
-
+    if (!fromAngularBuildCli && argv && argv.mode) {
+        if (argv.mode === 'production') {
+            environment.prod = true;
+            if (environment.dev) {
+                environment.dev = false;
+            }
+        } else if (argv.mode === 'development') {
+            environment.dev = true;
+            if (environment.prod) {
+                environment.prod = false;
+            }
+        }
+    }
     // Extract options form environment
     if (!fromAngularBuildCli && (environment as any).options) {
         let extraOptions: {
@@ -86,6 +102,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
             filterNames = prepareFilterNames(extraOptions.filter);
         }
     }
+    environment = prepareEnvironment(environment);
 
     // Prepare angular-build.json config
     if (!/\.json$/i.test(configPath)) {
@@ -94,7 +111,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
 
     if (!existsSync(configPath)) {
         throw new InvalidOptionError(`angular-build.json config file does not exist - search location: ${configPath}. ` +
-            `Please use --config=<your config file> option or make sure angular-build.json is existed in current working directory.`);
+            'Please use --config=<your config file> option or make sure angular-build.json is existed in current working directory.');
     }
 
     let angularBuildConfig: AngularBuildConfigInternal | null = null;
@@ -146,7 +163,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
         angularBuildConfig._schema = schema;
         angularBuildConfig._schemaValidated = true;
     } else {
-        throw new InternalError(`The angular-build schema file doesn't exist.`);
+        throw new InternalError("The angular-build schema file doesn't exist.");
     }
 
     // Set angular build defaults
@@ -160,7 +177,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
     const appConfigs = angularBuildConfig.apps || [];
 
     if (appConfigs.length === 0 && libConfigs.length === 0) {
-        throw new InvalidConfigError(`No app or lib project is available.`);
+        throw new InvalidConfigError('No app or lib project is available.');
     }
 
     AngularBuildContext.init(environment,
@@ -169,12 +186,12 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
         startTime,
         cliRootPath,
         cliVersion,
-        cliIsGlobal);
+        cliIsGlobal,
+        argv);
 
     AngularBuildContext.watch = watch;
     AngularBuildContext.progress = progress;
     AngularBuildContext.cleanOutDirs = cleanOutDirs;
-    AngularBuildContext.commandOptions = argv;
 
     const webpackConfigs: webpack.Configuration[] = [];
 
@@ -202,7 +219,11 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
                     continue;
                 }
                 validateProjectConfig(projectRoot, clonedLibConfig);
-                applyProjectConfigDefaults(projectRoot, clonedLibConfig, environment);
+                applyProjectConfigDefaults(projectRoot,
+                    clonedLibConfig,
+                    environment,
+                    AngularBuildContext.isProductionMode,
+                    AngularBuildContext.commandOptions || {});
 
                 const angularBuildContext = new AngularBuildContext(
                     libConfig as ProjectConfigInternal,
@@ -244,7 +265,11 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
                     continue;
                 }
                 validateProjectConfig(projectRoot, clonedAppConfig);
-                applyProjectConfigDefaults(projectRoot, clonedAppConfig, environment);
+                applyProjectConfigDefaults(projectRoot,
+                    clonedAppConfig,
+                    environment,
+                    AngularBuildContext.isProductionMode,
+                    AngularBuildContext.commandOptions || {});
 
                 const angularBuildContext = new AngularBuildContext(
                     appConfig as ProjectConfigInternal,
@@ -275,7 +300,7 @@ export function getWebpackConfig(configPath: string, env?: any, argv?: any): web
     }
 
     if (webpackConfigs.length === 0) {
-        throw new InvalidConfigError(`No app or lib project is available.`);
+        throw new InvalidConfigError('No app or lib project is available.');
     }
 
     return webpackConfigs;

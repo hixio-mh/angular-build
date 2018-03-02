@@ -10,7 +10,7 @@ export enum LogLevel {
 
 export type LogLevelSring = 'debug' | 'info' | 'warn' | 'error' | 'none';
 
-export type LoggerOptions = {
+export interface LoggerOptions {
     logLevel?: LogLevelSring;
     name?: string;
     debugPrefix?: string;
@@ -18,7 +18,7 @@ export type LoggerOptions = {
     warnPrefix?: string;
     errorPrefix?: string;
     color?: boolean;
-};
+}
 
 export interface LoggerBase {
     debug?: (message: string, optionalParams?: any[]) => void;
@@ -70,8 +70,10 @@ export class Logger implements LoggerBase {
                 ? this.loggerOptions.debugPrefix + ' '
                 : ''}`;
         if (optionalParams) {
+            // tslint:disable-next-line:no-console
             console.log(`${prefix}${message}`, optionalParams);
         } else {
+            // tslint:disable-next-line:no-console
             console.log(`${prefix}${message}`);
         }
     }
@@ -87,8 +89,10 @@ export class Logger implements LoggerBase {
                 ? this.loggerOptions.infoPrefix + ' '
                 : ''}`;
         if (optionalParams) {
+            // tslint:disable-next-line:no-console
             console.log(`${prefix}${message}`, optionalParams);
         } else {
+            // tslint:disable-next-line:no-console
             console.log(`${prefix}${message}`);
         }
     }
@@ -108,8 +112,10 @@ export class Logger implements LoggerBase {
             : `${prefix}${message.trimLeft()}`;
 
         if (optionalParams) {
+            // tslint:disable-next-line:no-console
             console.warn(logMsg, optionalParams);
         } else {
+            // tslint:disable-next-line:no-console
             console.warn(logMsg);
         }
     }
@@ -129,8 +135,10 @@ export class Logger implements LoggerBase {
             : `${prefix}${message.trimLeft()}`;
 
         if (optionalParams) {
+            // tslint:disable-next-line:no-console
             console.error(logMsg, optionalParams);
         } else {
+            // tslint:disable-next-line:no-console
             console.error(logMsg);
         }
     }

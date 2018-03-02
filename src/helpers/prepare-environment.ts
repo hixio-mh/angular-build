@@ -4,18 +4,7 @@ export function prepareEnvironment(rawEnvironment: any): { [key: string]: boolea
         return environment;
     }
 
-    if (Array.isArray(rawEnvironment)) {
-        const envObj: { [key: string]: string | boolean; } = {};
-        rawEnvironment.forEach((s: string) => envObj[s] = true);
-        environment = envObj;
-    } else if (typeof rawEnvironment === 'string') {
-        const envObj: { [key: string]: string | boolean; } = {};
-        const key = rawEnvironment as string;
-        envObj[key] = true;
-        environment = envObj;
-    } else if (typeof rawEnvironment === 'object') {
-        environment = Object.assign({}, rawEnvironment);
-    }
+    environment = Object.assign({}, rawEnvironment);
 
     const normalizedEnv: { [key: string]: boolean | string; } = {};
     Object.keys(environment).forEach((key: string) => {
@@ -43,7 +32,7 @@ export function prepareEnvironment(rawEnvironment: any): { [key: string]: boolea
 
     // aot
     if (typeof (environment.aot) !== 'undefined') {
-        if (environment.aot && !environment.dll) {
+        if (environment.aot) {
             environment.aot = true;
         } else {
             delete environment.aot;
@@ -51,37 +40,32 @@ export function prepareEnvironment(rawEnvironment: any): { [key: string]: boolea
     }
 
     // prod
-    if (environment.aot) {
-        environment.prod = true;
-        (environment as any).production = true;
-    } else {
-        if (typeof environment.prod !== 'undefined') {
-            if (environment.prod) {
-                environment.prod = true;
-                (environment as any).production = true;
-            } else {
-                delete environment.prod;
-                if (typeof (environment as any).production !== 'undefined') {
-                    delete (environment as any).production;
-                }
-            }
-        } else if (typeof (environment as any).production !== 'undefined') {
-            if ((environment as any).production) {
-                environment.prod = true;
-                (environment as any).production = true;
-            } else {
-                delete (environment as any).production;
-                if (typeof environment.prod !== 'undefined') {
-                    delete environment.prod;
-                }
-            }
+    if (typeof environment.prod !== 'undefined') {
+        if (environment.prod) {
+            environment.prod = true;
+            (environment as any).production = true;
         } else {
-            if (typeof environment.prod !== 'undefined') {
-                delete environment.prod;
-            }
+            delete environment.prod;
             if (typeof (environment as any).production !== 'undefined') {
                 delete (environment as any).production;
             }
+        }
+    } else if (typeof (environment as any).production !== 'undefined') {
+        if ((environment as any).production) {
+            environment.prod = true;
+            (environment as any).production = true;
+        } else {
+            delete (environment as any).production;
+            if (typeof environment.prod !== 'undefined') {
+                delete environment.prod;
+            }
+        }
+    } else {
+        if (typeof environment.prod !== 'undefined') {
+            delete environment.prod;
+        }
+        if (typeof (environment as any).production !== 'undefined') {
+            delete (environment as any).production;
         }
     }
 

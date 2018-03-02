@@ -1,7 +1,5 @@
 import * as path from 'path';
 
-import * as webpack from 'webpack';
-
 import { ensureDir, writeFile } from 'fs-extra';
 
 import { InternalError } from '../../../models';
@@ -12,93 +10,93 @@ export interface WriteStatsJsonWebpackPluginOptions {
      * Absolute path for assets json file.
      */
     path: string;
+    outputPath?: string;
     forceWriteToDisk?: boolean;
     persistedOutputFileSystemNames?: string[];
     loggerOptions?: LoggerOptions;
 }
 
 export class WriteStatsJsonWebpackPlugin {
-    private readonly logger: Logger;
-    private readonly persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
+    private readonly _logger: Logger;
+    private readonly _persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
 
     get name(): string {
-        return 'WriteStatsJsonWebpackPlugin';
+        return 'write-stats-json-webpack-plugin';
     }
 
-    constructor(private readonly options: WriteStatsJsonWebpackPluginOptions) {
-        if (!options) {
+    constructor(private readonly _options: WriteStatsJsonWebpackPluginOptions) {
+        if (!_options) {
             throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
         }
 
         const loggerOptions =
-            Object.assign({ name: `[${this.name}]` }, this.options.loggerOptions || {}) as LoggerOptions;
-        this.logger = new Logger(loggerOptions);
+            Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
+        this._logger = new Logger(loggerOptions);
 
-        if (this.options.persistedOutputFileSystemNames && this.options.persistedOutputFileSystemNames.length) {
-            this.options.persistedOutputFileSystemNames
-                .filter(pfs => !this.persistedOutputFileSystemNames.includes(pfs))
-                .forEach(pfs => this.persistedOutputFileSystemNames.push(pfs));
+        if (this._options.persistedOutputFileSystemNames && this._options.persistedOutputFileSystemNames.length) {
+            this._options.persistedOutputFileSystemNames
+                .filter(pfs => !this._persistedOutputFileSystemNames.includes(pfs))
+                .forEach(pfs => this._persistedOutputFileSystemNames.push(pfs));
         }
     }
 
-    apply(compiler: webpack.Compiler): void {
-        const outputPath = compiler.options.output ? compiler.options.output.path : undefined;
+    apply(compiler: any): void {
+        const outputPath = this._options.outputPath || compiler.outputPath;
 
-        compiler.plugin('after-emit',
-            (compilation: any, cb: (err?: Error, request?: any) => void) => {
-                if (!outputPath || outputPath === '/' || !path.isAbsolute(outputPath)) {
-                    return cb(new InternalError(
-                        `[${this.name}] Absolute output path must be specified in webpack config -> output -> path.`));
+        compiler.hooks.afterEmit.tapPromise(this.name, async (compilation: any) => {
+            if (!outputPath || outputPath === '/' || !path.isAbsolute(outputPath)) {
+                compilation.errors.push(new InternalError(
+                    `[${this.name}] Absolute output path must be specified in webpack config -> output -> path.`));
+                return;
+            }
+
+            const statsFilepath = this._options.path;
+            const statsOptions = {
+                hash: true,
+                publicPath: true,
+                assets: true,
+                chunks: false,
+                modules: false,
+                source: false,
+                errorDetails: false,
+                timings: false
+            };
+
+            const stats = compilation.getStats().toJson(statsOptions);
+            const assetsByChunkName = stats.assetsByChunkName;
+            const assetsToWrite = Object.keys(assetsByChunkName).reduce((chunkMap: any, chunkName: string) => {
+                let assets = assetsByChunkName[chunkName];
+                if (!Array.isArray(assets)) {
+                    assets = [assets];
                 }
 
-                const statsFilepath = this.options.path;
-                const statsOptions = {
-                    hash: true,
-                    publicPath: true,
-                    assets: true,
-                    chunks: false,
-                    modules: false,
-                    source: false,
-                    errorDetails: false,
-                    timings: false
-                };
+                chunkMap[chunkName] = assets;
+                return chunkMap;
+            },
+                {});
 
-                const stats = compilation.getStats().toJson(statsOptions);
-                const assetsByChunkName = stats.assetsByChunkName;
-                var assetsToWrite = Object.keys(assetsByChunkName).reduce((chunkMap: any, chunkName: string) => {
-                    let assets = assetsByChunkName[chunkName];
-                    if (!Array.isArray(assets)) {
-                        assets = [assets];
-                    }
+            const statsFileRelative = path.relative(outputPath, statsFilepath);
+            const content = new Buffer(JSON.stringify(assetsToWrite, null, 2), 'utf8');
+            if (this._options.forceWriteToDisk &&
+                !this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name)) {
+                this._logger.debug(`Emitting ${statsFileRelative} to disk`);
+                await ensureDir(path.dirname(statsFilepath));
+                await writeFile(statsFilepath, content);
 
-                    chunkMap[chunkName] = assets;
-                    return chunkMap;
-                }, {});
-
-                const statsFileRelative = path.relative(outputPath, statsFilepath);
-                const content = new Buffer(JSON.stringify(assetsToWrite, null, 2), 'utf8');
-                if (this.options.forceWriteToDisk &&
-                    !this.persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name)) {
-                    this.logger.debug(`Emitting ${statsFileRelative} to disk`);
-                    ensureDir(path.dirname(statsFilepath))
-                        .then(() => writeFile(
-                            statsFilepath,
-                            content
-                        )).then(() => cb())
-                        .catch(err => cb(err));
-
-                } else {
-                    this.logger.debug(`Emitting ${statsFileRelative}`);
+            } else {
+                this._logger.debug(`Emitting ${statsFileRelative}`);
+                await new Promise((resolve, reject) => {
                     compiler.outputFileSystem.mkdirp(path.dirname(statsFilepath),
                         (err: Error) => {
                             if (err) {
-                                return cb(err);
+                                reject(err);
+                                return;
                             }
-                            compiler.outputFileSystem.writeFile(statsFilepath, content, cb);
+
+                            compiler.outputFileSystem.writeFile(statsFilepath, content, resolve);
                         });
-                }
-
-
-            });
+                });
+            }
+        });
     }
 }

@@ -1,5 +1,12 @@
 # Change Logs
 
+## vNext
+
+- Added moduleRoots option to config
+- Added feature to pass global environment variable
+- Moved chunk name options to app config base
+- Updated to webpack 4
+
 ## 5.2.5
 
 - Fixed error 'Cannot find module @angular-devkit/build-optimizer ...' [#89d00657](https://github.com/BizAppFramework/angular-build/commit/89d0065787a08d835f7eb43f5c12c3f76984a29b)

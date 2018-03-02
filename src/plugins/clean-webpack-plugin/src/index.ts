@@ -4,7 +4,6 @@ import * as denodeify from 'denodeify';
 import * as glob from 'glob';
 import * as minimatch from 'minimatch';
 import * as rimraf from 'rimraf';
-import * as webpack from 'webpack';
 
 import { AfterEmitCleanOptions, BeforeRunCleanOptions, CleanOptions, InternalError, InvalidConfigError } from '../../../models';
 import { Logger, LoggerOptions } from '../../../utils/logger';
@@ -14,56 +13,60 @@ import { isInFolder, isSamePaths, normalizeRelativePath } from '../../../utils/p
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 
 export type CleanWebpackPluginOptions = {
+    projectRoot: string;
+    outputPath?: string;
     forceCleanToDisk?: boolean;
     persistedOutputFileSystemNames?: string[];
     loggerOptions?: LoggerOptions;
 } & CleanOptions;
 
 export class CleanWebpackPlugin {
-    private readonly logger: Logger;
-    private readonly persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
-
-    private beforeRunCleaned: boolean = false;
-    private afterEmitCleaned: boolean = false;
-
-    private projectRoot = process.cwd();
+    private readonly _options: CleanWebpackPluginOptions;
+    private readonly _logger: Logger;
+    private readonly _persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
+    private _beforeRunCleaned = false;
+    private _afterEmitCleaned = false;
 
     get name(): string {
-        return 'CleanWebpackPlugin';
+        return 'clean-webpack-plugin';
     }
 
-    constructor(private readonly options: CleanWebpackPluginOptions) {
+    constructor(options: CleanWebpackPluginOptions) {
         if (!options) {
             throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
         }
 
-        const loggerOptions =
-            Object.assign({ name: `[${this.name}]` }, this.options.loggerOptions || {}) as LoggerOptions;
-        this.logger = new Logger(loggerOptions);
+        this._options = {
+            ...options,
+        };
 
-        if (this.options.persistedOutputFileSystemNames && this.options.persistedOutputFileSystemNames.length) {
-            this.options.persistedOutputFileSystemNames
-                .filter(pfs => !this.persistedOutputFileSystemNames.includes(pfs))
-                .forEach(pfs => this.persistedOutputFileSystemNames.push(pfs));
+        const loggerOptions =
+            Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
+        this._logger = new Logger(loggerOptions);
+
+        if (this._options.persistedOutputFileSystemNames && this._options.persistedOutputFileSystemNames.length) {
+            this._options.persistedOutputFileSystemNames
+                .filter(pfs => !this._persistedOutputFileSystemNames.includes(pfs))
+                .forEach(pfs => this._persistedOutputFileSystemNames.push(pfs));
         }
     }
 
-    apply(compiler: webpack.Compiler): void {
-        const outputPath = compiler.options.output ? compiler.options.output.path : '';
-        this.projectRoot = compiler.options.context || process.cwd();
+    apply(compiler: any): void {
+        const outputPath = this._options.outputPath || compiler.outputPath;
+        const projectRoot = this._options.projectRoot || process.cwd();
 
-        compiler.plugin('before-run', (_: any, cb: (err?: Error) => void) => {
+        const beforeRunCleanTaskFn = (_: any, cb: (err?: Error) => void) => {
             const startTime = Date.now();
 
-            if (this.beforeRunCleaned || !this.options.beforeRun) {
+            if (this._beforeRunCleaned || !this._options.beforeRun) {
                 return cb();
             }
 
-            const beforeRunOptions = this.options.beforeRun as BeforeRunCleanOptions;
+            const beforeRunOptions = this._options.beforeRun as BeforeRunCleanOptions;
 
             if (!beforeRunOptions.cleanOutDir &&
                 (!beforeRunOptions.paths || (beforeRunOptions.paths && !beforeRunOptions.paths.length))) {
-                this.beforeRunCleaned = true;
+                this._beforeRunCleaned = true;
                 return cb();
             }
 
@@ -72,76 +75,78 @@ export class CleanWebpackPlugin {
                     `[${this.name}] Absolute output path must be specified at webpack config -> output -> path.`);
             }
 
-            this.logger.debug(`The before run cleaning started`);
+            this._logger.debug('The before run cleaning started');
 
-            if (!this.persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name) &&
-                !this.options.forceCleanToDisk) {
-                this.logger.debug(
+            if (!this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name) &&
+                !this._options.forceCleanToDisk) {
+                this._logger.debug(
                     `No persisted output file system: '${compiler.outputFileSystem.constructor.name}', skipping`);
-                this.beforeRunCleaned = true;
+                this._beforeRunCleaned = true;
                 return cb();
             }
 
-            this.cleanTask(beforeRunOptions, outputPath, compiler)
+            this.cleanTask(beforeRunOptions, outputPath, projectRoot)
                 .then(() => {
-                    this.beforeRunCleaned = true;
+                    this._beforeRunCleaned = true;
                     const duration = Date.now() - startTime;
 
-                    this.logger.debug(`The before run cleaning completed in [${duration}ms]`);
+                    this._logger.debug(`The before run cleaning completed in [${duration}ms]`);
                     return cb();
                 })
                 .catch(err => cb(err));
-        });
+        };
 
-        compiler.plugin('after-emit', (_: any, cb: (err?: Error) => void) => {
+        const afterEmitCleanTaskFn = (_: any, cb: (err?: Error) => void) => {
             const startTime = Date.now();
 
-            if (this.afterEmitCleaned || !this.options.afterEmit) {
+            if (this._afterEmitCleaned || !this._options.afterEmit) {
                 return cb();
             }
 
-            const afterEmitOptions = this.options.afterEmit as AfterEmitCleanOptions;
+            const afterEmitOptions = this._options.afterEmit as AfterEmitCleanOptions;
 
             if (!afterEmitOptions.paths || (afterEmitOptions.paths && !afterEmitOptions.paths.length)) {
-                this.afterEmitCleaned = true;
+                this._afterEmitCleaned = true;
                 return cb();
             }
 
-            if (!this.persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name) &&
-                !this.options.forceCleanToDisk) {
-                this.afterEmitCleaned = true;
+            if (!this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name) &&
+                !this._options.forceCleanToDisk) {
+                this._afterEmitCleaned = true;
                 return cb();
             }
 
-            this.logger.debug(`The after emit cleaning started`);
+            this._logger.debug('The after emit cleaning started');
 
-            this.cleanTask(afterEmitOptions, outputPath || '', compiler)
+            this.cleanTask(afterEmitOptions, outputPath || '', projectRoot)
                 .then(() => {
                     const duration = Date.now() - startTime;
 
-                    this.logger.debug(`The after emit cleaning completed in [${duration}ms]`);
-                    this.afterEmitCleaned = true;
+                    this._logger.debug(`The after emit cleaning completed in [${duration}ms]`);
+                    this._afterEmitCleaned = true;
                     return cb();
                 })
                 .catch(err => {
                     return cb(err);
                 });
-        });
+        };
+
+        const plugin = { name: this.name };
+        compiler.hooks.beforeRun.tapAsync(plugin, beforeRunCleanTaskFn);
+        compiler.hooks.afterEmit.tapAsync(plugin, afterEmitCleanTaskFn);
     }
 
-    private async cleanTask(cleanOptions: BeforeRunCleanOptions, outputPath: string, compiler: webpack.Compiler):
-        Promise<void> {
-        const cwd = this.projectRoot;
-        const webpackContextDir = compiler.options.context;
+    private async cleanTask(cleanOptions: BeforeRunCleanOptions, outputPath: string, projectRoot: string): Promise<void> {
+        const cwd = process.cwd();
 
         const pathsToClean: string[] = [];
 
         if (!outputPath) {
-            throw new InternalError(`The 'outputPath' options is required.`);
+            throw new InternalError("The 'outputPath' options is required.");
         }
 
         if (!path.isAbsolute(outputPath) || outputPath === '/' || isGlob(outputPath)) {
-            throw new InternalError(`The absolute path is required for 'outputPath' options.`);
+            throw new InternalError("The absolute path is required for 'outputPath' options.");
         }
 
         if (isSamePaths(path.parse(outputPath).root, outputPath)) {
@@ -159,23 +164,23 @@ export class CleanWebpackPlugin {
                 `The current working directory must not be inside the output path, outputPath: ${outputPath}.`);
         }
 
-        if (webpackContextDir && isInFolder(outputPath, webpackContextDir)) {
+        if (projectRoot && isInFolder(outputPath, projectRoot)) {
             throw new InternalError(
-                `The webpack context path must not be inside the output path, outputPath: ${outputPath}, context: ${
-                webpackContextDir}.`);
+                `The project root path must not be inside the output path, outputPath: ${outputPath}, context: ${
+                projectRoot}.`);
         }
 
-        if (webpackContextDir && isSamePaths(outputPath, webpackContextDir)) {
+        if (projectRoot && isSamePaths(outputPath, projectRoot)) {
             throw new InternalError(
-                `The webpack context path must not be the output directory, outputPath: ${outputPath}, context: ${
-                webpackContextDir}.`);
+                `The project root path must not be the output directory, outputPath: ${outputPath}, context: ${
+                projectRoot}.`);
         }
 
         if (cleanOptions.cleanOutDir) {
-            if (!isInFolder(cwd, outputPath) && this.options.allowOutsideWorkingDir === false) {
+            if (!isInFolder(cwd, outputPath) && this._options.allowOutsideWorkingDir === false) {
                 throw new InternalError(
                     `Cleaning outside of the working directory is disabled, outputPath: ${outputPath}.` +
-                    ` To enable cleaning, please set 'allowOutsideWorkingDir = true' in clean option.`);
+                    " To enable cleaning, please set 'allowOutsideWorkingDir = true' in clean option.");
             }
 
             pathsToClean.push(path.join(outputPath, '**/*'));
@@ -245,31 +250,32 @@ export class CleanWebpackPlugin {
                             }.`);
                     }
 
-                    if (webpackContextDir && isInFolder(absolutePath, webpackContextDir)) {
+                    if (projectRoot && isInFolder(absolutePath, projectRoot)) {
                         throw new InvalidConfigError(
-                            `The webpack context path must not be inside the path to be deleted, path: ${absolutePath
+                            `The project root path must not be inside the path to be deleted, path: ${absolutePath
                             }, context: ${
-                            webpackContextDir}.`);
+                            projectRoot}.`);
                     }
 
-                    if (webpackContextDir && isSamePaths(absolutePath, webpackContextDir)) {
+                    if (projectRoot && isSamePaths(absolutePath, projectRoot)) {
                         throw new InvalidConfigError(
-                            `The webpack context path must not be the path to be deleted, path: ${outputPath}, context: ${
-                            webpackContextDir}.`);
+                            `The webpack context path must not be the path to be deleted, path: ${outputPath
+                            }, context: ${
+                            projectRoot}.`);
                     }
 
-                    if (!isInFolder(cwd, absolutePath) && this.options.allowOutsideWorkingDir === false) {
+                    if (!isInFolder(cwd, absolutePath) && this._options.allowOutsideWorkingDir === false) {
                         throw new InternalError(
                             `Cleaning outside of the working directory is disabled, outputPath: ${absolutePath}.` +
-                            ` To enable cleaning, please set 'allowOutsideWorkingDir = true' in clean option.`);
+                            " To enable cleaning, please set 'allowOutsideWorkingDir = true' in clean option.");
                     }
 
                     if ((!isInFolder(outputPath, absolutePath) || isSamePaths(outputPath, absolutePath)) &&
-                        !this.options.allowOutsideOutputDir) {
+                        !this._options.allowOutsideOutputDir) {
                         throw new InvalidConfigError(
                             `By default, cleaning outside of output directory is disabled, path to clean: ${absolutePath
                             }.` +
-                            ` To enable cleaning, please set 'allowOutsideOutputDir = true' in clean option.`);
+                            " To enable cleaning, please set 'allowOutsideOutputDir = true' in clean option.");
                     }
                 }
 
@@ -313,13 +319,13 @@ export class CleanWebpackPlugin {
         }));
 
         if (!filesToClean.length) {
-            this.logger.debug('No file to clean');
+            this._logger.debug('No file to clean');
             return;
         }
 
         await Promise.all(filesToClean.map(async (f: string) => {
-            const fileRel = compiler.options.context ? path.relative(this.projectRoot, f) : f;
-            this.logger.debug(`Deleting ${fileRel}`);
+            const fileRel = path.relative(projectRoot, f);
+            this._logger.debug(`Deleting ${fileRel}`);
 
             await new Promise((resolve: any, reject: any) => rimraf(f,
                 (err: Error) => err ? reject(err) : resolve())

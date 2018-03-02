@@ -36,6 +36,7 @@ Usage:
 }
 
 function displayAngularBuildVersion(cliOptions: CliOptions): void {
+    // tslint:disable-next-line:no-console
     console.log(`${colorize(
         `\nangular-build ${cliOptions.cliVersion} [${cliOptions.cliIsGlobal
         ? 'Global'
@@ -78,6 +79,7 @@ export default async function(cliOptions: CliOptions): Promise<number> {
     if (commandOptions.version) {
         return Promise.resolve(cliOptions)
             .then(() => {
+                // tslint:disable-next-line:no-console
                 console.log(cliOptions.cliVersion);
                 return 0;
             });

@@ -19,7 +19,7 @@ export function runWebpack(wpConfig: webpack.Configuration | webpack.Configurati
     const webpackCompiler = webpack(wpConfig as any);
 
     return new Promise((resolve, reject) => {
-        const callback: webpack.compiler.CompilerCallback = (err: any, stats: webpack.compiler.Stats) => {
+        const callback: webpack.Compiler.Handler = (err: Error, stats: webpack.Stats) => {
             if (!watch || err) {
                 // Do not keep cache anymore
                 (webpackCompiler as any).purgeInputFileSystem();
@@ -48,7 +48,7 @@ export function runWebpack(wpConfig: webpack.Configuration | webpack.Configurati
         };
 
         if (watch) {
-            webpackCompiler.watch(watchOptions as webpack.WatchOptions, callback);
+            webpackCompiler.watch(watchOptions as webpack.Options.WatchOptions, callback);
             logger.info('\nWebpack is watching the files…\n');
         } else {
             webpackCompiler.run(callback);

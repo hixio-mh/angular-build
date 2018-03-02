@@ -2,7 +2,13 @@ import * as path from 'path';
 import * as rollup from 'rollup';
 
 import { defaultAngularAndRxJsExternals } from '../helpers/angular-rxjs-externals';
-import { AngularBuildContext, BundleOptionsInternal, ExternalsEntry, InternalError, LibProjectConfigInternal } from '../models';
+import {
+    AngularBuildContext,
+    BundleOptionsInternal,
+    ExternalsEntry,
+    InternalError,
+    LibProjectConfigInternal
+} from '../models';
 
 const getBuiltins = require('builtins');
 
@@ -13,7 +19,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
         outputOptions: rollup.OutputOptions;
     } {
     if (!currentBundle._entryFilePath) {
-        throw new InternalError(`The 'currentBundle._entryFilePath' is not set.`);
+        throw new InternalError("The 'currentBundle._entryFilePath' is not set.");
     }
 
     const logger = AngularBuildContext.logger;
@@ -38,7 +44,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
 
     // externals
     let includeCommonJsModules = true;
-    let rawExternals: ExternalsEntry[] = [];
+    const rawExternals: ExternalsEntry[] = [];
     const rollupExternalMap = {
         externals: [] as string[],
         globals: {}

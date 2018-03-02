@@ -108,7 +108,7 @@ async function copyTemplateUrl(source: string,
         }
     }
 
-    for (let templateUrl of foundUrls) {
+    for (const templateUrl of foundUrls) {
         const templateSourceFilePath = await findResourcePath(templateUrl, resourceId, srcDir, outDir);
         const templateDestFilePath = path.resolve(path.dirname(resourceId), templateUrl);
         if (copyResources) {
@@ -152,7 +152,7 @@ async function copyStyleUrls(source: string,
         });
     }
 
-    for (let styleUrl of foundUrls) {
+    for (const styleUrl of foundUrls) {
         const styleSourceFilePath = await findResourcePath(styleUrl, resourceId, srcDir, outDir);
         const styleDestFilePath = path.resolve(path.dirname(resourceId), styleUrl);
 
@@ -211,12 +211,12 @@ function processMetaDataResources(metaDataObj: any, basePath: string, componentR
         return;
     }
 
-    for (let dcObj of metaDataObj.decorators) {
+    for (const dcObj of metaDataObj.decorators) {
         if (!dcObj.arguments) {
             continue;
         }
 
-        for (let argObj of dcObj.arguments) {
+        for (const argObj of dcObj.arguments) {
             if (argObj.templateUrl) {
                 const templateFullUrl = path.join(basePath, argObj.templateUrl).replace(/\\/g, '/')
                     .replace(/^(\.\/|\/)/, '')
@@ -259,7 +259,7 @@ async function findResourcePath(url: string, resourceId: string, srcDir: string,
     } else if (/\.(css|scss|sass|less)$/i.test(filePath)) {
         const failbackExts = ['.css', '.scss', '.sass', '.less'];
         const curExt = path.parse(filePath).ext;
-        for (let ext of failbackExts) {
+        for (const ext of failbackExts) {
             if (ext === curExt) {
                 continue;
             }

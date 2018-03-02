@@ -13,14 +13,14 @@ import { PreProcessedAssetEntry } from './pre-process-assets';
 
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 
-export type ProcessedAssetsResult = {
+export interface ProcessedAssetsResult {
     assetEntry: PreProcessedAssetEntry;
     relativeFrom: string;
     absoluteFrom: string;
     relativeTo: string;
     content: Buffer;
     hash: string;
-};
+}
 
 export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[],
     outputPath?: string,
@@ -96,7 +96,7 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
 
             let shouldFlattern = assetEntry.fromType === 'file';
             if (!shouldFlattern) {
-                for (let relfromPath of relativeFromPaths) {
+                for (const relfromPath of relativeFromPaths) {
                     const absFromPath = path.resolve(assetEntry.context, relfromPath);
                     if ((assetEntry.fromType !== 'directory' &&
                         !isInFolder(assetEntry.context, absFromPath)) ||
@@ -161,7 +161,7 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
 
             if (path.isAbsolute(assetToEmit.relativeTo)) {
                 if (!outputPath || outputPath === '/') {
-                    throw new InternalError(`The absolute path is required for 'outputPath'.`);
+                    throw new InternalError("The absolute path is required for 'outputPath'.");
                 }
 
                 assetToEmit.relativeTo = path.relative(outputPath, assetToEmit.relativeTo);
@@ -186,7 +186,7 @@ export function getAllMemoryFiles(memoryFileSystem: any,
         return results;
     }
 
-    for (let item of items) {
+    for (const item of items) {
         const itemPath = path.join(currentContext, item);
         if (typeof memoryFileSystem.existsSync === 'function') {
             if (!memoryFileSystem.existsSync(itemPath)) {

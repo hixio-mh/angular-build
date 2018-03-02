@@ -4,8 +4,6 @@ import { ensureDir, writeFile } from 'fs-extra';
 import * as loaderUtils from 'loader-utils';
 import * as webpack from 'webpack';
 
-const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin');
-
 import { FaviconsConfig } from '../../../models';
 import { Logger } from '../../../utils/logger';
 import { generateHashDigest } from '../../../utils/generate-hash-digest';
@@ -14,59 +12,54 @@ import { IconStatsInfo, IconStatsJson } from './internal-models';
 import { IconGenerator, IconFileInfo, IconGenerateResult } from './icon-generator';
 
 export class ChildComplier {
-    private iconStatsInfo: IconStatsInfo | null = null;
+    private _iconStatsInfo: IconStatsInfo | null = null;
 
-    constructor(private readonly faviconsConfig: FaviconsConfig,
-        private readonly baseDir: string,
-        private readonly context: string,
-        private readonly forceWriteToDisk: boolean,
-        private readonly parentCompilation: any,
-        private readonly logger: Logger) { }
+    constructor(private readonly _faviconsConfig: FaviconsConfig,
+        private readonly _baseDir: string,
+        private readonly _context: string,
+        private readonly _forceWriteToDisk: boolean,
+        private readonly _parentCompilation: any,
+        private readonly _logger: Logger) { }
 
     compile(masterPictureFilesMap: { [key: string]: Buffer },
         isPersistedOutFileSystem: boolean,
         outputPath?: string,
         cacheFilePath?: string): Promise<IconStatsInfo> {
-        const parentOutputOptions = (this.parentCompilation.outputOptions || {}) as webpack.Output;
+        const parentOutputOptions = (this._parentCompilation.outputOptions || {}) as webpack.Output;
         const outputOptions = {
             publicPath: parentOutputOptions.publicPath || ''
         };
 
-        const compilerName = this.getCompilerName(this.context, 'favicon.ico');
-        const childCompiler = this.parentCompilation.createChildCompiler(compilerName, outputOptions);
-        childCompiler.context = this.context;
-        childCompiler.options.context = this.context;
+        const compilerName = this.getCompilerName(this._context, 'favicon.ico');
+        const childCompiler = this._parentCompilation.createChildCompiler(compilerName, outputOptions);
+        childCompiler.options.context = this._context;
 
-        childCompiler.apply(
-            new NodeTargetPlugin()
-        );
+        childCompiler.hooks.compilation.tap('favicons-webpack-plugin', (childCompilation: any) => {
+            const additionalAssetsFn = (cb: (err?: Error) => void) => {
+                this.generateIcons(childCompilation,
+                        masterPictureFilesMap,
+                        isPersistedOutFileSystem,
+                        outputPath,
+                        cacheFilePath)
+                    .then(iconStatsInfo => {
+                        this._iconStatsInfo = iconStatsInfo;
+                        cb();
+                    })
+                    .catch(cb);
+            };
 
-        childCompiler.plugin('compilation',
-            (childCompilation: any) => {
-                // Fix for "Uncaught TypeError: __webpack_require__(...) is not a function"
-                // Hot module replacement requires that every child compiler has its own
-                // cache. @see https://github.com/ampedandwired/html-webpack-plugin/pull/179
-                if (childCompilation.cache) {
-                    if (!childCompilation.cache[compilerName]) {
-                        childCompilation.cache[compilerName] = {};
-                    }
-                    childCompilation.cache = childCompilation.cache[compilerName];
+            // Fix for "Uncaught TypeError: __webpack_require__(...) is not a function"
+            // Hot module replacement requires that every child compiler has its own
+            // cache. @see https://github.com/ampedandwired/html-webpack-plugin/pull/179
+            if (childCompilation.cache) {
+                if (!childCompilation.cache[compilerName]) {
+                    childCompilation.cache[compilerName] = {};
                 }
+                childCompilation.cache = childCompilation.cache[compilerName];
+            }
 
-                childCompilation.plugin('additional-assets',
-                    (cb: (err?: Error) => void) => {
-                        this.generateIcons(childCompilation,
-                            masterPictureFilesMap,
-                            isPersistedOutFileSystem,
-                            outputPath,
-                            cacheFilePath)
-                            .then(iconStatsInfo => {
-                                this.iconStatsInfo = iconStatsInfo;
-                                cb();
-                            })
-                            .catch(cb);
-                    });
-            });
+            childCompilation.hooks.additionalAssets.tapAsync('favicons-webpack-plugin', additionalAssetsFn);
+        });
 
         return new Promise<IconStatsInfo>((resolve, reject) => {
             childCompiler.runAsChild((err: Error, _: any, childCompilation: any) => {
@@ -76,10 +69,10 @@ export class ChildComplier {
                     return reject(new Error(errorDetails));
                 } else if (err) {
                     return reject(err);
-                } else if (!this.iconStatsInfo) {
+                } else if (!this._iconStatsInfo) {
                     return reject(new Error('The iconStatsInfo is null.'));
                 } else {
-                    return resolve(this.iconStatsInfo);
+                    return resolve(this._iconStatsInfo);
                 }
             });
         });
@@ -90,16 +83,16 @@ export class ChildComplier {
         isPersistedOutFileSystem: boolean,
         outputPath?: string,
         cacheFilePath?: string): Promise<IconStatsInfo> {
-        const optionHash = generateHashDigest(JSON.stringify(this.faviconsConfig));
+        const optionHash = generateHashDigest(JSON.stringify(this._faviconsConfig));
         const filesContent = JSON.stringify(masterPictureFilesMap);
         const filesHash = generateHashDigest(filesContent);
-        const forceWriteToDisk = this.forceWriteToDisk && !isPersistedOutFileSystem;
+        const forceWriteToDisk = this._forceWriteToDisk && !isPersistedOutFileSystem;
 
-        let iconsPathPrefix = this.faviconsConfig.iconsPath || '';
+        let iconsPathPrefix = this._faviconsConfig.iconsPath || '';
         if (iconsPathPrefix) {
             iconsPathPrefix = /\/$/.test(iconsPathPrefix) ? iconsPathPrefix : iconsPathPrefix + '/';
             let iconsPathRelative =
-                path.join(path.relative(this.context, this.baseDir), iconsPathPrefix);
+                path.join(path.relative(this._context, this._baseDir), iconsPathPrefix);
             // a Hack because loaderUtils.interpolateName doesn't
             // find the right path if no directory is defined
             // ie. [path] applied to 'file.txt' would return 'file'
@@ -110,26 +103,26 @@ export class ChildComplier {
                 { resourcePath: iconsPathRelative } as any,
                 iconsPathPrefix,
                 {
-                    context: this.context,
+                    context: this._context,
                     content: JSON.stringify(masterPictureFilesMap)
                 });
         }
 
         let iconGenerateResult: IconGenerateResult | null = null;
-        const iconsGenerator = new IconGenerator(this.faviconsConfig,
-            this.baseDir,
+        const iconsGenerator = new IconGenerator(this._faviconsConfig,
+            this._baseDir,
             masterPictureFilesMap,
             iconsPathPrefix,
-            this.logger);
+            this._logger);
 
-        if (this.faviconsConfig.online) {
+        if (this._faviconsConfig.online) {
             try {
                 iconGenerateResult = await iconsGenerator.generateRfgOnline();
             } catch (err) {
-                if (!this.faviconsConfig.fallbackOffline) {
+                if (!this._faviconsConfig.fallbackOffline) {
                     throw err;
                 } else {
-                    this.logger.warn(
+                    this._logger.warn(
                         `Error in generating icons from online, Error details: ${
                         err.message || err}`);
                 }
@@ -162,7 +155,7 @@ export class ChildComplier {
         }
 
         await Promise.all(iconGenerateResult.files.map(async (file: IconFileInfo) => {
-            if (this.faviconsConfig.emitFaviconIcoToOutDirRoot !== false &&
+            if (this._faviconsConfig.emitFaviconIcoToOutDirRoot !== false &&
                 file.name === 'favicon.ico' &&
                 iconsPathPrefix &&
                 iconsPathPrefix !== '/') {
@@ -207,7 +200,7 @@ export class ChildComplier {
             stats: newIconStatsJson
         };
 
-        if (this.faviconsConfig.cache !== false &&
+        if (this._faviconsConfig.cache !== false &&
             cacheFilePath &&
             outputPath &&
             (isPersistedOutFileSystem || forceWriteToDisk)) {

@@ -42,7 +42,7 @@ build_script:
   - npm run build
 
 test_script:
-  - npm run test:build-all
+  - npm run build:test-all
 
 deploy_script:
   - ps: |

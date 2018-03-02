@@ -1,0 +1,58 @@
+{
+  "$schema": "./../../dist/schemas/schema-draft-04.json#",
+  "apps": [
+    {
+      "srcDir": "src",
+      "outDir": "dist",
+      "entry": "main.ts",
+
+      "tsconfig": "tsconfig.json",
+
+      "clean": {
+        "beforeRun": {
+          "cleanOutDir": true,
+          "exclude": ["icons-", ".icons-cache", "favicon.ico"]
+        }
+      },
+
+      "copy": [
+        "assets/**/*"
+      ],
+
+      "publicPath": "/",
+      "baseHref": "~/",
+
+      "favicons": "favicon-config.json",
+
+      "htmlInject": {
+        "runtimeChunkInline": true,
+        "resourceHints": true,
+
+        "index": "index.html",
+        "baseHrefOut": "./_BaseHref.generated.cshtml",
+        "resourceHintsOut": "./_ResourceHints.generated.cshtml",
+        "runtimeInlineOut": "_Runtime.generated.cshtml",
+        "iconsOut": "./_Favicons.generated.cshtml",
+        "stylesOut": "./_Styles.generated.cshtml",
+        "scriptsOut": "./_Scripts.generated.cshtml",
+        "customAttributes": {
+          "asp-append-version": "true"
+        }
+      },
+
+      "environmentVariables": false,
+
+      "envOverrides": {
+        "prod": {
+          "moduleReplacements": [
+            {
+              "resourcePath": "./environments/environment.ts",
+              "newResourcePath": "./environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "logLevel": "debug"
+}
