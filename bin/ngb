@@ -44,25 +44,18 @@ function _invokeCli(cli, cliOptions) {
         cli = cli.default;
     }
 
-    const ret = cli(cliOptions);
-    if (ret && typeof ret.then === 'function') {
-        ret.then((exitCode) => {
+    cli(cliOptions)
+        .then((exitCode) => {
             process.exitCode = typeof exitCode === 'number' ? exitCode : 0;
             if (forceExit) {
                 _exit(process.exitCode);
             }
-        });
-        ret.catch(err => {
+        })
+        .catch(err => {
             process.exitCode = -1;
             console.error(`${err.stack || err.message}`);
             _exit(process.exitCode);
         });
-    } else if (ret && typeof ret === 'number') {
-        process.exitCode = ret;
-        if (forceExit) {
-            _exit(process.exitCode);
-        }
-    }
 }
 
 function _cliGlobal() {
