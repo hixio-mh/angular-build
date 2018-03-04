@@ -8,39 +8,48 @@ angular-build
 [![Dependency Status](https://david-dm.org/bizappframework/angular-build.svg)](https://david-dm.org/bizappframework/angular-build)
 [![npm](https://img.shields.io/npm/dm/@bizappframework/angular-build.svg)](https://www.npmjs.com/package/@bizappframework/angular-build)
 
-## What is this?
+What is this?
+---------------
 
-Build system for Angular app and library projects similar to [angular-cli](https://github.com/angular/angular-cli) with some customization:
+Build tool for Angular app and library projects similar to [angular-cli](https://github.com/angular/angular-cli) with some customization:
 
 - Build support for both library projects (internally with [rollup](https://github.com/rollup/rollup)) and app projects (internally with [webpack](https://github.com/webpack/webpack))
-- DLL bundling support for optimizing build time, see [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)
+- DLL bundling support for optimizing build time for developemnt, internally using [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)
 - Multi-platform favicons generation (online/offline)- integration with [realfavicongenerator](http://realfavicongenerator.net) and [evilebottnawi/favicons](https://github.com/evilebottnawi/favicons)
-- Can inject bundled scripts, links, favicons,  resource hints, etc into separate files or [ASP.Net Core MVC](https://docs.microsoft.com/en-us/aspnet/core/mvc/overview) partial views
+- Customizable html injection, can inject bundled scripts, links, favicons,  resource hints, etc into separate files or [ASP.Net Core MVC](https://docs.microsoft.com/en-us/aspnet/core/mvc/overview) partial views
 - Support custom webpack config to merge with built-in configs
 - Can build with webpack cli directly
 
-## Prerequisites
+***Important Note**: This tool is still green and should be considered unstable.*
 
-Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9 and npm >= 3. 
+Prerequisites
+---------------
 
-## Table of Contents
+Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9 and npm >= 3.
+
+Table of Contents
+---------------
 
 * [Installation](#installation)
 * [How to build](#how-to-build)
 * [License](#license)
 
-## Installation
+Installation
+---------------
 
 **BEFORE YOU INSTALL:** please read the [prerequisites](#prerequisites)
 ```bash
 npm install -g @bizappframework/angular-build
 ```
-## How to build
+How to build
+---------------
+
 1. Add a new **angular-build.json** config file in your project root.
 2. Specify **srcDir**, **outDir**, **entry** etc.
 3. Type **ngb build** at command line.
 4. More information, see [Wiki](https://github.com/BizAppFramework/angular-build/wiki).
 
-### License
+License
+---------------
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](/LICENSE) 
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](/LICENSE)
