@@ -176,4 +176,3 @@ if (_args.length >= 2 && _args[0] === 'build') {
 const _localCliPath = path.resolve(forceUseLocalCli ? _projectRoot : process.cwd(), 'node_modules/@bizappframework/angular-build');
 const _localCliPathExists = fs.existsSync(_localCliPath);
 _localCliPathExists ? _cliLocal(_projectRoot) : _cliGlobal();
-

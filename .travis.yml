@@ -1,25 +1,31 @@
 dist: trusty
 sudo: false
-
 language: node_js
-
 node_js:
   - "6"
   - "lts/*"
   - "node"
-
 env:
-  - ANGULAR_BUILD_APPINSIGHTS_COMMON_PROPS=ci=true;travis=true;Organization=Octalhouse
+  global:
+    - ANGULAR_BUILD_TELEMETRY_OPTOUT: 1
+os:
+  - linux
+  - osx
+osx_image: xcode8.2
+addons:
+  apt:
+    packages:
+      - libunwind8
+branches:
+  only:
+    - master
 cache:
   directories:
     - ./node_modules
-
 before_install:
   - npm install -g npm@latest
-
 install:
   - npm install
-
 script:
   - npm run build
   - npm run build:test-all

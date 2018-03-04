@@ -30,7 +30,6 @@
       "spaces",
       4
     ],
-    // custom
     "interface-over-type-literal": true,
     "interface-name": [
       true,
@@ -40,7 +39,7 @@
     "label-position": true,
     "linebreak-style": [
       true,
-      "CRLF"
+      "LF"
     ],
     "max-line-length": [
       true,

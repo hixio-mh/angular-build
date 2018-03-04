@@ -3,7 +3,7 @@
 
 const telemetryNotice = `
 Welcome to angular-build!
----------------------
+--------------------------
 Build your angular projects effortlessly.
 
 Telemetry
