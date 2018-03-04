@@ -205,12 +205,12 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
 
     // html inject
     if (appConfig.htmlInject && Object.keys(appConfig.htmlInject).length) {
-        const chunkSortList: string[] = [];
+        const SortedEntryList: string[] = [];
         // chunkSortList.push('sw-register');
         if (appConfig.referenceDll) {
-            chunkSortList.push(vendorChunkName);
+            SortedEntryList.push(vendorChunkName);
         }
-        chunkSortList.push(polyfillsChunkName);
+        SortedEntryList.push(polyfillsChunkName);
 
         // global styles
         if (appConfig.styles && appConfig.styles.length > 0) {
@@ -218,8 +218,8 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
                 throw new InternalError("The 'appConfig._styleParsedEntries' is not set.");
             }
             appConfig._styleParsedEntries.forEach(styleEntry => {
-                if (!styleEntry.lazy && !chunkSortList.includes(styleEntry.entry)) {
-                    chunkSortList.push(styleEntry.entry);
+                if (!styleEntry.lazy && !SortedEntryList.includes(styleEntry.entry)) {
+                    SortedEntryList.push(styleEntry.entry);
                 }
             });
         }
@@ -231,17 +231,17 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
 
             const scriptParsedEntries = appConfig._scriptParsedEntries;
             scriptParsedEntries.forEach(scriptEntry => {
-                if (!scriptEntry.lazy && !chunkSortList.includes(scriptEntry.entry)) {
-                    chunkSortList.push(scriptEntry.entry);
+                if (!scriptEntry.lazy && !SortedEntryList.includes(scriptEntry.entry)) {
+                    SortedEntryList.push(scriptEntry.entry);
                 }
             });
         }
         // vendor chunk
         if (!appConfig.referenceDll) {
-            chunkSortList.push(vendorChunkName);
+            SortedEntryList.push(vendorChunkName);
         }
         // main entry
-        chunkSortList.push(mainChunkName);
+        SortedEntryList.push(mainChunkName);
 
         // dll assets
         let dllAssetsFile: string | undefined;
@@ -275,15 +275,21 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
             injectIcons = true;
         }
 
+        let runtimeChunkInline = appConfig.htmlInject.runtimeChunkInline;
+        if (typeof runtimeChunkInline === 'undefined') {
+            runtimeChunkInline = AngularBuildContext.isProductionMode;
+        }
+
         plugins.push(new HtmlInjectWebpackPlugin({
             ...appConfig.htmlInject,
             srcDir: srcDir,
             outDir: outDir,
-            entrypoints: chunkSortList,
+            entrypoints: SortedEntryList,
             baseHref: appConfig.baseHref,
             publicPath: appConfig.publicPath,
 
             runtimeChunkFileName: 'runtime.js',
+            runtimeChunkInline: runtimeChunkInline,
 
             dlls: injectDllAssets,
             dllAssetsFile: dllAssetsFile,
