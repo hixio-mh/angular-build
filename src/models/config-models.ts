@@ -237,9 +237,8 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     lazyModules?: string[];
     /**
      * Use file name for lazy loaded chunks.
-     * @default true
      */
-    namedLazyChunks?: boolean;
+    nameLazyFiles?: boolean;
     /**
      * This option controls if and how source maps are generated.
      * Also check out {@link https://webpack.js.org/configuration/devtool Webpack}.

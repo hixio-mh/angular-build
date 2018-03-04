@@ -311,9 +311,9 @@ function createAotPlugin(angularBuildContext: AngularBuildContext, options: Angu
         }
     }
 
-    let namedLazyChunks = appConfig.namedLazyChunks;
-    if (typeof namedLazyChunks === 'undefined') {
-        namedLazyChunks = !AngularBuildContext.isProductionMode;
+    let nameLazyFiles = appConfig.nameLazyFiles;
+    if (typeof nameLazyFiles === 'undefined') {
+        nameLazyFiles = !AngularBuildContext.isProductionMode;
     }
 
     const pluginOptions: AngularCompilerPluginOptions = Object.assign({},
@@ -330,7 +330,7 @@ function createAotPlugin(angularBuildContext: AngularBuildContext, options: Angu
             hostReplacementPaths: hostReplacementPaths,
             sourceMap: appConfig.sourceMap,
             additionalLazyModules,
-            nameLazyFiles: namedLazyChunks
+            nameLazyFiles: nameLazyFiles
         }, options);
     return new AngularCompilerPlugin(pluginOptions);
 
