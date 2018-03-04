@@ -16,9 +16,7 @@ export class DynamicDllWebpackPlugin {
     }
 
     constructor(private readonly _options: DynamicDllWebpackPluginOptions) {
-        const loggerOptions =
-            Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
-        this._logger = new Logger(loggerOptions);
+        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
     }
 
     apply(compiler: any): void {

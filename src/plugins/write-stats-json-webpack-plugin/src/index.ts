@@ -29,9 +29,7 @@ export class WriteStatsJsonWebpackPlugin {
             throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
         }
 
-        const loggerOptions =
-            Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
-        this._logger = new Logger(loggerOptions);
+        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
 
         if (this._options.persistedOutputFileSystemNames && this._options.persistedOutputFileSystemNames.length) {
             this._options.persistedOutputFileSystemNames

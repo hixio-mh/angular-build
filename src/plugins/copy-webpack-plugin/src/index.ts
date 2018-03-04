@@ -51,9 +51,7 @@ export class CopyWebpackPlugin {
                 `The 'baseDir' must be absolute path, passed value: ${this._options.baseDir}.`);
         }
 
-        const loggerOptions =
-            Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
-        this._logger = new Logger(loggerOptions);
+        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
 
         if (this._options.persistedOutputFileSystemNames && this._options.persistedOutputFileSystemNames.length) {
             this._options.persistedOutputFileSystemNames

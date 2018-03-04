@@ -21,7 +21,6 @@ export class SuppressEntryChunksWebpackPlugin {
         };
 
         this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
-
     }
 
     apply(compiler: any): void {
