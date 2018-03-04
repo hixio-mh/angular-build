@@ -138,6 +138,10 @@
                     "description": "If true, chunk a separate bundle containing common code used across multiple bundles.",
                     "type": "boolean"
                 },
+                "concatenateModules": {
+                    "description": "Set true to enable scope hoisting.\nDefault true for production.",
+                    "type": "boolean"
+                },
                 "copy": {
                     "description": "Copy options.",
                     "items": {
@@ -152,7 +156,7 @@
                     },
                     "type": "array"
                 },
-                "dll": {
+                "dlls": {
                     "anyOf": [
                         {
                             "items": {
@@ -164,7 +168,6 @@
                             "$ref": "#/definitions/DllOptions"
                         }
                     ],
-                    "default": [],
                     "description": "The vendor module entries for dll bundle."
                 },
                 "entry": {
@@ -300,10 +303,6 @@
                     ],
                     "type": "string"
                 },
-                "moduleConcatenation": {
-                    "description": "Set true to enable scope hoisting.\nDefault true for production.",
-                    "type": "boolean"
-                },
                 "moduleReplacements": {
                     "description": "Replaces resources with new resources.",
                     "items": {
@@ -322,8 +321,7 @@
                     "description": "The config name.",
                     "type": "string"
                 },
-                "namedLazyChunks": {
-                    "default": true,
+                "nameLazyFiles": {
                     "description": "Use file name for lazy loaded chunks.",
                     "type": "boolean"
                 },
@@ -397,10 +395,6 @@
                         ]
                     },
                     "type": "array"
-                },
-                "showCircularDependencies": {
-                    "description": "If true, detect modules with circular dependencies.",
-                    "type": "boolean"
                 },
                 "skip": {
                     "description": "If true, this project config will be skipped by the build process.",
@@ -576,6 +570,10 @@
                     "description": "If true, chunk a separate bundle containing common code used across multiple bundles.",
                     "type": "boolean"
                 },
+                "concatenateModules": {
+                    "description": "Set true to enable scope hoisting.\nDefault true for production.",
+                    "type": "boolean"
+                },
                 "copy": {
                     "description": "Copy options.",
                     "items": {
@@ -590,7 +588,7 @@
                     },
                     "type": "array"
                 },
-                "dll": {
+                "dlls": {
                     "anyOf": [
                         {
                             "items": {
@@ -602,7 +600,6 @@
                             "$ref": "#/definitions/DllOptions"
                         }
                     ],
-                    "default": [],
                     "description": "The vendor module entries for dll bundle."
                 },
                 "entry": {
@@ -727,10 +724,6 @@
                     ],
                     "type": "string"
                 },
-                "moduleConcatenation": {
-                    "description": "Set true to enable scope hoisting.\nDefault true for production.",
-                    "type": "boolean"
-                },
                 "moduleReplacements": {
                     "description": "Replaces resources with new resources.",
                     "items": {
@@ -745,8 +738,7 @@
                     },
                     "type": "array"
                 },
-                "namedLazyChunks": {
-                    "default": true,
+                "nameLazyFiles": {
                     "description": "Use file name for lazy loaded chunks.",
                     "type": "boolean"
                 },
@@ -820,10 +812,6 @@
                         ]
                     },
                     "type": "array"
-                },
-                "showCircularDependencies": {
-                    "description": "If true, detect modules with circular dependencies.",
-                    "type": "boolean"
                 },
                 "skip": {
                     "description": "If true, this project config will be skipped by the build process.",
