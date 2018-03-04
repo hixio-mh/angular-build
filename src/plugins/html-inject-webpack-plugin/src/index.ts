@@ -1,5 +1,4 @@
 import * as path from 'path';
-import { EOL } from 'os';
 
 import * as minimatch from 'minimatch';
 import { RawSource } from 'webpack-sources';
@@ -330,7 +329,7 @@ export class HtmlInjectWebpackPlugin {
                 if (separateIconsOut && iconsOutRelative) {
                     this._logger.debug(`Injecting icon tags to ${iconsOutRelative}`);
 
-                    additionalAssetsEntry[iconsOutRelative] = new RawSource(faviconsTags.join(EOL));
+                    additionalAssetsEntry[iconsOutRelative] = new RawSource(faviconsTags.join('\n'));
                 }
             }
 
@@ -434,7 +433,7 @@ export class HtmlInjectWebpackPlugin {
                 });
 
                 if (separateResourceHintsOut && resourceHintsOutRelative) {
-                    const content = resourceHintTags.join(EOL);
+                    const content = resourceHintTags.join('\n');
                     additionalAssetsEntry[resourceHintsOutRelative] = new RawSource(content);
                 }
             }
@@ -526,7 +525,7 @@ export class HtmlInjectWebpackPlugin {
                 if (typeof source !== 'string') {
                     source = source.toString();
                 }
-                source = EOL + sourceMapUrl.removeFrom(source) + EOL;
+                source = `\n${sourceMapUrl.removeFrom(source)}\n`;
 
                 const tagDefinition: TagDefinition = {
                     tagName: 'srcipt',
@@ -621,11 +620,11 @@ export class HtmlInjectWebpackPlugin {
             }
 
             if (separateStylesOut && stylesOutRelative) {
-                const content = styleTags.join(EOL);
+                const content = styleTags.join('\n');
                 additionalAssetsEntry[stylesOutRelative] = new RawSource(content);
             }
             if (separateScriptsOut && scriptsOutRelative) {
-                const content = scriptTags.join(EOL);
+                const content = scriptTags.join('\n');
                 additionalAssetsEntry[scriptsOutRelative] = new RawSource(content);
             }
             if (document && indexRelative) {
