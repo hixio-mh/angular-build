@@ -276,7 +276,10 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
                 // suppress empty .js files in css only entry points
                 plugins.push(new SuppressEntryChunksWebpackPlugin({
                     chunks: chunks,
-                    supressPattern: /\.js(\.map)?$/
+                    supressPattern: /\.js(\.map)?$/,
+                    loggerOptions: {
+                        logLevel: AngularBuildContext.angularBuildConfig.logLevel
+                    }
                 }));
             }
         }

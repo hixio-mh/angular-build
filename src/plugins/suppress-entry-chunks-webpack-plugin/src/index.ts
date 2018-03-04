@@ -1,12 +1,14 @@
-// Ref: angular-cli - https://github.com/angular/angular-cli
+import { Logger, LoggerOptions } from '../../../utils/logger';
 
 export interface SuppressEntryChunksWebpackPluginOptions {
     chunks?: string[];
     exclude?: string[];
     supressPattern?: RegExp;
+    loggerOptions?: LoggerOptions;
 }
 
 export class SuppressEntryChunksWebpackPlugin {
+    private readonly _logger: Logger;
     private readonly _options: SuppressEntryChunksWebpackPluginOptions;
 
     get name(): string {
@@ -17,43 +19,41 @@ export class SuppressEntryChunksWebpackPlugin {
         this._options = {
             ...options
         };
+
+        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
+
     }
 
     apply(compiler: any): void {
-        const supressAssetsFn = (compilation: any, cb: any): void => {
-            if (!this._options.chunks || !this._options.supressPattern) {
-                return cb();
-            }
+        compiler.hooks.compilation.tap(this.name, (compilation: any) => {
+            compilation.hooks.afterSeal.tap(this.name, (): void => {
+                if (!this._options.chunks || !this._options.supressPattern || !compilation.chunks) {
+                    return;
+                }
 
-            const options = this._options;
+                compilation.chunks.filter((chunk: any) => this._options.chunks &&
+                    this._options.chunks.includes(chunk.name) &&
+                    (!this._options.exclude || !this._options.exclude.includes(chunk.name)))
+                    .forEach((chunk: any) => {
+                        const newFiles: string[] = [];
+                        let deleted = false;
+                        chunk.files.forEach((file: string) => {
+                            if (this._options.supressPattern &&
+                                file.match(this._options.supressPattern) &&
+                                compilation.assets[file]) {
+                                this._logger.debug(`Deleting compilation asset - ${file}`);
+                                delete compilation.assets[file];
+                                deleted = true;
+                            } else {
+                                newFiles.push(file);
+                            }
+                        });
 
-            compilation.chunks.filter((chunk: any) => options.chunks &&
-                options.chunks.indexOf(chunk.name) !== -1 &&
-                (!options.exclude || !options.exclude.includes(chunk.name)))
-                .forEach((chunk: any) => {
-                    const newFiles: string[] = [];
-                    chunk.files.forEach((file: string) => {
-                        if (options.supressPattern && file.match(options.supressPattern)) {
-                            delete compilation.assets[file];
-                        } else {
-                            newFiles.push(file);
+                        if (deleted) {
+                            chunk.files = newFiles;
                         }
                     });
-                    chunk.files = newFiles;
-                });
-
-            return cb();
-        };
-
-        if (compiler.hooks) {
-            const plugin = { name: this.name };
-            compiler.hooks.compilation.tap(plugin, (compilation: any) => {
-                compilation.hooks.afterSeal.tapAsync(plugin, supressAssetsFn);
             });
-        } else {
-            compiler.plugin('compilation', (compilation: any) => {
-                compilation.plugin('after-seal', supressAssetsFn);
-            });
-        }
+        });
     }
 }
