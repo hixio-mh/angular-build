@@ -172,7 +172,9 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext,
         const { CheckerPlugin, TsConfigPathsPlugin } = require('awesome-typescript-loader');
         plugins.push(new CheckerPlugin());
 
-        resolvePlugins.push(new TsConfigPathsPlugin(tsConfigPath));
+        if (appConfig._tsConfigPath) {
+            resolvePlugins.push(new TsConfigPathsPlugin(tsConfigPath));
+        }
     }
 
     // es6-promise
