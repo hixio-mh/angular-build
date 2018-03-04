@@ -49,9 +49,12 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     const devServer = isWebpackDevServer();
 
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    const isDll = environment.dll;
     const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
     const outDir = appConfig.outDir ? path.resolve(projectRoot, appConfig.outDir) : undefined;
+    let isDll = false;
+    if (environment.dll) {
+        isDll = true;
+    }
 
     const extractedAssetsHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
         appConfig.extractedAssetsHash !== false
@@ -268,6 +271,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     let concatenateModules = false;
     if (AngularBuildContext.isProductionMode &&
         !devServer &&
+        !isDll &&
         appConfig.platformTarget !== 'node' &&
         appConfig.concatenateModules !== false) {
         concatenateModules = true;
@@ -428,34 +432,37 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
                     sourceMap: appConfig.sourceMap,
                     // component styles retain their original file name
                     test: (file) => /\.(?:css|scss|sass|less|styl)$/.test(file),
-                }),
-                new UglifyJSPlugin({
-                    // extractComments: true,
-                    sourceMap: appConfig.sourceMap,
-                    // warningsFilter: (resourceId: string): boolean => {
-                    //    return !!resourceId && /(\\|\/)node_modules(\\|\/)/.test(resourceId);
-                    // },
-                    parallel: true,
-                    cache: true,
-                    uglifyOptions: {
-                        // ie8: true, // default false
-                        ecma: appConfig._ecmaVersion, // default undefined
-                        safari10: true,
-                        compress: {
-                            pure_getters: true,
-                            passes: 3
-                        },
-                        warnings: verbose, // default false
-                        output: {
-                            ascii_only: true, // default false
-                            // comments: false, // default false
-                            beautify: false, // default true
-                            comments: false,
-                            webkit: true
-                        }
-                    }
                 })
-            ],
+            ].concat(isDll
+                ? []
+                : [
+                    new UglifyJSPlugin({
+                        // extractComments: true,
+                        sourceMap: appConfig.sourceMap,
+                        // warningsFilter: (resourceId: string): boolean => {
+                        //    return !!resourceId && /(\\|\/)node_modules(\\|\/)/.test(resourceId);
+                        // },
+                        parallel: true,
+                        cache: true,
+                        uglifyOptions: {
+                            // ie8: true, // default false
+                            ecma: appConfig._ecmaVersion, // default undefined
+                            safari10: true,
+                            compress: {
+                                pure_getters: true,
+                                passes: 3
+                            },
+                            warnings: verbose, // default false
+                            output: {
+                                ascii_only: true, // default false
+                                // comments: false, // default false
+                                beautify: false, // default true
+                                comments: false,
+                                webkit: true
+                            }
+                        }
+                    })
+                ]),
         },
         stats: statOptions,
         watchOptions: AngularBuildContext.angularBuildConfig.watchOptions
