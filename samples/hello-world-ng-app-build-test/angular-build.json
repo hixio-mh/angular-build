@@ -5,45 +5,81 @@
       "srcDir": "src",
       "outDir": "dist",
       "entry": "main.ts",
-
-      "tsconfig": "tsconfig.json",
-
-      "clean": {
-        "beforeRun": {
-          "cleanOutDir": true,
-          "exclude": ["icons-", ".icons-cache", "favicon.ico"]
-        }
-      },
-
-      "copy": [
-        "assets/**/*"
+      "polyfills": [
+        "core-js/es6/reflect",
+        "core-js/es7/reflect",
+        "polyfills.ts"
       ],
-
+      "tsconfig": "tsconfig.json",
+      "copy": [
+        "assets/**/*",
+        "favicon.ico"
+      ],
+      "styles": [ "styles.scss" ],
+      "dlls": [
+        // "@angular/animations",
+        "@angular/common",
+        "@angular/compiler",
+        "@angular/core",
+        // "@angular/forms",
+        // "@angular/http",
+        "@angular/platform-browser",
+        "@angular/platform-browser-dynamic",
+        "@angular/router",
+        "core-js/es6/reflect",
+        "core-js/es7/reflect",
+        // "event-source-polyfill",
+        "zone.js/dist/zone"
+      ],
       "publicPath": "/",
       "baseHref": "~/",
-
-      "favicons": "favicon-config.json",
-
       "htmlInject": {
-        "runtimeChunkInline": true,
+        // Default true for production
+        // "runtimeChunkInline": true,
         "resourceHints": true,
-
-        "index": "index.html",
-        "baseHrefOut": "./_BaseHref.generated.cshtml",
-        "resourceHintsOut": "./_ResourceHints.generated.cshtml",
-        "runtimeInlineOut": "_Runtime.generated.cshtml",
-        "iconsOut": "./_Favicons.generated.cshtml",
-        "stylesOut": "./_Styles.generated.cshtml",
-        "scriptsOut": "./_Scripts.generated.cshtml",
-        "customAttributes": {
-          "asp-append-version": "true"
-        }
+        "index": "index.html"
       },
-
       "environmentVariables": false,
-
       "envOverrides": {
+        "aspnet": {
+          "htmlInject": {
+            "resourceHints": true,
+            "baseHrefOut": "./_BaseHref.generated.cshtml",
+            "iconsOut": "./_Favicons.generated.cshtml",
+            "resourceHintsOut": "./_ResourceHints.generated.cshtml",
+            "runtimeInlineOut": "_Runtime.generated.cshtml",
+            "stylesOut": "./_Styles.generated.cshtml",
+            "scriptsOut": "./_Scripts.generated.cshtml",
+            "customAttributes": {
+              "asp-append-version": "true"
+            }
+          }
+        },
+        "dll": {
+          "clean": {
+            "beforeRun": {
+              "cleanOutDir": true
+            }
+          }
+        },
+        "ref": {
+          "referenceDll": true
+        },
         "prod": {
+          "clean": {
+            "beforeRun": {
+              "cleanOutDir": true,
+              "exclude": [
+                "icons-",
+                ".icons-cache",
+                "favicon.ico"
+              ]
+            }
+          },
+          "copy": [
+            "assets/**/*"
+          ],
+          "favicons": "favicon-config.json",
           "moduleReplacements": [
             {
               "resourcePath": "./environments/environment.ts",
