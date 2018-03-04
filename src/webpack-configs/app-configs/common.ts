@@ -70,7 +70,6 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         : '';
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
-    let profile = AngularBuildContext.commandOptions.profile;
 
     // rules
     const rules: webpack.Rule[] = [
@@ -287,6 +286,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     }
 
     // bundle analyzer report
+    let profile = AngularBuildContext.commandOptions.profile ? true : false;
     if (appConfig.bundleAnalyzer) {
         let hasEntry = false;
         if (isDll) {
