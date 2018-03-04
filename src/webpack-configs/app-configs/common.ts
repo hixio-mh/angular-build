@@ -178,7 +178,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     if (typeof devtool === 'undefined' && AngularBuildContext.commandOptions.devtool) {
         devtool = AngularBuildContext.commandOptions.devtool;
     }
-    if (devtool === 'undefined' && appConfig.sourceMap) {
+    if (typeof devtool === 'undefined' && appConfig.sourceMap) {
         if (devServer) {
             plugins.push(new webpack.EvalSourceMapDevToolPlugin({
                 moduleFilenameTemplate: '[resource-path]',
