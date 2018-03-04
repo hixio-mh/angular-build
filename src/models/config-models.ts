@@ -280,10 +280,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     stats?: WebpackStatsPreset | WebpackStatsToStringOptions;
     /**
-     * If true, detect modules with circular dependencies.
-     */
-    showCircularDependencies?: boolean;
-    /**
      * The externals configuration option provides a way of excluding dependencies from the output bundle.
      */
     externals?: ExternalsEntry | ExternalsEntry[];

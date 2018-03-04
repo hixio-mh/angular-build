@@ -24,7 +24,6 @@ import { isWebpackDevServer } from '../../helpers/is-webpack-dev-server';
 import { getWebpackToStringStatsOptions } from '../../helpers/webpack-to-string-stats-options';
 import { outputHashFormat } from '../../helpers/output-hash-format';
 
-const CircularDependencyPlugin = require('circular-dependency-plugin');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 /**
@@ -200,17 +199,6 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
                 // sourceRoot: 'webpack:///'
             }));
         }
-    }
-
-    // CircularDependencyPlugin
-    let showCircularDependencies = appConfig.showCircularDependencies;
-    if (typeof showCircularDependencies === 'undefined') {
-        showCircularDependencies = AngularBuildContext.isProductionMode;
-    }
-    if (showCircularDependencies && !isDll) {
-        plugins.push(new CircularDependencyPlugin({
-            exclude: /(\\|\/)node_modules(\\|\/)/
-        }));
     }
 
     // Load rxjs path aliases.
