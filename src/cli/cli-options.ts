@@ -1,9 +1,9 @@
 export interface CliOptions {
-    args: any;
+    args?: any;
     cliVersion: string;
-    cliIsGlobal: boolean;
-    cliRootPath: string;
-    startTime: number;
+    cliIsGlobal?: boolean;
+    cliRootPath?: string;
+    startTime?: number;
 
     cliIsLink?: boolean;
     command?: string;

@@ -5,13 +5,15 @@ import { colorize } from '../utils/colorize';
 import { CliOptions } from './cli-options';
 import { getBuildCommandModule } from './build/build-command-module';
 
-function initYargs(cliVersion: string, args: any[]): yargs.Argv {
+function initYargs(cliVersion: string, args?: any[]): yargs.Argv {
     const cliUsage = `\n${colorize(`angular-build ${cliVersion}`, 'white')}\n
 Usage:
   ngb command [options...]
   ngb [options]`;
 
-    yargs.parse(args);
+    if (args) {
+        yargs.parse(args);
+    }
 
     const yargsInstance = yargs
         .usage(cliUsage)
@@ -73,7 +75,6 @@ export default async function(cliOptions: CliOptions): Promise<number> {
         // Dynamic require
         const cliBuildModule = await import('./build/cli-build');
         const cliBuild = cliBuildModule.cliBuild;
-        // const cliBuild = require('./build/cli-build').cliBuild;
         return cliBuild(cliOptions);
     }
     if (commandOptions.version) {
