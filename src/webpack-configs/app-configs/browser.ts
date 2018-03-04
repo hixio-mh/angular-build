@@ -245,9 +245,7 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
 
         // dll assets
         let dllAssetsFile: string | undefined;
-        let iconsCacheFile: string | undefined;
         let injectDllAssets = appConfig.htmlInject.dlls;
-        let injectIcons = appConfig.htmlInject.icons;
         if (appConfig.referenceDll && appConfig.entry && injectDllAssets !== false) {
             const dllEnvironment = { dll: true };
             const dllProjectConfig =
@@ -267,24 +265,15 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
                 injectDllAssets = true;
 
             }
-
-            // icons
-            if (typeof iconsCacheFile === 'undefined' && dllProjectConfig.favicons) {
-                iconsCacheFile = path.resolve(projectRoot, appConfig.outDir, '.icons-cache');
-
-                if (typeof injectIcons === 'undefined') {
-                    injectIcons = true;
-                }
-            }
         }
 
         // icons
-        if (typeof iconsCacheFile === 'undefined' && appConfig.favicons && injectIcons !== false) {
+        let iconsCacheFile: string | undefined;
+        let injectIcons = appConfig.htmlInject.icons;
+        if (appConfig.favicons && typeof iconsCacheFile === 'undefined' && injectIcons !== false) {
             iconsCacheFile = '.icons-cache';
             injectIcons = true;
         }
-
-        appConfig.htmlInject = appConfig.htmlInject || {};
 
         plugins.push(new HtmlInjectWebpackPlugin({
             ...appConfig.htmlInject,
@@ -294,9 +283,12 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
             baseHref: appConfig.baseHref,
             publicPath: appConfig.publicPath,
 
+            runtimeChunkFileName: 'runtime.js',
+
             dlls: injectDllAssets,
-            icons: injectIcons,
             dllAssetsFile: dllAssetsFile,
+
+            icons: injectIcons,
             iconsCacheFile: iconsCacheFile,
 
             loggerOptions: {

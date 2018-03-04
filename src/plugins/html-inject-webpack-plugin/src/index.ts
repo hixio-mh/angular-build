@@ -59,10 +59,6 @@ export class HtmlInjectWebpackPlugin {
     }
 
     constructor(private readonly _options: HtmlInjectWebpackPluginOptions) {
-        this._options.runtimeChunkFileName = this._options.runtimeChunkFileName || 'runtime.js';
-        this._options.dllAssetsFile = this._options.dllAssetsFile || 'vendor-assets.json';
-        this._options.iconsCacheFile = this._options.iconsCacheFile || '.icons-cache';
-
         const loggerOptions =
             Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
         this._logger = new Logger(loggerOptions);
@@ -287,6 +283,58 @@ export class HtmlInjectWebpackPlugin {
                 }
             }
 
+            // Icons
+            let separateIconsOut = false;
+            let iconsOutRelative: string | null = null;
+            if (this._options.iconsOut && this._options.icons !== false) {
+                const filePath = path.isAbsolute(this._options.iconsOut)
+                    ? path.resolve(this._options.iconsOut)
+                    : path.resolve(this._options.outDir, this._options.iconsOut);
+                if (filePath !== indexInputFilePath && filePath !== indexOutFilePath) {
+                    separateIconsOut = true;
+                    iconsOutRelative = normalizeRelativePath(path.relative(this._options.outDir, filePath));
+                }
+            }
+            if (this._options.icons || separateIconsOut) {
+                let iconHtmls: string[] = [];
+                if (compilation._htmlInjectOptions &&
+                    compilation._htmlInjectOptions.iconHtmls &&
+                    Array.isArray(compilation._htmlInjectOptions.iconHtmls)) {
+                    iconHtmls = compilation._htmlInjectOptions.iconHtmls;
+                } else if (this._options.iconsCacheFile) {
+                    let cacheFilePath = this._options.iconsCacheFile as string;
+                    cacheFilePath = path.isAbsolute(cacheFilePath)
+                        ? path.resolve(cacheFilePath)
+                        : path.resolve(this._options.outDir, cacheFilePath);
+                    const cacheContent = await readFile(cacheFilePath, compilation);
+                    const data = JSON.parse(cacheContent);
+                    if (data.stats && data.stats.htmls) {
+                        iconHtmls = data.stats.htmls as string[];
+                    }
+                }
+
+                if (headElement && iconHtmls.length) {
+                    this._logger.debug('Injecting icon tags');
+                }
+
+                const faviconsTags = iconHtmls.map((tag: string) => {
+                    const tagStr = tag.replace(/href=\"/i, `href="${this._options.publicPath || ''}`);
+                    if (headElement) {
+                        const documentFragment = parse5.parseFragment(tagStr, { treeAdapter }) as parse5.AST.Default.ParentNode;
+                        treeAdapter.appendChild(headElement, documentFragment.childNodes[0]);
+                    }
+
+                    return tagStr;
+                });
+
+                if (separateIconsOut && iconsOutRelative) {
+                    this._logger.debug(`Injecting icon tags to ${iconsOutRelative}`);
+
+                    additionalAssetsEntry[iconsOutRelative] = new RawSource(faviconsTags.join(EOL));
+                }
+            }
+
+
             // ResourceHints
             let separateResourceHintsOut = false;
             let resourceHintsOutRelative: string | null = null;
@@ -388,57 +436,6 @@ export class HtmlInjectWebpackPlugin {
                 if (separateResourceHintsOut && resourceHintsOutRelative) {
                     const content = resourceHintTags.join(EOL);
                     additionalAssetsEntry[resourceHintsOutRelative] = new RawSource(content);
-                }
-            }
-
-            // Icons
-            let separateIconsOut = false;
-            let iconsOutRelative: string | null = null;
-            if (this._options.iconsOut && this._options.icons !== false) {
-                const filePath = path.isAbsolute(this._options.iconsOut)
-                    ? path.resolve(this._options.iconsOut)
-                    : path.resolve(this._options.outDir, this._options.iconsOut);
-                if (filePath !== indexInputFilePath && filePath !== indexOutFilePath) {
-                    separateIconsOut = true;
-                    iconsOutRelative = normalizeRelativePath(path.relative(this._options.outDir, filePath));
-                }
-            }
-            if (this._options.icons || separateIconsOut) {
-                let iconHtmls: string[] = [];
-                if (compilation._htmlInjectOptions &&
-                    compilation._htmlInjectOptions.iconHtmls &&
-                    Array.isArray(compilation._htmlInjectOptions.iconHtmls)) {
-                    iconHtmls = compilation._htmlInjectOptions.iconHtmls;
-                } else if (this._options.iconsCacheFile) {
-                    let cacheFilePath = this._options.iconsCacheFile as string;
-                    cacheFilePath = path.isAbsolute(cacheFilePath)
-                        ? path.resolve(cacheFilePath)
-                        : path.resolve(this._options.outDir, cacheFilePath);
-                    const cacheContent = await readFile(cacheFilePath, compilation);
-                    const data = JSON.parse(cacheContent);
-                    if (data.stats && data.stats.htmls) {
-                        iconHtmls = data.stats.htmls as string[];
-                    }
-                }
-
-                if (headElement && iconHtmls.length) {
-                    this._logger.debug('Injecting icon tags');
-                }
-
-                const faviconsTags = iconHtmls.map((tag: string) => {
-                    const tagStr = tag.replace(/href=\"/i, `href="${this._options.publicPath || ''}`);
-                    if (headElement) {
-                        const documentFragment = parse5.parseFragment(tagStr, { treeAdapter }) as parse5.AST.Default.ParentNode;
-                        treeAdapter.appendChild(headElement, documentFragment.childNodes[0]);
-                    }
-
-                    return tagStr;
-                });
-
-                if (separateIconsOut && iconsOutRelative) {
-                    this._logger.debug(`Injecting icon tags to ${iconsOutRelative}`);
-
-                    additionalAssetsEntry[iconsOutRelative] = new RawSource(faviconsTags.join(EOL));
                 }
             }
 
@@ -566,7 +563,6 @@ export class HtmlInjectWebpackPlugin {
 
                 delete compilation.assets[this._options.runtimeChunkFileName];
             }
-
 
             // Styles
             for (const stylesheet of stylesheets) {
