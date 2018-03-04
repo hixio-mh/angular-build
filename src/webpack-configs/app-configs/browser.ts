@@ -288,7 +288,6 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
             baseHref: appConfig.baseHref,
             publicPath: appConfig.publicPath,
 
-            runtimeChunkFileName: 'runtime.js',
             runtimeChunkInline: runtimeChunkInline,
 
             dlls: injectDllAssets,

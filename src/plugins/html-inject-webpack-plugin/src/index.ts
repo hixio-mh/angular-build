@@ -28,7 +28,6 @@ export interface HtmlInjectWebpackPluginOptions extends HtmlInjectOptions {
 
     baseHref?: string;
     publicPath?: string;
-    runtimeChunkFileName?: string;
     iconsCacheFile?: string;
     dllAssetsFile?: string;
 
@@ -58,9 +57,7 @@ export class HtmlInjectWebpackPlugin {
     }
 
     constructor(private readonly _options: HtmlInjectWebpackPluginOptions) {
-        const loggerOptions =
-            Object.assign({ name: `[${this.name}]` }, this._options.loggerOptions || {}) as LoggerOptions;
-        this._logger = new Logger(loggerOptions);
+        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
     }
 
     apply(compiler: any): void {
@@ -193,6 +190,7 @@ export class HtmlInjectWebpackPlugin {
             const existingFiles = new Set<string>();
             const stylesheets: string[] = [];
             const scripts: string[] = [];
+            let runtimeFileName: string | null = null;
             for (const file of unfilteredSortedFiles) {
                 if (existingFiles.has(file)) {
                     continue;
@@ -200,8 +198,10 @@ export class HtmlInjectWebpackPlugin {
 
                 existingFiles.add(file);
 
-                if (this._options.runtimeChunkInline &&
-                    this._options.runtimeChunkFileName === path.basename(file)) {
+                if (runtimeFileName == null &&
+                    this._options.runtimeChunkInline &&
+                    /^runtime([\.\-][0-9a-fA-F]+)?\.js$/.test(file)) {
+                    runtimeFileName = file;
                     continue;
                 }
 
@@ -517,10 +517,10 @@ export class HtmlInjectWebpackPlugin {
             }
 
             // Runtime chunk
-            if (this._options.runtimeChunkInline &&
-                this._options.runtimeChunkFileName &&
-                compilation.assets[this._options.runtimeChunkFileName]) {
-                const asset = compilation.assets[this._options.runtimeChunkFileName];
+            let runtimeTagRawContent = '';
+            if (this._options.runtimeChunkInline && runtimeFileName &&
+                compilation.assets[runtimeFileName]) {
+                const asset = compilation.assets[runtimeFileName];
                 let source = asset.source();
                 if (typeof source !== 'string') {
                     source = source.toString();
@@ -528,14 +528,15 @@ export class HtmlInjectWebpackPlugin {
                 source = `\n${sourceMapUrl.removeFrom(source)}\n`;
 
                 const tagDefinition: TagDefinition = {
-                    tagName: 'srcipt',
+                    tagName: 'script',
                     attributes: {
                         type: 'text/javascript'
                     },
                     innerHtml: source,
                     closeTag: true
                 };
-                const content = HtmlInjectWebpackPlugin.createHtmlTag(tagDefinition);
+
+                runtimeTagRawContent = HtmlInjectWebpackPlugin.createHtmlTag(tagDefinition);
 
                 if (headElement) {
                     const attributes = Object.keys(tagDefinition.attributes).map(key => {
@@ -554,13 +555,12 @@ export class HtmlInjectWebpackPlugin {
                     treeAdapter.insertText(element, tagDefinition.innerHtml || '');
                 }
 
-                if (separateRuntimeInlineOut && runtimeInlineRelative) {
-                    this._logger.debug(`Injecting runtime to ${runtimeInlineRelative}`);
+                delete compilation.assets[runtimeFileName];
+            }
+            if (separateRuntimeInlineOut && runtimeInlineRelative) {
+                this._logger.debug(`Injecting runtime to ${runtimeInlineRelative}`);
 
-                    additionalAssetsEntry[runtimeInlineRelative] = new RawSource(content);
-                }
-
-                delete compilation.assets[this._options.runtimeChunkFileName];
+                additionalAssetsEntry[runtimeInlineRelative] = new RawSource(runtimeTagRawContent);
             }
 
             // Styles
