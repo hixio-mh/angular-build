@@ -58,10 +58,9 @@
     <Content Include="samples\hello-world-ng-app-build-test\src\assets\.gitkeep" />
     <Content Include="samples\hello-world-ng-app-build-test\src\favicon-config.json" />
     <Content Include="samples\hello-world-ng-app-build-test\src\favicon.svg" />
-    <Content Include="schemas\favicon-config-schema-draft-04.json" />
-    <Content Include="schemas\favicon-config-schema.json" />
-    <Content Include="schemas\schema-draft-04.json" />
-    <Content Include="schemas\schema.json" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\styles.scss" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\styles\main.scss" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\styles\_variables.scss" />
     <Content Include="src\plugins\favicons-webpack-plugin\package.json" />
     <Content Include="samples\hello-world-ng-app-build-test\angular-build.json" />
     <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.css" />
@@ -85,7 +84,7 @@
     <Folder Include="bin\" />
     <Folder Include="samples\" />
     <Folder Include="samples\hello-world-ng-app-build-test\src\assets\" />
-    <Folder Include="schemas\" />
+    <Folder Include="samples\hello-world-ng-app-build-test\src\styles\" />
     <Folder Include="scripts\" />
     <Folder Include="src\plugins\html-inject-webpack-plugin\" />
     <Folder Include="src\plugins\html-inject-webpack-plugin\src\" />
@@ -134,6 +133,7 @@
     <Folder Include="tools\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\polyfills.ts" />
     <TypeScriptCompile Include="src\cli\build\build-command-module.ts" />
     <TypeScriptCompile Include="src\cli\build\cli-build.ts" />
     <TypeScriptCompile Include="src\helpers\output-hash-format.ts" />
@@ -227,6 +227,7 @@
     <TypeScriptCompile Include="samples\hello-world-ng-lib-build-test\src\index.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="samples\hello-world-ng-app-build-test\webpack.config.js" />
     <Compile Include="scripts\postinstall.js" />
     <Compile Include="tools\generate-schema.js" />
     <Compile Include="tools\copy-files.js" />
