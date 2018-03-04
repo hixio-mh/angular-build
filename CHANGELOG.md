@@ -2,10 +2,15 @@
 
 ## vNext
 
-- Added moduleRoots option to config
-- Added feature to pass global environment variable
-- Moved chunk name options to app config base
 - Updated to webpack 4
+- Added moduleRoots option to config
+- Moved chunk name options to app config base
+- Added some properties to htmlInject options - (runtimeChunkInline, dlls, icons and runtimeInlineOut)
+- Added internal html-inject-webpack-plugin webpack plugin
+- Added lazyModules option to config
+- Changed moduleConcatenation to concatenateModules
+- Added feature to pass global environment variable
+- When setting environmentVariables to false, node simulation will be disabled when targeting to web
 
 ## 5.2.5
 
