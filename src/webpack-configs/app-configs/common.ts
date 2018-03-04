@@ -282,7 +282,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     if (AngularBuildContext.isProductionMode &&
         !devServer &&
         appConfig.platformTarget !== 'node' &&
-        appConfig.moduleConcatenation !== false) {
+        appConfig.concatenateModules !== false) {
         concatenateModules = true;
     }
 

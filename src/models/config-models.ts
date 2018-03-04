@@ -321,7 +321,7 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Set true to enable scope hoisting.
      * Default true for production.
      */
-    moduleConcatenation?: boolean;
+    concatenateModules?: boolean;
     /**
      * Tell webpack what directories should be searched when resolving modules.
      */
