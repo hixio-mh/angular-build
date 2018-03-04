@@ -436,8 +436,8 @@ function applyAppProjectConfigDefaults(projectRoot: string,
         appConfig._nodeResolveFields = nodeResolveFields;
     }
 
-    if (appConfig.dll && (environment.dll || appConfig.referenceDll)) {
-        appConfig._dllParsedResult = parseDllEntries(srcDir, appConfig.dll);
+    if (appConfig.dlls && (environment.dll || appConfig.referenceDll)) {
+        appConfig._dllParsedResult = parseDllEntries(srcDir, appConfig.dlls);
     }
 
     if (!environment.dll && appConfig.polyfills && appConfig.polyfills.length > 0) {

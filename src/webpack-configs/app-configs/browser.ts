@@ -257,9 +257,9 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
                 AngularBuildContext.isProductionMode,
                 AngularBuildContext.commandOptions || {});
 
-            if (dllProjectConfig.dll &&
-                ((Array.isArray(dllProjectConfig.dll) && dllProjectConfig.dll.length > 0) ||
-                    (typeof dllProjectConfig.dll === 'object' && Object.keys(dllProjectConfig.dll).length > 0))) {
+            if (dllProjectConfig.dlls &&
+                ((Array.isArray(dllProjectConfig.dlls) && dllProjectConfig.dlls.length > 0) ||
+                    (typeof dllProjectConfig.dlls === 'object' && Object.keys(dllProjectConfig.dlls).length > 0))) {
 
                 dllAssetsFile = path.resolve(projectRoot, appConfig.outDir, `${vendorChunkName}-assets.json`);
                 injectDllAssets = true;

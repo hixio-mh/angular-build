@@ -278,8 +278,8 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     if (appConfig.bundleAnalyzer) {
         let hasEntry = false;
         if (isDll) {
-            if (appConfig.dll) {
-                const dllEntry = appConfig.dll;
+            if (appConfig.dlls) {
+                const dllEntry = appConfig.dlls;
                 if ((Array.isArray(dllEntry) && dllEntry.length > 0) ||
                     (typeof dllEntry === 'object' && Object.keys(dllEntry).length > 0)) {
                     hasEntry = true;

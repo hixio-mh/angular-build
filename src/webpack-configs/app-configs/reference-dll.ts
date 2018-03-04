@@ -44,9 +44,9 @@ export function getAppReferenceDllWebpackConfigPartial(angularBuildContext: Angu
         AngularBuildContext.isProductionMode,
         AngularBuildContext.commandOptions || {});
 
-    if (!dllProjectConfig.dll ||
-        (Array.isArray(dllProjectConfig.dll) && !dllProjectConfig.dll.length) ||
-        (typeof dllProjectConfig.dll === 'object' && !Object.keys(dllProjectConfig.dll).length)) {
+    if (!dllProjectConfig.dlls ||
+        (Array.isArray(dllProjectConfig.dlls) && !dllProjectConfig.dlls.length) ||
+        (typeof dllProjectConfig.dlls === 'object' && !Object.keys(dllProjectConfig.dlls).length)) {
         return {};
     }
 

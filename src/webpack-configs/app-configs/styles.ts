@@ -197,10 +197,10 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
 
     let shouldSuppressChunk = false;
     if (isDll) {
-        if (appConfig.dll) {
+        if (appConfig.dlls) {
             const dllResult = appConfig._dllParsedResult
                 ? appConfig._dllParsedResult
-                : parseDllEntries(srcDir, appConfig.dll);
+                : parseDllEntries(srcDir, appConfig.dlls);
             if (!appConfig._dllParsedResult) {
                 appConfig._dllParsedResult = dllResult;
             }

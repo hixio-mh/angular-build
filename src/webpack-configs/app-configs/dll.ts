@@ -88,7 +88,7 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext,
     const entries: string[] = [];
 
     // dll
-    if (appConfig.dll) {
+    if (appConfig.dlls) {
         if (!appConfig._dllParsedResult) {
             throw new InternalError("The 'appConfig._dllParsedResult' is not set");
         }

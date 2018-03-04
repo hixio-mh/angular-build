@@ -139,9 +139,8 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     polyfills?: string[] | string;
     /**
      * The vendor module entries for dll bundle.
-     * @default []
      */
-    dll?: string[] | DllOptions;
+    dlls?: string[] | DllOptions;
     /**
      * Module format for bundling.
      */
