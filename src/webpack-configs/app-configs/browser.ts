@@ -95,14 +95,16 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
         const tsConfigPath = appConfig._tsConfigPath;
         const tsLoaderOptions: { [key: string]: any } = {
             instance: `at-${appConfig.name || 'apps[' + appConfig._index + ']'}-loader`,
-            transpileOnly: appConfig.tsconfig && tsConfigPath ? false : true,
-            onlyCompileBundledFiles: appConfig.tsconfig && tsConfigPath ? true : false,
-            logLevel: AngularBuildContext.angularBuildConfig.logLevel,
+            transpileOnly: appConfig.tsconfig ? false : true,
+            onlyCompileBundledFiles: appConfig.tsconfig ? false : true,
             silent: AngularBuildContext.angularBuildConfig.logLevel !== 'debug'
         };
 
         if (appConfig.tsconfig && tsConfigPath) {
             tsLoaderOptions.configFile = tsConfigPath;
+        }
+        if (AngularBuildContext.angularBuildConfig.logLevel) {
+            tsLoaderOptions.logLevel = AngularBuildContext.angularBuildConfig.logLevel;
         }
 
         rules.push({
