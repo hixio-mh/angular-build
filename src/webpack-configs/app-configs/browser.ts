@@ -18,6 +18,12 @@ import {
 import { outputHashFormat } from '../../helpers/output-hash-format';
 import { applyProjectConfigDefaults, applyProjectConfigWithEnvOverrides } from '../../helpers/prepare-configs';
 
+/**
+ * Enumerate loaders and their dependencies from this file to let the dependency validator
+ * know they are used.
+ * require('ts-loader')
+ */
+
 export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBuildContext): any {
     const environment = AngularBuildContext.environment;
     if (environment.dll) {
@@ -58,7 +64,6 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
     const entryPoints: { [key: string]: string[] } = {};
     const rules: webpack.Rule[] = [];
     const plugins: webpack.Plugin[] = [];
-    const resolvePlugins: webpack.Plugin[] = [];
 
     // polyfills
     const tsEntries: any[] = [];
@@ -88,30 +93,28 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
 
     if (tsEntries.length > 0 && !appConfig.entry) {
         const tsConfigPath = appConfig._tsConfigPath;
+        const tsLoaderOptions: { [key: string]: any } = {
+            instance: `at-${appConfig.name || 'apps[' + appConfig._index + ']'}-loader`,
+            transpileOnly: appConfig.tsconfig && tsConfigPath ? false : true,
+            onlyCompileBundledFiles: appConfig.tsconfig && tsConfigPath ? true : false,
+            logLevel: AngularBuildContext.angularBuildConfig.logLevel,
+            silent: AngularBuildContext.angularBuildConfig.logLevel !== 'debug'
+        };
+
+        if (appConfig.tsconfig && tsConfigPath) {
+            tsLoaderOptions.configFile = tsConfigPath;
+        }
+
         rules.push({
             test: /\.ts$/,
             use: [
                 {
-                    loader: 'awesome-typescript-loader',
-                    options: {
-                        instance: `at-${appConfig.name || 'apps[' + appConfig._index + ']'}-loader`,
-                        configFileName: tsConfigPath,
-                        silent: true
-                    }
+                    loader: 'ts-loader',
+                    options: tsLoaderOptions
                 }
             ],
             include: tsEntries
         });
-
-        // `CheckerPlugin` is optional. Use it if you want async error reporting.
-        // We need this plugin to detect a `--watch` mode. It may be removed later
-        // after https://github.com/webpack/webpack/issues/3460 will be resolved.
-        const { CheckerPlugin, TsConfigPathsPlugin } = require('awesome-typescript-loader');
-        plugins.push(new CheckerPlugin());
-
-        if (tsConfigPath) {
-            resolvePlugins.push(new TsConfigPathsPlugin(tsConfigPath));
-        }
     }
 
     // global scripts
@@ -336,10 +339,9 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
             : false
     };
 
-    if (!appConfig.entry && tsEntries.length > 0 && resolvePlugins.length > 0) {
+    if (!appConfig.entry && tsEntries.length > 0) {
         (webpackConfig as any).resolve = {
-            extensions: ['.ts', '.js'],
-            plugins: resolvePlugins
+            extensions: ['.ts', '.js']
         };
     }
 
@@ -365,7 +367,6 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
             }
         };
     }
-
 
     if (entryPoints && Object.keys(entryPoints).length > 0) {
         (webpackConfig as any).entry = entryPoints;

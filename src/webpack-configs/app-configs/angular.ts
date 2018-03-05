@@ -17,16 +17,12 @@ import {
 } from '../../models';
 import { isWebpackDevServer } from '../../helpers/is-webpack-dev-server';
 
-const { CheckerPlugin, TsConfigPathsPlugin } = require('awesome-typescript-loader');
-
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
  * know they are used.
- * require('angular2-template-loader')
- * require('angular-router-loader')
- * require('awesome-typescript-loader')
- * require('cache-loader')
  * require('@angular-devkit/build-optimizer')
+ * require('cache-loader')
+ * require('ts-loader')
  */
 
 export function getAppAngularTypescriptWebpackConfigPartial(angularBuildContext: AngularBuildContext,
@@ -34,10 +30,6 @@ export function getAppAngularTypescriptWebpackConfigPartial(angularBuildContext:
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
     if (!appConfig.entry) {
         return {};
-    }
-
-    if (appConfig.useLegacyTsLoader) {
-        return getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext, env);
     }
 
     return getAngularPluginWebpackConfigPartial(angularBuildContext, env);
@@ -77,103 +69,6 @@ export function getAngularFixPlugins(angularBuildContext: AngularBuildContext): 
     }
 
     return angularFixPlugins;
-}
-
-function getAngularLegacyTypescriptWebpackConfigPartial(angularBuildContext: AngularBuildContext,
-    env?: PreDefinedEnvironment): webpack.Configuration {
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-
-    if (!appConfig.entry) {
-        return {};
-    }
-
-    const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
-
-    if (environment.aot) {
-        throw new InvalidConfigError(
-            `Can't use 'useLegacyTsLoader' when env = 'aot' - at '${appConfig._projectType}s[${appConfig._index
-            }].useLegacyTsLoader'.`);
-    }
-
-    const projectRoot = AngularBuildContext.projectRoot;
-    const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
-
-    const tsConfigFilePath = appConfig._tsConfigPath;
-
-    if (!appConfig.tsconfig && !tsConfigFilePath) {
-        throw new InvalidConfigError(
-            `The '${appConfig._projectType}s[${appConfig._index
-            }].tsconfig' value is required.`);
-    }
-
-    if (!tsConfigFilePath) {
-        throw new InvalidConfigError(
-            `Invalid tsconfig entry at '${appConfig._projectType}s[${appConfig._index
-            }].tsconfig'.`);
-    }
-
-    const plugins: webpack.Plugin[] = [new CheckerPlugin()];
-
-    const exclude = [/\.(spec|e2e|e2e-spec|test)\.ts$/];
-
-    // rules
-    const rules: webpack.Rule[] = [
-        {
-            test: /\.ts$/,
-            use: [
-                {
-                    loader: 'awesome-typescript-loader',
-                    options: {
-                        instance: `at-${appConfig.name || 'apps[' + appConfig._index + ']'}-loader`,
-                        configFileName: tsConfigFilePath,
-                        silent: verbose
-                    }
-                },
-                {
-                    loader: 'angular2-template-loader'
-                }
-            ],
-            exclude: exclude
-        },
-        {
-            test: /\.(ts|js)$/,
-            loaders: ['angular-router-loader']
-        }
-    ];
-
-    // angularFixPlugins
-    const angularFixPlugins = getAngularFixPlugins(angularBuildContext);
-    plugins.push(...angularFixPlugins);
-
-    // replace environment
-    const hostReplacementPaths = getHostReplacementPaths(projectRoot, appConfig);
-    if (hostReplacementPaths) {
-        Object.keys(hostReplacementPaths).forEach((key: string) => {
-            const resourcePath = key;
-            const newResourcePath = hostReplacementPaths[key];
-
-            // // Since it takes a RegExp as first parameter, we need to escape the path.
-            const escapedPath = resourcePath
-                .replace(/\\/g, '/')
-                .replace(/[\-\[\]\{\}\(\)\*\+\?\.\^\$]/g, '\\$&')
-                .replace(/\//g, '(\\\\|\\/)');
-            plugins.push(new webpack.NormalModuleReplacementPlugin(new RegExp(escapedPath), newResourcePath));
-        });
-    }
-
-    return {
-        resolve: {
-            plugins: [
-                new TsConfigPathsPlugin({
-                    configFileName: tsConfigFilePath
-                })
-            ]
-        },
-        module: {
-            rules: rules
-        },
-        plugins: plugins
-    };
 }
 
 function getAngularPluginWebpackConfigPartial(angularBuildContext: AngularBuildContext,
@@ -229,7 +124,7 @@ function getAngularPluginWebpackConfigPartial(angularBuildContext: AngularBuildC
                 },
                 {
                     loader: '@angular-devkit/build-optimizer/webpack-loader',
-                    options: { sourceMap: appConfig.sourceMap  }
+                    options: { sourceMap: appConfig.sourceMap }
                 }
             ],
         };

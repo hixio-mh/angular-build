@@ -150,10 +150,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     entry?: string;
     /**
-     * If true, the build process will use awesome-typescript-loader.
-     */
-    useLegacyTsLoader?: boolean;
-    /**
      * The typescript configuration file to be used.
      * @default tsconfig.json
      */

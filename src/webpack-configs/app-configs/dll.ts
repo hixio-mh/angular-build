@@ -23,7 +23,7 @@ const webpackMerge = require('webpack-merge');
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
  * know they are used.
- * require('awesome-typescript-loader')
+ * require('ts-loader')
  */
 
 export function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment): webpack.Configuration {
@@ -122,7 +122,6 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext,
     entryPoints[vendorChunkName] = entries;
 
     const rules: webpack.Rule[] = [];
-    const resolvePlugins: webpack.Plugin[] = [];
 
     // plugins
     const plugins: webpack.Plugin[] = [
@@ -151,30 +150,28 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext,
 
     if (tsEntries.length > 0) {
         const tsConfigPath = appConfig._tsConfigPath;
+        const tsLoaderOptions: { [key: string]: any } = {
+            instance: `at-${appConfig.name || 'apps[' + appConfig._index + ']'}-dll-loader`,
+            transpileOnly: appConfig.tsconfig && tsConfigPath ? false : true,
+            onlyCompileBundledFiles: appConfig.tsconfig && tsConfigPath ? true : false,
+            logLevel: AngularBuildContext.angularBuildConfig.logLevel,
+            silent: AngularBuildContext.angularBuildConfig.logLevel !== 'debug'
+        };
+
+        if (appConfig.tsconfig && tsConfigPath) {
+            tsLoaderOptions.configFile = tsConfigPath;
+        }
+
         rules.push({
             test: /\.ts$/,
             use: [
                 {
-                    loader: 'awesome-typescript-loader',
-                    options: {
-                        instance: `at-${appConfig.name || 'apps[' + appConfig._index + ']'}-dll-loader`,
-                        configFileName: tsConfigPath,
-                        silent: true
-                    }
+                    loader: 'ts-loader',
+                    options: tsLoaderOptions
                 }
             ],
             include: tsEntries
         });
-
-        // `CheckerPlugin` is optional. Use it if you want async error reporting.
-        // We need this plugin to detect a `--watch` mode. It may be removed later
-        // after https://github.com/webpack/webpack/issues/3460 will be resolved.
-        const { CheckerPlugin, TsConfigPathsPlugin } = require('awesome-typescript-loader');
-        plugins.push(new CheckerPlugin());
-
-        if (appConfig._tsConfigPath) {
-            resolvePlugins.push(new TsConfigPathsPlugin(tsConfigPath));
-        }
     }
 
     // es6-promise
@@ -192,7 +189,6 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext,
         entry: entryPoints,
         resolve: {
             extensions: tsEntries.length > 0 ? ['.ts', '.js'] : ['.js'],
-            plugins: resolvePlugins
         },
         output: {
             publicPath: appConfig.publicPath || '/',

@@ -505,10 +505,6 @@
                     "description": "The typescript configuration file to be used.",
                     "type": "string"
                 },
-                "useLegacyTsLoader": {
-                    "description": "If true, the build process will use awesome-typescript-loader.",
-                    "type": "boolean"
-                },
                 "vendorChunk": {
                     "description": "If true, requested modules started with node_modules path are chunk into [vendorChunkName].js.",
                     "type": "boolean"
@@ -917,10 +913,6 @@
                     "default": "tsconfig.json",
                     "description": "The typescript configuration file to be used.",
                     "type": "string"
-                },
-                "useLegacyTsLoader": {
-                    "description": "If true, the build process will use awesome-typescript-loader.",
-                    "type": "boolean"
                 },
                 "vendorChunk": {
                     "description": "If true, requested modules started with node_modules path are chunk into [vendorChunkName].js.",
