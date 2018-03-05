@@ -1,16 +1,17 @@
 # Change Logs
 
-## vNext
+## 6.0.0-beta.0
 
-- Updated to webpack 4
+- Updated to webpack 4 and @ngtools/webpack@6.0.0-beta.4
 - Added moduleRoots option to config
-- Moved chunk name options to app config base
-- Added some properties to htmlInject options - (runtimeChunkInline, dlls, icons and runtimeInlineOut)
-- Added internal html-inject-webpack-plugin webpack plugin
+- Added some properties to htmlInject options - (runtimeChunkInline, dlls, icons, runtimeInlineOut, etc)
+- Added internal html-inject-webpack-plugin
 - Added lazyModules option to config
-- Changed moduleConcatenation to concatenateModules
 - Added feature to pass global environment variable
-- When setting environmentVariables to false, node simulation will be disabled when targeting to web
+- When setting environmentVariables to false, node simulation will be disabled if targeting to web
+- Changed in config model options
+- Updated samples
+- Updated npm dependencies
 
 ## 5.2.5
 
