@@ -24,7 +24,7 @@ import { applyProjectConfigDefaults, applyProjectConfigWithEnvOverrides } from '
  * require('ts-loader')
  */
 
-export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBuildContext): any {
+export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBuildContext): webpack.Configuration {
     const environment = AngularBuildContext.environment;
     if (environment.dll) {
         return {};
@@ -317,7 +317,7 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
         });
     }
 
-    const webpackConfig = {
+    const webpackConfig: webpack.Configuration = {
         module: {
             rules: rules
         },
@@ -325,37 +325,38 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
         performance: performanceOptions,
         output: {
             publicPath: appConfig.publicPath || '/'
-        },
-        node: appConfig.environmentVariables
-            ? {
-                process: true, // default: true
-                global: true, // default: true
-                fs: 'empty', // default: 'empty'
-                crypto: 'empty',
-                tls: 'empty',
-                net: 'empty',
-                module: false,
-                clearImmediate: false,
-                setImmediate: false, // default: true
-            }
-            : false
+        }
     };
 
+    if (appConfig.environmentVariables) {
+        webpackConfig.node = {
+            process: true, // default: true
+            global: true, // default: true
+            fs: 'empty', // default: 'empty'
+            crypto: 'empty',
+            tls: 'empty',
+            net: 'empty',
+            module: false,
+            clearImmediate: false,
+            setImmediate: false, // default: true
+        };
+    }
+
     if (!appConfig.entry && tsEntries.length > 0) {
-        (webpackConfig as any).resolve = {
+        webpackConfig.resolve = {
             extensions: ['.ts', '.js']
         };
     }
 
     if (appConfig.entry) {
-        (webpackConfig as any).optimization = {
+        webpackConfig.optimization = {
             runtimeChunk: 'single',
             splitChunks: {
-                chunks: appConfig.commonChunk ? 'all' : 'initial',
+                chunks: (appConfig.commonChunk ? 'all' : 'initial') as any,
                 cacheGroups: {
                     vendors: false,
-                    vendor: vendorChunk ?
-                        {
+                    vendor: vendorChunk
+                        ? {
                             name: vendorChunkName,
                             chunks: 'initial',
                             test: (module: any, chunks: Array<{ name: string }>) => {
@@ -364,14 +365,15 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
                                     !chunks.some(
                                         ({ name }) => name === polyfillsChunkName || styleEntryNames.includes(name));
                             },
-                        } : false,
-                }
+                        }
+                        : false,
+                } as any
             }
         };
     }
 
     if (entryPoints && Object.keys(entryPoints).length > 0) {
-        (webpackConfig as any).entry = entryPoints;
+        webpackConfig.entry = entryPoints;
     }
 
     return webpackConfig;

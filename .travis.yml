@@ -11,11 +11,7 @@ env:
 os:
   - linux
   - osx
-osx_image: xcode8.2
-addons:
-  apt:
-    packages:
-      - libunwind8
+osx_image: xcode9.2
 branches:
   only:
     - master

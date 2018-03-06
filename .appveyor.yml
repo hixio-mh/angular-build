@@ -11,7 +11,7 @@ environment:
   ANGULAR_BUILD_TELEMETRY_OPTOUT: 1
   npm_auth_token:
     secure: 2G57TJwGR3m40UD1G7YdkowFzezrhOxEzMKwehKpb1vNPbsbFzfKRIFYVQ7WzZzE
-  nodejs_version: "8"
+  nodejs_version: "6"
 matrix:
   fast_finish: true
 install:
@@ -30,7 +30,7 @@ test_script:
   - npm run build:test-all
 deploy_script:
   - ps: |
-      if ($env:nodejs_version -eq "8")
+      if ($env:deploy -eq "publish")
       {
         iex "npm pack ./dist --access=public"
         iex "npm publish ./dist --access=public"

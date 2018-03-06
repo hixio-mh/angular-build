@@ -20,7 +20,7 @@ function generateSchema() {
     fs.ensureDirSync(schemaOutDir);
 
     // angular-build schema
-    spawn.sync(path.join(process.cwd(), 'node_modules', '.bin', 'typescript-json-schema'),
+    spawn.sync(path.join(process.cwd(), 'node_modules/.bin/typescript-json-schema'),
         [angularBuildConfigModelInput, angularBuildConfigSymbol, '-o', angularBuildConfigSchemaOutput],
         { cwd: __dirname, stdio: 'inherit' });
     spawn.sync(path.join(process.cwd(), 'node_modules/.bin/ajv'),

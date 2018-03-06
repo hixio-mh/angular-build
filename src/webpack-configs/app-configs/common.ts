@@ -37,7 +37,7 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 type WebpackLibraryTarget = 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd';
 
 export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBuildContext,
-    env?: PreDefinedEnvironment): { [key: string]: any } {
+    env?: PreDefinedEnvironment): webpack.Configuration {
     const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
     const projectRoot = AngularBuildContext.projectRoot;
     const fromAngularBuildCli = AngularBuildContext.fromAngularBuildCli;
@@ -387,7 +387,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     }
 
     // webpack config
-    const webpackCommonConfig = {
+    const webpackCommonConfig: webpack.Configuration = {
         name: appConfig.name,
         mode: AngularBuildContext.isProductionMode
             ? 'production'
@@ -474,7 +474,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         if (!outDirRel.endsWith('/')) {
             outDirRel = outDirRel + '/';
         }
-        (webpackCommonConfig as any).devServer = {
+        webpackCommonConfig.devServer = {
             historyApiFallback: true,
             contentBase: path.join(projectRoot, outDirRel),
             stats: statOptions

@@ -27,7 +27,8 @@ fs.writeFileSync(path.resolve(destDir, 'package.json'), JSON.stringify(packageJs
 // copy files
 fs.copySync(path.resolve(rootDir, 'README.md'), path.resolve(destDir, 'README.md'));
 fs.copySync(path.resolve(rootDir, 'LICENSE'), path.resolve(destDir, 'LICENSE'));
-fs.copySync(path.resolve(rootDir, 'bin', 'ngb'), path.resolve(destDir, 'bin', 'ngb'));
+fs.copySync(path.resolve(rootDir, 'bin/ngb'), path.resolve(destDir, 'bin/ngb'));
+fs.copySync(path.resolve(rootDir, 'bin/ngb-cli.js'), path.resolve(destDir, 'bin/ngb-cli.js'));
 
 // copy scripts
 fs.copy(path.resolve(rootDir, 'scripts'), path.resolve(destDir, 'scripts'));

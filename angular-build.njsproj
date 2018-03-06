@@ -92,7 +92,6 @@
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\" />
     <Folder Include="src\plugins\telemetry-webpack-plugin\" />
     <Folder Include="src\plugins\telemetry-webpack-plugin\src\" />
-    <Folder Include="test\" />
     <Folder Include="src\cli\" />
     <Folder Include="src\cli\build\" />
     <Folder Include="src\plugins\cleancss-webpack-plugin\" />
@@ -227,6 +226,7 @@
     <TypeScriptCompile Include="samples\hello-world-ng-lib-build-test\src\index.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="bin\ngb-cli.js" />
     <Compile Include="samples\hello-world-ng-app-build-test\webpack.config.js" />
     <Compile Include="scripts\postinstall.js" />
     <Compile Include="tools\generate-schema.js" />
