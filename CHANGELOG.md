@@ -1,6 +1,6 @@
 # Change Logs
 
-## 6.0.0-beta.1
+## 6.0.0-beta.2
 
 - Updated to webpack 4 and @ngtools/webpack@6.0.0-beta.4
 - Added moduleRoots option to config
