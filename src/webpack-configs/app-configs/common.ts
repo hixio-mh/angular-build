@@ -213,8 +213,9 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
                 appConfig._ecmaVersion && appConfig._ecmaVersion > 5
                     ? 'rxjs/_esm2015/path-mapping'
                     : 'rxjs/_esm5/path-mapping';
-            const rxPaths = require(resolve.sync(rxjsPathMappingImportModuleName, { basedir: projectRoot }));
-            alias = rxPaths(AngularBuildContext.nodeModulesPath);
+            const pathMapping = require(resolve.sync(rxjsPathMappingImportModuleName,
+                { basedir: AngularBuildContext.nodeModulesPath || projectRoot }));
+            alias = pathMapping();
         } catch (e) {
             logger.warn(`Failed rxjs path alias. ${e.message}`);
         }

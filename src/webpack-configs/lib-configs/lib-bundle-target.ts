@@ -13,9 +13,11 @@ import {
     InvalidConfigError,
     LibProjectConfigInternal
 } from '../../models';
-import { defaultAngularAndRxJsExternals } from '../../helpers/angular-rxjs-externals';
+
+import { getAngularGlobals } from '../../helpers/angular-globals';
 import { isWebpackDevServer } from '../../helpers/is-webpack-dev-server';
 import { getCustomWebpackConfig } from '../../helpers/get-custom-webpack-config';
+import { getRxJsGlobals } from '../../helpers/rxjs-globals';
 
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
@@ -24,7 +26,7 @@ const webpackMerge = require('webpack-merge');
 /**
  * Enumerate loaders and their dependencies from this file to let the dependency validator
  * know they are used.
- * require('awesome-typescript-loader')
+ * require('ts-loader')
  */
 
 type WebpackLibraryTarget = 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd';
@@ -86,9 +88,10 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
     }
 
     if (typeof currentBundle.externals === 'undefined') {
-        if (currentBundle.angularAndRxJsAsExternals ||
-            (currentBundle.angularAndRxJsAsExternals !== false && !includeCommonJsModules)) {
-            externals.push(Object.assign({}, defaultAngularAndRxJsExternals));
+        if (currentBundle.includeAngularAndGlobals ||
+            (currentBundle.includeAngularAndGlobals !== false && !includeCommonJsModules)) {
+            externals.push(getAngularGlobals());
+            externals.push(getRxJsGlobals());
         }
     } else {
         let noExternals = false;
@@ -99,9 +102,9 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
         }
 
         if (noExternals) {
-            if (currentBundle.angularAndRxJsAsExternals !== false) {
-                const defaultExternals = Object.assign({}, defaultAngularAndRxJsExternals);
-                externals.push(defaultExternals);
+            if (currentBundle.includeAngularAndGlobals !== false) {
+                externals.push(getAngularGlobals());
+                externals.push(getRxJsGlobals());
             }
         } else {
             if (Array.isArray(currentBundle.externals)) {
@@ -110,15 +113,15 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
                 externals.push(currentBundle.externals);
             }
 
-            if (currentBundle.angularAndRxJsAsExternals !== false) {
-                const defaultExternals = Object.assign({}, defaultAngularAndRxJsExternals);
-                externals.push(defaultExternals);
+            if (currentBundle.includeAngularAndGlobals !== false) {
+                externals.push(getAngularGlobals());
+                externals.push(getRxJsGlobals());
             }
         }
     }
 
     const rules: webpack.Rule[] = [];
-    const plugins: webpack.Plugin[] = [new webpack.NoEmitOnErrorsPlugin()];
+    const plugins: webpack.Plugin[] = [];
     const resolvePlugins: webpack.Plugin[] = [];
 
     // progress
@@ -139,28 +142,29 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
 
     if (isTsEntry) {
         const tsConfigPath = currentBundle._tsConfigPath;
+        const tsLoaderOptions: { [key: string]: any } = {
+            instance: `at-${libConfig.name || 'libs[' + libConfig._index + ']'}-loader`,
+            transpileOnly: currentBundle.tsconfig ? false : true,
+            onlyCompileBundledFiles: currentBundle.tsconfig ? false : true,
+            silent: AngularBuildContext.angularBuildConfig.logLevel !== 'debug'
+        };
+
+        if (currentBundle.tsconfig && tsConfigPath) {
+            tsLoaderOptions.configFile = tsConfigPath;
+        }
+        if (AngularBuildContext.angularBuildConfig.logLevel) {
+            tsLoaderOptions.logLevel = AngularBuildContext.angularBuildConfig.logLevel;
+        }
 
         rules.push({
             test: /\.ts$/,
             use: [
                 {
-                    loader: 'awesome-typescript-loader',
-                    options: {
-                        instance: `at-${libConfig.name || 'libs[' + libConfig._index + ']'}-loader`,
-                        configFileName: tsConfigPath,
-                        silent: true
-                    }
+                    loader: 'ts-loader',
+                    options: tsLoaderOptions
                 }
             ]
         });
-
-        // `CheckerPlugin` is optional. Use it if you want async error reporting.
-        // We need this plugin to detect a `--watch` mode. It may be removed later
-        // after https://github.com/webpack/webpack/issues/3460 will be resolved.
-        const { CheckerPlugin, TsConfigPathsPlugin } = require('awesome-typescript-loader');
-        plugins.push(new CheckerPlugin());
-
-        resolvePlugins.push(new TsConfigPathsPlugin(tsConfigPath));
     }
 
     const nodeModulePaths = ['node_modules'];
@@ -192,7 +196,7 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
 
     let alias: any = {};
     if (!currentBundle.nodeModulesAsExternals &&
-        !currentBundle.angularAndRxJsAsExternals &&
+        !currentBundle.includeAngularAndGlobals &&
         AngularBuildContext.nodeModulesPath &&
         existsSync(path.resolve(AngularBuildContext.nodeModulesPath, 'rxjs'))) {
         try {
@@ -200,8 +204,9 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
                 currentBundle._ecmaVersion && currentBundle._ecmaVersion > 5
                     ? 'rxjs/_esm2015/path-mapping'
                     : 'rxjs/_esm5/path-mapping';
-            const rxPaths = require(resolve.sync(rxjsPathMappingImportModuleName, { basedir: projectRoot }));
-            alias = rxPaths(AngularBuildContext.nodeModulesPath);
+            const pathMapping = require(resolve.sync(rxjsPathMappingImportModuleName,
+                { basedir: AngularBuildContext.nodeModulesPath || projectRoot }));
+            alias = pathMapping();
         } catch (e) {
             logger.warn(`Failed rxjs path alias. ${e.message}`);
         }
@@ -216,7 +221,7 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
         }));
     }
 
-    const webpackConfig = {
+    const webpackConfig: webpack.Configuration = {
         target: platformTarget,
         devtool: libConfig.sourceMap ? 'source-map' : undefined,
         entry: currentBundle._entryFilePath,
@@ -248,15 +253,15 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
     };
 
     if (currentBundle.minify) {
-        (webpackConfig as any).optimization = {
+        webpackConfig.optimization = {
             minimizer: [
                 new webpack.HashedModuleIdsPlugin(),
                 new UglifyJSPlugin({
                     // extractComments: true,
                     sourceMap: libConfig.sourceMap,
-                    warningsFilter: (resourceId: string): boolean => {
-                        return !!resourceId && /(\\|\/)node_modules(\\|\/)/.test(resourceId);
-                    },
+                    // warningsFilter: (resourceId: string): boolean => {
+                    //    return !!resourceId && /(\\|\/)node_modules(\\|\/)/.test(resourceId);
+                    // },
                     parallel: true,
                     cache: true,
                     uglifyOptions: {
@@ -264,13 +269,8 @@ export function getLibBundleTargetWebpackConfig(angularBuildContext: AngularBuil
                         ecma: currentBundle._ecmaVersion, // default undefined
                         safari10: true,
                         compress: {
-                            passes: 3,
                             pure_getters: true,
-                            // Disabled because of an issue with Mapbox GL when using the Webpack node global and UglifyJS:
-                            // https://github.com/mapbox/mapbox-gl-js/issues/4359#issuecomment-303880888
-                            // https://github.com/angular/angular-cli/issues/5804
-                            // https://github.com/angular/angular-cli/pull/7931
-                            typeofs: false
+                            passes: 3
                         },
                         warnings: verbose, // default false
                         output: {

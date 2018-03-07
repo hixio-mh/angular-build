@@ -1,7 +1,9 @@
 import * as path from 'path';
 import * as rollup from 'rollup';
 
-import { defaultAngularAndRxJsExternals } from '../helpers/angular-rxjs-externals';
+import { getAngularGlobals } from '../helpers/angular-globals';
+import { getRxJsGlobals } from '../helpers/rxjs-globals';
+
 import {
     AngularBuildContext,
     BundleOptionsInternal,
@@ -54,16 +56,18 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
     }
 
     if (typeof currentBundle.externals === 'undefined') {
-        if (currentBundle.angularAndRxJsAsExternals ||
-            (currentBundle.angularAndRxJsAsExternals !== false && !includeCommonJsModules)) {
+        if (currentBundle.includeAngularAndGlobals ||
+            (currentBundle.includeAngularAndGlobals !== false && !includeCommonJsModules)) {
             if (libraryTarget === 'es') {
-                rawExternals.push(Object.assign({
+                rawExternals.push({
                     'tslib': 'tslib'
-                },
-                    defaultAngularAndRxJsExternals));
-            } else {
-                rawExternals.push(Object.assign({}, defaultAngularAndRxJsExternals));
+                });
             }
+
+            rawExternals.push({
+                ...getAngularGlobals(),
+                ...getRxJsGlobals()
+            });
         }
     } else {
         let noExternals = false;
@@ -74,27 +78,29 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext,
         }
 
         if (noExternals) {
-            if (currentBundle.angularAndRxJsAsExternals !== false) {
-                let defaultExternals = Object.assign({}, defaultAngularAndRxJsExternals);
+            if (currentBundle.includeAngularAndGlobals !== false) {
                 if (libraryTarget === 'es') {
-                    defaultExternals = Object.assign({
+                    rawExternals.push({
                         'tslib': 'tslib'
-                    },
-                        defaultExternals);
+                    });
                 }
-                rawExternals.push(defaultExternals);
+                rawExternals.push({
+                    ...getAngularGlobals(),
+                    ...getRxJsGlobals()
+                });
             }
         } else {
-            if (currentBundle.angularAndRxJsAsExternals !== false) {
-                let defaultExternals = Object.assign({}, defaultAngularAndRxJsExternals);
+            if (currentBundle.includeAngularAndGlobals !== false) {
                 if (libraryTarget === 'es') {
-                    defaultExternals = Object.assign({
+                    rawExternals.push({
                         'tslib': 'tslib'
-                    },
-                        defaultExternals);
+                    });
                 }
+                rawExternals.push({
+                    ...getAngularGlobals(),
+                    ...getRxJsGlobals()
+                });
 
-                rawExternals.push(defaultExternals);
                 if (Array.isArray(currentBundle.externals)) {
                     rawExternals.push(...currentBundle.externals);
                 } else {
@@ -212,7 +218,7 @@ function mapToRollupGlobalsAndExternals(external: ExternalsEntry,
         }
     } else if (typeof external === 'object') {
         Object.keys(external).forEach((k: string) => {
-            const tempValue = external[k];
+            const tempValue = external[k] as any;
             if (typeof tempValue === 'string') {
                 mapResult.globals[k] = tempValue;
                 if (!mapResult.externals.includes(k)) {

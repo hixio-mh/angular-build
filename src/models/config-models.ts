@@ -495,10 +495,10 @@ export interface BundleOptions {
      */
     nodeModulesAsExternals?: boolean;
     /**
-     * If true, default Angular and RxJs global module names are added as externals.
+     * If true, predefined Angular global are added.
      * @default  true
      */
-    angularAndRxJsAsExternals?: boolean;
+    includeAngularAndGlobals?: boolean;
     /**
      * If true, minify file will be generated.
      */
