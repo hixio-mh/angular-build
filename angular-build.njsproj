@@ -139,8 +139,9 @@
     <TypeScriptCompile Include="src\helpers\run-webpack.ts" />
     <TypeScriptCompile Include="src\cli\cli-options.ts" />
     <TypeScriptCompile Include="src\cli\index.ts" />
-    <TypeScriptCompile Include="src\helpers\angular-rxjs-externals.ts" />
+    <TypeScriptCompile Include="src\helpers\angular-globals.ts" />
     <TypeScriptCompile Include="src\helpers\get-custom-webpack-config.ts" />
+    <TypeScriptCompile Include="src\helpers\rxjs-globals.ts" />
     <TypeScriptCompile Include="src\plugins\html-inject-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\html-inject-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\postcss-cli-resources\index.ts" />

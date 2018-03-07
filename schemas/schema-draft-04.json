@@ -998,11 +998,6 @@
         },
         "BundleOptions": {
             "properties": {
-                "angularAndRxJsAsExternals": {
-                    "default": true,
-                    "description": "If true, default Angular and RxJs global module names are added as externals.",
-                    "type": "boolean"
-                },
                 "bundleTool": {
                     "default": "rollup",
                     "description": "Bundle tool to be used.",
@@ -1050,6 +1045,11 @@
                         }
                     ],
                     "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
+                },
+                "includeAngularAndGlobals": {
+                    "default": true,
+                    "description": "If true, predefined Angular global are added.",
+                    "type": "boolean"
                 },
                 "libraryTarget": {
                     "description": "Bundle module format.",
