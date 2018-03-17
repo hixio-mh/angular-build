@@ -14,23 +14,19 @@ matrix:
   include:
     - os: linux
       node_js: "node"
-      env: JOB_PART=build
-    - os: linux
-      node_js: "node"
       env: JOB_PART=build:test-all
     - os: linux
-      node_js: "6"
-      env: JOB_PART=build
+      node_js: "stable"
+      env: JOB_PART=build:test-all
     - os: linux
       node_js: "6"
       env: JOB_PART=build:test-all
     - os: osx
       node_js: "8"
-      env: JOB_PART=build
+      env: JOB_PART=build:test-all
   fast_finish: true
   allow_failures:
     - os: osx
-    - env: node9
 
 cache:
   directories:

@@ -45,7 +45,7 @@
     "ngb:version": "node dist/bin/ngb --version",
     "test": "echo \"Error: no test specified\" ",
     "build": "npm run clean && npm run lint && npm run tsc && npm run generate-schema && npm run copy-files && npm run ngb:version",
-    "build:test-all": "npm run build:test-app && npm run build:test-app-prod && npm run build:test-lib && npm run build:test-lib-prod",
+    "build:test-all": "npm run build && npm run build:test-app && npm run build:test-app-prod && npm run build:test-lib && npm run build:test-lib-prod",
     "build:test-app": "node dist/bin/ngb build --config=samples/hello-world-ng-app-build-test/angular-build.json --disable-telemetry",
     "build:test-app-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-app-build-test/angular-build.json --disable-telemetry --env.prod --env.aot",
     "build:test-lib": "node dist/bin/ngb build --config=samples/hello-world-ng-lib-build-test/angular-build.json  --disable-telemetry",

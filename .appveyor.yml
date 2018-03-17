@@ -11,13 +11,11 @@ environment:
   ANGULAR_BUILD_TELEMETRY_OPTOUT: 1
   npm_auth_token:
     secure: 2G57TJwGR3m40UD1G7YdkowFzezrhOxEzMKwehKpb1vNPbsbFzfKRIFYVQ7WzZzE
-  nodejs_version: "6"
+  nodejs_version: "8"
 matrix:
   fast_finish: true
 install:
   - ps: Install-Product node $env:nodejs_version
-  - set CI=true
-  - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
   - ps: '"//registry.npmjs.org/:_authToken=$env:npm_auth_token`n" | out-file "$env:userprofile\.npmrc" -Encoding ASCII'
@@ -25,9 +23,8 @@ install:
   - node --version
   - npm --version
 build_script:
-  - npm run build
-test_script:
   - npm run build:test-all
+test: off
 deploy_script:
   - ps: |
       if ($env:deploy -eq "publish")
