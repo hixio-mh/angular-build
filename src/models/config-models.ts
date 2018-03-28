@@ -285,11 +285,11 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     /**
      * Path to the translation file.
      */
-    i18nFile?: string;
+    i18nInFile?: string;
     /**
      * Import format if different from `i18nFormat`.
      */
-    i18nFormat?: string;
+    i18nInFormat?: string;
     /**
      * Locale of the imported translations.
      */
@@ -307,6 +307,10 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Export format (xlf, xlf2 or xmb).
      */
     i18nOutFormat?: string;
+    /**
+     * Run the TypeScript type checker in a forked process.
+     */
+    forkTypeChecker?: boolean;
     /**
      * Set true to enable scope hoisting.
      * Default true for production.

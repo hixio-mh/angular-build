@@ -1,5 +1,10 @@
 # Change Logs
 
+## 6.0.0-beta.4
+
+- Updated angular 6
+- Updated npm dependencies
+
 ## 6.0.0-beta.3
 
 - Updated angular and rxjs globals handling for rollup

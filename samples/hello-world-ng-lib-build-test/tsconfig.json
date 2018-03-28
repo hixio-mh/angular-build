@@ -38,7 +38,9 @@
   "angularCompilerOptions": {
     "annotateForClosureCompiler": true,
     "strictMetadataEmit": true,
+    "skipTemplateCodegen": true,
     "flatModuleOutFile": "index.js",
-    "flatModuleId": "hello-world"
+    "flatModuleId": "\"hello-world\"m",
+    "debug": true
   }
 }

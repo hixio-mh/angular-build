@@ -75,10 +75,6 @@ function getAngularPluginWebpackConfigPartial(angularBuildContext: AngularBuildC
     env?: PreDefinedEnvironment): webpack.Configuration {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
 
-    if (!appConfig.entry) {
-        return {};
-    }
-
     const environment = env ? env as PreDefinedEnvironment : AngularBuildContext.environment;
     const projectRoot = AngularBuildContext.projectRoot;
     const cliIsGlobal = AngularBuildContext.cliIsGlobal;
@@ -183,16 +179,8 @@ function getAngularPluginWebpackConfigPartial(angularBuildContext: AngularBuildC
 function createAotPlugin(angularBuildContext: AngularBuildContext, options: AngularCompilerPluginOptions): webpack.Plugin {
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
 
-    if (!appConfig.entry) {
-        throw new InvalidConfigError(
-            `The '${appConfig._projectType}s[${appConfig._index
-            }].entry' value is required.`);
-    }
-
     const projectRoot = AngularBuildContext.projectRoot;
     const srcDir = path.resolve(projectRoot, appConfig.srcDir || '');
-
-    options.compilerOptions = options.compilerOptions || {};
 
     const hostReplacementPaths = getHostReplacementPaths(projectRoot, appConfig);
 
@@ -211,24 +199,30 @@ function createAotPlugin(angularBuildContext: AngularBuildContext, options: Angu
         nameLazyFiles = !AngularBuildContext.isProductionMode;
     }
 
-    const pluginOptions: AngularCompilerPluginOptions = Object.assign({},
-        {
-            tsConfigPath: appConfig._tsConfigPath,
-            mainPath: path.join(srcDir, appConfig.entry),
-            i18nFile: appConfig.i18nFile,
-            i18nFormat: appConfig.i18nFormat,
-            i18nOutFile: appConfig.i18nOutFile,
-            i18nOutFormat: appConfig.i18nOutFormat,
-            locale: appConfig.locale,
-            platform: appConfig.platformTarget === 'node' ? PLATFORM.Server : PLATFORM.Browser,
-            missingTranslation: appConfig.missingTranslation,
-            hostReplacementPaths: hostReplacementPaths,
-            sourceMap: appConfig.sourceMap,
-            additionalLazyModules,
-            nameLazyFiles: nameLazyFiles
-        }, options);
-    return new AngularCompilerPlugin(pluginOptions);
+    const i18nInFile = appConfig.i18nInFile
+        ? path.resolve(srcDir, appConfig.i18nInFile)
+        : undefined;
 
+    const pluginOptions: AngularCompilerPluginOptions = {
+        mainPath: appConfig.entry ? path.join(srcDir, appConfig.entry) : undefined,
+        tsConfigPath: appConfig._tsConfigPath,
+        i18nInFile: i18nInFile,
+        i18nInFormat: appConfig.i18nInFormat,
+        i18nOutFile: appConfig.i18nOutFile,
+        i18nOutFormat: appConfig.i18nOutFormat,
+        locale: appConfig.locale,
+        platform: appConfig.platformTarget === 'node' ? PLATFORM.Server : PLATFORM.Browser,
+        missingTranslation: appConfig.missingTranslation,
+        hostReplacementPaths: hostReplacementPaths,
+        sourceMap: appConfig.sourceMap,
+        additionalLazyModules,
+        nameLazyFiles: nameLazyFiles,
+        forkTypeChecker: appConfig.forkTypeChecker,
+        ...options
+        // host: angularBuildContext.host
+    };
+
+    return new AngularCompilerPlugin(pluginOptions);
 }
 
 function getHostReplacementPaths(projectRoot: string, appConfig: AppProjectConfigInternal): { [key: string]: string } {

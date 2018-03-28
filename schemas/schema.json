@@ -245,15 +245,19 @@
                     ],
                     "description": "The favicons configuration file or object."
                 },
+                "forkTypeChecker": {
+                    "description": "Run the TypeScript type checker in a forked process.",
+                    "type": "boolean"
+                },
                 "htmlInject": {
                     "$ref": "#/definitions/HtmlInjectOptions",
                     "description": "The html injection options."
                 },
-                "i18nFile": {
+                "i18nInFile": {
                     "description": "Path to the translation file.",
                     "type": "string"
                 },
-                "i18nFormat": {
+                "i18nInFormat": {
                     "description": "Import format if different from `i18nFormat`.",
                     "type": "string"
                 },
@@ -662,15 +666,19 @@
                     ],
                     "description": "The favicons configuration file or object."
                 },
+                "forkTypeChecker": {
+                    "description": "Run the TypeScript type checker in a forked process.",
+                    "type": "boolean"
+                },
                 "htmlInject": {
                     "$ref": "#/definitions/HtmlInjectOptions",
                     "description": "The html injection options."
                 },
-                "i18nFile": {
+                "i18nInFile": {
                     "description": "Path to the translation file.",
                     "type": "string"
                 },
-                "i18nFormat": {
+                "i18nInFormat": {
                     "description": "Import format if different from `i18nFormat`.",
                     "type": "string"
                 },

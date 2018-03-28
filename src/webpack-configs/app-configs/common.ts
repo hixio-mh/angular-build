@@ -393,8 +393,8 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         mode: AngularBuildContext.isProductionMode
             ? 'production'
             : AngularBuildContext.commandOptions.mode
-                ? AngularBuildContext.commandOptions.mode
-                : 'development',
+            ? AngularBuildContext.commandOptions.mode
+            : 'development',
         target: appConfig.platformTarget,
         devtool: (devtool as any),
         profile: profile,
@@ -451,7 +451,10 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
                             safari10: true,
                             compress: {
                                 pure_getters: true,
-                                passes: 3
+                                passes: 3,
+                                // Workaround known uglify-es issue
+                                // See https://github.com/mishoo/UglifyJS2/issues/2949#issuecomment-368070307
+                                inline: appConfig._ecmaVersion && appConfig._ecmaVersion > 5 ? 1 : 3
                             },
                             warnings: verbose, // default false
                             output: {

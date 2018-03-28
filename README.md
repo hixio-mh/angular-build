@@ -25,7 +25,7 @@ Build tool for Angular app and library projects similar to [angular-cli](https:/
 Prerequisites
 ---------------
 
-Make sure you have [Node](https://nodejs.org/en/download/) version >= 6.9 and npm >= 3.
+Make sure you have [Node](https://nodejs.org/en/download/) version >= 8.9 and npm >= 5.5.1.
 
 Table of Contents
 ---------------

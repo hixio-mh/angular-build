@@ -136,9 +136,9 @@ function _cliLocal(projectRoot) {
 
 // main
 const _version = new SemVer(process.version);
-if (_version.compare(new SemVer('6.9.0')) < 0) {
+if (_version.compare(new SemVer('8.9.0')) < 0) {
     console.warn(_yellow(`You are running version ${_version.version} of Node, which will not be supported by the angular-build cli.\n` +
-        'The official Node version that will be supported is 6.9 and greater.'));
+        'The official Node version that will be supported is 8.9.0 and greater.'));
 }
 
 let _projectRoot = process.cwd();

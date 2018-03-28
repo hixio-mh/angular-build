@@ -55,6 +55,7 @@
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.scss" />
     <Content Include="samples\hello-world-ng-app-build-test\src\assets\.gitkeep" />
     <Content Include="samples\hello-world-ng-app-build-test\src\favicon-config.json" />
     <Content Include="samples\hello-world-ng-app-build-test\src\favicon.svg" />
@@ -63,7 +64,6 @@
     <Content Include="samples\hello-world-ng-app-build-test\src\styles\_variables.scss" />
     <Content Include="src\plugins\favicons-webpack-plugin\package.json" />
     <Content Include="samples\hello-world-ng-app-build-test\angular-build.json" />
-    <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.css" />
     <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.html" />
     <Content Include="samples\hello-world-ng-app-build-test\src\favicon.ico" />
     <Content Include="samples\hello-world-ng-app-build-test\src\index.html" />
@@ -83,11 +83,13 @@
     <Folder Include=".github\" />
     <Folder Include="bin\" />
     <Folder Include="samples\" />
+    <Folder Include="samples\hello-world-ng-app-build-test\src\app\feature\" />
     <Folder Include="samples\hello-world-ng-app-build-test\src\assets\" />
     <Folder Include="samples\hello-world-ng-app-build-test\src\styles\" />
     <Folder Include="scripts\" />
     <Folder Include="src\plugins\html-inject-webpack-plugin\" />
     <Folder Include="src\plugins\html-inject-webpack-plugin\src\" />
+    <Folder Include="src\plugins\raw-css-loader\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\" />
     <Folder Include="src\plugins\telemetry-webpack-plugin\" />
@@ -132,6 +134,10 @@
     <Folder Include="tools\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\app\feature\feature.module.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\app\feature\lazy-feature.module.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\app\my-injectable.ts" />
+    <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\app\lazy.module.ts" />
     <TypeScriptCompile Include="samples\hello-world-ng-app-build-test\src\polyfills.ts" />
     <TypeScriptCompile Include="src\cli\build\build-command-module.ts" />
     <TypeScriptCompile Include="src\cli\build\cli-build.ts" />
@@ -145,6 +151,8 @@
     <TypeScriptCompile Include="src\plugins\html-inject-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\html-inject-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\postcss-cli-resources\index.ts" />
+    <TypeScriptCompile Include="src\plugins\raw-css-loader\index.ts" />
+    <TypeScriptCompile Include="src\plugins\raw-css-loader\raw-css-loader.ts" />
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\index.ts" />

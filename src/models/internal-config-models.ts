@@ -3,6 +3,8 @@ import * as path from 'path';
 
 import * as ts from 'typescript';
 
+// import { virtualFs } from '@angular-devkit/core';
+
 import { Logger } from '../utils/logger';
 import { isInFolder, isSamePaths } from '../utils/path-helpers';
 import { readJsonSync } from '../utils/read-json';
@@ -93,6 +95,7 @@ export class AngularBuildContext {
 
     // app only
     dllBuildOnly?: boolean;
+    // host: virtualFs.Host<{}>;
 
     private static _initialized = false;
 

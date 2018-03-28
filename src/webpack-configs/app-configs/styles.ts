@@ -3,15 +3,18 @@ import * as path from 'path';
 import * as webpack from 'webpack';
 
 import * as autoprefixer from 'autoprefixer';
-import * as ExtractTextPlugin from 'extract-text-webpack-plugin';
+// import * as ExtractTextPlugin from 'extract-text-webpack-plugin';
 
 import PostcssCliResources from '../../plugins/postcss-cli-resources';
 import { SuppressEntryChunksWebpackPlugin } from '../../plugins/suppress-entry-chunks-webpack-plugin';
+
+import { RawCssLoader } from '../../plugins/raw-css-loader';
 
 import { AngularBuildContext, AppProjectConfigInternal, InternalError, PreDefinedEnvironment } from '../../models';
 import { outputHashFormat } from '../../helpers/output-hash-format';
 import { parseDllEntries } from '../../helpers/parse-dll-entry';
 
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const postcssImports = require('postcss-import');
 const postcssUrl = require('postcss-url');
 
@@ -49,7 +52,10 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
         : '';
     const extractedCssHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&
         appConfig.bundlesHash
-        ? outputHashFormat.extractedCss
+        ?
+        // TODO: MiniCssExtractPlugin doesn't support contenthash
+        // outputHashFormat.extractedCss
+        outputHashFormat.extractedAssets
         : '';
 
     const includePaths: string[] = [];
@@ -177,19 +183,6 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
         }
     ];
 
-    const commonLoaders: webpack.Loader[] = [
-        { loader: 'raw-loader' }
-        // Or
-        // {
-        //    loader: cssLoader,
-        //    options: {
-        //        sourceMap: cssSourceMap,
-        //        import: false
-        //        //importLoaders: 1
-        //    }
-        // }
-    ];
-
     const entryPoints: { [key: string]: string[] } = {};
     const rules: webpack.Rule[] = [];
     const plugins: webpack.Plugin[] = [];
@@ -232,7 +225,9 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
         rules.push(...baseRules.map(({ test, use }) => {
             const extractTextPluginOptions = {
                 use: [
-                    ...commonLoaders,
+                    {
+                        loader: RawCssLoader
+                    },
                     {
                         loader: 'postcss-loader',
                         options: {
@@ -250,23 +245,20 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
             return {
                 include: globalStylePaths,
                 test,
-                use: extractCss
-                    ? ExtractTextPlugin.extract(extractTextPluginOptions)
-                    : appConfig.platformTarget === 'node'
-                        ? [
-                            ...extractTextPluginOptions.use
-                        ]
-                        : [
-                            'style-loader',
-                            ...extractTextPluginOptions.use
-                        ]
+                use: [
+                    // TODO: to review for appConfig.platformTarget === 'node'
+                    extractCss
+                    ? MiniCssExtractPlugin.loader
+                    : 'style-loader',
+                    ...extractTextPluginOptions.use
+                ]
             };
         }));
 
         if (extractCss) {
             // extract global css from js files into own css file
             plugins.push(
-                new ExtractTextPlugin({
+                new MiniCssExtractPlugin({
                     filename: `[name]${extractedCssHashFormat}.css`
                 }));
 
@@ -290,7 +282,9 @@ export function getAppStylesWebpackConfigPartial(angularBuildContext: AngularBui
         exclude: globalStylePaths,
         test,
         use: [
-            ...commonLoaders,
+            {
+                 loader: 'raw-loader'
+            },
             {
                 loader: 'postcss-loader',
                 options: {
