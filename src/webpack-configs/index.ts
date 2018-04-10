@@ -26,7 +26,6 @@ import { getLibWebpackConfig } from './lib';
 
 export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?: any, argv?: any): webpack.Configuration[] {
     let startTime = Date.now();
-
     if (!configPath || !configPath.length) {
         throw new InvalidOptionError("The 'configPath' is required.");
     }
