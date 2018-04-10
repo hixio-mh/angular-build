@@ -3,9 +3,9 @@ import * as path from 'path';
 import { copy } from 'fs-extra';
 import * as webpack from 'webpack';
 
-import { AssetEntry, InternalError, InvalidConfigError } from '../../../models';
-import { Logger, LoggerOptions } from '../../../utils/logger';
-import { isInFolder } from '../../../utils/path-helpers';
+import { InternalError, InvalidConfigError } from '../../../error-models';
+import { AssetEntry } from '../../../interfaces';
+import { isInFolder, Logger, LoggerOptions } from '../../../utils';
 
 import { preProcessAssets } from './pre-process-assets';
 import { processAssets, ProcessedAssetsResult } from './process-assets';
@@ -60,8 +60,11 @@ export class CopyWebpackPlugin {
         }
     }
 
-    apply(compiler: any): void {
-        const outputPath = this._options.outputPath || compiler.outputPath;
+    apply(compiler: webpack.Compiler): void {
+        let outputPath = this._options.outputPath;
+        if (!outputPath && compiler.options.output && compiler.options.output.path) {
+            outputPath = compiler.options.output.path;
+        }
 
         const emitFn = (compilation: any, cb: (err?: Error) => void) => {
             const startTime = Date.now();
@@ -126,7 +129,7 @@ export class CopyWebpackPlugin {
                 const absoluteTo = path.resolve(outputPath, processedAsset.relativeTo);
                 if (!isInFolder(outputPath, absoluteTo)) {
                     throw new InvalidConfigError(
-                        `Copying assets outside of 'outDir' is not permitted, path: ${absoluteTo}.`);
+                        `Copying assets outside of output path is not permitted, path: ${absoluteTo}.`);
                 }
             }
 

@@ -1,21 +1,21 @@
 {
-  "$schema": "./../../dist/schemas/schema-draft-04.json#",
+  "$schema": "./../../schemas/schema.json#",
   "libs": [
     {
-      "srcDir": ".",
-      "outDir": "dist",
+      "root": ".",
+      "outputPath": "dist",
 
       "libraryName": "hello-world",
       "banner": "banner.txt",
 
       "tsTranspilation": {
-        "tsconfig": "tsconfig.json"
+        "tsConfig": "tsconfig.json"
       },
 
       "envOverrides": {
         "prod": {
           "clean": {
-            "beforeRun": {
+            "beforeBuild": {
               "cleanOutDir": true
             }
           },
@@ -30,19 +30,19 @@
               "entry": "index.js",
               "entryRoot": "tsOutDir",
               "libraryTarget": "es",
-              "outDir": "bundles"
+              "outputPath": "bundles"
             },
             {
               "entryRoot": "prevBundleOutDir",
               "libraryTarget": "es",
-              "outDir": "bundles",
+              "outputPath": "bundles",
               "transformScriptTargetOnly": true,
               "scriptTarget": "es5"
             },
             {
               "entryRoot": "prevBundleOutDir",
               "libraryTarget": "umd",
-              "outDir": "bundles"
+              "outputPath": "bundles"
             }
           ],
 

@@ -4,8 +4,5 @@ export interface CliOptions {
     cliIsGlobal?: boolean;
     cliRootPath?: string;
     startTime?: number;
-
     cliIsLink?: boolean;
-    command?: string;
-    commandOptions?: any;
 }

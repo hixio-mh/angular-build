@@ -1,4 +1,6 @@
-import { Logger, LoggerOptions } from '../../../utils/logger';
+import * as webpack from 'webpack';
+
+import { Logger, LoggerOptions } from '../../../utils';
 
 export interface SuppressEntryChunksWebpackPluginOptions {
     chunks?: string[];
@@ -23,7 +25,7 @@ export class SuppressEntryChunksWebpackPlugin {
         this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
     }
 
-    apply(compiler: any): void {
+    apply(compiler: webpack.Compiler): void {
         compiler.hooks.compilation.tap(this.name, (compilation: any) => {
             compilation.hooks.afterSeal.tap(this.name, (): void => {
                 if (!this._options.chunks || !this._options.supressPattern || !compilation.chunks) {

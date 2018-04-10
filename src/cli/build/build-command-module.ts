@@ -18,53 +18,53 @@ Usage:
                 .option('config',
                     {
                         alias: 'c',
-                        describe: 'The angular-build.json file location',
+                        describe: 'The angular-build.json file location.',
                         type: 'string',
                     })
                 .option('forceUseLocalCli',
                     {
-                        describe: 'To force use locally installed cli',
+                        describe: 'To force use locally installed cli.',
                         type: 'boolean',
                         boolean: true
                     })
                 .option('env',
                     {
                         alias: 'environment',
-                        describe: 'Environment option(s) for build'
+                        describe: 'Define the build environment.'
                     })
                 .option('filter',
                     {
-                        describe: 'Filter config by name(s)',
+                        describe: 'Filter config by name(s).',
                         type: 'array',
                         array: true
                     })
                 .option('clean',
                     {
-                        describe: 'Clean output directories before build',
+                        describe: 'Clean output directory before build.',
                         type: 'boolean',
                         boolean: true
                     })
                 .option('progress',
                     {
-                        describe: 'Display compilation progress in percentage',
+                        describe: 'Display compilation progress in percentage.',
                         type: 'boolean',
                         boolean: true
                     })
                 .option('verbose',
                     {
-                        describe: 'Show more details',
+                        describe: 'Add more details to output logging.',
                         type: 'boolean',
                         boolean: true
                     })
                 .option('watch',
                     {
-                        describe: 'Build with watch mode',
+                        describe: 'Build with watch mode.',
                         type: 'boolean',
                         boolean: true
                     })
                 .option('beep',
                     {
-                        describe: 'Beep when build compled',
+                        describe: 'Beep when build completed.',
                         type: 'boolean',
                         boolean: true
                     });

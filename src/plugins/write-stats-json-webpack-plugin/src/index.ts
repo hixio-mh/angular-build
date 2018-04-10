@@ -1,9 +1,10 @@
 import * as path from 'path';
 
 import { ensureDir, writeFile } from 'fs-extra';
+import * as webpack from 'webpack';
 
-import { InternalError } from '../../../models';
-import { Logger, LoggerOptions } from '../../../utils/logger';
+import { InternalError } from '../../../error-models';
+import { Logger, LoggerOptions } from '../../../utils';
 
 export interface WriteStatsJsonWebpackPluginOptions {
     /**
@@ -38,8 +39,11 @@ export class WriteStatsJsonWebpackPlugin {
         }
     }
 
-    apply(compiler: any): void {
-        const outputPath = this._options.outputPath || compiler.outputPath;
+    apply(compiler: webpack.Compiler): void {
+        let outputPath = this._options.outputPath;
+        if (!outputPath && compiler.options.output && compiler.options.output.path) {
+            outputPath = compiler.options.output.path;
+        }
 
         compiler.hooks.afterEmit.tapPromise(this.name, async (compilation: any) => {
             if (!outputPath || outputPath === '/' || !path.isAbsolute(outputPath)) {

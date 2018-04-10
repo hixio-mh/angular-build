@@ -14,13 +14,13 @@ matrix:
   include:
     - os: linux
       node_js: "node"
-      env: JOB_PART=build:test-all
+      env: JOB_PART=build:samples
     - os: linux
       node_js: "stable"
-      env: JOB_PART=build:test-all
+      env: JOB_PART=build:samples
     - os: osx
       node_js: "stable"
-      env: JOB_PART=build:test-all
+      env: JOB_PART=build:samples
   fast_finish: true
   allow_failures:
     - os: osx

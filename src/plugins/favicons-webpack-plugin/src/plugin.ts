@@ -1,21 +1,24 @@
 import * as path from 'path';
 
 import * as rimraf from 'rimraf';
+import * as webpack from 'webpack';
+
+import { InternalError, InvalidConfigError } from '../../../error-models';
+import { FaviconsConfig } from '../../../interfaces';
 
 import {
-    FaviconsConfig,
-    InternalError,
-    InvalidConfigError
-} from '../../../models';
+    formatValidationError,
+    generateHashDigest,
+    isBase64,
+    isUrl,
+    Logger,
+    LoggerOptions,
+    stripComments,
+    validateSchema
+} from '../../../utils';
 
-import { generateHashDigest } from '../../../utils/generate-hash-digest';
-import { isBase64 } from '../../../utils/is-base64';
-import { isUrl } from '../../../utils/is-url';
-import { stripComments } from '../../../utils/strip-comments';
-import { Logger, LoggerOptions } from '../../../utils/logger';
-import { formatValidationError, validateSchema } from '../../../utils/validate-schema';
-import { IconStatsInfo } from './internal-models';
 import { ChildComplier } from './compiler';
+import { IconStatsInfo } from './internal-models';
 
 function readFile(filename: string, compilation: any): Promise<string> {
     return new Promise<string>((resolve, reject) => {
@@ -32,7 +35,7 @@ function readFile(filename: string, compilation: any): Promise<string> {
 }
 
 export interface FaviconsWebpackPluginOptions {
-    srcDir: string;
+    baseDir: string;
     outputPath?: string;
 
     configFilePath?: string;
@@ -87,13 +90,13 @@ export class FaviconsWebpackPlugin {
             throw new InternalError(`[${this.name}] The 'options' is required`);
         }
 
-        if (!this._options.srcDir) {
-            throw new InternalError("The 'srcDir' property is required.");
+        if (!this._options.baseDir) {
+            throw new InternalError("The 'baseDir' property is required.");
         }
 
-        if (!path.isAbsolute(this._options.srcDir)) {
+        if (!path.isAbsolute(this._options.baseDir)) {
             throw new InternalError(
-                `The 'srcDir' must be absolute path, passed value: ${this._options.srcDir}.`);
+                `The 'baseDir' must be absolute path, passed value: ${this._options.baseDir}.`);
         }
 
         if (!this._options.configFilePath && !this._options.faviconsConfig) {
@@ -109,105 +112,108 @@ export class FaviconsWebpackPlugin {
         }
     }
 
-    apply(compiler: any): void {
+    apply(compiler: webpack.Compiler): void {
         // TODO: to reivew
         const context = compiler.options.context || process.cwd();
-        const outputPath = this._options.outputPath || compiler.outputPath;
+        let outputPath = this._options.outputPath;
+        if (!outputPath && compiler.options.output && compiler.options.output.path) {
+            outputPath = compiler.options.output.path;
+        }
 
         compiler.hooks.make.tapPromise(this.name, async (compilation: any) => {
-                // reading config
-                this._logger.debug('Initializing options');
+            // reading config
+            this._logger.debug('Initializing options');
 
-                if (this._options.configFilePath) {
-                    const configFilePath = this._options.configFilePath;
-                    this._fileDependencies.add(configFilePath);
+            if (this._options.configFilePath) {
+                const configFilePath = this._options.configFilePath;
+                this._fileDependencies.add(configFilePath);
 
-                    this._logger.debug(`Reading ${path.relative(context || process.cwd(), configFilePath)} file`);
-                    const configContent = await readFile(configFilePath, compilation);
-                    const data = stripComments(configContent.replace(/^\uFEFF/, ''));
-                    const config = JSON.parse(data);
+                this._logger.debug(`Reading ${path.relative(context || process.cwd(), configFilePath)} file`);
+                const configContent = await readFile(configFilePath, compilation);
+                const data = stripComments(configContent.replace(/^\uFEFF/, ''));
+                const config = JSON.parse(data);
 
-                    if (this._options.validateSchema && this._options.schema) {
-                        if ((config as any).$schema) {
-                            delete (config as any).$schema;
-                        }
-                        if (config._schema) {
-                            delete config._schema;
-                        }
-                        if (config._schemaValidated) {
-                            delete config._schemaValidated;
-                        }
-
-                        const errors = validateSchema(this._options.schema, config);
-                        if (errors.length) {
-                            this._faviconsConfig = null;
-
-                            const errMsg = errors.map(e => formatValidationError(this._options.schema, e))
-                                .join('\n');
-                            compilation.errors.push(new InvalidConfigError(
-                                `[${this.name}] Invalid configuration.\n\n${
-                                errMsg}\n`));
-                            return;
-                        }
+                if (this._options.validateSchema && this._options.schema) {
+                    if ((config as any).$schema) {
+                        delete (config as any).$schema;
+                    }
+                    if (config._schema) {
+                        delete config._schema;
+                    }
+                    if (config._schemaValidated) {
+                        delete config._schemaValidated;
                     }
 
-                    this.applySharedOptions(config as FaviconsConfig);
-                    this._faviconsConfig = { ...this._defaultFaviconsConfigOptions, ...config };
-                } else if (this._options.faviconsConfig) {
-                    this._faviconsConfig = { ...this._defaultFaviconsConfigOptions, ...this._options.faviconsConfig };
-                    this.applySharedOptions(this._faviconsConfig as FaviconsConfig);
+                    const errors = validateSchema(this._options.schema, config);
+                    if (errors.length) {
+                        this._faviconsConfig = null;
+
+                        const errMsg = errors.map(e => formatValidationError(this._options.schema, e))
+                            .join('\n');
+                        compilation.errors.push(new InvalidConfigError(
+                            `[${this.name}] Invalid configuration.\n\n${
+                            errMsg}\n`));
+                        return;
+                    }
                 }
 
-                if (!this._faviconsConfig || !this._faviconsConfig.masterPicture) {
-                    return;
-                }
+                this.applySharedOptions(config as FaviconsConfig);
+                this._faviconsConfig = { ...this._defaultFaviconsConfigOptions, ...config };
+            } else if (this._options.faviconsConfig) {
+                this._faviconsConfig = { ...this._defaultFaviconsConfigOptions, ...this._options.faviconsConfig };
+                this.applySharedOptions(this._faviconsConfig as FaviconsConfig);
+            }
 
-                const faviconsConfig = this._faviconsConfig;
-                const inputFileSystem = (compiler as any).inputFileSystem;
-                const cacheFilePath = outputPath ? path.resolve(outputPath, '.icons-cache') : undefined;
-                const isPersistedOutFileSystem =
-                    this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name);
-                const forceWriteToDisk = this._options.forceWriteToDisk && !isPersistedOutFileSystem;
+            if (!this._faviconsConfig || !this._faviconsConfig.masterPicture) {
+                return;
+            }
 
-                if (forceWriteToDisk && (!outputPath || outputPath === '/' || !path.isAbsolute(outputPath))) {
-                    compilation.errors.push(new InternalError(
-                        'To force write to disk, absolute output path must be specified at webpack config -> output -> path.'));
-                    return;
-                }
+            const faviconsConfig = this._faviconsConfig;
+            const inputFileSystem = (compiler as any).inputFileSystem;
+            const cacheFilePath = outputPath ? path.resolve(outputPath, '.icons-cache') : undefined;
+            const isPersistedOutFileSystem =
+                this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name);
+            const forceWriteToDisk = this._options.forceWriteToDisk && !isPersistedOutFileSystem;
 
-                const fileMap = await this.checkAndLoadCacheInfo(faviconsConfig,
-                    inputFileSystem,
-                    outputPath,
-                    cacheFilePath);
-                if (this._iconStatsCacheInfo) {
-                    return;
-                }
+            if (forceWriteToDisk && (!outputPath || outputPath === '/' || !path.isAbsolute(outputPath))) {
+                compilation.errors.push(new InternalError(
+                    'To force write to disk, absolute output path must be specified at webpack config -> output -> path.'));
+                return;
+            }
 
-                Object.keys(fileMap).forEach(p => {
-                    this._fileDependencies.add(p);
-                });
+            const fileMap = await this.checkAndLoadCacheInfo(faviconsConfig,
+                inputFileSystem,
+                outputPath,
+                cacheFilePath);
+            if (this._iconStatsCacheInfo) {
+                return;
+            }
 
-                this._logger.debug('Creating child compiler');
-                const childComplier = new ChildComplier(faviconsConfig,
-                    this._options.srcDir,
-                    context,
-                    forceWriteToDisk as boolean,
-                    compilation,
-                    this._logger);
-
-                try {
-                    this._iconStatsCacheInfo = await
-                        childComplier.compile(fileMap, isPersistedOutFileSystem, outputPath, cacheFilePath);
-                    compilation._htmlInjectOptions = compilation._htmlInjectOptions || {};
-                    compilation._htmlInjectOptions.iconHtmls = this._iconStatsCacheInfo.stats.htmls;
-
-                } catch (err2) {
-                    this._iconStatsCacheInfo = null;
-                    compilation._htmlInjectOptions = compilation._htmlInjectOptions || {};
-                    compilation._htmlInjectOptions.iconRawHtmls = [];
-                    compilation.errors.push(`[${this.name}] ${err2.message || err2}`);
-                }
+            Object.keys(fileMap).forEach(p => {
+                this._fileDependencies.add(p);
             });
+
+            this._logger.debug('Creating child compiler');
+            const childComplier = new ChildComplier(faviconsConfig,
+                this._options.baseDir,
+                context,
+                forceWriteToDisk as boolean,
+                compilation,
+                this._logger);
+
+            try {
+                this._iconStatsCacheInfo = await
+                    childComplier.compile(fileMap, isPersistedOutFileSystem, outputPath, cacheFilePath);
+                compilation._htmlInjectOptions = compilation._htmlInjectOptions || {};
+                compilation._htmlInjectOptions.iconHtmls = this._iconStatsCacheInfo.stats.htmls;
+
+            } catch (err2) {
+                this._iconStatsCacheInfo = null;
+                compilation._htmlInjectOptions = compilation._htmlInjectOptions || {};
+                compilation._htmlInjectOptions.iconRawHtmls = [];
+                compilation.errors.push(`[${this.name}] ${err2.message || err2}`);
+            }
+        });
 
         compiler.hooks.emit.tap(this.name,
             (compilation: any) => {
@@ -353,7 +359,7 @@ export class FaviconsWebpackPlugin {
                         if (!isUrl(masterPicture)) {
                             const masterPicturePath = path.isAbsolute(masterPicture)
                                 ? path.resolve(masterPicture)
-                                : path.resolve(this._options.srcDir, masterPicture);
+                                : path.resolve(this._options.baseDir, masterPicture);
                             if (!paths.includes(masterPicturePath)) {
                                 paths.push(masterPicturePath);
                             }
@@ -362,7 +368,7 @@ export class FaviconsWebpackPlugin {
                         if (!isBase64(masterPicture.content)) {
                             const masterPicturePath = path.isAbsolute(masterPicture.content)
                                 ? path.resolve(masterPicture.content)
-                                : path.resolve(this._options.srcDir, masterPicture.content);
+                                : path.resolve(this._options.baseDir, masterPicture.content);
                             if (!paths.includes(masterPicturePath)) {
                                 paths.push(masterPicturePath);
                             }

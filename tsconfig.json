@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "es2016",
     "module": "commonjs",
     "moduleResolution": "node",
 
@@ -8,15 +8,19 @@
     "experimentalDecorators": true,
 
     "noEmitOnError": true,
+    "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
+    "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strictNullChecks": true,
     "strict": true,
 
-    "sourceMap": true,
+     "inlineSourceMap": true,
     "inlineSources": true,
+    "sourceRoot": ".",
+
     "declaration": true,
 
     "skipDefaultLibCheck": true,
@@ -24,9 +28,6 @@
     "lib": [
       "es2017"
     ],
-    "baseUrl": ".",
-    "rootDir": "./src",
-    "outDir": "./dist",
 
     "typeRoots": [
       "./node_modules/@types"
@@ -38,7 +39,11 @@
 
     "paths": {
       "parse5": [ "./node_modules/parse5/lib/index.d.ts" ]
-    }
+    },
+
+    "baseUrl": "",
+    "rootDir": ".",
+    "outDir": "./dist"
   },
   "include": [
     "./src"

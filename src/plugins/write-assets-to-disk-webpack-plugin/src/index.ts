@@ -2,9 +2,10 @@ import * as path from 'path';
 
 import { ensureDir, writeFile } from 'fs-extra';
 import * as minimatch from 'minimatch';
+import * as webpack from 'webpack';
 
-import { InternalError } from '../../../models';
-import { Logger, LoggerOptions } from '../../../utils/logger';
+import { InternalError } from '../../../error-models';
+import { Logger, LoggerOptions } from '../../../utils';
 
 export interface WriteAssetsToDiskWebpackPluginOptions {
     outputPath?: string;
@@ -37,8 +38,12 @@ export class WriteAssetsToDiskWebpackPlugin {
         }
     }
 
-    apply(compiler: any): void {
-        const outputPath = this._options.outputPath || compiler.outputPath;
+    apply(compiler: webpack.Compiler): void {
+        let outputPath = this._options.outputPath;
+        if (!outputPath && compiler.options.output && compiler.options.output.path) {
+            outputPath = compiler.options.output.path;
+        }
+
 
         compiler.hooks.afterEmit.tapPromise(this.name, async (compilation: any) => {
             if (this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name)) {

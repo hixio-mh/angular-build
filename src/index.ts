@@ -1,2 +1,2 @@
-export * from './models/config-models';
+export * from './interfaces';
 export * from './webpack-configs';

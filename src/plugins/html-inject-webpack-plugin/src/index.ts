@@ -5,10 +5,10 @@ import { RawSource } from 'webpack-sources';
 
 import * as htmlMinifier from 'html-minifier';
 import * as parse5 from 'parse5';
+import * as webpack from 'webpack';
 
-import { HtmlInjectOptions } from '../../../models';
-import { Logger, LoggerOptions } from '../../../utils/logger';
-import { normalizeRelativePath } from '../../../utils/path-helpers';
+import { HtmlInjectOptions } from '../../../interfaces';
+import { Logger, LoggerOptions, normalizeRelativePath } from '../../../utils';
 
 const sourceMapUrl = require('source-map-url');
 
@@ -22,7 +22,7 @@ interface TagDefinition {
 }
 
 export interface HtmlInjectWebpackPluginOptions extends HtmlInjectOptions {
-    srcDir: string;
+    baseDir: string;
     outDir: string;
     entrypoints: string[];
 
@@ -60,7 +60,7 @@ export class HtmlInjectWebpackPlugin {
         this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
     }
 
-    apply(compiler: any): void {
+    apply(compiler: webpack.Compiler): void {
         compiler.hooks.emit.tapPromise(this.name, async (compilation: any) => {
             const treeAdapter = parse5.treeAdapters.default;
             let document: parse5.AST.Default.Document | null = null;
@@ -146,7 +146,7 @@ export class HtmlInjectWebpackPlugin {
             if (this._options.index) {
                 indexInputFilePath = path.isAbsolute(this._options.index)
                     ? path.resolve(this._options.index)
-                    : path.resolve(this._options.srcDir, this._options.index);
+                    : path.resolve(this._options.baseDir, this._options.index);
                 const indexOut = this._options.indexOut || path.basename(indexInputFilePath);
                 indexOutFilePath = path.isAbsolute(indexOut)
                     ? path.resolve(indexOut)

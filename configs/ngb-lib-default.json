@@ -1,0 +1,52 @@
+{
+  "root": ".",
+  "outputPath": "dist",
+
+  "tsTranspilation": {
+    "tsconfig": "tsconfig-build.json"
+  },
+
+  "packageOptions": {
+    "packageJsonFile": "package.json"
+  },
+
+  "envOverrides": {
+    "prod": {
+      "banner": "banner.txt",
+      "clean": {
+        "beforeBuild": {
+          "cleanOutDir": true
+        }
+      },
+      "copy": [
+        "LICENSE",
+        "README.md"
+      ],
+      "bundles": [
+        {
+          "entry": "index.js",
+          "entryRoot": "tsOutDir",
+          "libraryTarget": "es",
+          "outDir": "bundles"
+        },
+        {
+          "entryRoot": "prevBundleOutDir",
+          "libraryTarget": "es",
+          "outDir": "bundles",
+          "transformScriptTargetOnly": true,
+          "scriptTarget": "es5"
+        },
+        {
+          "entryRoot": "prevBundleOutDir",
+          "libraryTarget": "umd",
+          "outDir": "bundles",
+          "namedExports": true
+        }
+      ],
+      "packageOptions": {
+        "packageJsonFile": "package.json",
+        "reExportTypingsAndMetaDataAs": "[packagename]"
+      }
+    }
+  }
+}

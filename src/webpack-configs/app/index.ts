@@ -1,0 +1,1 @@
+export { getAppWebpackConfig } from './app';

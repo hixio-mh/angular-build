@@ -9,7 +9,8 @@ const path = require('path');
 const supportsColor = require('supports-color');
 const SemVer = require('semver').SemVer;
 
-const forceExit = process.argv.indexOf('--force-exit') > -1;
+let forceExit = process.argv.indexOf('--force-exit') > -1;
+const g = typeof global !== 'undefined' ? global : {};
 
 function _colorize(str, key) {
     if (!supportsColor) {
@@ -33,8 +34,10 @@ function _exit(code) {
         process.stdout.once('drain', function () {
             process.exit(code);
         });
+
         return;
     }
+
     process.exit(code);
 }
 
@@ -46,6 +49,11 @@ function _invokeCli(cli, cliOptions) {
     cli(cliOptions)
         .then((exitCode) => {
             process.exitCode = typeof exitCode === 'number' ? exitCode : 0;
+            if (g._telemetryFlushStartTime) {
+                const flushDuration = Date.now() - g._telemetryFlushStartTime;
+                forceExit = forceExit || flushDuration > 1500;
+            }
+
             if (forceExit) {
                 _exit(process.exitCode);
             }
@@ -62,8 +70,9 @@ function _cliGlobal() {
     if (!fs.existsSync(path.resolve(cliRootPath, 'node_modules'))) {
         cliRootPath = path.dirname(cliRootPath);
     }
+
     const packageJson = require(path.resolve(cliRootPath, './package.json'));
-    let cliVersion = packageJson['version'];
+    const cliVersion = packageJson['version'];
 
     const updateNotifier = require('update-notifier');
     updateNotifier({
@@ -71,10 +80,10 @@ function _cliGlobal() {
     }).notify({ defer: false });
 
     let cli;
-    if (fs.existsSync(path.resolve(__dirname, '../cli/index.js'))) {
-        cli = require('../cli');
+    if (fs.existsSync(path.resolve(__dirname, '../src/cli/index.js'))) {
+        cli = require('../src/cli');
     } else {
-        cli = require('../dist/cli');
+        cli = require('../dist/src/cli');
     }
 
     const cliOptions = {
@@ -97,6 +106,7 @@ function _cliLocal(projectRoot) {
     }, (error, projectLocalCli) => {
         if (error) {
             _cliGlobal();
+
             return;
         }
 
@@ -108,7 +118,7 @@ function _cliLocal(projectRoot) {
 
         // projectLocalCli -> node_modules\@bizappframework\angular-build\index.js for locally installed
         // projectLocalCli -> node_modules\@bizappframework\angular-build\dist\index.js for link
-        let cliPath = path.dirname(projectLocalCli);
+        const cliPath = path.dirname(projectLocalCli);
         let packageJsonPath = path.resolve(cliPath, './package.json');
         if ((!fs.existsSync(packageJsonPath) || !fs.existsSync(path.resolve(cliPath, 'node_modules'))) &&
             fs.existsSync(path.resolve(cliPath, '..', './package.json'))) {
@@ -116,9 +126,9 @@ function _cliLocal(projectRoot) {
         }
 
         const packageJson = require(packageJsonPath);
-        let cliVersion = packageJson['version'];
+        const cliVersion = packageJson['version'];
 
-        let localCliPath = path.resolve(cliPath, './cli');
+        const localCliPath = path.resolve(cliPath, './cli');
         const cli = require(localCliPath);
 
         const cliOptions = {

@@ -23,7 +23,7 @@ install:
   - node --version
   - npm --version
 build_script:
-  - npm run build:test-all
+  - npm run build:samples
 test: off
 deploy_script:
   - ps: |

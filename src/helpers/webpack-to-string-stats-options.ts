@@ -2,7 +2,7 @@ import * as webpack from 'webpack';
 
 // const verbose = process.argv.indexOf('--verbose') > -1;
 
-export function getWebpackToStringStatsOptions(verbose: boolean, options?: webpack.Stats.ToStringOptions):
+export function getWebpackToStringStatsOptions(verbose?: boolean, options?: webpack.Stats.ToStringOptions):
     webpack.Stats.ToStringOptionsObject {
     const defaultOptions: webpack.Stats.ToStringOptions = {
         colors: true,

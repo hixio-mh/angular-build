@@ -1,3 +1,13 @@
+// tslint:disable
+// TODO: cleanup this file, it's copied as is from Angular CLI.
+
+/**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
 /**
  * @license
  * Copyright Google Inc. All Rights Reserved.
@@ -15,10 +25,10 @@ const EntryPoint = require('webpack/lib/Entrypoint');
 
 export interface ScriptsWebpackPluginOptions {
     name: string;
+    sourceMap: boolean;
     scripts: string[];
     filename: string;
-    context: string;
-    sourceMap?: boolean;
+    basePath: string;
 }
 
 interface ScriptOutput {
@@ -38,7 +48,7 @@ function addDependencies(compilation: any, scripts: string[]): void {
     }
 }
 
-function hook(compiler: any, action: (compilation: any, callback: (err?: Error) => void) => void): void {
+function hook(compiler: any, action: (compilation: any, callback: (err?: Error) => void) => void) {
     if (compiler.hooks) {
         // Webpack 4
         compiler.hooks.thisCompilation.tap('scripts-webpack-plugin', (compilation: any) => {
@@ -62,20 +72,60 @@ export class ScriptsWebpackPlugin {
     private _lastBuildTime?: number;
     private _cachedOutput?: ScriptOutput;
 
-    constructor(private readonly _options: ScriptsWebpackPluginOptions) { }
+    constructor(private options: Partial<ScriptsWebpackPluginOptions> = {}) { }
+
+    shouldSkip(compilation: any, scripts: string[]): boolean {
+        if (this._lastBuildTime == undefined) {
+            this._lastBuildTime = Date.now();
+            return false;
+        }
+
+        for (let i = 0; i < scripts.length; i++) {
+            let scriptTime: number;
+            if (compilation.fileTimestamps.get) {
+                // Webpack 4+ uses a Map
+                scriptTime = compilation.fileTimestamps.get(scripts[i]);
+            } else {
+                // Webpack 3
+                scriptTime = compilation.fileTimestamps[scripts[i]];
+            }
+            if (!scriptTime || scriptTime > this._lastBuildTime) {
+                this._lastBuildTime = Date.now();
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private _insertOutput(compilation: any, { filename, source }: ScriptOutput, cached = false) {
+        const chunk = new Chunk(this.options.name);
+        chunk.rendered = !cached;
+        chunk.id = this.options.name;
+        chunk.ids = [chunk.id];
+        chunk.files.push(filename);
+
+        const entrypoint = new EntryPoint(this.options.name);
+        entrypoint.pushChunk(chunk);
+
+        compilation.entrypoints.set(this.options.name, entrypoint);
+        compilation.chunks.push(chunk);
+        compilation.assets[filename] = source;
+    }
 
     apply(compiler: Compiler): void {
-        if (!this._options.scripts || this._options.scripts.length === 0) {
+        if (!this.options.scripts || this.options.scripts.length === 0) {
             return;
         }
 
-        const scripts = this._options.scripts
-            .filter(script => !!script);
+        const scripts = this.options.scripts
+            .filter(script => !!script)
+            .map(script => path.resolve(this.options.basePath || '', script));
 
         hook(compiler, (compilation, callback) => {
             if (this.shouldSkip(compilation, scripts)) {
                 if (this._cachedOutput) {
-                    this.insertOutput(compilation, this._cachedOutput, true);
+                    this._insertOutput(compilation, this._cachedOutput, true);
                 }
 
                 addDependencies(compilation, scripts);
@@ -95,12 +145,12 @@ export class ScriptsWebpackPlugin {
                         const content = data.toString();
 
                         let source: any;
-                        if (this._options.sourceMap) {
+                        if (this.options.sourceMap) {
                             // TODO: Look for source map file (for '.min' scripts, etc.)
 
                             let adjustedPath = fullPath;
-                            if (this._options.context) {
-                                adjustedPath = path.relative(this._options.context, fullPath);
+                            if (this.options.basePath) {
+                                adjustedPath = path.relative(this.options.basePath, fullPath);
                             }
                             source = new OriginalSource(content, adjustedPath);
                         } else {
@@ -123,12 +173,12 @@ export class ScriptsWebpackPlugin {
                     const combinedSource = new CachedSource(concatSource);
                     const filename = interpolateName(
                         { resourcePath: 'scripts.js' } as loader.LoaderContext,
-                        this._options.filename,
+                        this.options.filename as string,
                         { content: combinedSource.source() },
                     );
 
                     const output = { filename, source: combinedSource };
-                    this.insertOutput(compilation, output);
+                    this._insertOutput(compilation, output);
                     this._cachedOutput = output;
                     addDependencies(compilation, scripts);
 
@@ -136,45 +186,5 @@ export class ScriptsWebpackPlugin {
                 })
                 .catch((err: Error) => callback(err));
         });
-    }
-
-
-    private shouldSkip(compilation: any, scripts: string[]): boolean {
-        if (this._lastBuildTime == null) {
-            this._lastBuildTime = Date.now();
-            return false;
-        }
-
-        for (let i = 0; i < scripts.length; i++) {
-            let scriptTime: any;
-            if (compilation.fileTimestamps.get) {
-                // Webpack 4+ uses a Map
-                scriptTime = compilation.fileTimestamps.get(scripts[i]);
-            } else {
-                // Webpack 3
-                scriptTime = compilation.fileTimestamps[scripts[i]];
-            }
-            if (!scriptTime || scriptTime > this._lastBuildTime) {
-                this._lastBuildTime = Date.now();
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private insertOutput(compilation: any, { filename, source }: ScriptOutput, cached: boolean = false): void {
-        const chunk = new Chunk(this._options.name);
-        chunk.rendered = !cached;
-        chunk.id = this._options.name;
-        chunk.ids = [chunk.id];
-        chunk.files.push(filename);
-
-        const entrypoint = new EntryPoint(this._options.name);
-        entrypoint.pushChunk(chunk);
-
-        compilation.entrypoints.set(this._options.name, entrypoint);
-        compilation.chunks.push(chunk);
-        compilation.assets[filename] = source;
     }
 }

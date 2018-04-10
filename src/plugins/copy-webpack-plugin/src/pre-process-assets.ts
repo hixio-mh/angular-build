@@ -1,7 +1,7 @@
 import * as path from 'path';
 
-import { InternalError } from '../../../models';
-import { isGlob } from '../../../utils/is-glob';
+import { InternalError } from '../../../error-models';
+import { isGlob } from '../../../utils';
 
 export interface PreProcessedAssetEntry {
     context: string;
@@ -65,7 +65,7 @@ export async function preProcessAssets(baseDir: string,
             let fromPath = '';
             if (!isGlobPattern) {
                 fromPath = path.isAbsolute(asset) ? path.resolve(asset) : path.resolve(baseDir, asset);
-                fromIsDir = /\\|\/$/.test(asset) || await isDirectory(fromPath);
+                fromIsDir = /(\\|\/)$/.test(asset) || await isDirectory(fromPath);
             } else if (asset.endsWith('*')) {
                 let tempDir = asset.substr(0, asset.length - 1);
                 while (tempDir && tempDir.length > 1 && (tempDir.endsWith('*') || tempDir.endsWith('/'))) {
@@ -127,7 +127,7 @@ export async function preProcessAssets(baseDir: string,
             let fromPath = '';
             if (!isGlobPattern) {
                 fromPath = path.isAbsolute(from) ? path.resolve(from) : path.resolve(baseDir, from);
-                fromIsDir = /\\|\/$/.test(from) || await isDirectory(fromPath);
+                fromIsDir = /(\\|\/)$/.test(from) || await isDirectory(fromPath);
             } else if (from.endsWith('*')) {
                 let tempDir = from.substr(0, from.length - 1);
                 while (tempDir && tempDir.length > 1 && (tempDir.endsWith('*') || tempDir.endsWith('/'))) {

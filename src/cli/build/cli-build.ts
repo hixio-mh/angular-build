@@ -1,16 +1,15 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
 
+import { runWebpack } from '../../helpers/run-webpack';
 import {
     InvalidConfigError,
-    ProjectConfigInternal,
     TypescriptCompileError,
     UglifyError,
     UnSupportedStyleExtError
-} from '../../models';
-import { runWebpack } from '../../helpers/run-webpack';
-import { Logger } from '../../utils/logger';
-import { getWebpackConfig } from '../../webpack-configs';
+    } from '../../error-models';
+import { Logger } from '../../utils';
+import { getWebpackConfigFromAngularBuildConfig } from '../../webpack-configs';
 
 import { CliOptions } from '../cli-options';
 
@@ -19,17 +18,13 @@ const { exists } = require('fs-extra');
 export async function cliBuild(cliOptions: CliOptions): Promise<number> {
     const startTime = cliOptions.startTime || Date.now();
 
-    const cliIsGlobal = cliOptions.cliIsGlobal;
-    const cliRootPath = cliOptions.cliRootPath;
-    const cliVersion = cliOptions.cliVersion;
-
     const commandOptions: { [key: string]: any } =
-        cliOptions.commandOptions && typeof cliOptions.commandOptions === 'object' ? cliOptions.commandOptions : {};
-    commandOptions.fromAngularBuildCli = true;
-    commandOptions.cliIsGlobal = cliIsGlobal;
-    commandOptions.cliRootPath = cliRootPath;
-    commandOptions.cliVersion = cliVersion;
-    commandOptions.startTime = startTime;
+        cliOptions.args && typeof cliOptions.args === 'object' ? cliOptions.args : {};
+    commandOptions._fromAngularBuildCli = true;
+    commandOptions._cliIsGlobal = cliOptions.cliIsGlobal;
+    commandOptions._cliRootPath = cliOptions.cliRootPath;
+    commandOptions._cliVersion = cliOptions.cliVersion;
+    commandOptions._startTime = startTime;
 
     let configPath = '';
     if (commandOptions.config) {
@@ -51,14 +46,14 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
     });
 
     if (!await exists(configPath)) {
-        logger.error(`angular-build.json config file does not exist - search location: ${configPath}. ` +
+        logger.error(`The angular-build.json config file does not exist at ${configPath}. ` +
             'Please use --config=<your config file> option or make sure angular-build.json is existed in current working directory.\n');
         return -1;
     }
 
     let webpackConfigs: webpack.Configuration[] = [];
     try {
-        webpackConfigs = getWebpackConfig(configPath, environment, commandOptions);
+        webpackConfigs = getWebpackConfigFromAngularBuildConfig(configPath, environment, commandOptions);
     } catch (err1) {
         if (err1 instanceof InvalidConfigError) {
             logger.error(`${err1.message}\n`);
@@ -76,22 +71,10 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
 
     try {
         if (watch) {
-            for (const wpConfig of webpackConfigs) {
-                delete (wpConfig as any)._projectConfig;
-            }
-
             await runWebpack(webpackConfigs, watch, logger);
         } else {
-            let i = 0;
             for (const wpConfig of webpackConfigs) {
-                const mappedConfig = (wpConfig as any)._projectConfig as ProjectConfigInternal;
-
-                logger.info(`${i > 0 ? '\n' : ''}Processing ${mappedConfig.name
-                    ? mappedConfig.name
-                    : mappedConfig._projectType + 's[' + mappedConfig._index + ']'}`);
-                delete (wpConfig as any)._projectConfig;
                 await runWebpack(wpConfig, false, logger);
-                ++i;
             }
         }
 

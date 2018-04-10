@@ -1,0 +1,61 @@
+{
+  "$schema": "../schemas/app-project-config-schema.json",
+  "platformTarget": "web",
+  "root": "src",
+  "outputPath": "dist",
+  "entry": "main.ts",
+  "polyfills": [
+    "polyfills.ts"
+  ],
+  "tsConfig": "tsconfig.app.json",
+  "clean": {
+    "beforeBuild": {
+      "exclude": [
+        ".gitkeep",
+        "icons-*",
+        ".icons-cache",
+        "favicon.ico"
+      ]
+    }
+  },
+  "copy": [
+    "assets/**/*",
+    "favicon.ico"
+  ],
+  "styles": [
+    "styles.css"
+  ],
+  "publicPath": "/",
+  "baseHref": "/",
+  "htmlInject": {
+    "resourceHints": true,
+    "index": "index.html"
+  },
+  "envOverrides": {
+    "prod": {
+      "optimization": true,
+      "aot": true,
+      "extractCss": true,
+      "buildOptimizer": true,
+      "sourceMap": false,
+      "namedChunks": false,
+      "vendorChunk": false,
+      "outputHashing": {
+        "bundles": true,
+        "chunks": true,
+        "extractedAssets": true
+      },
+      "clean": {
+        "beforeBuild": {
+          "cleanOutDir": true
+        }
+      },
+      "fileReplacements": [
+        {
+          "src": "./environments/environment.ts",
+          "replaceWith": "./environments/environment.prod.ts"
+        }
+      ]
+    }
+  }
+}

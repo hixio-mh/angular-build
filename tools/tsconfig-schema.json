@@ -1,20 +1,17 @@
 {
-  "extends": "../tsconfig.json",
-
   "compilerOptions": {
-    "types": [],
+    "target": "es2015",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "skipDefaultLibCheck": true,
     "skipLibCheck": true,
+    "types": [],
     "baseUrl": ".",
-    "rootDir": "."
+    "rootDir": ".",
+    "outDir": "../out-tsc/schemas"
   },
-
-  "files": [
-    "../src/models/config-models.ts"
-  ],
   "include": [
-    "../src/models/config-models.ts"
-  ],
-  "exclude": [
-    "../node_modules/**"
+    "../src/interfaces/*.ts"
   ]
 }

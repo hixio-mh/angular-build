@@ -1,5 +1,11 @@
 # Change Logs
 
+## 6.0.0-rc.0
+
+- Added builders which can be consumed by @angular/cli
+- Code refactoring
+- Updated npm dependencies
+
 ## 6.0.0-beta.4
 
 - Updated angular 6

@@ -5,11 +5,10 @@ import * as glob from 'glob';
 import * as loaderUtils from 'loader-utils';
 import * as minimatch from 'minimatch';
 
-import { InternalError } from '../../../models';
-import { isInFolder, isSamePaths, normalizeRelativePath } from '../../../utils/path-helpers';
+import { InternalError } from '../../../error-models';
+import { isInFolder, isSamePaths, normalizeRelativePath } from '../../../utils';
 
 import { PreProcessedAssetEntry } from './pre-process-assets';
-
 
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 
@@ -56,7 +55,6 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
             }
         }
 
-
         await Promise.all(relativeFromPaths.map(async (relativeFrom) => {
             const absoluteFrom = path.resolve(assetEntry.context, relativeFrom);
             const content = await new Promise<Buffer>((resolve, reject) => {
@@ -67,7 +65,7 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
 
             // check the ignore list
             let shouldIgnore = false;
-            const ignores = assetEntry.exclude || ['.gitkeep'];
+            const ignores = assetEntry.exclude || ['.gitkeep', '**/.DS_Store', '**/Thumbs.db'];
             let il = ignores.length;
             while (il--) {
                 const ignoreGlob = ignores[il];
@@ -79,6 +77,10 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
 
             if (shouldIgnore) {
                 return;
+            }
+
+            if (assetEntry.to) {
+                assetEntry.to = normalizeRelativePath(assetEntry.to);
             }
 
             const assetToEmit: ProcessedAssetsResult = {
@@ -202,7 +204,6 @@ export function getAllMemoryFiles(memoryFileSystem: any,
                 continue;
             }
         }
-
 
         if (memoryFileSystem.statSync(itemPath).isDirectory()) {
             const subItems = memoryFileSystem.readdirSync(itemPath);

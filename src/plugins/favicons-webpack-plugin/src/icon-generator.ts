@@ -18,12 +18,8 @@ import {
     SafariPinnedTabDesign,
     WindowsDesign,
     YandexBrowserDesign
-} from '../../../models';
-import { Logger } from '../../../utils/logger';
-import { camelCaseToUnderscore } from '../../../utils/camel-case-to-underscore';
-import { isBase64 } from '../../../utils/is-base64';
-import { isUrl } from '../../../utils/is-url';
-
+} from '../../../interfaces';
+import { camelCaseToUnderscore, isBase64, isUrl, Logger } from '../../../utils';
 
 const favicons = require('favicons');
 const unzip = require('unzip2');

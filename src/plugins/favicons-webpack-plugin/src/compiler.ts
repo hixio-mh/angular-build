@@ -4,9 +4,8 @@ import { ensureDir, writeFile } from 'fs-extra';
 import * as loaderUtils from 'loader-utils';
 import * as webpack from 'webpack';
 
-import { FaviconsConfig } from '../../../models';
-import { Logger } from '../../../utils/logger';
-import { generateHashDigest } from '../../../utils/generate-hash-digest';
+import { FaviconsConfig } from '../../../interfaces';
+import { generateHashDigest, Logger } from '../../../utils';
 
 import { IconStatsInfo, IconStatsJson } from './internal-models';
 import { IconGenerator, IconFileInfo, IconGenerateResult } from './icon-generator';

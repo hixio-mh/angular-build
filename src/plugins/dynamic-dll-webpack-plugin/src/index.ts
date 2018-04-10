@@ -1,6 +1,6 @@
 import * as webpack from 'webpack';
 
-import { Logger, LoggerOptions } from '../../../utils/logger';
+import { Logger, LoggerOptions } from '../../../utils';
 
 export interface DynamicDllWebpackPluginOptions {
     manifests: { file: string; chunkName: string; }[];
@@ -19,7 +19,7 @@ export class DynamicDllWebpackPlugin {
         this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
     }
 
-    apply(compiler: any): void {
+    apply(compiler: webpack.Compiler): void {
         const runFn = () => {
             return this.checkAndBundleDll(compiler);
         };
@@ -28,8 +28,8 @@ export class DynamicDllWebpackPlugin {
         compiler.hooks.watchRun.tapPromise(this.name, runFn);
     }
 
-    private async checkAndBundleDll(compiler: any): Promise<void> {
-        const manifestFilesExists = await this.checkManifestFiles(compiler.inputFileSystem);
+    private async checkAndBundleDll(compiler: webpack.Compiler): Promise<void> {
+        const manifestFilesExists = await this.checkManifestFiles((compiler as any).inputFileSystem);
         if (manifestFilesExists) {
             this._logger.debug('Found manifest file');
             return;

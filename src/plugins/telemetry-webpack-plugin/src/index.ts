@@ -1,28 +1,30 @@
-import * as webpack from 'webpack';
-import * as appInsights from 'applicationinsights';
+import * as path from 'path';
 
-import { AngularBuildContext } from '../../../models';
+import * as appInsights from 'applicationinsights';
+import * as webpack from 'webpack';
+
+import { AngularBuildContext } from '../../../build-context';
 
 const uuidv4 = require('uuid/v4');
 const uuidv5 = require('uuid/v5');
 
+const ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY = '61c38600-38ac-411a-ad18-4daf41a5f0ad';
+
+const g: any = typeof global !== 'undefined' ? global : {};
+
 export class TelemetryWebpackPlugin {
     private static _telemetryInitialized = false;
-    private static _telemetryFlushing = false;
+    private static _telemetryFlushQueued = false;
+    private static _counter = 0;
+    private static _buildSuccess = true;
 
     get name(): string {
         return 'telemetry-webpack-plugin';
     }
 
-    apply(compiler: any): void {
+    apply(compiler: webpack.Compiler): void {
         compiler.hooks.beforeRun.tap(this.name, () => {
-            if ((global as any).angular_build_telemetry_initialized ||
-                TelemetryWebpackPlugin._telemetryInitialized) {
-                return;
-            }
-
-            TelemetryWebpackPlugin._telemetryInitialized = true;
-            initAppInsights();
+            TelemetryWebpackPlugin.initAppInsights();
         });
 
         compiler.hooks.done.tap(this.name, (stats: webpack.Stats) => {
@@ -30,19 +32,28 @@ export class TelemetryWebpackPlugin {
                 return;
             }
 
-            if (TelemetryWebpackPlugin._telemetryFlushing) {
+            TelemetryWebpackPlugin._buildSuccess = TelemetryWebpackPlugin._buildSuccess && stats.hasErrors();
+
+            TelemetryWebpackPlugin._counter = TelemetryWebpackPlugin._counter + 1;
+            const totalCount = AngularBuildContext.libCount + AngularBuildContext.appCount;
+
+            if (TelemetryWebpackPlugin._counter !== totalCount) {
                 return;
             }
 
-            TelemetryWebpackPlugin._telemetryFlushing = true;
+            if (g._telemetryFlushQueued || TelemetryWebpackPlugin._telemetryFlushQueued) {
+                return;
+            }
+
+            TelemetryWebpackPlugin._telemetryFlushQueued = true;
+            g._telemetryFlushQueued = true;
+
             const duration = Date.now() - AngularBuildContext.startTime;
-            const status = stats.hasErrors() ? 'failing' : 'passing';
+            const status = TelemetryWebpackPlugin._buildSuccess ? 'failing' : 'passing';
 
             const customProps = {
                 libs: `${AngularBuildContext.libCount}`,
                 apps: `${AngularBuildContext.appCount}`,
-                production: `${typeof AngularBuildContext.environment.prod !== 'undefined' &&
-                    AngularBuildContext.environment.prod}`,
                 duration: `${duration}`,
                 status: status
             };
@@ -52,12 +63,13 @@ export class TelemetryWebpackPlugin {
                 properties: customProps
             });
 
-            setImmediate(() => {
-                appInsights.defaultClient.flush();
+            appInsights.defaultClient.flush();
+            g._telemetryFlushStartTime = Date.now();
 
-                const verbose = AngularBuildContext.angularBuildConfig.logLevel === 'debug';
-                if (verbose) {
-                    const identifier = (global as any).angular_build_telemetry_identifier as string;
+            setImmediate(() => {
+                const telemetryVerbose = process.argv.indexOf('--telemetry-verbose') > -1;
+                if (telemetryVerbose) {
+                    const identifier = g._angular_build_telemetry_identifier as string;
 
                     // tslint:disable-next-line:no-console
                     console.log(`\nIdentifier: ${identifier}\n`);
@@ -65,78 +77,75 @@ export class TelemetryWebpackPlugin {
             });
         });
     }
-}
 
-export function initAppInsights(): void {
-    if ((global as any).angular_build_telemetry_initialized) {
-        return;
-    }
-
-    (global as any).angular_build_telemetry_initialized = true;
-
-    process.env.ANGULAR_BUILD_UUID_NS = '61c38600-38ac-411a-ad18-4daf41a5f0ad';
-    const identifier = `${uuidv5(`${uuidv4()}`, process.env.ANGULAR_BUILD_UUID_NS).substr(0, 8)}`;
-    (global as any).angular_build_telemetry_identifier = identifier;
-
-    if (!process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY) {
-        process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY = process.env.ANGULAR_BUILD_UUID_NS;
-    }
-
-    const telemetryVerbose = process.argv.indexOf('--telemetry-verbose') > -1;
-    const fromAngularBuildCli =
-        typeof AngularBuildContext.fromAngularBuildCli !== 'undefined' && AngularBuildContext.fromAngularBuildCli;
-    const cliVersion = AngularBuildContext.cliVersion;
-    const cliIsGlobal = AngularBuildContext.cliIsGlobal;
-    const angularVersion = AngularBuildContext.angularVersion;
-    const webpackVersion = AngularBuildContext.webpackVersion;
-
-    let commonAppInsightsProps: { [key: string]: any } = {};
-    const rawCommonAppInsightsProps = process.env.ANGULAR_BUILD_APPINSIGHTS_COMMON_PROPS ||
-        process.env.ANGULAR_BUILD_APPINSIGHTS_commonAppInsightsProps;
-    if (rawCommonAppInsightsProps && typeof rawCommonAppInsightsProps === 'string') {
-        if ((rawCommonAppInsightsProps as string).trim()[0] === '{') {
-            try {
-                commonAppInsightsProps = JSON.parse(rawCommonAppInsightsProps as string);
-            } catch (err) {
-                // do nothing
-            }
-        } else {
-            const props = rawCommonAppInsightsProps.split(';');
-            props.forEach(s => {
-                if (s && s.length >= 3) {
-                    const items = s.split('=');
-                    if (items.length === 2) {
-                        commonAppInsightsProps[items[0].trim()] = items[1].trim();
-                    }
-                }
-            });
+    static initAppInsights(): void {
+        if (g._angular_build_telemetry_initialized || TelemetryWebpackPlugin._telemetryInitialized) {
+            return;
         }
-    } else if (rawCommonAppInsightsProps && typeof rawCommonAppInsightsProps === 'object') {
-        commonAppInsightsProps = rawCommonAppInsightsProps;
-    }
 
-    commonAppInsightsProps = Object.assign({},
-        commonAppInsightsProps,
-        {
+        g._angular_build_telemetry_initialized = true;
+        TelemetryWebpackPlugin._telemetryInitialized = true;
+
+        const identifier = `${uuidv5(`${uuidv4()}`, ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY).substr(0, 8)}`;
+        g._angular_build_telemetry_identifier = identifier;
+
+        if (!process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY) {
+            process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY = ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY;
+        }
+
+        const telemetryVerbose = process.argv.indexOf('--telemetry-verbose') > -1;
+        const cliVersion = AngularBuildContext.cliVersion;
+        const cliName = path.parse(process.argv[1]).name;
+
+        const angularVersion = AngularBuildContext.angularVersion;
+        const webpackVersion = AngularBuildContext.webpackVersion;
+
+        let commonAppInsightsProps: { [key: string]: any } = {};
+        const rawCommonAppInsightsProps = process.env.ANGULAR_BUILD_APPINSIGHTS_COMMON_PROPS ||
+            process.env.ANGULAR_BUILD_APPINSIGHTS_commonAppInsightsProps;
+        if (rawCommonAppInsightsProps && typeof rawCommonAppInsightsProps === 'string') {
+            if ((rawCommonAppInsightsProps as string).trim()[0] === '{') {
+                try {
+                    commonAppInsightsProps = JSON.parse(rawCommonAppInsightsProps as string);
+                } catch (err) {
+                    // do nothing
+                }
+            } else {
+                const props = rawCommonAppInsightsProps.split(';');
+                props.forEach(s => {
+                    if (s && s.length >= 3) {
+                        const items = s.split('=');
+                        if (items.length === 2) {
+                            commonAppInsightsProps[items[0].trim()] = items[1].trim();
+                        }
+                    }
+                });
+            }
+        } else if (rawCommonAppInsightsProps && typeof rawCommonAppInsightsProps === 'object') {
+            commonAppInsightsProps = rawCommonAppInsightsProps;
+        }
+
+        commonAppInsightsProps = {
+            ...commonAppInsightsProps,
             'Identifier': identifier,
             'command': 'build',
             'angular-build version': `${cliVersion}`,
-            'from angular-build cli': `${fromAngularBuildCli}`,
-            'angular build is global': `${cliIsGlobal}`,
+            'cli': `${cliName}`,
             'angular version': `${angularVersion}`,
             'webpack version': `${webpackVersion}`
-        });
+        };
 
-    appInsights.setup(process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY)
-        .setUseDiskRetryCaching(true, 100)
-        .setAutoCollectPerformance(false)
-        .setAutoCollectRequests(false)
-        .setAutoCollectConsole(false)
-        .setAutoCollectExceptions(false)
-        .setAutoDependencyCorrelation(false)
-        .setAutoCollectDependencies(false)
-        .setInternalLogging(telemetryVerbose, telemetryVerbose);
-    appInsights.defaultClient.commonProperties = commonAppInsightsProps;
-    appInsights.defaultClient.config.disableAppInsights = AngularBuildContext.telemetryDisabled;
-    appInsights.start();
+        appInsights.setup(process.env.ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY)
+            .setUseDiskRetryCaching(true, 100)
+            .setAutoCollectPerformance(false)
+            .setAutoCollectRequests(false)
+            .setAutoCollectConsole(false)
+            .setAutoCollectExceptions(false)
+            .setAutoDependencyCorrelation(false)
+            .setAutoCollectDependencies(false)
+            .setInternalLogging(telemetryVerbose, telemetryVerbose);
+        appInsights.defaultClient.commonProperties = commonAppInsightsProps;
+        appInsights.defaultClient.config.disableAppInsights = AngularBuildContext.telemetryDisabled;
+        appInsights.start();
+    }
 }

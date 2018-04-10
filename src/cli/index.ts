@@ -61,13 +61,10 @@ export default async function(cliOptions: CliOptions): Promise<number> {
         cliOptions.args.push('-h');
 
     }
-    const yargsInstance = initYargs(cliOptions.cliVersion, cliOptions.args);
 
+    const yargsInstance = initYargs(cliOptions.cliVersion, cliOptions.args);
     const command = yargsInstance.argv._[0] ? yargsInstance.argv._[0].toLowerCase() : undefined;
     const commandOptions = yargsInstance.argv;
-
-    cliOptions.command = command as string;
-    cliOptions.commandOptions = commandOptions;
 
     if (command === 'build') {
         displayAngularBuildVersion(cliOptions);
@@ -75,7 +72,7 @@ export default async function(cliOptions: CliOptions): Promise<number> {
         // Dynamic require
         const cliBuildModule = await import('./build/cli-build');
         const cliBuild = cliBuildModule.cliBuild;
-        return cliBuild(cliOptions);
+        return cliBuild({ ...cliOptions, args: commandOptions });
     }
     if (commandOptions.version) {
         return Promise.resolve(cliOptions)

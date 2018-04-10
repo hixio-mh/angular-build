@@ -1,16 +1,18 @@
 import * as webpack from 'webpack';
 
-import { AngularBuildContext, PreDefinedEnvironment } from '../models';
+import { AngularBuildContext, AppProjectConfigInternal, LibProjectConfigInternal } from '../build-context';
 
-export function getCustomWebpackConfig(modulePath: string, angularBuildContext: AngularBuildContext, env?: PreDefinedEnvironment): webpack.
-    Configuration |
-    null {
+export function getCustomWebpackConfig<TConfig extends AppProjectConfigInternal | LibProjectConfigInternal>(modulePath:
+    string,
+    angularBuildContext: AngularBuildContext<TConfig>):
+    webpack.Configuration | null {
     const customWebpackModule = require(modulePath);
     if (customWebpackModule && customWebpackModule.default && typeof customWebpackModule.default === 'function') {
-        return customWebpackModule.default(angularBuildContext, env) as webpack.Configuration;
+        return customWebpackModule.default(angularBuildContext) as webpack.Configuration;
     }
     if (customWebpackModule && typeof customWebpackModule === 'function') {
-        return customWebpackModule(angularBuildContext, env) as webpack.Configuration;
+        return customWebpackModule(angularBuildContext) as webpack.Configuration;
     }
+
     return null;
 }

@@ -6,8 +6,8 @@ import * as path from 'path';
 import { ensureDir, readFileSync, writeFile } from 'fs-extra';
 import * as webpack from 'webpack';
 
-import { BundleAnalyzerOptions } from '../../../models';
-import { Logger, LoggerOptions } from '../../../utils/logger';
+import { BundleAnalyzerOptions } from '../../../interfaces';
+import { Logger, LoggerOptions } from '../../../utils';
 
 const ejs = require('ejs');
 const spawn = require('cross-spawn');
@@ -63,13 +63,17 @@ export class BundleAnalyzerWebpackPlugin {
         }
     }
 
-    apply(compiler: any): void {
+    apply(compiler: webpack.Compiler): void {
+        let outputPath = this._options.outputPath;
+        if (!outputPath && compiler.options.output && compiler.options.output.path) {
+            outputPath = compiler.options.output.path;
+        }
+
         compiler.hooks.done.tap(this.name, (stats: webpack.Stats) => {
             if (stats.hasErrors()) {
                 return;
             }
 
-            const outputPath = this._options.outputPath || compiler.outputPath;
             const statsJson = stats.toJson(this._options.stats);
 
             // Making analyzer logs to be after all webpack logs in the console
