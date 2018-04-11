@@ -17,9 +17,9 @@ Features
 ---------------
 
 - Build support for both library projects (internally with [rollup](https://github.com/rollup/rollup)) and app projects (internally with [webpack](https://github.com/webpack/webpack))
-- This npm package can by consumed by [angular cli](https://github.com/angular/angular-cli), [webpack cli](https://github.com/webpack/webpack-cli), or built-in cli
-- Bundle your library in fesm2015, fesm5, and umd formats
-- DLL bundling support for optimizing build time for development, internally using [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)
+- This npm package can be consumed by [angular cli](https://github.com/angular/angular-cli), [webpack cli](https://github.com/webpack/webpack-cli), or built-in cli
+- Bundle your library in fesm2015, fesm5, umd formats, and more
+- DLL bundling support for optimizing build time, internally using [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)
 - Multi-platform favicons generation (online/offline)- integration with [realfavicongenerator](http://realfavicongenerator.net) and [evilebottnawi/favicons](https://github.com/evilebottnawi/favicons)
 - Customizable html injection, can inject bundled scripts, links, favicons,  resource hints, etc into separate files or [ASP.Net Core MVC](https://docs.microsoft.com/en-us/aspnet/core/mvc/overview) partial views
 - Support to add custom webpack config to merge with built-in configs
@@ -30,13 +30,6 @@ Prerequisites
 ---------------
 
 Make sure you have [Node](https://nodejs.org/en/download/) version >= 8.9 and npm >= 5.5.1.
-
-Table of Contents
----------------
-
-*[Installation](#installation)
-*[How to use](#how-to-use)
-*[License](#license)
 
 Installation
 ---------------
