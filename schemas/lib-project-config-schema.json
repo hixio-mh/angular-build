@@ -275,18 +275,11 @@
                     "type": "string"
                 },
                 "bundles": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "$ref": "#/definitions/LibBundleOptions"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "Bundle target options."
+                    "description": "Bundle target options.",
+                    "items": {
+                        "$ref": "#/definitions/LibBundleOptions"
+                    },
+                    "type": "array"
                 },
                 "clean": {
                     "anyOf": [
@@ -300,25 +293,18 @@
                     "description": "Clean options."
                 },
                 "copy": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/AssetEntry"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
+                    "description": "Copy options.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/AssetEntry"
                             },
-                            "type": "array"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "Copy options."
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
                 },
                 "externals": {
                     "anyOf": [
@@ -385,25 +371,18 @@
                     "description": "Options to pass to style preprocessors."
                 },
                 "styles": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/GlobalEntry"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
+                    "description": "List of global style entries.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/GlobalEntry"
                             },
-                            "type": "array"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "List of global style entries."
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
                 },
                 "tsTranspilation": {
                     "$ref": "#/definitions/TsTranspilationOptions",
@@ -505,18 +484,11 @@
             "type": "string"
         },
         "bundles": {
-            "anyOf": [
-                {
-                    "items": {
-                        "$ref": "#/definitions/LibBundleOptions"
-                    },
-                    "type": "array"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "Bundle target options."
+            "description": "Bundle target options.",
+            "items": {
+                "$ref": "#/definitions/LibBundleOptions"
+            },
+            "type": "array"
         },
         "clean": {
             "anyOf": [
@@ -530,25 +502,18 @@
             "description": "Clean options."
         },
         "copy": {
-            "anyOf": [
-                {
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/AssetEntry"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
+            "description": "Copy options.",
+            "items": {
+                "anyOf": [
+                    {
+                        "$ref": "#/definitions/AssetEntry"
                     },
-                    "type": "array"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "Copy options."
+                    {
+                        "type": "string"
+                    }
+                ]
+            },
+            "type": "array"
         },
         "envOverrides": {
             "$ref": "#/definitions/LibEnvOverridesOptions",
@@ -641,25 +606,18 @@
             "description": "Options to pass to style preprocessors."
         },
         "styles": {
-            "anyOf": [
-                {
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/GlobalEntry"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
+            "description": "List of global style entries.",
+            "items": {
+                "anyOf": [
+                    {
+                        "$ref": "#/definitions/GlobalEntry"
                     },
-                    "type": "array"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "List of global style entries."
+                    {
+                        "type": "string"
+                    }
+                ]
+            },
+            "type": "array"
         },
         "tsTranspilation": {
             "$ref": "#/definitions/TsTranspilationOptions",

@@ -8,7 +8,7 @@ angular-build
 [![Dependency Status](https://david-dm.org/bizappframework/angular-build.svg)](https://david-dm.org/bizappframework/angular-build)
 [![npm](https://img.shields.io/npm/dm/@bizappframework/angular-build.svg)](https://www.npmjs.com/package/@bizappframework/angular-build)
 
-What is this?
+What is this
 ---------------
 
 Build tool for Angular app and library projects.
@@ -34,17 +34,19 @@ Make sure you have [Node](https://nodejs.org/en/download/) version >= 8.9 and np
 Table of Contents
 ---------------
 
-* [Installation](#installation)
-* [How to use](#how-to-use)
-* [License](#license)
+*[Installation](#installation)
+*[How to use](#how-to-use)
+*[License](#license)
 
 Installation
 ---------------
 
 **BEFORE YOU INSTALL:** please read the [prerequisites](#prerequisites)
+
 ```bash
 npm install -g @bizappframework/angular-build
 ```
+
 How to use
 ---------------
 

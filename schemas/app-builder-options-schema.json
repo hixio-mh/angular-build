@@ -151,25 +151,18 @@
                     "type": "boolean"
                 },
                 "copy": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/AssetEntry"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
+                    "description": "Copy options.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/AssetEntry"
                             },
-                            "type": "array"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "Copy options."
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
                 },
                 "dlls": {
                     "anyOf": [
@@ -254,18 +247,11 @@
                     "description": "The favicons configuration file or object."
                 },
                 "fileReplacements": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "$ref": "#/definitions/FileReplacementEntry"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "Replaces resources with new resources."
+                    "description": "Replaces resources with new resources.",
+                    "items": {
+                        "$ref": "#/definitions/FileReplacementEntry"
+                    },
+                    "type": "array"
                 },
                 "forkTypeChecker": {
                     "description": "Run the TypeScript type checker in a forked process.",
@@ -305,18 +291,11 @@
                     "type": "string"
                 },
                 "lazyModules": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "List of additional NgModule files that will be lazy loaded (lazy router modules will be discovered automatically)."
+                    "description": "List of additional NgModule files that will be lazy loaded (lazy router modules will be discovered automatically).",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 },
                 "libraryTarget": {
                     "description": "Module format for bundling.",
@@ -345,18 +324,11 @@
                     "type": "boolean"
                 },
                 "nodeResolveFields": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "Custom Node.js resolution main fields."
+                    "description": "Custom Node.js resolution main fields.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
                 },
                 "optimization": {
                     "description": "Defines the optimization level of the build.",
@@ -421,25 +393,18 @@
                     "type": "boolean"
                 },
                 "scripts": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/GlobalEntry"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
+                    "description": "Global script entries.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/GlobalEntry"
                             },
-                            "type": "array"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "Global script entries."
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
                 },
                 "skip": {
                     "description": "If true, this project config will be skipped by the build process.",
@@ -528,25 +493,18 @@
                     "description": "Options to pass to style preprocessors."
                 },
                 "styles": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/GlobalEntry"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
+                    "description": "List of global style entries.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/GlobalEntry"
                             },
-                            "type": "array"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "List of global style entries."
+                            {
+                                "type": "string"
+                            }
+                        ]
+                    },
+                    "type": "array"
                 },
                 "tsConfig": {
                     "description": "The typescript configuration file to be used.",
@@ -1709,25 +1667,18 @@
             "type": "boolean"
         },
         "copy": {
-            "anyOf": [
-                {
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/AssetEntry"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
+            "description": "Copy options.",
+            "items": {
+                "anyOf": [
+                    {
+                        "$ref": "#/definitions/AssetEntry"
                     },
-                    "type": "array"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "Copy options."
+                    {
+                        "type": "string"
+                    }
+                ]
+            },
+            "type": "array"
         },
         "deleteOutputPath": {
             "type": "boolean"
@@ -1856,18 +1807,11 @@
             "description": "The favicons configuration file or object."
         },
         "fileReplacements": {
-            "anyOf": [
-                {
-                    "items": {
-                        "$ref": "#/definitions/FileReplacementEntry"
-                    },
-                    "type": "array"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "Replaces resources with new resources."
+            "description": "Replaces resources with new resources.",
+            "items": {
+                "$ref": "#/definitions/FileReplacementEntry"
+            },
+            "type": "array"
         },
         "filter": {
             "anyOf": [
@@ -1924,18 +1868,11 @@
             "type": "string"
         },
         "lazyModules": {
-            "anyOf": [
-                {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "List of additional NgModule files that will be lazy loaded (lazy router modules will be discovered automatically)."
+            "description": "List of additional NgModule files that will be lazy loaded (lazy router modules will be discovered automatically).",
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
         },
         "libraryTarget": {
             "description": "Module format for bundling.",
@@ -1981,18 +1918,11 @@
             "type": "boolean"
         },
         "nodeResolveFields": {
-            "anyOf": [
-                {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "Custom Node.js resolution main fields."
+            "description": "Custom Node.js resolution main fields.",
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
         },
         "optimization": {
             "description": "Defines the optimization level of the build.",
@@ -2082,25 +2012,18 @@
             "type": "string"
         },
         "scripts": {
-            "anyOf": [
-                {
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/GlobalEntry"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
+            "description": "Global script entries.",
+            "items": {
+                "anyOf": [
+                    {
+                        "$ref": "#/definitions/GlobalEntry"
                     },
-                    "type": "array"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "Global script entries."
+                    {
+                        "type": "string"
+                    }
+                ]
+            },
+            "type": "array"
         },
         "serviceWorker": {
             "type": "boolean"
@@ -2201,25 +2124,18 @@
             "description": "Options to pass to style preprocessors."
         },
         "styles": {
-            "anyOf": [
-                {
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/GlobalEntry"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
+            "description": "List of global style entries.",
+            "items": {
+                "anyOf": [
+                    {
+                        "$ref": "#/definitions/GlobalEntry"
                     },
-                    "type": "array"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "List of global style entries."
+                    {
+                        "type": "string"
+                    }
+                ]
+            },
+            "type": "array"
         },
         "subresourceIntegrity": {
             "type": "boolean"

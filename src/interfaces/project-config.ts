@@ -136,11 +136,11 @@ export interface ProjectConfigBase {
     /**
      * Copy options.
      */
-    copy?: (string | AssetEntry)[] | boolean;
+    copy?: (string | AssetEntry)[];
     /**
      * List of global style entries.
      */
-    styles?: (string | GlobalEntry)[] | boolean;
+    styles?: (string | GlobalEntry)[];
     /**
      * Options to pass to style preprocessors.
      */

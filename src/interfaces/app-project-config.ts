@@ -178,7 +178,7 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     /**
      * Global script entries.
      */
-    scripts?: (string | GlobalEntry)[] | boolean;
+    scripts?: (string | GlobalEntry)[];
     /**
      * Polyfill entries.
      */
@@ -269,7 +269,7 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     /**
      * List of additional NgModule files that will be lazy loaded (lazy router modules will be discovered automatically).
      */
-    lazyModules?: string[] | boolean;
+    lazyModules?: string[];
     /**
      * Use file name for lazy loaded chunks.
      */
@@ -302,7 +302,7 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     /**
      * Replaces resources with new resources.
      */
-    fileReplacements?: FileReplacementEntry[] | boolean;
+    fileReplacements?: FileReplacementEntry[];
     /**
      * Webpack Bundle analyzer options.
      */
@@ -318,7 +318,7 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     /**
      * Custom Node.js resolution main fields.
      */
-    nodeResolveFields?: string[] | boolean;
+    nodeResolveFields?: string[];
     /**
      * Path to the translation file.
      */

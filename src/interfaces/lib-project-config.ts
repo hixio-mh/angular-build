@@ -142,7 +142,7 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
     /**
      * Bundle target options.
      */
-    bundles?: LibBundleOptions[] | boolean;
+    bundles?: LibBundleOptions[];
     /**
      * The externals configuration option provides a way of excluding dependencies from the output bundle.
      */
