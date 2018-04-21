@@ -1,4 +1,4 @@
-import * as supportsColor from 'supports-color';
+const supportsColor = require('supports-color');
 
 const defaultColors: { [key: string]: string } = {
     reset: '\u001b[0m',
@@ -16,8 +16,12 @@ const defaultColors: { [key: string]: string } = {
 
 export type ColorKeys = 'black' | 'white' | 'bold' | 'yellow' | 'red' | 'green' | 'cyan' | 'magenta';
 
-export function colorize(str: string, colorKey: ColorKeys, supported: boolean = supportsColor): string {
-    if (supported === false || !colorKey || !(colorKey in defaultColors)) {
+export function colorize(str: string, colorKey: ColorKeys): string {
+    if (!supportsColor.stdout) {
+        return str;
+    }
+
+    if (!colorKey || !(colorKey in defaultColors)) {
         return str;
     }
 

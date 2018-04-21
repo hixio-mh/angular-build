@@ -18,7 +18,7 @@ export async function
     performPackageJsonCopy<TConfig extends LibProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>,
         customLogger?: Logger):
     Promise<void> {
-    const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
+    const libConfig = angularBuildContext.projectConfig;
     if (!libConfig.packageOptions) {
         return;
     }
@@ -35,8 +35,18 @@ export async function
 
     const logger = customLogger || AngularBuildContext.logger;
 
-    const outputPath = path.resolve(AngularBuildContext.workspaceRoot, libConfig.root || '', libConfig.outputPath);
-    let packageJsonOutDir = path.resolve(outputPath, libConfig.packageOptions.packageJsonFileOutputPath || '');
+    const outputPath = path.resolve(AngularBuildContext.workspaceRoot, libConfig.outputPath);
+    let packageJsonOutDir: string;
+    if (libConfig.packageOptions.packageJsonOutputFilePath) {
+        const isDir = /(\\|\/)$/.test(libConfig.packageOptions.packageJsonOutputFilePath);
+        packageJsonOutDir = path.resolve(outputPath, libConfig.packageOptions.packageJsonOutputFilePath);
+        if (!isDir) {
+            packageJsonOutDir = path.dirname(packageJsonOutDir);
+        }
+    } else {
+        packageJsonOutDir = outputPath;
+    }
+
     packageJsonOutDir = replaceOutputTokens(packageJsonOutDir, libConfig);
 
     const mainFields: {

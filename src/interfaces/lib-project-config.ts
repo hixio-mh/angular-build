@@ -76,13 +76,9 @@ export interface LibBundleOptions {
      */
     entryRoot?: 'root' | 'outputPath' | 'tsOutDir' | 'prevBundleOutDir';
     /**
-     * Custom bundle output file name.
+     * Custom bundle output file path.
      */
-    outFileName?: string;
-    /**
-     * Custom output directory for bundled results.
-     */
-    outputPath?: string;
+    outputFilePath?: string;
     /**
      * Transforms entry file or bundled result to specific ECMA script target.
      */
@@ -118,9 +114,9 @@ export interface PackageOptions {
      */
     packageJsonFile: string;
     /**
-     * Custom destination directory for 'package.json'.
+     * Custom output file path for 'package.json'.
      */
-    packageJsonFileOutputPath?: string;
+    packageJsonOutputFilePath?: string;
     /**
      * Re-export file name for typing and metadata.
      */

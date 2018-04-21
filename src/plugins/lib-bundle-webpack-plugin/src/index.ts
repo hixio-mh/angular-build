@@ -25,11 +25,11 @@ export class LibBundleWebpackPlugin {
     }
 
     private async performBundleTask(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): Promise<void> {
-        const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
+        const libConfig = angularBuildContext.projectConfig;
         if (libConfig.tsTranspilation) {
             await performNgc(angularBuildContext);
         }
-        if (libConfig.styles && Array.isArray(libConfig.styles) && libConfig.styles.length) {
+        if (libConfig.styles && Array.isArray(libConfig.styles) && libConfig.styles.length > 0) {
             await processStyles(angularBuildContext);
         }
         if (libConfig.bundles && Array.isArray(libConfig.bundles) && libConfig.bundles.length > 0) {

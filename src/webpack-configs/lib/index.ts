@@ -14,7 +14,7 @@ import { BeforeBuildCleanOptions, CleanOptions } from '../../interfaces';
 export function
     getLibWebpackConfig<TConfig extends LibProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
     webpack.Configuration {
-    const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
+    const libConfig = angularBuildContext.projectConfig;
 
     if (!libConfig.outputPath) {
         throw new InvalidConfigError(

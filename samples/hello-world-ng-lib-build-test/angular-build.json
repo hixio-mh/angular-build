@@ -4,14 +4,11 @@
     {
       "root": ".",
       "outputPath": "dist",
-
       "libraryName": "hello-world",
       "banner": "banner.txt",
-
       "tsTranspilation": {
         "tsConfig": "tsconfig.json"
       },
-
       "envOverrides": {
         "prod": {
           "clean": {
@@ -19,33 +16,30 @@
               "cleanOutDir": true
             }
           },
-
           "copy": [
             "LICENSE",
             "README.md"
           ],
-
           "bundles": [
             {
               "entry": "index.js",
               "entryRoot": "tsOutDir",
               "libraryTarget": "es",
-              "outputPath": "bundles"
+              "outputFilePath": "bundles/"
             },
             {
               "entryRoot": "prevBundleOutDir",
               "libraryTarget": "es",
-              "outputPath": "bundles",
+              "outputFilePath": "bundles/",
               "transformScriptTargetOnly": true,
               "scriptTarget": "es5"
             },
             {
               "entryRoot": "prevBundleOutDir",
               "libraryTarget": "umd",
-              "outputPath": "bundles"
+              "outputFilePath": "bundles/"
             }
           ],
-
           "packageOptions": {
             "packageJsonFile": "package.json",
             "reExportTypingsAndMetaDataAs": "[packagename]"

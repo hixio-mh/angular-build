@@ -26,7 +26,7 @@ const sorcery = require('sorcery');
 export async function
     performLibBundles<TConfig extends LibProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>,
         customLogger?: Logger): Promise<void> {
-    const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
+    const libConfig = angularBuildContext.projectConfig;
     if (!libConfig.bundles ||
         !Array.isArray(libConfig.bundles) ||
         !libConfig.bundles.length) {
@@ -229,17 +229,23 @@ export async function
         }
 
         // bundleOutDir
-        let bundleOutDir = '';
-        if (currentBundle.outputPath) {
-            bundleOutDir = path.resolve(outputPath, currentBundle.outputPath);
+        let bundleOutputPath = '';
+        let outFileName = '';
+        if (currentBundle.outputFilePath) {
+            const isDir = /(\\|\/)$/.test(currentBundle.outputFilePath);
+            bundleOutputPath = path.resolve(outputPath, currentBundle.outputFilePath);
+            if (!isDir) {
+                outFileName = path.basename(bundleOutputPath);
+                bundleOutputPath = path.dirname(bundleOutputPath);
+            }
+            bundleOutputPath = replaceOutputTokens(bundleOutputPath, libConfig);
         } else {
-            bundleOutDir = outputPath;
+            bundleOutputPath = outputPath;
         }
-        bundleOutDir = replaceOutputTokens(bundleOutDir, libConfig);
 
         // _outputFilePath
         let formatSuffix = '';
-        if (i > 0 && !/\-?esm?(\d{1,4})$/i.test(bundleOutDir) && !/\-?umd$/i.test(bundleOutDir)) {
+        if (i > 0 && !/\-?esm?(\d{1,4})$/i.test(bundleOutputPath) && !/\-?umd$/i.test(bundleOutputPath)) {
             if (currentBundle.libraryTarget === 'es') {
                 formatSuffix = '.esm';
             } else {
@@ -248,11 +254,10 @@ export async function
         }
         if (currentBundle.scriptTarget &&
             currentBundle.libraryTarget !== 'umd' &&
-            !/\-?esm?(\d{1,4})$/i.test(bundleOutDir)) {
+            !/\-?esm?(\d{1,4})$/i.test(bundleOutputPath)) {
             formatSuffix = `${formatSuffix}.${currentBundle.scriptTarget}`;
         }
 
-        let outFileName = currentBundle.outFileName;
         if (!outFileName) {
             if (packageName && !isPackagePrivate) {
                 if (currentBundle.libraryTarget === 'umd' && libConfig._parentPackageName) {
@@ -268,7 +273,7 @@ export async function
 
         outFileName = replaceOutputTokens(outFileName, libConfig);
         outFileName = outFileName.replace(/\[name\]/g, path.basename(entryFilePath).replace(/\.(js|ts)$/i, ''));
-        const outputFilePath = path.resolve(bundleOutDir, outFileName);
+        const outputFilePath = path.resolve(bundleOutputPath, outFileName);
         currentBundle._outputFilePath = outputFilePath;
 
         // externals
@@ -342,7 +347,7 @@ export async function
                 logger.info(
                     `Bundling ${currentBundle.libraryTarget} module with rollup`);
 
-                const bundle = await rollup.rollup(rollupOptions.inputOptions);
+                const bundle = await rollup.rollup(rollupOptions.inputOptions as any);
                 await bundle.write(rollupOptions.outputOptions);
             }
 
