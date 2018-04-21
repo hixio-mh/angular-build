@@ -353,13 +353,30 @@ export function
         webpackConfig.optimization = {
             runtimeChunk: 'single',
             splitChunks: {
-                chunks: (appConfig.commonChunk ? 'all' : 'initial') as any,
+                maxAsyncRequests: Infinity,
                 cacheGroups: {
+                    default: appConfig.commonChunk
+                        ? {
+                            chunks: 'async',
+                            minChunks: 2,
+                            reuseExistingChunk: true,
+                            priority: 10,
+                        }
+                        : false,
+                    common: appConfig.commonChunk
+                        ? {
+                            name: 'common',
+                            chunks: 'async',
+                            minChunks: 2,
+                            priority: 5,
+                        }
+                        : false,
                     vendors: false,
                     vendor: appConfig.vendorChunk
                         ? {
                             name: vendorChunkName,
                             chunks: 'initial',
+                            enforce: true,
                             test: (module: any, chunks: Array<{ name: string }>) => {
                                 const moduleName = module.nameForCondition ? module.nameForCondition() : '';
                                 return /[\\/]node_modules[\\/]/.test(moduleName) &&

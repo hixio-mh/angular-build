@@ -1,5 +1,11 @@
 # Change Logs
 
+## 6.0.0-rc.2
+
+- Fixed webpack deprecation warnings inside `@angular/core` as using SystemJS style dynamic imports
+- Fixed split small common modules into one
+- Updated npm dependencies
+
 ## 6.0.0-rc.1
 
 - Fixed array types in schema to compatible with Angular CLI

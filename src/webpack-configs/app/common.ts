@@ -410,7 +410,7 @@ export function
                         output: {
                             ascii_only: true, // default false
                             // comments: false, // default false
-                            beautify: false, // default true
+                            // beautify: false, // default true
                             comments: false,
                             webkit: true
                         }

@@ -39,6 +39,14 @@ export function
     const cacheLoader = resolveLoaderPath('cache-loader');
 
     const rules: webpack.Rule[] = [];
+
+    rules.push({
+        // Mark files inside `@angular/core` as using SystemJS style dynamic imports.
+        // Removing this will cause deprecation warnings to appear.
+        test: /[\/\\]@angular[\/\\]core[\/\\].+\.js$/,
+        parser: { system: true }
+    } as any);
+
     const tsBuildOptimizerLoaders: any[] = [];
 
     if (appConfig.buildOptimizer) {
