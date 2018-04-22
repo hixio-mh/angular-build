@@ -117,9 +117,5 @@ export interface AppConfigCompat extends ProjectConfigCompat {
     /**
      * @angular-devkit/build_angular compatibility, not supported.
      */
-    serviceWorker?: boolean;
-    /**
-     * @angular-devkit/build_angular compatibility, not supported.
-     */
     skipAppShell?: boolean;
 }

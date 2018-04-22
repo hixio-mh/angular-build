@@ -5,6 +5,7 @@ import * as webpack from 'webpack';
 import { FaviconsWebpackPlugin } from '../../plugins/favicons-webpack-plugin';
 import { HtmlInjectWebpackPlugin } from '../../plugins/html-inject-webpack-plugin';
 import { ScriptsWebpackPlugin } from '../../plugins/scripts-webpack-plugin';
+import { ServiceWorkerWebpackPlugin } from '../../plugins/service-worker-webpack-plugin';
 
 import { AngularBuildContext, AppProjectConfigInternal, GlobalParsedEntry } from '../../build-context';
 import { InternalError, InvalidConfigError } from '../../error-models';
@@ -158,6 +159,19 @@ export function
     if (appConfig.entry && appConfig.provides && Object.keys(appConfig.provides).length > 0) {
         plugins.push(
             new webpack.ProvidePlugin(appConfig.provides)
+        );
+    }
+
+    // service worker
+    if (appConfig.serviceWorker) {
+        plugins.push(
+            new ServiceWorkerWebpackPlugin({
+                host: angularBuildContext.host,
+                workspaceRoot: AngularBuildContext.workspaceRoot,
+                projectRoot: projectRoot,
+                outputPath: outputPath,
+                baseHref: appConfig.baseHref || ''
+            })
         );
     }
 

@@ -21,7 +21,7 @@ export interface CleanWebpackPluginOptions extends CleanOptions {
     outputPath?: string;
     forceCleanToDisk?: boolean;
     persistedOutputFileSystemNames?: string[];
-    host?: virtualFs.Host<any>;
+    host?: virtualFs.Host;
     loggerOptions?: LoggerOptions;
 }
 
@@ -490,7 +490,7 @@ export class CleanWebpackPlugin {
         }
     }
 
-    private async calculateOutputPathRecursive(host: virtualFs.Host<any>,
+    private async calculateOutputPathRecursive(host: virtualFs.Host,
         pathFragements: Path[], dirFragements: Path[], basePath: Path): Promise<void> {
         const paths = await host.list(basePath).toPromise();
         for (const p of paths) {

@@ -100,7 +100,9 @@
     <Folder Include="src\plugins\html-inject-webpack-plugin\" />
     <Folder Include="src\plugins\html-inject-webpack-plugin\src\" />
     <Folder Include="src\plugins\angular-build-context-webpack-plugin\" />
+    <Folder Include="src\plugins\service-worker-webpack-plugin\" />
     <Folder Include="src\plugins\raw-css-loader\" />
+    <Folder Include="src\plugins\service-worker-webpack-plugin\src\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\" />
     <Folder Include="src\plugins\telemetry-webpack-plugin\" />
@@ -179,6 +181,8 @@
     <TypeScriptCompile Include="src\plugins\postcss-cli-resources\index.ts" />
     <TypeScriptCompile Include="src\plugins\raw-css-loader\index.ts" />
     <TypeScriptCompile Include="src\plugins\raw-css-loader\raw-css-loader.ts" />
+    <TypeScriptCompile Include="src\plugins\service-worker-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\service-worker-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\index.ts" />

@@ -123,7 +123,7 @@ export interface BuildContextInstanceOptions<TConfig extends AppProjectConfigInt
     projectConfigWithoutEnvApplied: TConfig;
     projectConfig: TConfig;
     buildOptions: BuildOptionInternal;
-    host?: virtualFs.Host<any>;
+    host: virtualFs.Host;
 }
 
 export interface BuildContextStaticOptions {
@@ -336,7 +336,8 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
     readonly projectRoot?: string;
     readonly projectConfigWithoutEnvApplied: TConfig;
     readonly projectConfig: TConfig;
-    readonly host?: virtualFs.Host<any>;
+    readonly host: virtualFs.Host;
+    readonly aliasHost: virtualFs.Host<any>;
 
     get buildOptions(): BuildOptionInternal {
         return this._buildOptions;
@@ -406,10 +407,8 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
 
         AngularBuildContext._initialized = true;
 
-        if (options.host) {
-            this.host = options.host;
-        }
-
+        this.host = options.host;
+        this.aliasHost = new virtualFs.AliasHost(options.host as virtualFs.Host<any>);
         this._buildOptions = options.buildOptions;
         this.projectConfigWithoutEnvApplied = options.projectConfigWithoutEnvApplied;
         this.projectConfig = options.projectConfig;

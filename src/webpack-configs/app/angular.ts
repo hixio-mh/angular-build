@@ -1,6 +1,5 @@
 import * as path from 'path';
 
-import { NodeJsSyncHost } from '@angular-devkit/core/node';
 import { AngularCompilerPluginOptions, PLATFORM } from '@ngtools/webpack';
 import * as webpack from 'webpack';
 
@@ -174,7 +173,7 @@ function createAotPlugin<TConfig extends AppProjectConfigInternal>(angularBuildC
         ? path.resolve(projectRoot, appConfig.i18nFile)
         : undefined;
 
-    const host: any = angularBuildContext.host || new NodeJsSyncHost();
+    const host: any = angularBuildContext.aliasHost;
 
     const pluginOptions: AngularCompilerPluginOptions = {
         mainPath: appConfig.entry ? path.join(projectRoot, appConfig.entry) : undefined,

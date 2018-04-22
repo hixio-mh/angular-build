@@ -379,6 +379,10 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Output file name for extracted licenses.
      */
     extractLicenseOutputFilename?: string;
+    /**
+     * Generates a service worker config for production builds.
+     */
+    serviceWorker?: boolean;
 }
 
 

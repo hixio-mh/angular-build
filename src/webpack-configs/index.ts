@@ -1,6 +1,7 @@
 import { existsSync } from 'fs';
 import * as path from 'path';
 
+import { NodeJsSyncHost } from '@angular-devkit/core/node';
 import * as webpack from 'webpack';
 
 import {
@@ -233,6 +234,7 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
                     projectConfig: clonedLibConfig,
                     buildOptions: buildOptions,
                     workspaceRoot: workspaceRoot,
+                    host: new NodeJsSyncHost(),
                     ...staticBuildContextOptions
                 });
 
@@ -281,6 +283,7 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
                     projectConfig: clonedAppConfig,
                     buildOptions: buildOptions,
                     workspaceRoot: workspaceRoot,
+                    host: new NodeJsSyncHost(),
                     ...staticBuildContextOptions
                 });
 

@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import * as path from 'path';
 
 import {
@@ -7,7 +6,7 @@ import {
     BuilderConfiguration,
     BuilderContext
 } from '@angular-devkit/architect';
-import { getSystemPath, resolve, virtualFs } from '@angular-devkit/core';
+import { getSystemPath, resolve } from '@angular-devkit/core';
 import { Observable, of } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
 import * as webpack from 'webpack';
@@ -34,7 +33,6 @@ export class AppBuilder<TConfig extends AppBuilderOptions> implements Builder<TC
     run(builderConfig: BuilderConfiguration<TConfig>): Observable<BuildEvent> {
         const workspaceRoot = getSystemPath(this.context.workspace.root);
         const projectRoot = getSystemPath(resolve(this.context.workspace.root, builderConfig.root));
-        const host = new virtualFs.AliasHost(this.context.host as virtualFs.Host<fs.Stats>);
         const options = JSON.parse(JSON.stringify(builderConfig.options)) as AppBuilderOptions;
 
         const buildOptions = getBuildOptionsFromBuilderOptions(options);
@@ -73,7 +71,7 @@ export class AppBuilder<TConfig extends AppBuilderOptions> implements Builder<TC
                 const angularBuildContext = new AngularBuildContext({
                     workspaceRoot: workspaceRoot,
                     startTime: this._startTime,
-                    host: host,
+                    host: this.context.host as any,
                     // logger: this.context.logger,
 
                     projectConfig: appConfigEnvApplied,
