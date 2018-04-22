@@ -1067,14 +1067,14 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
                 const inputs = Array.isArray(extraEntry.input) ? extraEntry.input : [extraEntry.input];
                 parsedEntry.paths = inputs.map(input => path.resolve(baseDir, input));
 
-                if (extraEntry.output) {
-                    if (/(\\|\/)$/.test(extraEntry.output) &&
+                if (extraEntry.bundleName) {
+                    if (/(\\|\/)$/.test(extraEntry.bundleName) &&
                         !Array.isArray(extraEntry.input) &&
                         typeof extraEntry.input === 'string') {
-                        parsedEntry.entry = extraEntry.output +
+                        parsedEntry.entry = extraEntry.bundleName +
                             path.basename(extraEntry.input as string).replace(/\.(ts|js|less|sass|scss|styl|css)$/i, '');
                     } else {
-                        parsedEntry.entry = extraEntry.output.replace(/\.(js|css)$/i, '');
+                        parsedEntry.entry = extraEntry.bundleName.replace(/\.(js|css)$/i, '');
                     }
                 } else if (extraEntry.lazy && !Array.isArray(extraEntry.input) &&
                     typeof extraEntry.input === 'string') {

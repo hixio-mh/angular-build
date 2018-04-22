@@ -77,15 +77,15 @@ export interface AssetEntry {
  */
 export interface GlobalEntry {
     /**
-     * The source style file.
+     * The file to include.
      */
     input: string | string[];
     /**
-     * The output style file name.
+     * The bundle name for this extra entry point.
      */
-    output?: string;
+    bundleName?: string;
     /**
-     * If true, it will not be injected to target html.
+     * If the bundle will be lazy loaded.
      */
     lazy?: boolean;
 }
