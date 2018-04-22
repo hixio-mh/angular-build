@@ -205,8 +205,8 @@ function getHostReplacementPaths(workspaceRoot: string, appConfig: AppProjectCon
     if (appConfig.fileReplacements && Array.isArray(appConfig.fileReplacements)) {
         appConfig.fileReplacements.forEach((entry: FileReplacementEntry) => {
             const root = path.resolve(workspaceRoot, appConfig.root || '');
-            const resourcePath = path.resolve(root, entry.src);
-            const newResourcePath = path.resolve(root, entry.replaceWith);
+            const resourcePath = path.resolve(root, entry.replace);
+            const newResourcePath = path.resolve(root, entry.with);
             if (resourcePath !== newResourcePath) {
                 hostReplacementPaths[resourcePath] = newResourcePath;
             }

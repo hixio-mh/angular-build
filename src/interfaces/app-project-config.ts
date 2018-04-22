@@ -62,8 +62,8 @@ export interface PerformanceOptions {
  * @additionalProperties false
  */
 export interface FileReplacementEntry {
-    src: string;
-    replaceWith: string;
+    replace: string;
+    with: string;
 }
 
 /**
