@@ -340,6 +340,12 @@
                             "$ref": "#/definitions/OutputHashingOptions"
                         },
                         {
+                            "enum": [
+                                "all",
+                                "bundles",
+                                "media",
+                                "none"
+                            ],
                             "type": "string"
                         }
                     ],
@@ -405,6 +411,10 @@
                         ]
                     },
                     "type": "array"
+                },
+                "serviceWorker": {
+                    "description": "Generates a service worker config for production builds.",
+                    "type": "boolean"
                 },
                 "skip": {
                     "description": "If true, this project config will be skipped by the build process.",
@@ -550,9 +560,6 @@
         "AssetPatternCompat": {
             "additionalProperties": false,
             "properties": {
-                "allowOutsideOutDir": {
-                    "type": "boolean"
-                },
                 "glob": {
                     "type": "string"
                 },
@@ -884,10 +891,10 @@
         "FileReplacementEntry": {
             "additionalProperties": false,
             "properties": {
-                "replaceWith": {
+                "replace": {
                     "type": "string"
                 },
-                "src": {
+                "with": {
                     "type": "string"
                 }
             },
@@ -944,6 +951,10 @@
         "GlobalEntry": {
             "additionalProperties": false,
             "properties": {
+                "bundleName": {
+                    "description": "The bundle name for this extra entry point.",
+                    "type": "string"
+                },
                 "input": {
                     "anyOf": [
                         {
@@ -956,15 +967,11 @@
                             "type": "string"
                         }
                     ],
-                    "description": "The source style file."
+                    "description": "The file to include."
                 },
                 "lazy": {
-                    "description": "If true, it will not be injected to target html.",
+                    "description": "If the bundle will be lazy loaded.",
                     "type": "boolean"
-                },
-                "output": {
-                    "description": "The output style file name.",
-                    "type": "string"
                 }
             },
             "type": "object"
@@ -1938,6 +1945,12 @@
                     "$ref": "#/definitions/OutputHashingOptions"
                 },
                 {
+                    "enum": [
+                        "all",
+                        "bundles",
+                        "media",
+                        "none"
+                    ],
                     "type": "string"
                 }
             ],
@@ -2026,6 +2039,7 @@
             "type": "array"
         },
         "serviceWorker": {
+            "description": "Generates a service worker config for production builds.",
             "type": "boolean"
         },
         "showCircularDependencies": {

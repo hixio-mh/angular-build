@@ -45,9 +45,6 @@
         "AssetPatternCompat": {
             "additionalProperties": false,
             "properties": {
-                "allowOutsideOutDir": {
-                    "type": "boolean"
-                },
                 "glob": {
                     "type": "string"
                 },
@@ -144,6 +141,10 @@
         "GlobalEntry": {
             "additionalProperties": false,
             "properties": {
+                "bundleName": {
+                    "description": "The bundle name for this extra entry point.",
+                    "type": "string"
+                },
                 "input": {
                     "anyOf": [
                         {
@@ -156,15 +157,11 @@
                             "type": "string"
                         }
                     ],
-                    "description": "The source style file."
+                    "description": "The file to include."
                 },
                 "lazy": {
-                    "description": "If true, it will not be injected to target html.",
+                    "description": "If the bundle will be lazy loaded.",
                     "type": "boolean"
-                },
-                "output": {
-                    "description": "The output style file name.",
-                    "type": "string"
                 }
             },
             "type": "object"

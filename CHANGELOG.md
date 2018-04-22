@@ -1,5 +1,10 @@
 # Change Logs
 
+## 6.0.0-rc.4
+
+- Added angular service worker support
+- Updated app config schema to compat with angular cli
+
 ## 6.0.0-rc.3
 
 - Fixed output paths for library projects
