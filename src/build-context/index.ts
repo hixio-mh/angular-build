@@ -833,7 +833,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
                     : path.resolve(path.dirname(tsTranspilation._tsConfigPath), compilerOptions.outDir);
             }
 
-            if (tsOutputPath && compilerOptions.rootDir &&
+            if (tsOutputPath != null && compilerOptions.rootDir &&
                 !isSamePaths(compilerOptions.rootDir, path.dirname(tsTranspilation._tsConfigPath)) &&
                 isInFolder(compilerOptions.rootDir, path.dirname(tsTranspilation._tsConfigPath))) {
                 const relSubDir = normalizeRelativePath(
