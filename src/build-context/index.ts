@@ -742,6 +742,15 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
 
                 appConfig.outputHashing = objConfig;
                 appConfig._outputHashing = objConfig;
+            } else if (outputHashing === 'none') {
+                const objConfig = {
+                    bundles: false,
+                    chunks: false,
+                    extractedAssets: false
+                };
+
+                appConfig.outputHashing = objConfig;
+                appConfig._outputHashing = objConfig;
             }
         }
 

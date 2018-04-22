@@ -49,6 +49,13 @@ export interface OutputHashingOptions {
     extractedAssets?: boolean;
 }
 
+export enum OutputHashingCompat {
+    All = 'all',
+    Bundles = 'bundles',
+    Media = 'media',
+    None = 'none',
+}
+
 /**
  * @additionalProperties false
  */
@@ -253,7 +260,7 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     /**
      * Define the output filename cache-busting hashing mode.
      */
-    outputHashing?: OutputHashingOptions | string;
+    outputHashing?: OutputHashingOptions | OutputHashingCompat;
     /**
      * If true, build process will extracts css specified in styles entry as styles.css.
      */
