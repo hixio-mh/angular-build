@@ -166,6 +166,10 @@ export interface IconDesign {
  */
 export interface FaviconsConfig {
     /**
+     * Link to schema.
+     */
+    $schema?: string;
+    /**
      * Your API key. Register at {@link https://realfavicongenerator.net/api/#register_key realfavicongenerator.net}
      */
     apiKey?: string;

@@ -417,6 +417,10 @@
   },
   "description": "Favicons config",
   "properties": {
+    "$schema": {
+      "description": "Link to schema.",
+      "type": "string"
+    },
     "apiKey": {
       "description": "Your API key. Register at {@link https://realfavicongenerator.net/api/#register_key realfavicongenerator.net}",
       "type": "string"
