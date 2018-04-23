@@ -1,5 +1,10 @@
 # Change Logs
 
+## 6.0.0-rc.5
+
+- Updated generate schemas logic to compat with angular cli
+- Updated npm dependencies
+
 ## 6.0.0-rc.4
 
 - Added angular service worker support
