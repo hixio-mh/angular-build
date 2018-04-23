@@ -1,1962 +1,1958 @@
 {
-    "$schema": "http://json-schema.org/draft-06/schema#",
-    "additionalProperties": false,
-    "definitions": {
-        "AfterEmitCleanOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "exclude": {
-                    "description": "Path array to exclude from deleting.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "paths": {
-                    "description": "Paths to be deleted.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                }
-            },
-            "type": "object"
-        },
-        "AndroidChromeDesign": {
-            "properties": {
-                "assets": {
-                    "additionalProperties": true,
-                    "properties": {
-                        "legacyIcon": {
-                            "description": "If true, the service generates icons and HTML markups for Android Chrome running on Android Chrome M38 and prior.",
-                            "type": "boolean"
-                        },
-                        "lowResolutionIcons": {
-                            "description": "If true, the service creates all documented icons for home screen and splash screen.\nElse, it creates only recommended, high resolution icons.",
-                            "type": "boolean"
-                        }
-                    },
-                    "type": "object"
-                },
-                "manifest": {
-                    "additionalProperties": true,
-                    "properties": {
-                        "declared": {
-                            "type": "boolean"
-                        },
-                        "display": {
-                            "description": "Specify the appearance of the web site when the user clicks the home scren link.",
-                            "enum": [
-                                "browser",
-                                "standalone"
-                            ],
-                            "type": "string"
-                        },
-                        "name": {
-                            "description": "The application name is used as the title of the link when the visitor adds the site to the home screen.",
-                            "type": "string"
-                        },
-                        "onConflict": {
-                            "description": "Use onConflict to indicate how to react in case of conflict.\nIf the existing manifest contains an entry that RealFaviconGenerator also generates.",
-                            "enum": [
-                                "keepExisting",
-                                "override",
-                                "raiseError"
-                            ],
-                            "type": "string"
-                        },
-                        "orientation": {
-                            "description": "When present and display is standalone, force the screen to a particular orientation. Either portrait or landscape.",
-                            "enum": [
-                                "landscape",
-                                "portrait"
-                            ],
-                            "type": "string"
-                        },
-                        "startUrl": {
-                            "description": "The page actually added to the home screen.\nTypically, the home page of the site. Leave this field blank to let a visitor add any page to the home screen.",
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
-                },
-                "pictureAspect": {
-                    "description": "The picture aspect.",
-                    "enum": [
-                        "backgroundAndMargin",
-                        "noChange",
-                        "shadow"
-                    ],
-                    "type": "string"
-                },
-                "themeColor": {
-                    "description": "The theme color.",
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "AppEnvOverridesOptions": {
-            "additionalProperties": {
-                "$ref": "#/definitions/AppProjectConfigBase"
-            },
-            "type": "object"
-        },
-        "AppProjectConfigBase": {
-            "additionalProperties": false,
-            "properties": {
-                "aot": {
-                    "description": "Build using Ahead of Time compilation.",
-                    "type": "boolean"
-                },
-                "banner": {
-                    "description": "Banner text to add at the top of each generated files. It can be text file name or raw text.",
-                    "type": "string"
-                },
-                "baseHref": {
-                    "description": "The base URL for all relative URLs on a page.",
-                    "type": "string"
-                },
-                "buildOptimizer": {
-                    "description": "Set true to enable build optimizer.",
-                    "type": "boolean"
-                },
-                "bundleAnalyzer": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/BundleAnalyzerOptions"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "Webpack Bundle analyzer options."
-                },
-                "clean": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/CleanOptions"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "Clean options."
-                },
-                "commonChunk": {
-                    "description": "If true, chunk a separate bundle containing common code used across multiple bundles.",
-                    "type": "boolean"
-                },
-                "concatenateModules": {
-                    "description": "Set true to enable scope hoisting.",
-                    "type": "boolean"
-                },
-                "copy": {
-                    "description": "Copy options.",
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/AssetEntry"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "type": "array"
-                },
-                "dlls": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "$ref": "#/definitions/DllOptions"
-                        }
-                    ],
-                    "description": "The vendor module entries for dll bundle."
-                },
-                "entry": {
-                    "description": "The main typescript entry file to be bundled.",
-                    "type": "string"
-                },
-                "environmentVariables": {
-                    "anyOf": [
-                        {
-                            "additionalProperties": {
-                                "type": [
-                                    "string",
-                                    "boolean"
-                                ]
-                            },
-                            "type": "object"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "Custom environment variables to be included in bundle."
-                },
-                "externals": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/ExternalsObjectElement"
-                        },
-                        {
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/ExternalsObjectElement"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
-                },
-                "extractCss": {
-                    "description": "If true, build process will extracts css specified in styles entry as styles.css.",
-                    "type": "boolean"
-                },
-                "extractLicenseOutputFilename": {
-                    "description": "Output file name for extracted licenses.",
-                    "type": "string"
-                },
-                "extractLicenses": {
-                    "description": "Extract all licenses in a separate file.",
-                    "type": "boolean"
-                },
-                "favicons": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/FaviconsConfig"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "The favicons configuration file or object."
-                },
-                "fileReplacements": {
-                    "description": "Replaces resources with new resources.",
-                    "items": {
-                        "$ref": "#/definitions/FileReplacementEntry"
-                    },
-                    "type": "array"
-                },
-                "forkTypeChecker": {
-                    "description": "Run the TypeScript type checker in a forked process.",
-                    "type": "boolean"
-                },
-                "htmlInject": {
-                    "$ref": "#/definitions/HtmlInjectOptions",
-                    "description": "The html injection options."
-                },
-                "i18nFile": {
-                    "description": "Path to the translation file.",
-                    "type": "string"
-                },
-                "i18nFormat": {
-                    "description": "Import format if different from `i18nFormat`.",
-                    "type": "string"
-                },
-                "i18nLocale": {
-                    "description": "Locale of the imported translations.",
-                    "type": "string"
-                },
-                "i18nMissingTranslation": {
-                    "description": "How to handle missing messages.",
-                    "enum": [
-                        "error",
-                        "ignore",
-                        "warning"
-                    ],
-                    "type": "string"
-                },
-                "i18nOutFile": {
-                    "description": "Path to the extracted message file.",
-                    "type": "string"
-                },
-                "i18nOutFormat": {
-                    "description": "Export format (xlf, xlf2 or xmb).",
-                    "type": "string"
-                },
-                "lazyModules": {
-                    "description": "List of additional NgModule files that will be lazy loaded (lazy router modules will be discovered automatically).",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "libraryTarget": {
-                    "description": "Module format for bundling.",
-                    "enum": [
-                        "amd",
-                        "cjs",
-                        "commonjs",
-                        "commonjs2",
-                        "iife",
-                        "umd",
-                        "var"
-                    ],
-                    "type": "string"
-                },
-                "mainChunkName": {
-                    "default": "main",
-                    "description": "The output chunk name for main entry.",
-                    "type": "string"
-                },
-                "namedChunks": {
-                    "description": "Use file name for lazy loaded chunks.",
-                    "type": "boolean"
-                },
-                "nodeModulesAsExternals": {
-                    "description": "If true, node_modules packages are not included in bundle.",
-                    "type": "boolean"
-                },
-                "nodeResolveFields": {
-                    "description": "Custom Node.js resolution main fields.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "optimization": {
-                    "description": "Defines the optimization level of the build.",
-                    "type": "boolean"
-                },
-                "outputHashing": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/OutputHashingOptions"
-                        },
-                        {
-                            "enum": [
-                                "all",
-                                "bundles",
-                                "media",
-                                "none"
-                            ],
-                            "type": "string"
-                        }
-                    ],
-                    "description": "Define the output filename cache-busting hashing mode."
-                },
-                "outputPath": {
-                    "description": "The output directory for build results.",
-                    "type": "string"
-                },
-                "performance": {
-                    "$ref": "#/definitions/PerformanceOptions",
-                    "description": "Performance options."
-                },
-                "platformTarget": {
-                    "description": "Tell the build system which platform environment the application is targeting.",
-                    "enum": [
-                        "node",
-                        "web"
-                    ],
-                    "type": "string"
-                },
-                "polyfills": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "Polyfill entries."
-                },
-                "polyfillsChunkName": {
-                    "default": "polyfills",
-                    "description": "The output chunk name for polyfills.",
-                    "type": "string"
-                },
-                "provides": {
-                    "$ref": "#/definitions/ProvideOptions",
-                    "description": "To load global modules automatically  with alias key."
-                },
-                "publicPath": {
-                    "description": "The url where files will be deployed.",
-                    "type": "string"
-                },
-                "referenceDll": {
-                    "description": "To consume dll bundle created by the dll build.",
-                    "type": "boolean"
-                },
-                "scripts": {
-                    "description": "Global script entries.",
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/GlobalEntry"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "type": "array"
-                },
-                "serviceWorker": {
-                    "description": "Generates a service worker config for production builds.",
-                    "type": "boolean"
-                },
-                "skip": {
-                    "description": "If true, this project config will be skipped by the build process.",
-                    "type": "boolean"
-                },
-                "sourceMap": {
-                    "description": "If true, sourcemaps will be generated.",
-                    "type": "boolean"
-                },
-                "sourceMapDevTool": {
-                    "description": "This option controls if and how source maps are generated.",
-                    "enum": [
-                        "#@cheap-eval-source-map",
-                        "#@cheap-module-eval-source-map",
-                        "#@cheap-module-source-map",
-                        "#@cheap-source-map",
-                        "#@eval",
-                        "#@eval-source-map",
-                        "#@hidden-source-map",
-                        "#@inline-source-map",
-                        "#@nosources-source-map",
-                        "#@source-map",
-                        "#cheap-eval-source-map",
-                        "#cheap-module-eval-source-map",
-                        "#cheap-module-source-map",
-                        "#cheap-source-map",
-                        "#eval",
-                        "#eval-source-map",
-                        "#hidden-source-map",
-                        "#inline-source-map",
-                        "#nosources-source-map",
-                        "#source-map",
-                        "@cheap-eval-source-map",
-                        "@cheap-module-eval-source-map",
-                        "@cheap-module-source-map",
-                        "@cheap-source-map",
-                        "@eval",
-                        "@eval-source-map",
-                        "@hidden-source-map",
-                        "@inline-source-map",
-                        "@nosources-source-map",
-                        "@source-map",
-                        "cheap-eval-source-map",
-                        "cheap-module-eval-source-map",
-                        "cheap-module-source-map",
-                        "cheap-source-map",
-                        "eval",
-                        "eval-source-map",
-                        false,
-                        "hidden-source-map",
-                        "inline-source-map",
-                        "nosources-source-map",
-                        "source-map",
-                        true
-                    ]
-                },
-                "sourceMapDevToolFallbackModuleFilenameTemplate": {
-                    "description": "A fallback used when the template string of 'sourceMapFilenameTemplate' yields duplicates.",
-                    "type": "string"
-                },
-                "sourceMapDevToolModuleFilenameTemplate": {
-                    "description": "Customize the names used in each source map.",
-                    "type": "string"
-                },
-                "stats": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/WebpackStatsToStringOptions"
-                        },
-                        {
-                            "enum": [
-                                "errors-only",
-                                false,
-                                "minimal",
-                                "none",
-                                "normal",
-                                true,
-                                "verbose"
-                            ]
-                        }
-                    ],
-                    "description": "The webpack stats option - lets you precisely control what bundle information gets displayed."
-                },
-                "stylePreprocessorOptions": {
-                    "$ref": "#/definitions/StylePreprocessorOptions",
-                    "description": "Options to pass to style preprocessors."
-                },
-                "styles": {
-                    "description": "List of global style entries.",
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/GlobalEntry"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "type": "array"
-                },
-                "tsConfig": {
-                    "description": "The typescript configuration file to be used.",
-                    "type": "string"
-                },
-                "vendorChunk": {
-                    "description": "If true, requested modules started with node_modules path are chunk into [vendorChunkName].js.",
-                    "type": "boolean"
-                },
-                "vendorChunkName": {
-                    "default": "vendor",
-                    "description": "The output chunk name for vendor or dll chunk.",
-                    "type": "string"
-                },
-                "webpackConfig": {
-                    "description": "Custom webpack config file to be merged.",
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "AssetEntry": {
-            "additionalProperties": false,
-            "properties": {
-                "exclude": {
-                    "description": "The ignore list.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "from": {
-                    "description": "The source file, it can be absolute or relative path or glob pattern.",
-                    "type": "string"
-                },
-                "to": {
-                    "description": "The output file name.",
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "BeforeBuildCleanOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "cleanOutDir": {
-                    "description": "If true, delete output directory before build.",
-                    "type": "boolean"
-                },
-                "exclude": {
-                    "description": "Path array to exclude from deleting.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "paths": {
-                    "description": "Paths to be deleted.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                }
-            },
-            "type": "object"
-        },
-        "BundleAnalyzerOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "generateStatsFile": {
-                    "description": "If `true`, Webpack Stats JSON file will be generated in bundles output directory.",
-                    "type": "boolean"
-                },
-                "openAnalyzer": {
-                    "description": "If true, automatically open report in default browser.",
-                    "type": "boolean"
-                },
-                "reportFilename": {
-                    "description": "Path to bundle report file that will be generated in `static` mode.",
-                    "type": "string"
-                },
-                "statsFilename": {
-                    "description": "Name of Webpack Stats JSON file that will be generated if `generateStatsFile` is `true`.",
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "CleanOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "afterEmit": {
-                    "$ref": "#/definitions/AfterEmitCleanOptions",
-                    "description": "After emit clean option."
-                },
-                "allowOutsideOutDir": {
-                    "default": false,
-                    "description": "Allows cleaning outside of output directory.",
-                    "type": "boolean"
-                },
-                "allowOutsideWorkspaceRoot": {
-                    "default": false,
-                    "description": "Allows cleaning outside of workspace root.",
-                    "type": "boolean"
-                },
-                "beforeBuild": {
-                    "$ref": "#/definitions/BeforeBuildCleanOptions",
-                    "description": "Before build clean option."
-                }
-            },
-            "type": "object"
-        },
-        "CoastDesign": {
-            "properties": {
-                "backgroundColor": {
-                    "type": "string"
-                },
-                "margin": {
-                    "type": [
-                        "string",
-                        "number"
-                    ]
-                },
-                "pictureAspect": {
-                    "enum": [
-                        "backgroundAndMargin",
-                        "noChange"
-                    ],
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "DllOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "entry": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ]
-                },
-                "exclude": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                }
-            },
-            "type": "object"
-        },
-        "ExternalsObjectElement": {
-            "additionalProperties": {
-                "anyOf": [
-                    {
-                        "additionalProperties": {
-                            "type": [
-                                "string",
-                                "boolean"
-                            ]
-                        },
-                        "properties": {
-                            "amd": {
-                                "type": "string"
-                            },
-                            "commonjs": {
-                                "type": "string"
-                            },
-                            "root": {
-                                "type": "string"
-                            }
-                        },
-                        "type": "object"
-                    },
-                    {
-                        "type": [
-                            "string",
-                            "boolean"
-                        ]
-                    }
-                ]
-            },
-            "type": "object"
-        },
-        "FaviconsConfig": {
-            "additionalProperties": false,
-            "description": "Favicons config",
-            "properties": {
-                "apiKey": {
-                    "description": "Your API key. Register at {@link https://realfavicongenerator.net/api/#register_key realfavicongenerator.net}",
-                    "type": "string"
-                },
-                "appDescription": {
-                    "description": "The app description.",
-                    "type": "string"
-                },
-                "appName": {
-                    "description": "The app name.",
-                    "type": "string"
-                },
-                "backgroundColor": {
-                    "description": "The background color.",
-                    "type": "string"
-                },
-                "cache": {
-                    "default": true,
-                    "description": "Set true for enabling cache.",
-                    "type": "boolean"
-                },
-                "design": {
-                    "$ref": "#/definitions/IconDesign",
-                    "description": "See {@link https://realfavicongenerator.net/api/non_interactive_api#favicon_design Non-interactive API}\nUse lower-camel case instead."
-                },
-                "developerName": {
-                    "description": "The developer name.",
-                    "type": "string"
-                },
-                "developerUrl": {
-                    "description": "The developer url.",
-                    "type": "string"
-                },
-                "dir": {
-                    "description": "The language direction 'ltr' or 'rtl'.",
-                    "type": "string"
-                },
-                "emitFaviconIcoToOutDirRoot": {
-                    "default": true,
-                    "description": "If true, copy 'favicon.ico' file to root output directory.",
-                    "type": "boolean"
-                },
-                "fallbackOffline": {
-                    "default": true,
-                    "description": "If true, when online generation failed, try to generate offline.",
-                    "type": "boolean"
-                },
-                "iconsPath": {
-                    "default": "icons-[hash]/",
-                    "description": "The output folder for all generated image files.",
-                    "type": "string"
-                },
-                "lang": {
-                    "description": "The default locale language.",
-                    "type": "string"
-                },
-                "masterPicture": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/MasterPicture"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "Your source logo."
-                },
-                "online": {
-                    "default": true,
-                    "description": "If true, generate favicons using realfavicongenerator.net.",
-                    "type": "boolean"
-                },
-                "settings": {
-                    "description": "See {@link https://realfavicongenerator.net/api/non_interactive_api#settings Non-interactive API}\nUse lower-camel case instead.",
-                    "properties": {
-                        "compression": {
-                            "type": "string"
-                        },
-                        "errorOnImageTooSmall": {
-                            "type": "boolean"
-                        },
-                        "scalingAlgorithm": {
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
-                },
-                "version": {
-                    "description": "Your application's version number.",
-                    "type": "string"
-                },
-                "versioning": {
-                    "anyOf": [
-                        {
-                            "properties": {
-                                "paramName": {
-                                    "type": "string"
-                                },
-                                "paramValue": {
-                                    "type": "string"
-                                }
-                            },
-                            "type": "object"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "See {@link https://realfavicongenerator.net/api/non_interactive_api#versioning Non-interactive API}\nUse lower-camel case instead."
-                }
-            },
-            "type": "object"
-        },
-        "FileReplacementEntry": {
-            "additionalProperties": false,
-            "properties": {
-                "replace": {
-                    "type": "string"
-                },
-                "with": {
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "FirefoxAppDesign": {
-            "properties": {
-                "backgroundColor": {
-                    "type": "string"
-                },
-                "circleInnerMargin": {
-                    "type": "string"
-                },
-                "keepPictureInCircle": {
-                    "type": [
-                        "string",
-                        "boolean"
-                    ]
-                },
-                "manifest": {
-                    "additionalProperties": true,
-                    "properties": {
-                        "appDescription": {
-                            "type": "string"
-                        },
-                        "appName": {
-                            "type": "string"
-                        },
-                        "developerName": {
-                            "type": "string"
-                        },
-                        "developerUrl": {
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
-                },
-                "margin": {
-                    "type": [
-                        "string",
-                        "number"
-                    ]
-                },
-                "pictureAspect": {
-                    "enum": [
-                        "circle",
-                        "noChange"
-                    ],
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "GlobalEntry": {
-            "additionalProperties": false,
-            "properties": {
-                "bundleName": {
-                    "description": "The bundle name for this extra entry point.",
-                    "type": "string"
-                },
-                "input": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "The file to include."
-                },
-                "lazy": {
-                    "description": "If the bundle will be lazy loaded.",
-                    "type": "boolean"
-                }
-            },
-            "type": "object"
-        },
-        "HtmlInjectOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "baseHrefOut": {
-                    "type": "string"
-                },
-                "customAttributes": {
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "type": "object"
-                },
-                "customLinkAttributes": {
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "type": "object"
-                },
-                "customResourceHintAttributes": {
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "type": "object"
-                },
-                "customScriptAttributes": {
-                    "additionalProperties": {
-                        "type": "string"
-                    },
-                    "type": "object"
-                },
-                "dlls": {
-                    "type": "boolean"
-                },
-                "icons": {
-                    "type": "boolean"
-                },
-                "iconsOut": {
-                    "type": "string"
-                },
-                "index": {
-                    "type": "string"
-                },
-                "indexOut": {
-                    "type": "string"
-                },
-                "prefetches": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "preloads": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "resourceHints": {
-                    "type": "boolean"
-                },
-                "resourceHintsOut": {
-                    "type": "string"
-                },
-                "runtimeChunkInline": {
-                    "type": "boolean"
-                },
-                "runtimeInlineOut": {
-                    "type": "string"
-                },
-                "scriptsOut": {
-                    "type": "string"
-                },
-                "stylesOut": {
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "IconDesign": {
-            "properties": {
-                "androidChrome": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/AndroidChromeDesign"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ]
-                },
-                "coast": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/CoastDesign"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ]
-                },
-                "desktopBrowser": {
-                    "anyOf": [
-                        {
-                            "properties": {
-                            },
-                            "type": "object"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ]
-                },
-                "firefoxApp": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/FirefoxAppDesign"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ]
-                },
-                "ios": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/IoSDesign"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ]
-                },
-                "openGraph": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/OpenGraphDesign"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ]
-                },
-                "safariPinnedTab": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/SafariPinnedTabDesign"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ]
-                },
-                "windows": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/WindowsDesign"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ]
-                },
-                "yandexBrowser": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/YandexBrowserDesign"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ]
-                }
-            },
-            "type": "object"
-        },
-        "IoSDesign": {
-            "properties": {
-                "assets": {
-                    "additionalProperties": true,
-                    "properties": {
-                        "declareOnlyDefaultIcon": {
-                            "type": "boolean"
-                        },
-                        "ios6AndPriorIcons": {
-                            "type": "boolean"
-                        },
-                        "ios7AndLaterIcons": {
-                            "type": "boolean"
-                        },
-                        "precomposedIcons": {
-                            "type": "boolean"
-                        }
-                    },
-                    "type": "object"
-                },
-                "backgroundColor": {
-                    "type": "string"
-                },
-                "margin": {
-                    "type": [
-                        "string",
-                        "number"
-                    ]
-                },
-                "pictureAspect": {
-                    "enum": [
-                        "backgroundAndMargin",
-                        "noChange"
-                    ],
-                    "type": "string"
-                },
-                "startupImage": {
-                    "additionalProperties": true,
-                    "properties": {
-                        "backgroundColor": {
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
-                }
-            },
-            "type": "object"
-        },
-        "MasterPicture": {
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "type": {
-                    "enum": [
-                        "inline",
-                        "url"
-                    ],
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "OpenGraphDesign": {
-            "properties": {
-                "backgroundColor": {
-                    "type": "string"
-                },
-                "margin": {
-                    "type": [
-                        "string",
-                        "number"
-                    ]
-                },
-                "pictureAspect": {
-                    "enum": [
-                        "backgroundAndMargin",
-                        "noChange"
-                    ],
-                    "type": "string"
-                },
-                "ratio": {
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "OutputHashingOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "bundles": {
-                    "type": "boolean"
-                },
-                "chunks": {
-                    "type": "boolean"
-                },
-                "extractedAssets": {
-                    "type": "boolean"
-                }
-            },
-            "type": "object"
-        },
-        "PerformanceOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "hints": {
-                    "enum": [
-                        "error",
-                        false,
-                        true,
-                        "warning"
-                    ]
-                },
-                "maxAssetSize": {
-                    "type": "number"
-                },
-                "maxEntrypointSize": {
-                    "type": "number"
-                }
-            },
-            "type": "object"
-        },
-        "ProvideOptions": {
-            "additionalProperties": {
-            },
-            "type": "object"
-        },
-        "SafariPinnedTabDesign": {
-            "properties": {
-                "pictureAspect": {
-                    "enum": [
-                        "blackAndWhite",
-                        "noChange",
-                        "silhouette"
-                    ],
-                    "type": "string"
-                },
-                "themeColor": {
-                    "type": "string"
-                },
-                "threshold": {
-                    "type": "number"
-                }
-            },
-            "type": "object"
-        },
-        "StylePreprocessorOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "includePaths": {
-                    "description": "An array of paths that LibSass can look in to attempt to resolve your @import declarations.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                }
-            },
-            "type": "object"
-        },
-        "WebpackStatsToStringOptions": {
-            "properties": {
-                "assets": {
-                    "description": "Add asset Information",
-                    "type": "boolean"
-                },
-                "assetsSort": {
-                    "description": "Sort assets by a field",
-                    "type": "string"
-                },
-                "cached": {
-                    "description": "Add information about cached (not built) modules",
-                    "type": "boolean"
-                },
-                "cachedAssets": {
-                    "description": "Show cached assets (setting this to `false` only shows emitted files)",
-                    "type": "boolean"
-                },
-                "children": {
-                    "description": "Add children information",
-                    "type": "boolean"
-                },
-                "chunkModules": {
-                    "description": "Add built modules information to chunk information",
-                    "type": "boolean"
-                },
-                "chunkOrigins": {
-                    "description": "Add the origins of chunks and chunk merging info",
-                    "type": "boolean"
-                },
-                "chunks": {
-                    "description": "Add chunk information (setting this to `false` allows for a less verbose output)",
-                    "type": "boolean"
-                },
-                "chunksSort": {
-                    "description": "Sort the chunks by a field",
-                    "type": "string"
-                },
-                "colors": {
-                    "description": "`webpack --colors` equivalent",
-                    "type": "boolean"
-                },
-                "context": {
-                    "description": "Context directory for request shortening",
-                    "type": "string"
-                },
-                "depth": {
-                    "description": "Display the distance from the entry point for each module",
-                    "type": "boolean"
-                },
-                "entrypoints": {
-                    "description": "Display the entry points with the corresponding bundles",
-                    "type": "boolean"
-                },
-                "env": {
-                    "description": "Add --env information",
-                    "type": "boolean"
-                },
-                "errorDetails": {
-                    "description": "Add details to errors (like resolving log)",
-                    "type": "boolean"
-                },
-                "errors": {
-                    "description": "Add errors",
-                    "type": "boolean"
-                },
-                "exclude": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "See excludeModules"
-                },
-                "excludeAssets": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "Exclude assets from being displayed in stats"
-                },
-                "excludeModules": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "Exclude modules from being displayed in stats"
-                },
-                "hash": {
-                    "description": "Add the hash of the compilation",
-                    "type": "boolean"
-                },
-                "maxModules": {
-                    "description": "Set the maximum number of modules to be shown",
-                    "type": "number"
-                },
-                "moduleTrace": {
-                    "description": "Show dependencies and origin of warnings/errors",
-                    "type": "boolean"
-                },
-                "modules": {
-                    "description": "Add built modules information",
-                    "type": "boolean"
-                },
-                "modulesSort": {
-                    "description": "Sort the modules by a field",
-                    "type": "string"
-                },
-                "performance": {
-                    "description": "Show performance hint when file size exceeds `performance.maxAssetSize`",
-                    "type": "boolean"
-                },
-                "providedExports": {
-                    "description": "Show the exports of the modules",
-                    "type": "boolean"
-                },
-                "publicPath": {
-                    "description": "Add public path information",
-                    "type": "boolean"
-                },
-                "reasons": {
-                    "description": "Add information about the reasons why modules are included",
-                    "type": "boolean"
-                },
-                "source": {
-                    "description": "Add the source code of modules",
-                    "type": "boolean"
-                },
-                "timings": {
-                    "description": "Add timing information",
-                    "type": "boolean"
-                },
-                "usedExports": {
-                    "description": "Show which exports of a module are used",
-                    "type": "boolean"
-                },
-                "version": {
-                    "description": "Add webpack version information",
-                    "type": "boolean"
-                },
-                "warnings": {
-                    "description": "Add warnings",
-                    "type": "boolean"
-                },
-                "warningsFilter": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "Filter warnings to be shown"
-                }
-            },
-            "type": "object"
-        },
-        "WindowsDesign": {
-            "properties": {
-                "assets": {
-                    "additionalProperties": true,
-                    "properties": {
-                        "windows10Ie11EdgeTiles": {
-                            "additionalProperties": true,
-                            "properties": {
-                                "big": {
-                                    "type": "boolean"
-                                },
-                                "medium": {
-                                    "type": "boolean"
-                                },
-                                "rectangle": {
-                                    "type": "boolean"
-                                },
-                                "small": {
-                                    "type": "boolean"
-                                }
-                            },
-                            "type": "object"
-                        },
-                        "windows80Ie10Tile": {
-                            "type": "boolean"
-                        }
-                    },
-                    "type": "object"
-                },
-                "backgroundColor": {
-                    "type": "string"
-                },
-                "onConflict": {
-                    "type": "string"
-                },
-                "pictureAspect": {
-                    "enum": [
-                        "noChange",
-                        "whiteSilhouette"
-                    ],
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "YandexBrowserDesign": {
-            "properties": {
-                "backgroundColor": {
-                    "type": "string"
-                },
-                "manifest": {
-                    "additionalProperties": true,
-                    "properties": {
-                        "showTitle": {
-                            "type": "boolean"
-                        },
-                        "version": {
-                            "type": "string"
-                        }
-                    },
-                    "type": "object"
-                }
-            },
-            "type": "object"
-        }
-    },
-    "properties": {
-        "$schema": {
-            "description": "Link to schema.",
+  "additionalProperties": false,
+  "definitions": {
+    "AfterEmitCleanOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "exclude": {
+          "description": "Path array to exclude from deleting.",
+          "items": {
             "type": "string"
+          },
+          "type": "array"
         },
+        "paths": {
+          "description": "Paths to be deleted.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "AndroidChromeDesign": {
+      "properties": {
+        "assets": {
+          "additionalProperties": true,
+          "properties": {
+            "legacyIcon": {
+              "description": "If true, the service generates icons and HTML markups for Android Chrome running on Android Chrome M38 and prior.",
+              "type": "boolean"
+            },
+            "lowResolutionIcons": {
+              "description": "If true, the service creates all documented icons for home screen and splash screen.\nElse, it creates only recommended, high resolution icons.",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "manifest": {
+          "additionalProperties": true,
+          "properties": {
+            "declared": {
+              "type": "boolean"
+            },
+            "display": {
+              "description": "Specify the appearance of the web site when the user clicks the home scren link.",
+              "enum": [
+                "browser",
+                "standalone"
+              ],
+              "type": "string"
+            },
+            "name": {
+              "description": "The application name is used as the title of the link when the visitor adds the site to the home screen.",
+              "type": "string"
+            },
+            "onConflict": {
+              "description": "Use onConflict to indicate how to react in case of conflict.\nIf the existing manifest contains an entry that RealFaviconGenerator also generates.",
+              "enum": [
+                "keepExisting",
+                "override",
+                "raiseError"
+              ],
+              "type": "string"
+            },
+            "orientation": {
+              "description": "When present and display is standalone, force the screen to a particular orientation. Either portrait or landscape.",
+              "enum": [
+                "landscape",
+                "portrait"
+              ],
+              "type": "string"
+            },
+            "startUrl": {
+              "description": "The page actually added to the home screen.\nTypically, the home page of the site. Leave this field blank to let a visitor add any page to the home screen.",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "pictureAspect": {
+          "description": "The picture aspect.",
+          "enum": [
+            "backgroundAndMargin",
+            "noChange",
+            "shadow"
+          ],
+          "type": "string"
+        },
+        "themeColor": {
+          "description": "The theme color.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "AppEnvOverridesOptions": {
+      "additionalProperties": {
+        "$ref": "#/definitions/AppProjectConfigBase"
+      },
+      "type": "object"
+    },
+    "AppProjectConfigBase": {
+      "additionalProperties": false,
+      "properties": {
         "aot": {
-            "description": "Build using Ahead of Time compilation.",
-            "type": "boolean"
+          "description": "Build using Ahead of Time compilation.",
+          "type": "boolean"
         },
         "banner": {
-            "description": "Banner text to add at the top of each generated files. It can be text file name or raw text.",
-            "type": "string"
+          "description": "Banner text to add at the top of each generated files. It can be text file name or raw text.",
+          "type": "string"
         },
         "baseHref": {
-            "description": "The base URL for all relative URLs on a page.",
-            "type": "string"
+          "description": "The base URL for all relative URLs on a page.",
+          "type": "string"
         },
         "buildOptimizer": {
-            "description": "Set true to enable build optimizer.",
-            "type": "boolean"
+          "description": "Set true to enable build optimizer.",
+          "type": "boolean"
         },
         "bundleAnalyzer": {
-            "anyOf": [
-                {
-                    "$ref": "#/definitions/BundleAnalyzerOptions"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "Webpack Bundle analyzer options."
+          "anyOf": [
+            {
+              "$ref": "#/definitions/BundleAnalyzerOptions"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "description": "Webpack Bundle analyzer options."
         },
         "clean": {
-            "anyOf": [
-                {
-                    "$ref": "#/definitions/CleanOptions"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "Clean options."
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CleanOptions"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "description": "Clean options."
         },
         "commonChunk": {
-            "description": "If true, chunk a separate bundle containing common code used across multiple bundles.",
-            "type": "boolean"
+          "description": "If true, chunk a separate bundle containing common code used across multiple bundles.",
+          "type": "boolean"
         },
         "concatenateModules": {
-            "description": "Set true to enable scope hoisting.",
-            "type": "boolean"
+          "description": "Set true to enable scope hoisting.",
+          "type": "boolean"
         },
         "copy": {
-            "description": "Copy options.",
-            "items": {
-                "anyOf": [
-                    {
-                        "$ref": "#/definitions/AssetEntry"
-                    },
-                    {
-                        "type": "string"
-                    }
-                ]
-            },
-            "type": "array"
+          "description": "Copy options.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/AssetEntry"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "type": "array"
         },
         "dlls": {
-            "anyOf": [
-                {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                {
-                    "$ref": "#/definitions/DllOptions"
-                }
-            ],
-            "description": "The vendor module entries for dll bundle."
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "$ref": "#/definitions/DllOptions"
+            }
+          ],
+          "description": "The vendor module entries for dll bundle."
         },
         "entry": {
-            "description": "The main typescript entry file to be bundled.",
-            "type": "string"
-        },
-        "envOverrides": {
-            "$ref": "#/definitions/AppEnvOverridesOptions",
-            "description": "To override properties based on build environment."
+          "description": "The main typescript entry file to be bundled.",
+          "type": "string"
         },
         "environmentVariables": {
-            "anyOf": [
-                {
-                    "additionalProperties": {
-                        "type": [
-                            "string",
-                            "boolean"
-                        ]
-                    },
-                    "type": "object"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "Custom environment variables to be included in bundle."
-        },
-        "extends": {
-            "anyOf": [
-                {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                {
-                    "type": "string"
-                }
-            ],
-            "description": "The name of build-in configuration preset, or path(s) to other configuration files which are extended by this configuration."
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "boolean"
+                ]
+              },
+              "type": "object"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "description": "Custom environment variables to be included in bundle."
         },
         "externals": {
-            "anyOf": [
-                {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ExternalsObjectElement"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
                     "$ref": "#/definitions/ExternalsObjectElement"
-                },
-                {
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/ExternalsObjectElement"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "type": "array"
-                },
-                {
+                  },
+                  {
                     "type": "string"
-                }
-            ],
-            "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
         },
         "extractCss": {
-            "description": "If true, build process will extracts css specified in styles entry as styles.css.",
-            "type": "boolean"
+          "description": "If true, build process will extracts css specified in styles entry as styles.css.",
+          "type": "boolean"
         },
         "extractLicenseOutputFilename": {
-            "description": "Output file name for extracted licenses.",
-            "type": "string"
+          "description": "Output file name for extracted licenses.",
+          "type": "string"
         },
         "extractLicenses": {
-            "description": "Extract all licenses in a separate file.",
-            "type": "boolean"
+          "description": "Extract all licenses in a separate file.",
+          "type": "boolean"
         },
         "favicons": {
-            "anyOf": [
-                {
-                    "$ref": "#/definitions/FaviconsConfig"
-                },
-                {
-                    "type": "string"
-                }
-            ],
-            "description": "The favicons configuration file or object."
+          "anyOf": [
+            {
+              "$ref": "#/definitions/FaviconsConfig"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The favicons configuration file or object."
         },
         "fileReplacements": {
-            "description": "Replaces resources with new resources.",
-            "items": {
-                "$ref": "#/definitions/FileReplacementEntry"
-            },
-            "type": "array"
+          "description": "Replaces resources with new resources.",
+          "items": {
+            "$ref": "#/definitions/FileReplacementEntry"
+          },
+          "type": "array"
         },
         "forkTypeChecker": {
-            "description": "Run the TypeScript type checker in a forked process.",
-            "type": "boolean"
+          "description": "Run the TypeScript type checker in a forked process.",
+          "type": "boolean"
         },
         "htmlInject": {
-            "$ref": "#/definitions/HtmlInjectOptions",
-            "description": "The html injection options."
+          "$ref": "#/definitions/HtmlInjectOptions",
+          "description": "The html injection options."
         },
         "i18nFile": {
-            "description": "Path to the translation file.",
-            "type": "string"
+          "description": "Path to the translation file.",
+          "type": "string"
         },
         "i18nFormat": {
-            "description": "Import format if different from `i18nFormat`.",
-            "type": "string"
+          "description": "Import format if different from `i18nFormat`.",
+          "type": "string"
         },
         "i18nLocale": {
-            "description": "Locale of the imported translations.",
-            "type": "string"
+          "description": "Locale of the imported translations.",
+          "type": "string"
         },
         "i18nMissingTranslation": {
-            "description": "How to handle missing messages.",
-            "enum": [
-                "error",
-                "ignore",
-                "warning"
-            ],
-            "type": "string"
+          "description": "How to handle missing messages.",
+          "enum": [
+            "error",
+            "ignore",
+            "warning"
+          ],
+          "type": "string"
         },
         "i18nOutFile": {
-            "description": "Path to the extracted message file.",
-            "type": "string"
+          "description": "Path to the extracted message file.",
+          "type": "string"
         },
         "i18nOutFormat": {
-            "description": "Export format (xlf, xlf2 or xmb).",
-            "type": "string"
+          "description": "Export format (xlf, xlf2 or xmb).",
+          "type": "string"
         },
         "lazyModules": {
-            "description": "List of additional NgModule files that will be lazy loaded (lazy router modules will be discovered automatically).",
-            "items": {
-                "type": "string"
-            },
-            "type": "array"
+          "description": "List of additional NgModule files that will be lazy loaded (lazy router modules will be discovered automatically).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "libraryTarget": {
-            "description": "Module format for bundling.",
-            "enum": [
-                "amd",
-                "cjs",
-                "commonjs",
-                "commonjs2",
-                "iife",
-                "umd",
-                "var"
-            ],
-            "type": "string"
+          "description": "Module format for bundling.",
+          "enum": [
+            "amd",
+            "cjs",
+            "commonjs",
+            "commonjs2",
+            "iife",
+            "umd",
+            "var"
+          ],
+          "type": "string"
         },
         "mainChunkName": {
-            "default": "main",
-            "description": "The output chunk name for main entry.",
-            "type": "string"
-        },
-        "name": {
-            "description": "The name of this configuration.",
-            "type": "string"
+          "default": "main",
+          "description": "The output chunk name for main entry.",
+          "type": "string"
         },
         "namedChunks": {
-            "description": "Use file name for lazy loaded chunks.",
-            "type": "boolean"
+          "description": "Use file name for lazy loaded chunks.",
+          "type": "boolean"
         },
         "nodeModulesAsExternals": {
-            "description": "If true, node_modules packages are not included in bundle.",
-            "type": "boolean"
+          "description": "If true, node_modules packages are not included in bundle.",
+          "type": "boolean"
         },
         "nodeResolveFields": {
-            "description": "Custom Node.js resolution main fields.",
-            "items": {
-                "type": "string"
-            },
-            "type": "array"
+          "description": "Custom Node.js resolution main fields.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "optimization": {
-            "description": "Defines the optimization level of the build.",
-            "type": "boolean"
+          "description": "Defines the optimization level of the build.",
+          "type": "boolean"
         },
         "outputHashing": {
-            "anyOf": [
-                {
-                    "$ref": "#/definitions/OutputHashingOptions"
-                },
-                {
-                    "enum": [
-                        "all",
-                        "bundles",
-                        "media",
-                        "none"
-                    ],
-                    "type": "string"
-                }
-            ],
-            "description": "Define the output filename cache-busting hashing mode."
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OutputHashingOptions"
+            },
+            {
+              "enum": [
+                "all",
+                "bundles",
+                "media",
+                "none"
+              ],
+              "type": "string"
+            }
+          ],
+          "description": "Define the output filename cache-busting hashing mode."
         },
         "outputPath": {
-            "description": "The output directory for build results.",
-            "type": "string"
+          "description": "The output directory for build results.",
+          "type": "string"
         },
         "performance": {
-            "$ref": "#/definitions/PerformanceOptions",
-            "description": "Performance options."
+          "$ref": "#/definitions/PerformanceOptions",
+          "description": "Performance options."
         },
         "platformTarget": {
-            "description": "Tell the build system which platform environment the application is targeting.",
-            "enum": [
-                "node",
-                "web"
-            ],
-            "type": "string"
+          "description": "Tell the build system which platform environment the application is targeting.",
+          "enum": [
+            "node",
+            "web"
+          ],
+          "type": "string"
         },
         "polyfills": {
-            "anyOf": [
-                {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                {
-                    "type": "string"
-                }
-            ],
-            "description": "Polyfill entries."
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Polyfill entries."
         },
         "polyfillsChunkName": {
-            "default": "polyfills",
-            "description": "The output chunk name for polyfills.",
-            "type": "string"
+          "default": "polyfills",
+          "description": "The output chunk name for polyfills.",
+          "type": "string"
         },
         "provides": {
-            "$ref": "#/definitions/ProvideOptions",
-            "description": "To load global modules automatically  with alias key."
+          "$ref": "#/definitions/ProvideOptions",
+          "description": "To load global modules automatically  with alias key."
         },
         "publicPath": {
-            "description": "The url where files will be deployed.",
-            "type": "string"
+          "description": "The url where files will be deployed.",
+          "type": "string"
         },
         "referenceDll": {
-            "description": "To consume dll bundle created by the dll build.",
-            "type": "boolean"
-        },
-        "root": {
-            "description": "The project root folder.",
-            "type": "string"
+          "description": "To consume dll bundle created by the dll build.",
+          "type": "boolean"
         },
         "scripts": {
-            "description": "Global script entries.",
-            "items": {
-                "anyOf": [
-                    {
-                        "$ref": "#/definitions/GlobalEntry"
-                    },
-                    {
-                        "type": "string"
-                    }
-                ]
-            },
-            "type": "array"
+          "description": "Global script entries.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/GlobalEntry"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "type": "array"
         },
         "serviceWorker": {
-            "description": "Generates a service worker config for production builds.",
-            "type": "boolean"
+          "description": "Generates a service worker config for production builds.",
+          "type": "boolean"
         },
         "skip": {
-            "description": "If true, this project config will be skipped by the build process.",
-            "type": "boolean"
+          "description": "If true, this project config will be skipped by the build process.",
+          "type": "boolean"
         },
         "sourceMap": {
-            "description": "If true, sourcemaps will be generated.",
-            "type": "boolean"
+          "description": "If true, sourcemaps will be generated.",
+          "type": "boolean"
         },
         "sourceMapDevTool": {
-            "description": "This option controls if and how source maps are generated.",
-            "enum": [
-                "#@cheap-eval-source-map",
-                "#@cheap-module-eval-source-map",
-                "#@cheap-module-source-map",
-                "#@cheap-source-map",
-                "#@eval",
-                "#@eval-source-map",
-                "#@hidden-source-map",
-                "#@inline-source-map",
-                "#@nosources-source-map",
-                "#@source-map",
-                "#cheap-eval-source-map",
-                "#cheap-module-eval-source-map",
-                "#cheap-module-source-map",
-                "#cheap-source-map",
-                "#eval",
-                "#eval-source-map",
-                "#hidden-source-map",
-                "#inline-source-map",
-                "#nosources-source-map",
-                "#source-map",
-                "@cheap-eval-source-map",
-                "@cheap-module-eval-source-map",
-                "@cheap-module-source-map",
-                "@cheap-source-map",
-                "@eval",
-                "@eval-source-map",
-                "@hidden-source-map",
-                "@inline-source-map",
-                "@nosources-source-map",
-                "@source-map",
-                "cheap-eval-source-map",
-                "cheap-module-eval-source-map",
-                "cheap-module-source-map",
-                "cheap-source-map",
-                "eval",
-                "eval-source-map",
-                false,
-                "hidden-source-map",
-                "inline-source-map",
-                "nosources-source-map",
-                "source-map",
-                true
-            ]
+          "description": "This option controls if and how source maps are generated.",
+          "enum": [
+            "#@cheap-eval-source-map",
+            "#@cheap-module-eval-source-map",
+            "#@cheap-module-source-map",
+            "#@cheap-source-map",
+            "#@eval",
+            "#@eval-source-map",
+            "#@hidden-source-map",
+            "#@inline-source-map",
+            "#@nosources-source-map",
+            "#@source-map",
+            "#cheap-eval-source-map",
+            "#cheap-module-eval-source-map",
+            "#cheap-module-source-map",
+            "#cheap-source-map",
+            "#eval",
+            "#eval-source-map",
+            "#hidden-source-map",
+            "#inline-source-map",
+            "#nosources-source-map",
+            "#source-map",
+            "@cheap-eval-source-map",
+            "@cheap-module-eval-source-map",
+            "@cheap-module-source-map",
+            "@cheap-source-map",
+            "@eval",
+            "@eval-source-map",
+            "@hidden-source-map",
+            "@inline-source-map",
+            "@nosources-source-map",
+            "@source-map",
+            "cheap-eval-source-map",
+            "cheap-module-eval-source-map",
+            "cheap-module-source-map",
+            "cheap-source-map",
+            "eval",
+            "eval-source-map",
+            false,
+            "hidden-source-map",
+            "inline-source-map",
+            "nosources-source-map",
+            "source-map",
+            true
+          ]
         },
         "sourceMapDevToolFallbackModuleFilenameTemplate": {
-            "description": "A fallback used when the template string of 'sourceMapFilenameTemplate' yields duplicates.",
-            "type": "string"
+          "description": "A fallback used when the template string of 'sourceMapFilenameTemplate' yields duplicates.",
+          "type": "string"
         },
         "sourceMapDevToolModuleFilenameTemplate": {
-            "description": "Customize the names used in each source map.",
-            "type": "string"
+          "description": "Customize the names used in each source map.",
+          "type": "string"
         },
         "stats": {
-            "anyOf": [
-                {
-                    "$ref": "#/definitions/WebpackStatsToStringOptions"
-                },
-                {
-                    "enum": [
-                        "errors-only",
-                        false,
-                        "minimal",
-                        "none",
-                        "normal",
-                        true,
-                        "verbose"
-                    ]
-                }
-            ],
-            "description": "The webpack stats option - lets you precisely control what bundle information gets displayed."
+          "anyOf": [
+            {
+              "$ref": "#/definitions/WebpackStatsToStringOptions"
+            },
+            {
+              "enum": [
+                "errors-only",
+                false,
+                "minimal",
+                "none",
+                "normal",
+                true,
+                "verbose"
+              ]
+            }
+          ],
+          "description": "The webpack stats option - lets you precisely control what bundle information gets displayed."
         },
         "stylePreprocessorOptions": {
-            "$ref": "#/definitions/StylePreprocessorOptions",
-            "description": "Options to pass to style preprocessors."
+          "$ref": "#/definitions/StylePreprocessorOptions",
+          "description": "Options to pass to style preprocessors."
         },
         "styles": {
-            "description": "List of global style entries.",
-            "items": {
-                "anyOf": [
-                    {
-                        "$ref": "#/definitions/GlobalEntry"
-                    },
-                    {
-                        "type": "string"
-                    }
-                ]
-            },
-            "type": "array"
+          "description": "List of global style entries.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/GlobalEntry"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "type": "array"
         },
         "tsConfig": {
-            "description": "The typescript configuration file to be used.",
-            "type": "string"
+          "description": "The typescript configuration file to be used.",
+          "type": "string"
         },
         "vendorChunk": {
-            "description": "If true, requested modules started with node_modules path are chunk into [vendorChunkName].js.",
-            "type": "boolean"
+          "description": "If true, requested modules started with node_modules path are chunk into [vendorChunkName].js.",
+          "type": "boolean"
         },
         "vendorChunkName": {
-            "default": "vendor",
-            "description": "The output chunk name for vendor or dll chunk.",
-            "type": "string"
+          "default": "vendor",
+          "description": "The output chunk name for vendor or dll chunk.",
+          "type": "string"
         },
         "webpackConfig": {
-            "description": "Custom webpack config file to be merged.",
-            "type": "string"
+          "description": "Custom webpack config file to be merged.",
+          "type": "string"
         }
+      },
+      "type": "object"
     },
-    "type": "object"
+    "AssetEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "exclude": {
+          "description": "The ignore list.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "from": {
+          "description": "The source file, it can be absolute or relative path or glob pattern.",
+          "type": "string"
+        },
+        "to": {
+          "description": "The output file name.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "BeforeBuildCleanOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "cleanOutDir": {
+          "description": "If true, delete output directory before build.",
+          "type": "boolean"
+        },
+        "exclude": {
+          "description": "Path array to exclude from deleting.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "paths": {
+          "description": "Paths to be deleted.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "BundleAnalyzerOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "generateStatsFile": {
+          "description": "If `true`, Webpack Stats JSON file will be generated in bundles output directory.",
+          "type": "boolean"
+        },
+        "openAnalyzer": {
+          "description": "If true, automatically open report in default browser.",
+          "type": "boolean"
+        },
+        "reportFilename": {
+          "description": "Path to bundle report file that will be generated in `static` mode.",
+          "type": "string"
+        },
+        "statsFilename": {
+          "description": "Name of Webpack Stats JSON file that will be generated if `generateStatsFile` is `true`.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "CleanOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "afterEmit": {
+          "$ref": "#/definitions/AfterEmitCleanOptions",
+          "description": "After emit clean option."
+        },
+        "allowOutsideOutDir": {
+          "default": false,
+          "description": "Allows cleaning outside of output directory.",
+          "type": "boolean"
+        },
+        "allowOutsideWorkspaceRoot": {
+          "default": false,
+          "description": "Allows cleaning outside of workspace root.",
+          "type": "boolean"
+        },
+        "beforeBuild": {
+          "$ref": "#/definitions/BeforeBuildCleanOptions",
+          "description": "Before build clean option."
+        }
+      },
+      "type": "object"
+    },
+    "CoastDesign": {
+      "properties": {
+        "backgroundColor": {
+          "type": "string"
+        },
+        "margin": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "pictureAspect": {
+          "enum": [
+            "backgroundAndMargin",
+            "noChange"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "DllOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "entry": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "exclude": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "ExternalsObjectElement": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "additionalProperties": {
+              "type": [
+                "string",
+                "boolean"
+              ]
+            },
+            "properties": {
+              "amd": {
+                "type": "string"
+              },
+              "commonjs": {
+                "type": "string"
+              },
+              "root": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          {
+            "type": [
+              "string",
+              "boolean"
+            ]
+          }
+        ]
+      },
+      "type": "object"
+    },
+    "FaviconsConfig": {
+      "additionalProperties": false,
+      "description": "Favicons config",
+      "properties": {
+        "apiKey": {
+          "description": "Your API key. Register at {@link https://realfavicongenerator.net/api/#register_key realfavicongenerator.net}",
+          "type": "string"
+        },
+        "appDescription": {
+          "description": "The app description.",
+          "type": "string"
+        },
+        "appName": {
+          "description": "The app name.",
+          "type": "string"
+        },
+        "backgroundColor": {
+          "description": "The background color.",
+          "type": "string"
+        },
+        "cache": {
+          "default": true,
+          "description": "Set true for enabling cache.",
+          "type": "boolean"
+        },
+        "design": {
+          "$ref": "#/definitions/IconDesign",
+          "description": "See {@link https://realfavicongenerator.net/api/non_interactive_api#favicon_design Non-interactive API}\nUse lower-camel case instead."
+        },
+        "developerName": {
+          "description": "The developer name.",
+          "type": "string"
+        },
+        "developerUrl": {
+          "description": "The developer url.",
+          "type": "string"
+        },
+        "dir": {
+          "description": "The language direction 'ltr' or 'rtl'.",
+          "type": "string"
+        },
+        "emitFaviconIcoToOutDirRoot": {
+          "default": true,
+          "description": "If true, copy 'favicon.ico' file to root output directory.",
+          "type": "boolean"
+        },
+        "fallbackOffline": {
+          "default": true,
+          "description": "If true, when online generation failed, try to generate offline.",
+          "type": "boolean"
+        },
+        "iconsPath": {
+          "default": "icons-[hash]/",
+          "description": "The output folder for all generated image files.",
+          "type": "string"
+        },
+        "lang": {
+          "description": "The default locale language.",
+          "type": "string"
+        },
+        "masterPicture": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/MasterPicture"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Your source logo."
+        },
+        "online": {
+          "default": true,
+          "description": "If true, generate favicons using realfavicongenerator.net.",
+          "type": "boolean"
+        },
+        "settings": {
+          "description": "See {@link https://realfavicongenerator.net/api/non_interactive_api#settings Non-interactive API}\nUse lower-camel case instead.",
+          "properties": {
+            "compression": {
+              "type": "string"
+            },
+            "errorOnImageTooSmall": {
+              "type": "boolean"
+            },
+            "scalingAlgorithm": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "version": {
+          "description": "Your application's version number.",
+          "type": "string"
+        },
+        "versioning": {
+          "anyOf": [
+            {
+              "properties": {
+                "paramName": {
+                  "type": "string"
+                },
+                "paramValue": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "description": "See {@link https://realfavicongenerator.net/api/non_interactive_api#versioning Non-interactive API}\nUse lower-camel case instead."
+        }
+      },
+      "type": "object"
+    },
+    "FileReplacementEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "replace": {
+          "type": "string"
+        },
+        "with": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "FirefoxAppDesign": {
+      "properties": {
+        "backgroundColor": {
+          "type": "string"
+        },
+        "circleInnerMargin": {
+          "type": "string"
+        },
+        "keepPictureInCircle": {
+          "type": [
+            "string",
+            "boolean"
+          ]
+        },
+        "manifest": {
+          "additionalProperties": true,
+          "properties": {
+            "appDescription": {
+              "type": "string"
+            },
+            "appName": {
+              "type": "string"
+            },
+            "developerName": {
+              "type": "string"
+            },
+            "developerUrl": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "margin": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "pictureAspect": {
+          "enum": [
+            "circle",
+            "noChange"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "GlobalEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "bundleName": {
+          "description": "The bundle name for this extra entry point.",
+          "type": "string"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The file to include."
+        },
+        "lazy": {
+          "description": "If the bundle will be lazy loaded.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "HtmlInjectOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "baseHrefOut": {
+          "type": "string"
+        },
+        "customAttributes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "customLinkAttributes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "customResourceHintAttributes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "customScriptAttributes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "dlls": {
+          "type": "boolean"
+        },
+        "icons": {
+          "type": "boolean"
+        },
+        "iconsOut": {
+          "type": "string"
+        },
+        "index": {
+          "type": "string"
+        },
+        "indexOut": {
+          "type": "string"
+        },
+        "prefetches": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "preloads": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "resourceHints": {
+          "type": "boolean"
+        },
+        "resourceHintsOut": {
+          "type": "string"
+        },
+        "runtimeChunkInline": {
+          "type": "boolean"
+        },
+        "runtimeInlineOut": {
+          "type": "string"
+        },
+        "scriptsOut": {
+          "type": "string"
+        },
+        "stylesOut": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "IconDesign": {
+      "properties": {
+        "androidChrome": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AndroidChromeDesign"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "coast": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CoastDesign"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "desktopBrowser": {
+          "anyOf": [
+            {
+              "properties": {},
+              "type": "object"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "firefoxApp": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/FirefoxAppDesign"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "ios": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/IoSDesign"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "openGraph": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OpenGraphDesign"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "safariPinnedTab": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SafariPinnedTabDesign"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "windows": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/WindowsDesign"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "yandexBrowser": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/YandexBrowserDesign"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "IoSDesign": {
+      "properties": {
+        "assets": {
+          "additionalProperties": true,
+          "properties": {
+            "declareOnlyDefaultIcon": {
+              "type": "boolean"
+            },
+            "ios6AndPriorIcons": {
+              "type": "boolean"
+            },
+            "ios7AndLaterIcons": {
+              "type": "boolean"
+            },
+            "precomposedIcons": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "backgroundColor": {
+          "type": "string"
+        },
+        "margin": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "pictureAspect": {
+          "enum": [
+            "backgroundAndMargin",
+            "noChange"
+          ],
+          "type": "string"
+        },
+        "startupImage": {
+          "additionalProperties": true,
+          "properties": {
+            "backgroundColor": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "MasterPicture": {
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "inline",
+            "url"
+          ],
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "OpenGraphDesign": {
+      "properties": {
+        "backgroundColor": {
+          "type": "string"
+        },
+        "margin": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "pictureAspect": {
+          "enum": [
+            "backgroundAndMargin",
+            "noChange"
+          ],
+          "type": "string"
+        },
+        "ratio": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "OutputHashingOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "bundles": {
+          "type": "boolean"
+        },
+        "chunks": {
+          "type": "boolean"
+        },
+        "extractedAssets": {
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "PerformanceOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "hints": {
+          "enum": [
+            "error",
+            false,
+            true,
+            "warning"
+          ]
+        },
+        "maxAssetSize": {
+          "type": "number"
+        },
+        "maxEntrypointSize": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "ProvideOptions": {
+      "additionalProperties": {},
+      "type": "object"
+    },
+    "SafariPinnedTabDesign": {
+      "properties": {
+        "pictureAspect": {
+          "enum": [
+            "blackAndWhite",
+            "noChange",
+            "silhouette"
+          ],
+          "type": "string"
+        },
+        "themeColor": {
+          "type": "string"
+        },
+        "threshold": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "StylePreprocessorOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "includePaths": {
+          "description": "An array of paths that LibSass can look in to attempt to resolve your @import declarations.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "WebpackStatsToStringOptions": {
+      "properties": {
+        "assets": {
+          "description": "Add asset Information",
+          "type": "boolean"
+        },
+        "assetsSort": {
+          "description": "Sort assets by a field",
+          "type": "string"
+        },
+        "cached": {
+          "description": "Add information about cached (not built) modules",
+          "type": "boolean"
+        },
+        "cachedAssets": {
+          "description": "Show cached assets (setting this to `false` only shows emitted files)",
+          "type": "boolean"
+        },
+        "children": {
+          "description": "Add children information",
+          "type": "boolean"
+        },
+        "chunkModules": {
+          "description": "Add built modules information to chunk information",
+          "type": "boolean"
+        },
+        "chunkOrigins": {
+          "description": "Add the origins of chunks and chunk merging info",
+          "type": "boolean"
+        },
+        "chunks": {
+          "description": "Add chunk information (setting this to `false` allows for a less verbose output)",
+          "type": "boolean"
+        },
+        "chunksSort": {
+          "description": "Sort the chunks by a field",
+          "type": "string"
+        },
+        "colors": {
+          "description": "`webpack --colors` equivalent",
+          "type": "boolean"
+        },
+        "context": {
+          "description": "Context directory for request shortening",
+          "type": "string"
+        },
+        "depth": {
+          "description": "Display the distance from the entry point for each module",
+          "type": "boolean"
+        },
+        "entrypoints": {
+          "description": "Display the entry points with the corresponding bundles",
+          "type": "boolean"
+        },
+        "env": {
+          "description": "Add --env information",
+          "type": "boolean"
+        },
+        "errorDetails": {
+          "description": "Add details to errors (like resolving log)",
+          "type": "boolean"
+        },
+        "errors": {
+          "description": "Add errors",
+          "type": "boolean"
+        },
+        "exclude": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "See excludeModules"
+        },
+        "excludeAssets": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Exclude assets from being displayed in stats"
+        },
+        "excludeModules": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Exclude modules from being displayed in stats"
+        },
+        "hash": {
+          "description": "Add the hash of the compilation",
+          "type": "boolean"
+        },
+        "maxModules": {
+          "description": "Set the maximum number of modules to be shown",
+          "type": "number"
+        },
+        "moduleTrace": {
+          "description": "Show dependencies and origin of warnings/errors",
+          "type": "boolean"
+        },
+        "modules": {
+          "description": "Add built modules information",
+          "type": "boolean"
+        },
+        "modulesSort": {
+          "description": "Sort the modules by a field",
+          "type": "string"
+        },
+        "performance": {
+          "description": "Show performance hint when file size exceeds `performance.maxAssetSize`",
+          "type": "boolean"
+        },
+        "providedExports": {
+          "description": "Show the exports of the modules",
+          "type": "boolean"
+        },
+        "publicPath": {
+          "description": "Add public path information",
+          "type": "boolean"
+        },
+        "reasons": {
+          "description": "Add information about the reasons why modules are included",
+          "type": "boolean"
+        },
+        "source": {
+          "description": "Add the source code of modules",
+          "type": "boolean"
+        },
+        "timings": {
+          "description": "Add timing information",
+          "type": "boolean"
+        },
+        "usedExports": {
+          "description": "Show which exports of a module are used",
+          "type": "boolean"
+        },
+        "version": {
+          "description": "Add webpack version information",
+          "type": "boolean"
+        },
+        "warnings": {
+          "description": "Add warnings",
+          "type": "boolean"
+        },
+        "warningsFilter": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Filter warnings to be shown"
+        }
+      },
+      "type": "object"
+    },
+    "WindowsDesign": {
+      "properties": {
+        "assets": {
+          "additionalProperties": true,
+          "properties": {
+            "windows10Ie11EdgeTiles": {
+              "additionalProperties": true,
+              "properties": {
+                "big": {
+                  "type": "boolean"
+                },
+                "medium": {
+                  "type": "boolean"
+                },
+                "rectangle": {
+                  "type": "boolean"
+                },
+                "small": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            },
+            "windows80Ie10Tile": {
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "backgroundColor": {
+          "type": "string"
+        },
+        "onConflict": {
+          "type": "string"
+        },
+        "pictureAspect": {
+          "enum": [
+            "noChange",
+            "whiteSilhouette"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "YandexBrowserDesign": {
+      "properties": {
+        "backgroundColor": {
+          "type": "string"
+        },
+        "manifest": {
+          "additionalProperties": true,
+          "properties": {
+            "showTitle": {
+              "type": "boolean"
+            },
+            "version": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "properties": {
+    "$schema": {
+      "description": "Link to schema.",
+      "type": "string"
+    },
+    "aot": {
+      "description": "Build using Ahead of Time compilation.",
+      "type": "boolean"
+    },
+    "banner": {
+      "description": "Banner text to add at the top of each generated files. It can be text file name or raw text.",
+      "type": "string"
+    },
+    "baseHref": {
+      "description": "The base URL for all relative URLs on a page.",
+      "type": "string"
+    },
+    "buildOptimizer": {
+      "description": "Set true to enable build optimizer.",
+      "type": "boolean"
+    },
+    "bundleAnalyzer": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/BundleAnalyzerOptions"
+        },
+        {
+          "type": "boolean"
+        }
+      ],
+      "description": "Webpack Bundle analyzer options."
+    },
+    "clean": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/CleanOptions"
+        },
+        {
+          "type": "boolean"
+        }
+      ],
+      "description": "Clean options."
+    },
+    "commonChunk": {
+      "description": "If true, chunk a separate bundle containing common code used across multiple bundles.",
+      "type": "boolean"
+    },
+    "concatenateModules": {
+      "description": "Set true to enable scope hoisting.",
+      "type": "boolean"
+    },
+    "copy": {
+      "description": "Copy options.",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/AssetEntry"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "type": "array"
+    },
+    "dlls": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "$ref": "#/definitions/DllOptions"
+        }
+      ],
+      "description": "The vendor module entries for dll bundle."
+    },
+    "entry": {
+      "description": "The main typescript entry file to be bundled.",
+      "type": "string"
+    },
+    "envOverrides": {
+      "$ref": "#/definitions/AppEnvOverridesOptions",
+      "description": "To override properties based on build environment."
+    },
+    "environmentVariables": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": [
+              "string",
+              "boolean"
+            ]
+          },
+          "type": "object"
+        },
+        {
+          "type": "boolean"
+        }
+      ],
+      "description": "Custom environment variables to be included in bundle."
+    },
+    "extends": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "The name of build-in configuration preset, or path(s) to other configuration files which are extended by this configuration."
+    },
+    "externals": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ExternalsObjectElement"
+        },
+        {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/ExternalsObjectElement"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "type": "array"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
+    },
+    "extractCss": {
+      "description": "If true, build process will extracts css specified in styles entry as styles.css.",
+      "type": "boolean"
+    },
+    "extractLicenseOutputFilename": {
+      "description": "Output file name for extracted licenses.",
+      "type": "string"
+    },
+    "extractLicenses": {
+      "description": "Extract all licenses in a separate file.",
+      "type": "boolean"
+    },
+    "favicons": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/FaviconsConfig"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "The favicons configuration file or object."
+    },
+    "fileReplacements": {
+      "description": "Replaces resources with new resources.",
+      "items": {
+        "$ref": "#/definitions/FileReplacementEntry"
+      },
+      "type": "array"
+    },
+    "forkTypeChecker": {
+      "description": "Run the TypeScript type checker in a forked process.",
+      "type": "boolean"
+    },
+    "htmlInject": {
+      "$ref": "#/definitions/HtmlInjectOptions",
+      "description": "The html injection options."
+    },
+    "i18nFile": {
+      "description": "Path to the translation file.",
+      "type": "string"
+    },
+    "i18nFormat": {
+      "description": "Import format if different from `i18nFormat`.",
+      "type": "string"
+    },
+    "i18nLocale": {
+      "description": "Locale of the imported translations.",
+      "type": "string"
+    },
+    "i18nMissingTranslation": {
+      "description": "How to handle missing messages.",
+      "enum": [
+        "error",
+        "ignore",
+        "warning"
+      ],
+      "type": "string"
+    },
+    "i18nOutFile": {
+      "description": "Path to the extracted message file.",
+      "type": "string"
+    },
+    "i18nOutFormat": {
+      "description": "Export format (xlf, xlf2 or xmb).",
+      "type": "string"
+    },
+    "lazyModules": {
+      "description": "List of additional NgModule files that will be lazy loaded (lazy router modules will be discovered automatically).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "libraryTarget": {
+      "description": "Module format for bundling.",
+      "enum": [
+        "amd",
+        "cjs",
+        "commonjs",
+        "commonjs2",
+        "iife",
+        "umd",
+        "var"
+      ],
+      "type": "string"
+    },
+    "mainChunkName": {
+      "default": "main",
+      "description": "The output chunk name for main entry.",
+      "type": "string"
+    },
+    "name": {
+      "description": "The name of this configuration.",
+      "type": "string"
+    },
+    "namedChunks": {
+      "description": "Use file name for lazy loaded chunks.",
+      "type": "boolean"
+    },
+    "nodeModulesAsExternals": {
+      "description": "If true, node_modules packages are not included in bundle.",
+      "type": "boolean"
+    },
+    "nodeResolveFields": {
+      "description": "Custom Node.js resolution main fields.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "optimization": {
+      "description": "Defines the optimization level of the build.",
+      "type": "boolean"
+    },
+    "outputHashing": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/OutputHashingOptions"
+        },
+        {
+          "enum": [
+            "all",
+            "bundles",
+            "media",
+            "none"
+          ],
+          "type": "string"
+        }
+      ],
+      "description": "Define the output filename cache-busting hashing mode."
+    },
+    "outputPath": {
+      "description": "The output directory for build results.",
+      "type": "string"
+    },
+    "performance": {
+      "$ref": "#/definitions/PerformanceOptions",
+      "description": "Performance options."
+    },
+    "platformTarget": {
+      "description": "Tell the build system which platform environment the application is targeting.",
+      "enum": [
+        "node",
+        "web"
+      ],
+      "type": "string"
+    },
+    "polyfills": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "Polyfill entries."
+    },
+    "polyfillsChunkName": {
+      "default": "polyfills",
+      "description": "The output chunk name for polyfills.",
+      "type": "string"
+    },
+    "provides": {
+      "$ref": "#/definitions/ProvideOptions",
+      "description": "To load global modules automatically  with alias key."
+    },
+    "publicPath": {
+      "description": "The url where files will be deployed.",
+      "type": "string"
+    },
+    "referenceDll": {
+      "description": "To consume dll bundle created by the dll build.",
+      "type": "boolean"
+    },
+    "root": {
+      "description": "The project root folder.",
+      "type": "string"
+    },
+    "scripts": {
+      "description": "Global script entries.",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/GlobalEntry"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "type": "array"
+    },
+    "serviceWorker": {
+      "description": "Generates a service worker config for production builds.",
+      "type": "boolean"
+    },
+    "skip": {
+      "description": "If true, this project config will be skipped by the build process.",
+      "type": "boolean"
+    },
+    "sourceMap": {
+      "description": "If true, sourcemaps will be generated.",
+      "type": "boolean"
+    },
+    "sourceMapDevTool": {
+      "description": "This option controls if and how source maps are generated.",
+      "enum": [
+        "#@cheap-eval-source-map",
+        "#@cheap-module-eval-source-map",
+        "#@cheap-module-source-map",
+        "#@cheap-source-map",
+        "#@eval",
+        "#@eval-source-map",
+        "#@hidden-source-map",
+        "#@inline-source-map",
+        "#@nosources-source-map",
+        "#@source-map",
+        "#cheap-eval-source-map",
+        "#cheap-module-eval-source-map",
+        "#cheap-module-source-map",
+        "#cheap-source-map",
+        "#eval",
+        "#eval-source-map",
+        "#hidden-source-map",
+        "#inline-source-map",
+        "#nosources-source-map",
+        "#source-map",
+        "@cheap-eval-source-map",
+        "@cheap-module-eval-source-map",
+        "@cheap-module-source-map",
+        "@cheap-source-map",
+        "@eval",
+        "@eval-source-map",
+        "@hidden-source-map",
+        "@inline-source-map",
+        "@nosources-source-map",
+        "@source-map",
+        "cheap-eval-source-map",
+        "cheap-module-eval-source-map",
+        "cheap-module-source-map",
+        "cheap-source-map",
+        "eval",
+        "eval-source-map",
+        false,
+        "hidden-source-map",
+        "inline-source-map",
+        "nosources-source-map",
+        "source-map",
+        true
+      ]
+    },
+    "sourceMapDevToolFallbackModuleFilenameTemplate": {
+      "description": "A fallback used when the template string of 'sourceMapFilenameTemplate' yields duplicates.",
+      "type": "string"
+    },
+    "sourceMapDevToolModuleFilenameTemplate": {
+      "description": "Customize the names used in each source map.",
+      "type": "string"
+    },
+    "stats": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/WebpackStatsToStringOptions"
+        },
+        {
+          "enum": [
+            "errors-only",
+            false,
+            "minimal",
+            "none",
+            "normal",
+            true,
+            "verbose"
+          ]
+        }
+      ],
+      "description": "The webpack stats option - lets you precisely control what bundle information gets displayed."
+    },
+    "stylePreprocessorOptions": {
+      "$ref": "#/definitions/StylePreprocessorOptions",
+      "description": "Options to pass to style preprocessors."
+    },
+    "styles": {
+      "description": "List of global style entries.",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/GlobalEntry"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "type": "array"
+    },
+    "tsConfig": {
+      "description": "The typescript configuration file to be used.",
+      "type": "string"
+    },
+    "vendorChunk": {
+      "description": "If true, requested modules started with node_modules path are chunk into [vendorChunkName].js.",
+      "type": "boolean"
+    },
+    "vendorChunkName": {
+      "default": "vendor",
+      "description": "The output chunk name for vendor or dll chunk.",
+      "type": "string"
+    },
+    "webpackConfig": {
+      "description": "Custom webpack config file to be merged.",
+      "type": "string"
+    }
+  },
+  "type": "object"
 }
-

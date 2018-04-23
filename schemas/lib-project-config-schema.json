@@ -1,625 +1,623 @@
 {
-    "$schema": "http://json-schema.org/draft-06/schema#",
-    "additionalProperties": false,
-    "definitions": {
-        "AfterEmitCleanOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "exclude": {
-                    "description": "Path array to exclude from deleting.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "paths": {
-                    "description": "Paths to be deleted.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                }
-            },
-            "type": "object"
+  "additionalProperties": false,
+  "definitions": {
+    "AfterEmitCleanOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "exclude": {
+          "description": "Path array to exclude from deleting.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
-        "AssetEntry": {
-            "additionalProperties": false,
-            "properties": {
-                "exclude": {
-                    "description": "The ignore list.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "from": {
-                    "description": "The source file, it can be absolute or relative path or glob pattern.",
-                    "type": "string"
-                },
-                "to": {
-                    "description": "The output file name.",
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "BeforeBuildCleanOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "cleanOutDir": {
-                    "description": "If true, delete output directory before build.",
-                    "type": "boolean"
-                },
-                "exclude": {
-                    "description": "Path array to exclude from deleting.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "paths": {
-                    "description": "Paths to be deleted.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                }
-            },
-            "type": "object"
-        },
-        "CleanOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "afterEmit": {
-                    "$ref": "#/definitions/AfterEmitCleanOptions",
-                    "description": "After emit clean option."
-                },
-                "allowOutsideOutDir": {
-                    "default": false,
-                    "description": "Allows cleaning outside of output directory.",
-                    "type": "boolean"
-                },
-                "allowOutsideWorkspaceRoot": {
-                    "default": false,
-                    "description": "Allows cleaning outside of workspace root.",
-                    "type": "boolean"
-                },
-                "beforeBuild": {
-                    "$ref": "#/definitions/BeforeBuildCleanOptions",
-                    "description": "Before build clean option."
-                }
-            },
-            "type": "object"
-        },
-        "ExternalsObjectElement": {
-            "additionalProperties": {
-                "anyOf": [
-                    {
-                        "additionalProperties": {
-                            "type": [
-                                "string",
-                                "boolean"
-                            ]
-                        },
-                        "properties": {
-                            "amd": {
-                                "type": "string"
-                            },
-                            "commonjs": {
-                                "type": "string"
-                            },
-                            "root": {
-                                "type": "string"
-                            }
-                        },
-                        "type": "object"
-                    },
-                    {
-                        "type": [
-                            "string",
-                            "boolean"
-                        ]
-                    }
-                ]
-            },
-            "type": "object"
-        },
-        "GlobalEntry": {
-            "additionalProperties": false,
-            "properties": {
-                "bundleName": {
-                    "description": "The bundle name for this extra entry point.",
-                    "type": "string"
-                },
-                "input": {
-                    "anyOf": [
-                        {
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "The file to include."
-                },
-                "lazy": {
-                    "description": "If the bundle will be lazy loaded.",
-                    "type": "boolean"
-                }
-            },
-            "type": "object"
-        },
-        "LibBundleOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "bundleTool": {
-                    "default": "rollup",
-                    "description": "Bundle tool to be used.",
-                    "enum": [
-                        "rollup",
-                        "webpack"
-                    ],
-                    "type": "string"
-                },
-                "entry": {
-                    "description": "The entry file to be bundled.",
-                    "type": "string"
-                },
-                "entryRoot": {
-                    "description": "Entry root directory resolution.",
-                    "enum": [
-                        "outputPath",
-                        "prevBundleOutDir",
-                        "root",
-                        "tsOutDir"
-                    ],
-                    "type": "string"
-                },
-                "externals": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/ExternalsObjectElement"
-                        },
-                        {
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/ExternalsObjectElement"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
-                },
-                "includeDefaultAngularAndRxJsGlobals": {
-                    "description": "If true, predefined Angular and rxjs globals are added.",
-                    "type": "boolean"
-                },
-                "libraryTarget": {
-                    "description": "Bundle module format.",
-                    "enum": [
-                        "amd",
-                        "cjs",
-                        "commonjs",
-                        "commonjs2",
-                        "es",
-                        "iife",
-                        "umd",
-                        "var"
-                    ],
-                    "type": "string"
-                },
-                "minify": {
-                    "description": "If true, minify file will be generated.",
-                    "type": "boolean"
-                },
-                "nodeModulesAsExternals": {
-                    "description": "If true, node_modules packages are not included in bundle.",
-                    "type": "boolean"
-                },
-                "outputFilePath": {
-                    "description": "Custom bundle output file path.",
-                    "type": "string"
-                },
-                "scriptTarget": {
-                    "description": "Transforms entry file or bundled result to specific ECMA script target.",
-                    "enum": [
-                        "es2015",
-                        "es2016",
-                        "es2017",
-                        "es5"
-                    ],
-                    "type": "string"
-                },
-                "transformScriptTargetOnly": {
-                    "description": "If true, the process will perform script target transformation only.",
-                    "type": "boolean"
-                },
-                "tsConfig": {
-                    "description": "The typescript configuration file to be used.",
-                    "type": "string"
-                },
-                "webpackConfig": {
-                    "description": "Custom webpack config file to be merged.",
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "LibEnvOverridesOptions": {
-            "additionalProperties": {
-                "$ref": "#/definitions/LibProjectConfigBase"
-            },
-            "type": "object"
-        },
-        "LibProjectConfigBase": {
-            "additionalProperties": false,
-            "properties": {
-                "banner": {
-                    "description": "Banner text to add at the top of each generated files. It can be text file name or raw text.",
-                    "type": "string"
-                },
-                "bundles": {
-                    "description": "Bundle target options.",
-                    "items": {
-                        "$ref": "#/definitions/LibBundleOptions"
-                    },
-                    "type": "array"
-                },
-                "clean": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/CleanOptions"
-                        },
-                        {
-                            "type": "boolean"
-                        }
-                    ],
-                    "description": "Clean options."
-                },
-                "copy": {
-                    "description": "Copy options.",
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/AssetEntry"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "type": "array"
-                },
-                "externals": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/ExternalsObjectElement"
-                        },
-                        {
-                            "items": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/ExternalsObjectElement"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
-                            },
-                            "type": "array"
-                        },
-                        {
-                            "type": "string"
-                        }
-                    ],
-                    "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
-                },
-                "includeDefaultAngularAndRxJsGlobals": {
-                    "description": "If true, predefined Angular and rxjs globals are added.",
-                    "type": "boolean"
-                },
-                "libraryName": {
-                    "description": "The library name.",
-                    "type": "string"
-                },
-                "nodeModulesAsExternals": {
-                    "description": "If true, node_modules packages are not included in bundle.",
-                    "type": "boolean"
-                },
-                "outputPath": {
-                    "description": "The output directory for build results.",
-                    "type": "string"
-                },
-                "packageOptions": {
-                    "$ref": "#/definitions/PackageOptions",
-                    "description": "Packaging options."
-                },
-                "platformTarget": {
-                    "description": "Tell the build system which platform environment the application is targeting.",
-                    "enum": [
-                        "node",
-                        "web"
-                    ],
-                    "type": "string"
-                },
-                "skip": {
-                    "description": "If true, this project config will be skipped by the build process.",
-                    "type": "boolean"
-                },
-                "sourceMap": {
-                    "description": "If true, sourcemaps will be generated.",
-                    "type": "boolean"
-                },
-                "stylePreprocessorOptions": {
-                    "$ref": "#/definitions/StylePreprocessorOptions",
-                    "description": "Options to pass to style preprocessors."
-                },
-                "styles": {
-                    "description": "List of global style entries.",
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/GlobalEntry"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "type": "array"
-                },
-                "tsTranspilation": {
-                    "$ref": "#/definitions/TsTranspilationOptions",
-                    "description": "Typescript transpilation options."
-                }
-            },
-            "type": "object"
-        },
-        "PackageOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "packageJsonFile": {
-                    "description": "The source package.json file to be updated and copied.",
-                    "type": "string"
-                },
-                "packageJsonOutputFilePath": {
-                    "description": "Custom output file path for 'package.json'.",
-                    "type": "string"
-                },
-                "reExportTypingsAndMetaDataAs": {
-                    "description": "Re-export file name for typing and metadata.",
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
-        "StylePreprocessorOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "includePaths": {
-                    "description": "An array of paths that LibSass can look in to attempt to resolve your @import declarations.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                }
-            },
-            "type": "object"
-        },
-        "TsTranspilationOptions": {
-            "additionalProperties": false,
-            "properties": {
-                "copyTemplateAndStyleUrls": {
-                    "description": "If true, templateUrl and styleUrls resources are copy into output locations.",
-                    "type": "boolean"
-                },
-                "i18nFile": {
-                    "description": "Path to the translation file.",
-                    "type": "string"
-                },
-                "i18nFormat": {
-                    "description": "Import format if different from `i18nFormat`.",
-                    "type": "string"
-                },
-                "i18nLocale": {
-                    "description": "Locale of the imported translations.",
-                    "type": "string"
-                },
-                "i18nMissingTranslation": {
-                    "description": "How to handle missing messages.",
-                    "enum": [
-                        "error",
-                        "ignore",
-                        "warning"
-                    ],
-                    "type": "string"
-                },
-                "i18nOutFile": {
-                    "description": "Path to the extracted message file.",
-                    "type": "string"
-                },
-                "i18nOutFormat": {
-                    "description": "Export format (xlf, xlf2 or xmb).",
-                    "type": "string"
-                },
-                "inlineMetaDataResources": {
-                    "description": "If true, templateUrl and styleUrls resources of .metadata.json are inlined.",
-                    "type": "boolean"
-                },
-                "replaceVersionPlaceholder": {
-                    "description": "If true, replaces version placeholder with package version.",
-                    "type": "boolean"
-                },
-                "tsConfig": {
-                    "description": "The typescript configuration file to be used.",
-                    "type": "string"
-                }
-            },
-            "type": "object"
+        "paths": {
+          "description": "Paths to be deleted.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
+      },
+      "type": "object"
     },
-    "properties": {
-        "$schema": {
-            "description": "Link to schema.",
+    "AssetEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "exclude": {
+          "description": "The ignore list.",
+          "items": {
             "type": "string"
+          },
+          "type": "array"
         },
-        "banner": {
-            "description": "Banner text to add at the top of each generated files. It can be text file name or raw text.",
+        "from": {
+          "description": "The source file, it can be absolute or relative path or glob pattern.",
+          "type": "string"
+        },
+        "to": {
+          "description": "The output file name.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "BeforeBuildCleanOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "cleanOutDir": {
+          "description": "If true, delete output directory before build.",
+          "type": "boolean"
+        },
+        "exclude": {
+          "description": "Path array to exclude from deleting.",
+          "items": {
             "type": "string"
+          },
+          "type": "array"
         },
-        "bundles": {
-            "description": "Bundle target options.",
-            "items": {
-                "$ref": "#/definitions/LibBundleOptions"
+        "paths": {
+          "description": "Paths to be deleted.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "CleanOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "afterEmit": {
+          "$ref": "#/definitions/AfterEmitCleanOptions",
+          "description": "After emit clean option."
+        },
+        "allowOutsideOutDir": {
+          "default": false,
+          "description": "Allows cleaning outside of output directory.",
+          "type": "boolean"
+        },
+        "allowOutsideWorkspaceRoot": {
+          "default": false,
+          "description": "Allows cleaning outside of workspace root.",
+          "type": "boolean"
+        },
+        "beforeBuild": {
+          "$ref": "#/definitions/BeforeBuildCleanOptions",
+          "description": "Before build clean option."
+        }
+      },
+      "type": "object"
+    },
+    "ExternalsObjectElement": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "additionalProperties": {
+              "type": [
+                "string",
+                "boolean"
+              ]
             },
-            "type": "array"
-        },
-        "clean": {
-            "anyOf": [
-                {
-                    "$ref": "#/definitions/CleanOptions"
-                },
-                {
-                    "type": "boolean"
-                }
-            ],
-            "description": "Clean options."
-        },
-        "copy": {
-            "description": "Copy options.",
-            "items": {
-                "anyOf": [
-                    {
-                        "$ref": "#/definitions/AssetEntry"
-                    },
-                    {
-                        "type": "string"
-                    }
-                ]
+            "properties": {
+              "amd": {
+                "type": "string"
+              },
+              "commonjs": {
+                "type": "string"
+              },
+              "root": {
+                "type": "string"
+              }
             },
-            "type": "array"
+            "type": "object"
+          },
+          {
+            "type": [
+              "string",
+              "boolean"
+            ]
+          }
+        ]
+      },
+      "type": "object"
+    },
+    "GlobalEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "bundleName": {
+          "description": "The bundle name for this extra entry point.",
+          "type": "string"
         },
-        "envOverrides": {
-            "$ref": "#/definitions/LibEnvOverridesOptions",
-            "description": "To override properties based on build environment."
+        "input": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The file to include."
         },
-        "extends": {
-            "anyOf": [
-                {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                {
-                    "type": "string"
-                }
-            ],
-            "description": "The name of build-in configuration preset, or path(s) to other configuration files which are extended by this configuration."
+        "lazy": {
+          "description": "If the bundle will be lazy loaded.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "LibBundleOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "bundleTool": {
+          "default": "rollup",
+          "description": "Bundle tool to be used.",
+          "enum": [
+            "rollup",
+            "webpack"
+          ],
+          "type": "string"
+        },
+        "entry": {
+          "description": "The entry file to be bundled.",
+          "type": "string"
+        },
+        "entryRoot": {
+          "description": "Entry root directory resolution.",
+          "enum": [
+            "outputPath",
+            "prevBundleOutDir",
+            "root",
+            "tsOutDir"
+          ],
+          "type": "string"
         },
         "externals": {
-            "anyOf": [
-                {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ExternalsObjectElement"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
                     "$ref": "#/definitions/ExternalsObjectElement"
-                },
-                {
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/ExternalsObjectElement"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ]
-                    },
-                    "type": "array"
-                },
-                {
+                  },
+                  {
                     "type": "string"
-                }
-            ],
-            "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
         },
         "includeDefaultAngularAndRxJsGlobals": {
-            "description": "If true, predefined Angular and rxjs globals are added.",
-            "type": "boolean"
+          "description": "If true, predefined Angular and rxjs globals are added.",
+          "type": "boolean"
         },
-        "libraryName": {
-            "description": "The library name.",
-            "type": "string"
+        "libraryTarget": {
+          "description": "Bundle module format.",
+          "enum": [
+            "amd",
+            "cjs",
+            "commonjs",
+            "commonjs2",
+            "es",
+            "iife",
+            "umd",
+            "var"
+          ],
+          "type": "string"
         },
-        "name": {
-            "description": "The name of this configuration.",
-            "type": "string"
+        "minify": {
+          "description": "If true, minify file will be generated.",
+          "type": "boolean"
         },
         "nodeModulesAsExternals": {
-            "description": "If true, node_modules packages are not included in bundle.",
-            "type": "boolean"
+          "description": "If true, node_modules packages are not included in bundle.",
+          "type": "boolean"
+        },
+        "outputFilePath": {
+          "description": "Custom bundle output file path.",
+          "type": "string"
+        },
+        "scriptTarget": {
+          "description": "Transforms entry file or bundled result to specific ECMA script target.",
+          "enum": [
+            "es2015",
+            "es2016",
+            "es2017",
+            "es5"
+          ],
+          "type": "string"
+        },
+        "transformScriptTargetOnly": {
+          "description": "If true, the process will perform script target transformation only.",
+          "type": "boolean"
+        },
+        "tsConfig": {
+          "description": "The typescript configuration file to be used.",
+          "type": "string"
+        },
+        "webpackConfig": {
+          "description": "Custom webpack config file to be merged.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "LibEnvOverridesOptions": {
+      "additionalProperties": {
+        "$ref": "#/definitions/LibProjectConfigBase"
+      },
+      "type": "object"
+    },
+    "LibProjectConfigBase": {
+      "additionalProperties": false,
+      "properties": {
+        "banner": {
+          "description": "Banner text to add at the top of each generated files. It can be text file name or raw text.",
+          "type": "string"
+        },
+        "bundles": {
+          "description": "Bundle target options.",
+          "items": {
+            "$ref": "#/definitions/LibBundleOptions"
+          },
+          "type": "array"
+        },
+        "clean": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CleanOptions"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "description": "Clean options."
+        },
+        "copy": {
+          "description": "Copy options.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/AssetEntry"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "type": "array"
+        },
+        "externals": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ExternalsObjectElement"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/ExternalsObjectElement"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
+        },
+        "includeDefaultAngularAndRxJsGlobals": {
+          "description": "If true, predefined Angular and rxjs globals are added.",
+          "type": "boolean"
+        },
+        "libraryName": {
+          "description": "The library name.",
+          "type": "string"
+        },
+        "nodeModulesAsExternals": {
+          "description": "If true, node_modules packages are not included in bundle.",
+          "type": "boolean"
         },
         "outputPath": {
-            "description": "The output directory for build results.",
-            "type": "string"
+          "description": "The output directory for build results.",
+          "type": "string"
         },
         "packageOptions": {
-            "$ref": "#/definitions/PackageOptions",
-            "description": "Packaging options."
+          "$ref": "#/definitions/PackageOptions",
+          "description": "Packaging options."
         },
         "platformTarget": {
-            "description": "Tell the build system which platform environment the application is targeting.",
-            "enum": [
-                "node",
-                "web"
-            ],
-            "type": "string"
-        },
-        "root": {
-            "description": "The project root folder.",
-            "type": "string"
+          "description": "Tell the build system which platform environment the application is targeting.",
+          "enum": [
+            "node",
+            "web"
+          ],
+          "type": "string"
         },
         "skip": {
-            "description": "If true, this project config will be skipped by the build process.",
-            "type": "boolean"
+          "description": "If true, this project config will be skipped by the build process.",
+          "type": "boolean"
         },
         "sourceMap": {
-            "description": "If true, sourcemaps will be generated.",
-            "type": "boolean"
+          "description": "If true, sourcemaps will be generated.",
+          "type": "boolean"
         },
         "stylePreprocessorOptions": {
-            "$ref": "#/definitions/StylePreprocessorOptions",
-            "description": "Options to pass to style preprocessors."
+          "$ref": "#/definitions/StylePreprocessorOptions",
+          "description": "Options to pass to style preprocessors."
         },
         "styles": {
-            "description": "List of global style entries.",
-            "items": {
-                "anyOf": [
-                    {
-                        "$ref": "#/definitions/GlobalEntry"
-                    },
-                    {
-                        "type": "string"
-                    }
-                ]
-            },
-            "type": "array"
+          "description": "List of global style entries.",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/GlobalEntry"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "type": "array"
         },
         "tsTranspilation": {
-            "$ref": "#/definitions/TsTranspilationOptions",
-            "description": "Typescript transpilation options."
+          "$ref": "#/definitions/TsTranspilationOptions",
+          "description": "Typescript transpilation options."
         }
+      },
+      "type": "object"
     },
-    "type": "object"
+    "PackageOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "packageJsonFile": {
+          "description": "The source package.json file to be updated and copied.",
+          "type": "string"
+        },
+        "packageJsonOutputFilePath": {
+          "description": "Custom output file path for 'package.json'.",
+          "type": "string"
+        },
+        "reExportTypingsAndMetaDataAs": {
+          "description": "Re-export file name for typing and metadata.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "StylePreprocessorOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "includePaths": {
+          "description": "An array of paths that LibSass can look in to attempt to resolve your @import declarations.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "TsTranspilationOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "copyTemplateAndStyleUrls": {
+          "description": "If true, templateUrl and styleUrls resources are copy into output locations.",
+          "type": "boolean"
+        },
+        "i18nFile": {
+          "description": "Path to the translation file.",
+          "type": "string"
+        },
+        "i18nFormat": {
+          "description": "Import format if different from `i18nFormat`.",
+          "type": "string"
+        },
+        "i18nLocale": {
+          "description": "Locale of the imported translations.",
+          "type": "string"
+        },
+        "i18nMissingTranslation": {
+          "description": "How to handle missing messages.",
+          "enum": [
+            "error",
+            "ignore",
+            "warning"
+          ],
+          "type": "string"
+        },
+        "i18nOutFile": {
+          "description": "Path to the extracted message file.",
+          "type": "string"
+        },
+        "i18nOutFormat": {
+          "description": "Export format (xlf, xlf2 or xmb).",
+          "type": "string"
+        },
+        "inlineMetaDataResources": {
+          "description": "If true, templateUrl and styleUrls resources of .metadata.json are inlined.",
+          "type": "boolean"
+        },
+        "replaceVersionPlaceholder": {
+          "description": "If true, replaces version placeholder with package version.",
+          "type": "boolean"
+        },
+        "tsConfig": {
+          "description": "The typescript configuration file to be used.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "properties": {
+    "$schema": {
+      "description": "Link to schema.",
+      "type": "string"
+    },
+    "banner": {
+      "description": "Banner text to add at the top of each generated files. It can be text file name or raw text.",
+      "type": "string"
+    },
+    "bundles": {
+      "description": "Bundle target options.",
+      "items": {
+        "$ref": "#/definitions/LibBundleOptions"
+      },
+      "type": "array"
+    },
+    "clean": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/CleanOptions"
+        },
+        {
+          "type": "boolean"
+        }
+      ],
+      "description": "Clean options."
+    },
+    "copy": {
+      "description": "Copy options.",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/AssetEntry"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "type": "array"
+    },
+    "envOverrides": {
+      "$ref": "#/definitions/LibEnvOverridesOptions",
+      "description": "To override properties based on build environment."
+    },
+    "extends": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "The name of build-in configuration preset, or path(s) to other configuration files which are extended by this configuration."
+    },
+    "externals": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ExternalsObjectElement"
+        },
+        {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/ExternalsObjectElement"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "type": "array"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "description": "The externals configuration option provides a way of excluding dependencies from the output bundle."
+    },
+    "includeDefaultAngularAndRxJsGlobals": {
+      "description": "If true, predefined Angular and rxjs globals are added.",
+      "type": "boolean"
+    },
+    "libraryName": {
+      "description": "The library name.",
+      "type": "string"
+    },
+    "name": {
+      "description": "The name of this configuration.",
+      "type": "string"
+    },
+    "nodeModulesAsExternals": {
+      "description": "If true, node_modules packages are not included in bundle.",
+      "type": "boolean"
+    },
+    "outputPath": {
+      "description": "The output directory for build results.",
+      "type": "string"
+    },
+    "packageOptions": {
+      "$ref": "#/definitions/PackageOptions",
+      "description": "Packaging options."
+    },
+    "platformTarget": {
+      "description": "Tell the build system which platform environment the application is targeting.",
+      "enum": [
+        "node",
+        "web"
+      ],
+      "type": "string"
+    },
+    "root": {
+      "description": "The project root folder.",
+      "type": "string"
+    },
+    "skip": {
+      "description": "If true, this project config will be skipped by the build process.",
+      "type": "boolean"
+    },
+    "sourceMap": {
+      "description": "If true, sourcemaps will be generated.",
+      "type": "boolean"
+    },
+    "stylePreprocessorOptions": {
+      "$ref": "#/definitions/StylePreprocessorOptions",
+      "description": "Options to pass to style preprocessors."
+    },
+    "styles": {
+      "description": "List of global style entries.",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/GlobalEntry"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "type": "array"
+    },
+    "tsTranspilation": {
+      "$ref": "#/definitions/TsTranspilationOptions",
+      "description": "Typescript transpilation options."
+    }
+  },
+  "type": "object"
 }
-

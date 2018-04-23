@@ -5,10 +5,21 @@ const fs = require('fs-extra');
 const path = require('path');
 const spawn = require('cross-spawn');
 
+function _updateSchema(schemaFilePath) {
+    const schemaJson = require(schemaFilePath);
+    if (schemaJson.$schema) {
+        delete schemaJson.$schema;
+    }
+
+    fs.writeFileSync(schemaFilePath, JSON.stringify(schemaJson, null, 2));
+}
+
 function _generateSchema(input, typeSymbol, output) {
     spawn.sync(path.join(process.cwd(), 'node_modules/.bin/typescript-json-schema'),
         [input, typeSymbol, '-o', output],
         { cwd: __dirname, stdio: 'inherit' });
+
+    _updateSchema(output);
 }
 
 function generateSchemas() {
