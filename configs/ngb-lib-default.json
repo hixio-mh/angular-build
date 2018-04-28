@@ -1,6 +1,6 @@
 {
   "$schema": "../schemas/lib-project-config-schema.json#",
-  "root": ".",
+  "root": "src",
   "outputPath": "dist",
   "tsTranspilation": {
     "tsConfig": "tsconfig-build.json"
@@ -10,14 +10,14 @@
   },
   "envOverrides": {
     "prod": {
-      "banner": "banner.txt",
+      "banner": "../banner.txt",
       "clean": {
         "beforeBuild": {
           "cleanOutDir": true
         }
       },
       "copy": [
-        "LICENSE",
+        "../LICENSE",
         "README.md"
       ],
       "bundles": [
