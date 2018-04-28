@@ -1,5 +1,13 @@
 # Change Logs
 
+## 6.0.0-rc.6
+
+- Fixed - ignore empty array in build options
+- Fixed - avoid reusing main chunk for common modules
+- Fixed - disable sourcemaps with JS style
+- Updated README file
+- Updated npm dependencies
+
 ## 6.0.0-rc.5
 
 - Updated generate schemas logic to compat with angular cli

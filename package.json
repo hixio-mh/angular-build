@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "6.0.0-rc.5",
+  "version": "6.0.0-rc.6",
   "description": "Build tool for Angular application and library projects.",
   "keywords": [
     "angular",
@@ -56,9 +56,9 @@
     "@angular/service-worker": "^6.0.0-rc.6",
     "@ngtools/webpack": "^6.0.0-rc.8",
     "ajv": "^6.4.0",
-    "ajv-keywords": "^3.1.0",
+    "ajv-keywords": "^3.2.0",
     "applicationinsights": "^1.0.2",
-    "autoprefixer": "^8.3.0",
+    "autoprefixer": "^8.4.1",
     "builtins": "^2.0.0",
     "cache-loader": "^1.2.2",
     "clean-css": "^4.1.11",
