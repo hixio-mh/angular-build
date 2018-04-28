@@ -226,7 +226,7 @@ export function
             const extractTextPluginOptions = {
                 use: [
                     {
-                        loader: RawCssLoader
+                        loader: extractCss ? RawCssLoader : rawLoader
                     },
                     {
                         loader: postcssLoader,
