@@ -1,6 +1,5 @@
 {
   "extends": [
-    // "tslint:recommended",
     "tslint-eslint-rules",
     "vrsource-tslint-rules"
   ],
