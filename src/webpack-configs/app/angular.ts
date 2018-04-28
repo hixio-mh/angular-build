@@ -180,8 +180,6 @@ function createAotPlugin<TConfig extends AppProjectConfigInternal>(angularBuildC
         tsConfigPath: options.tsConfigPath || appConfig._tsConfigPath as string,
         i18nInFile: i18nInFile,
         i18nInFormat: appConfig.i18nFormat,
-        i18nOutFile: appConfig.i18nOutFile,
-        i18nOutFormat: appConfig.i18nOutFormat,
         locale: appConfig.i18nLocale,
         platform: appConfig.platformTarget === 'node' ? PLATFORM.Server : PLATFORM.Browser,
         missingTranslation: appConfig.i18nMissingTranslation,
