@@ -373,7 +373,6 @@ export function
                         ? {
                             chunks: 'async',
                             minChunks: 2,
-                            reuseExistingChunk: true,
                             priority: 10,
                         }
                         : false,
@@ -382,6 +381,7 @@ export function
                             name: 'common',
                             chunks: 'async',
                             minChunks: 2,
+                            enforce: true,
                             priority: 5,
                         }
                         : false,
