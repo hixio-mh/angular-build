@@ -46,6 +46,14 @@ export class AppBuilder<TConfig extends AppBuilderOptions> implements Builder<TC
         appConfig._index = 0;
         appConfig._configPath = path.resolve(workspaceRoot, 'angular.json');
 
+        // Delete empty array
+        Object.keys(appConfig).forEach(key => {
+            const appConfigAny = <any>appConfig;
+            if (appConfigAny[key] && Array.isArray(appConfigAny[key]) && appConfigAny[key].length === 0) {
+                delete appConfigAny[key];
+            }
+        });
+
         // extends
         applyProjectConfigExtends(appConfig);
 
