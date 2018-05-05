@@ -23,7 +23,6 @@ import { LibBuilderOptions } from '../../interfaces';
 import { normalizeRelativePath } from '../../utils';
 import { getLibWebpackConfig } from '../../webpack-configs/lib';
 
-
 export class LibBuilder<TConfig extends LibBuilderOptions> implements Builder<TConfig> {
     private readonly _startTime = Date.now();
 
@@ -43,6 +42,14 @@ export class LibBuilder<TConfig extends LibBuilderOptions> implements Builder<TC
         libConfig._projectType = 'lib';
         libConfig._index = 0;
         libConfig._configPath = path.resolve(workspaceRoot, 'angular.json');
+
+        // Delete empty array
+        Object.keys(libConfig).forEach(key => {
+            const libConfigAny = <any>libConfig;
+            if (libConfigAny[key] && Array.isArray(libConfigAny[key]) && libConfigAny[key].length === 0) {
+                delete libConfigAny[key];
+            }
+        });
 
         // extends
         applyProjectConfigExtends(libConfig);
@@ -77,8 +84,16 @@ export class LibBuilder<TConfig extends LibBuilderOptions> implements Builder<TC
                     buildOptions: buildOptions,
 
                 });
+                
+                let wpConfig: webpack.Configuration;
+                try {
+                    wpConfig = getLibWebpackConfig(angularBuildContext);
+                } catch (configErr) {
+                    obs.error(configErr);
 
-                const wpConfig = getLibWebpackConfig(angularBuildContext);
+                    return () => { };
+                }
+
                 const firstConfig = Array.isArray(wpConfig) ? wpConfig[0] : wpConfig;
                 const statsOptions = firstConfig.stats
                     ? firstConfig.stats

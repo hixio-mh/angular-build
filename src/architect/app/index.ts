@@ -24,7 +24,6 @@ import { AppBuilderOptions } from '../../interfaces';
 import { normalizeRelativePath } from '../../utils';
 import { getAppWebpackConfig } from '../../webpack-configs/app';
 
-
 export class AppBuilder<TConfig extends AppBuilderOptions> implements Builder<TConfig> {
     private readonly _startTime = Date.now();
 
@@ -88,7 +87,15 @@ export class AppBuilder<TConfig extends AppBuilderOptions> implements Builder<TC
 
                 });
 
-                const wpConfig = getAppWebpackConfig(angularBuildContext);
+                let wpConfig: webpack.Configuration;
+                try {
+                    wpConfig = getAppWebpackConfig(angularBuildContext);
+                } catch (configErr) {
+                    obs.error(configErr);
+
+                    return () => { };
+                }
+
                 const firstConfig = Array.isArray(wpConfig) ? wpConfig[0] : wpConfig;
                 const statsOptions = firstConfig.stats
                     ? firstConfig.stats
