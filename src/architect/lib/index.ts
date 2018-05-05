@@ -84,7 +84,7 @@ export class LibBuilder<TConfig extends LibBuilderOptions> implements Builder<TC
                     buildOptions: buildOptions,
 
                 });
-                
+
                 let wpConfig: webpack.Configuration;
                 try {
                     wpConfig = getLibWebpackConfig(angularBuildContext);

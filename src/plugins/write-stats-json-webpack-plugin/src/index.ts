@@ -78,7 +78,7 @@ export class WriteStatsJsonWebpackPlugin {
                 {});
 
             const statsFileRelative = path.relative(outputPath, statsFilepath);
-            const content = new Buffer(JSON.stringify(assetsToWrite, null, 2), 'utf8');
+            const content = Buffer.from(JSON.stringify(assetsToWrite, null, 2), 'utf8');
             if (this._options.forceWriteToDisk &&
                 !this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name)) {
                 this._logger.debug(`Emitting ${statsFileRelative} to disk`);

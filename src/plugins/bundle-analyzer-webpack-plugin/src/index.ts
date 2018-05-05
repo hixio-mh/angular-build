@@ -100,7 +100,7 @@ export class BundleAnalyzerWebpackPlugin {
         const statsFileRelative = path.relative(outputPath, statsFilepath);
         const isPersistedOutFileSystem =
             this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name);
-        const content = new Buffer(JSON.stringify(stats, null, 2), 'utf8');
+        const content = Buffer.from(JSON.stringify(stats, null, 2), 'utf8');
         if (this._options.forceWriteToDisk && !isPersistedOutFileSystem) {
             this._logger.debug(`Emitting ${statsFileRelative} to disk`);
             await ensureDir(path.dirname(statsFilepath));
