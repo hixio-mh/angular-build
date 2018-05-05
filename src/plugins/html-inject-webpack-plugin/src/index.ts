@@ -35,17 +35,29 @@ export interface HtmlInjectWebpackPluginOptions extends HtmlInjectOptions {
     loggerOptions?: LoggerOptions;
 }
 
-function readFile(filename: string, compilation: any): Promise<string> {
+function readFile(filename: string, compilation: webpack.compilation.Compilation): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        compilation.inputFileSystem.readFile(filename, (err: Error, data: Buffer) => {
-            if (err) {
-                reject(err);
-                return;
-            }
+        compilation.inputFileSystem.readFile(filename,
+            (err: Error, data: Buffer) => {
+                if (err) {
+                    reject(err);
 
-            const content = data.toString();
-            resolve(content);
-        });
+                    return;
+                }
+
+                let content: string;
+                if (data.length >= 3 && data[0] === 0xEF && data[1] === 0xBB && data[2] === 0xBF) {
+                    // Strip UTF-8 BOM
+                    content = data.toString('utf8', 3);
+                } else if (data.length >= 2 && data[0] === 0xFF && data[1] === 0xFE) {
+                    // Strip UTF-16 LE BOM
+                    content = data.toString('utf16le', 2);
+                } else {
+                    content = data.toString();
+                }
+
+                resolve(content);
+            });
     });
 }
 
