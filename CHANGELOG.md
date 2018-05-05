@@ -1,5 +1,18 @@
 # Change Logs
 
+## 6.0.0
+
+### Features
+- Angular 6 support
+- Added architect builders (app and lib) to work with [Angular CLI workspace file](https://github.com/angular/angular-cli/wiki/angular-workspace) (angular.json) 
+- Added angular service worker support
+
+### Changes
+- Updated app config schema to compat with angular cli
+- Code refactoring
+- Updated npm dependencies
+- Updated README file
+
 ## 6.0.0-rc.6
 
 - Fixed - ignore empty array in build options
