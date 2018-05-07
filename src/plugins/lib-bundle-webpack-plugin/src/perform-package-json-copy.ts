@@ -228,6 +228,9 @@ export async function
             packageJson.homepage === '[PLACEHOLDER]')) {
         packageJson.homepage = rootPackageJson.homepage;
     }
+    if (typeof packageJson.sideEffects === 'undefined') {
+        packageJson.sideEffects = false;
+    }
 
     // write package config
     await writeFile(path.resolve(packageJsonOutDir, 'package.json'),
