@@ -1,5 +1,7 @@
 export function getAngularGlobals(): { [key: string]: string } {
     return {
+        'moment': 'moment',
+
         '@angular/animations': 'ng.animations',
         '@angular/common': 'ng.common',
         '@angular/common/http': 'ng.common.http',
