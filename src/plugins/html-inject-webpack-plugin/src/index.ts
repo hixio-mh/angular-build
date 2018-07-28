@@ -12,6 +12,8 @@ import { Logger, LoggerOptions, normalizeRelativePath } from '../../../utils';
 
 const sourceMapUrl = require('source-map-url');
 
+const { createElement, appendChild, insertText } = require('parse5/lib/tree-adapters');
+
 interface TagDefinition {
     tagName: string;
     attributes: { [key: string]: string | boolean };
@@ -74,10 +76,9 @@ export class HtmlInjectWebpackPlugin {
 
     apply(compiler: webpack.Compiler): void {
         compiler.hooks.emit.tapPromise(this.name, async (compilation: any) => {
-            const treeAdapter = parse5.treeAdapters.default;
-            let document: parse5.AST.Default.Document | null = null;
-            let headElement: parse5.AST.Default.Element | null = null;
-            let bodyElement: parse5.AST.Default.Element | null = null;
+            let document: parse5.DefaultTreeDocument | null = null;
+            let headElement: parse5.DefaultTreeElement | null = null;
+            let bodyElement: parse5.DefaultTreeElement | null = null;
 
             const additionalAssetsEntry: { [key: string]: RawSource } = {};
             const styleTags: string[] = [];
@@ -169,15 +170,15 @@ export class HtmlInjectWebpackPlugin {
                 compilation.fileDependencies.add(indexInputFilePath);
 
                 // Find the head and body elements
-                document = parse5.parse(inputContent, { treeAdapter }) as parse5.AST.Default.Document;
+                document = parse5.parse(inputContent) as parse5.DefaultTreeDocument;
                 for (const topNode of document.childNodes) {
-                    if ((topNode as parse5.AST.Default.Element).tagName === 'html') {
-                        for (const htmlNode of (topNode as parse5.AST.Default.Element).childNodes) {
-                            if ((htmlNode as parse5.AST.Default.Element).tagName === 'head') {
-                                headElement = htmlNode as parse5.AST.Default.Element;
+                    if ((topNode as parse5.DefaultTreeElement).tagName === 'html') {
+                        for (const htmlNode of (topNode as parse5.DefaultTreeElement).childNodes) {
+                            if ((htmlNode as parse5.DefaultTreeElement).tagName === 'head') {
+                                headElement = htmlNode as parse5.DefaultTreeElement;
                             }
-                            if ((htmlNode as parse5.AST.Default.Element).tagName === 'body') {
-                                bodyElement = htmlNode as parse5.AST.Default.Element;
+                            if ((htmlNode as parse5.DefaultTreeElement).tagName === 'body') {
+                                bodyElement = htmlNode as parse5.DefaultTreeElement;
                             }
                         }
                     }
@@ -246,10 +247,10 @@ export class HtmlInjectWebpackPlugin {
                 };
 
                 if (headElement) {
-                    let baseElement: parse5.AST.Default.Element | null = null;
+                    let baseElement: parse5.DefaultTreeElement | null = null;
                     for (const node of headElement.childNodes) {
-                        if ((node as parse5.AST.Default.Element).tagName === 'base') {
-                            baseElement = node as parse5.AST.Default.Element;
+                        if ((node as parse5.DefaultTreeElement).tagName === 'base') {
+                            baseElement = node as parse5.DefaultTreeElement;
                             break;
                         }
                     }
@@ -264,15 +265,15 @@ export class HtmlInjectWebpackPlugin {
                     });
 
                     if (!baseElement) {
-                        const element = treeAdapter.createElement(
+                        const element = createElement(
                             tagDefinition.tagName,
                             undefined as any,
                             attributes
                         );
 
-                        treeAdapter.appendChild(headElement, element);
+                        appendChild(headElement, element);
                     } else {
-                        let hrefAttribute: parse5.AST.Default.Attribute | null = null;
+                        let hrefAttribute: parse5.Attribute | null = null;
                         for (const attribute of baseElement.attrs) {
                             if (attribute.name === 'href') {
                                 hrefAttribute = attribute;
@@ -331,8 +332,8 @@ export class HtmlInjectWebpackPlugin {
                 const faviconsTags = iconHtmls.map((tag: string) => {
                     const tagStr = tag.replace(/href=\"/i, `href="${this._options.publicPath || ''}`);
                     if (headElement) {
-                        const documentFragment = parse5.parseFragment(tagStr, { treeAdapter }) as parse5.AST.Default.ParentNode;
-                        treeAdapter.appendChild(headElement, documentFragment.childNodes[0]);
+                        const documentFragment = parse5.parseFragment(tagStr) as parse5.DefaultTreeParentNode;
+                        appendChild(headElement, documentFragment.childNodes[0]);
                     }
 
                     return tagStr;
@@ -409,13 +410,13 @@ export class HtmlInjectWebpackPlugin {
                             return { name: key, value: tagDefinition.attributes[key] as string };
                         });
 
-                        const element = treeAdapter.createElement(
+                        const element = createElement(
                             tagDefinition.tagName,
                             undefined as any,
                             attributes
                         );
 
-                        treeAdapter.appendChild(headElement, element);
+                        appendChild(headElement, element);
                     }
 
                     if (separateResourceHintsOut && resourceHintsOutRelative) {
@@ -483,13 +484,13 @@ export class HtmlInjectWebpackPlugin {
                             return { name: key, value: tagDefinition.attributes[key] as string };
                         });
 
-                        const element = treeAdapter.createElement(
+                        const element = createElement(
                             tagDefinition.tagName,
                             undefined as any,
                             attributes
                         );
 
-                        treeAdapter.appendChild(headElement, element);
+                        appendChild(headElement, element);
                     }
 
                     if (separateStylesOut && stylesOutRelative) {
@@ -510,13 +511,13 @@ export class HtmlInjectWebpackPlugin {
                             return { name: key, value: tagDefinition.attributes[key] as string };
                         });
 
-                        const element = treeAdapter.createElement(
+                        const element = createElement(
                             tagDefinition.tagName,
                             undefined as any,
                             attributes
                         );
 
-                        treeAdapter.appendChild(bodyElement, element);
+                        appendChild(bodyElement, element);
                     }
 
                     if (separateScriptsOut && scriptsOutRelative) {
@@ -558,13 +559,13 @@ export class HtmlInjectWebpackPlugin {
                         };
                     });
 
-                    const element = treeAdapter.createElement(
+                    const element = createElement(
                         tagDefinition.tagName,
                         undefined as any,
                         attributes
                     );
-                    treeAdapter.appendChild(headElement, element);
-                    treeAdapter.insertText(element, tagDefinition.innerHtml || '');
+                    appendChild(headElement, element);
+                    insertText(element, tagDefinition.innerHtml || '');
                 }
 
                 delete compilation.assets[runtimeFileName];
@@ -586,13 +587,13 @@ export class HtmlInjectWebpackPlugin {
                         return { name: key, value: tagDefinition.attributes[key] as string };
                     });
 
-                    const element = treeAdapter.createElement(
+                    const element = createElement(
                         tagDefinition.tagName,
                         undefined as any,
                         attributes
                     );
 
-                    treeAdapter.appendChild(headElement, element);
+                    appendChild(headElement, element);
                 }
 
                 if (separateStylesOut && stylesOutRelative) {
@@ -614,13 +615,13 @@ export class HtmlInjectWebpackPlugin {
                         return { name: key, value: tagDefinition.attributes[key] as string };
                     });
 
-                    const element = treeAdapter.createElement(
+                    const element = createElement(
                         tagDefinition.tagName,
                         undefined as any,
                         attributes
                     );
 
-                    treeAdapter.appendChild(bodyElement, element);
+                    appendChild(bodyElement, element);
                 }
 
                 if (separateScriptsOut && scriptsOutRelative) {
@@ -640,7 +641,7 @@ export class HtmlInjectWebpackPlugin {
                 additionalAssetsEntry[scriptsOutRelative] = new RawSource(content);
             }
             if (document && indexRelative) {
-                let indexContent = parse5.serialize(document, { treeAdapter });
+                let indexContent = parse5.serialize(document);
 
                 if (this._options.minify) {
                     const minify = this._options.minify;

@@ -14,7 +14,6 @@ import {
 } from '../build-context';
 import { InternalError, InvalidConfigError, InvalidOptionError } from '../error-models';
 import {
-    applyProjectConfigDefaults,
     applyProjectConfigWithEnvironment,
     applyProjectConfigExtends,
     normalizeEnvironment
@@ -222,9 +221,6 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
                 // apply env
                 applyProjectConfigWithEnvironment(clonedLibConfig, buildOptions.environment);
 
-                // apply defaults
-                applyProjectConfigDefaults(clonedLibConfig, buildOptions.environment);
-
                 if (clonedLibConfig.skip) {
                     continue;
                 }
@@ -270,9 +266,6 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
 
                 // apply env
                 applyProjectConfigWithEnvironment(clonedAppConfig, buildOptions.environment);
-
-                // apply defaults
-                applyProjectConfigDefaults(clonedAppConfig, buildOptions.environment);
 
                 if (clonedAppConfig.skip) {
                     continue;

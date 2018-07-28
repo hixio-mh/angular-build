@@ -1,7 +1,7 @@
 import * as path from 'path';
 
 import * as autoprefixer from 'autoprefixer';
-import { copy, existsSync, readFile, readJson, writeFile } from 'fs-extra';
+import { existsSync, readFile, readJson, writeFile } from 'fs-extra';
 import * as denodeify from 'denodeify';
 import * as glob from 'glob';
 import { minify as minifyHtml } from 'html-minifier';
@@ -13,17 +13,30 @@ const cssnano = require('cssnano');
 const postcss = require('postcss');
 const postcssUrl = require('postcss-url');
 
+const MagicString = require('magic-string');
+
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 
+const moduleIdRegex = /moduleId:\s*module\.id\s*,?\s*/g;
 const templateUrlRegex = /templateUrl:\s*['"`]([^'"`]+?\.[a-zA-Z]+)['"`]/g;
 const styleUrlsRegex = /styleUrls:\s*(\[[^\]]*?\])/gm;
 
+interface FoundTemplateUrlInfo {
+    url: string;
+    start: number;
+    end: number;
+}
+
+interface FoundStyleUrlInfo {
+    urls: string[];
+    start: number;
+    end: number;
+}
+
 export async function processNgResources(srcDir: string,
-    outDir: string,
+    searchRootDir: string,
     searchPatterns: string | string[],
     stylePreprocessorIncludePaths: string[],
-    copyResources?: boolean,
-    inlineMetaDataResources?: boolean,
     flatModuleOutFile?: string
 ): Promise<void> {
     if (typeof searchPatterns === 'string') {
@@ -38,87 +51,99 @@ export async function processNgResources(srcDir: string,
             pattern = path.join(pattern, '**', '*');
         }
 
-        let files = await globPromise(pattern, { cwd: outDir, nodir: true, dot: true });
+        let files = await globPromise(pattern, { cwd: searchRootDir, nodir: true, dot: true });
         files = files.filter(name => /\.js$/i.test(name)); // Matches only javaScript/typescript files.
         // Generate all files content with inlined templates.
         await Promise.all(files.map(async (resourceId: string) => {
             const content = await readFile(resourceId, 'utf-8');
-            let hasMatched: boolean;
-            const hasTemplateMatched = await copyTemplateUrl(content,
-                resourceId,
-                srcDir,
-                outDir,
-                copyResources as boolean,
-                componentResources);
-            hasMatched = hasTemplateMatched;
+            const magicString = new MagicString(content);
+            let hasReplacements: boolean;
 
-            const hasStyleMatched = await copyStyleUrls(content,
+            const hasTemplateReplacement = await inlineTemplateUrls(content,
+                magicString,
                 resourceId,
                 srcDir,
-                outDir,
+                searchRootDir,
+                componentResources);
+            hasReplacements = hasTemplateReplacement;
+
+            const hasStyleReplacement = await inlineStyleUrls(content,
+                magicString,
+                resourceId,
+                srcDir,
+                searchRootDir,
                 stylePreprocessorIncludePaths,
-                copyResources as boolean,
                 componentResources);
-            hasMatched = hasMatched || hasStyleMatched;
+            hasReplacements = hasReplacements || hasStyleReplacement;
 
-            if (inlineMetaDataResources && !flatModuleOutFile && hasMatched) {
-                const metaDataRelativeOutPath = path.relative(outDir, path.dirname(resourceId));
-                const metaDataFilePath = path.resolve(outDir,
-                    metaDataRelativeOutPath,
-                    path.parse(resourceId).name + '.metadata.json');
-                const metaJson = await readJson(metaDataFilePath);
+            const hasModuleIdMatched = await replaceModuleId(content, magicString);
+            hasReplacements = hasReplacements || hasModuleIdMatched;
 
-                metaJson.forEach((obj: any) => {
-                    if (!obj.metadata) {
-                        return;
-                    }
+            if (hasReplacements) {
+                await writeFile(resourceId, magicString.toString());
 
-                    Object.keys(obj.metadata).forEach((key: string) => {
-                        const metaDataObj = obj.metadata[key];
-                        processMetaDataResources(metaDataObj,
-                            metaDataRelativeOutPath,
-                            componentResources);
+                if (!flatModuleOutFile) {
+                    // metadata inline
+                    const metaDataRelativeOutPath = path.relative(searchRootDir, path.dirname(resourceId));
+                    const metaDataFilePath = path.resolve(searchRootDir,
+                        metaDataRelativeOutPath,
+                        path.parse(resourceId).name + '.metadata.json');
+                    const metaJson = await readJson(metaDataFilePath);
+
+                    metaJson.forEach((obj: any) => {
+                        if (!obj.metadata) {
+                            return;
+                        }
+
+                        Object.keys(obj.metadata).forEach((key: string) => {
+                            const metaDataObj = obj.metadata[key];
+                            processMetaDataResources(metaDataObj,
+                                metaDataRelativeOutPath,
+                                componentResources);
+                        });
                     });
-                });
-                await writeFile(metaDataFilePath, JSON.stringify(metaJson));
+                    await writeFile(metaDataFilePath, JSON.stringify(metaJson));
+                }
             }
-
         }));
 
-        if (inlineMetaDataResources && flatModuleOutFile) {
-            const metaDataFilePath = path.resolve(outDir, flatModuleOutFile);
+        if (flatModuleOutFile) {
+            const metaDataFilePath = path.resolve(searchRootDir, flatModuleOutFile);
             const metaDataJson = await readJson(metaDataFilePath);
             const inlinedMetaDataJson = inlineFlattenMetaDataResources(metaDataJson, componentResources);
             await writeFile(metaDataFilePath, JSON.stringify(inlinedMetaDataJson));
         }
-
     }));
 }
 
-async function copyTemplateUrl(source: string,
+async function inlineTemplateUrls(source: string,
+    magicString: any,
     resourceId: string,
     srcDir: string,
-    outDir: string, copyResources: boolean, componentResources: Map<string, string>): Promise<boolean> {
+    outDir: string, componentResources: Map<string, string>): Promise<boolean> {
+    let hasReplacement = false;
     let templateUrlMatch: RegExpExecArray | null;
-    const foundUrls: string[] = [];
+    const foundTemplateUrls: FoundTemplateUrlInfo[] = [];
+
     while ((templateUrlMatch = templateUrlRegex.exec(source)) != null) {
+        const start = templateUrlMatch.index;
+        const end = start + templateUrlMatch[0].length;
         const url = templateUrlMatch[1];
-        if (foundUrls.indexOf(url) === -1) {
-            foundUrls.push(url);
-        }
+        foundTemplateUrls.push({ start: start, end: end, url: url });
     }
 
-    for (const templateUrl of foundUrls) {
-        const templateSourceFilePath = await findResourcePath(templateUrl, resourceId, srcDir, outDir);
-        const templateDestFilePath = path.resolve(path.dirname(resourceId), templateUrl);
-        if (copyResources) {
-            await copy(templateSourceFilePath, templateDestFilePath);
-        }
+    for (const foundUrlInfo of foundTemplateUrls) {
+        const templateSourceFilePath = await findResourcePath(foundUrlInfo.url, resourceId, srcDir, outDir);
+        const templateDestFilePath = path.resolve(path.dirname(resourceId), foundUrlInfo.url);
 
         const componentKey = path.relative(outDir, templateDestFilePath).replace(/\\/g, '/').replace(/^(\.\/|\/)/, '')
             .replace(/\/$/, '');
-        let componentContent = await readFile(templateSourceFilePath, 'utf-8');
-        componentContent = minifyHtml(componentContent,
+        let templateContent = await readFile(templateSourceFilePath, 'utf-8');
+
+        // templateContent = templateContent
+        //    .replace(/([\n\r]\s*)+/gm, ' ').trim();
+        // Or
+        templateContent = minifyHtml(templateContent,
             {
                 caseSensitive: true,
                 collapseWhitespace: true,
@@ -126,68 +151,100 @@ async function copyTemplateUrl(source: string,
                 keepClosingSlash: true,
                 removeAttributeQuotes: false
             });
-        componentResources.set(componentKey, componentContent);
+
+        componentResources.set(componentKey, templateContent);
+
+        const templateContentToReplace = `template: \`${templateContent}\``;
+        magicString.overwrite(foundUrlInfo.start, foundUrlInfo.end, templateContentToReplace);
+
+        hasReplacement = true;
     }
 
-    return foundUrls.length > 0;
+    return hasReplacement;
 }
 
-async function copyStyleUrls(source: string,
+async function inlineStyleUrls(source: string,
+    magicString: any,
     resourceId: string,
     srcDir: string,
     outDir: string,
     includePaths: string[],
-    copyResources: boolean,
     componentResources: Map<string, string>): Promise<boolean> {
-    const foundUrls: string[] = [];
+    let hasReplacement = false;
+    const foundStyleUrls: FoundStyleUrlInfo[] = [];
     let styleUrlsMatch: RegExpExecArray | null;
+
     while ((styleUrlsMatch = styleUrlsRegex.exec(source)) != null) {
+        const start = styleUrlsMatch.index;
+        const end = start + styleUrlsMatch[0].length;
         const rawStr = styleUrlsMatch[1];
+
         // tslint:disable-next-line:no-eval
         const urls: string[] = eval(rawStr);
-        urls.forEach(url => {
-            if (foundUrls.indexOf(url) === -1) {
-                foundUrls.push(url);
+        foundStyleUrls.push({ start: start, end: end, urls: urls });
+    }
+
+    for (const foundUrlInfo of foundStyleUrls) {
+        const styleUrls = foundUrlInfo.urls;
+
+        const stylesContents = await Promise.all(styleUrls.map(async (styleUrl: string) => {
+            const styleSourceFilePath = await findResourcePath(styleUrl, resourceId, srcDir, outDir);
+            const styleDestFilePath = path.resolve(path.dirname(resourceId), styleUrl);
+
+            let styleContent: string | Buffer;
+            if (/\.scss$|\.sass$/i.test(styleSourceFilePath)) {
+                const result = await new Promise<{
+                    css: Buffer;
+                }>((resolve, reject) => {
+                    sass.render({ file: styleSourceFilePath, includePaths: includePaths },
+                        (err: Error, sassResult: any) => {
+                            if (err) {
+                                return reject(err);
+                            }
+                            return resolve(sassResult);
+                        });
+                });
+                styleContent = result.css;
+            } else if (/\.css$/i.test(styleSourceFilePath)) {
+                styleContent = await readFile(styleSourceFilePath, 'utf-8');
+            } else {
+                throw new UnSupportedStyleExtError(`The ${styleSourceFilePath} is not supported style format.`);
             }
-        });
+
+            const componentKey = path.relative(outDir, styleDestFilePath).replace(/\\/g, '/').replace(/^(\.\/|\/)/, '')
+                .replace(/\/$/, '');
+
+            let minifiedStyleContent = styleContent.toString();
+            // minifiedStyleContent = `${minifiedStyleContent}`
+            //    .replace(/([\n\r]\s*)+/gm, ' ');
+            // Or
+            minifiedStyleContent = await processPostCss(minifiedStyleContent, styleSourceFilePath);
+            componentResources.set(componentKey, minifiedStyleContent);
+
+            hasReplacement = true;
+
+            return styleContent;
+        }));
+
+        const stylesContentsToReplace = `styles: [${stylesContents.join(',')}]`;
+        magicString.overwrite(foundUrlInfo.start, foundUrlInfo.end, stylesContentsToReplace);
     }
 
-    for (const styleUrl of foundUrls) {
-        const styleSourceFilePath = await findResourcePath(styleUrl, resourceId, srcDir, outDir);
-        const styleDestFilePath = path.resolve(path.dirname(resourceId), styleUrl);
+    return hasReplacement;
+}
 
-        let styleContent: string | Buffer;
-        if (/\.scss$|\.sass$/i.test(styleSourceFilePath)) {
-            const result = await new Promise<{
-                css: Buffer;
-            }>((resolve, reject) => {
-                sass.render({ file: styleSourceFilePath, includePaths: includePaths },
-                    (err: Error, sassResult: any) => {
-                        if (err) {
-                            return reject(err);
-                        }
-                        return resolve(sassResult);
-                    });
-            });
-            styleContent = result.css;
-        } else if (/\.css$/i.test(styleSourceFilePath)) {
-            styleContent = await readFile(styleSourceFilePath, 'utf-8');
-        } else {
-            throw new UnSupportedStyleExtError(`The ${styleSourceFilePath} is not supported style format.`);
-        }
+async function replaceModuleId(source: string, magicString: any): Promise<boolean> {
+    let hasReplacement = false;
+    let moduleIdMatch: RegExpExecArray | null;
 
-        if (copyResources) {
-            await writeFile(styleDestFilePath, styleContent);
-        }
-
-        const componentKey = path.relative(outDir, styleDestFilePath).replace(/\\/g, '/').replace(/^(\.\/|\/)/, '')
-            .replace(/\/$/, '');
-        let componentContent = styleContent.toString();
-        componentContent = await processPostCss(componentContent, styleSourceFilePath);
-        componentResources.set(componentKey, componentContent);
+    while ((moduleIdMatch = moduleIdRegex.exec(source)) != null) {
+        const start = moduleIdMatch.index;
+        const end = start + moduleIdMatch[0].length;
+        hasReplacement = true;
+        magicString.overwrite(start, end, '');
     }
 
-    return foundUrls.length > 0;
+    return hasReplacement;
 }
 
 function inlineFlattenMetaDataResources(json: any, componentResources: Map<string, string>): any {

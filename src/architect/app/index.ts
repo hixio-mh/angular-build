@@ -1,10 +1,10 @@
 import * as path from 'path';
 
 import {
-    BuildEvent,
-    Builder,
-    BuilderConfiguration,
-    BuilderContext
+  BuildEvent,
+  Builder,
+  BuilderConfiguration,
+  BuilderContext
 } from '@angular-devkit/architect';
 import { getSystemPath, resolve } from '@angular-devkit/core';
 import { Observable, of } from 'rxjs';
@@ -13,142 +13,138 @@ import * as webpack from 'webpack';
 
 import { AngularBuildContext, AppProjectConfigInternal } from '../../build-context';
 import {
-    applyProjectConfigDefaults,
-    applyProjectConfigExtends,
-    applyProjectConfigWithEnvironment,
-    applyAppConfigCompat,
-    getBuildOptionsFromBuilderOptions,
-    getWebpackToStringStatsOptions
+  applyProjectConfigExtends,
+  applyProjectConfigWithEnvironment,
+  applyAppConfigCompat,
+  getBuildOptionsFromBuilderOptions,
+  getWebpackToStringStatsOptions
 } from '../../helpers';
 import { AppBuilderOptions } from '../../interfaces';
 import { normalizeRelativePath } from '../../utils';
 import { getAppWebpackConfig } from '../../webpack-configs/app';
 
 export class AppBuilder<TConfig extends AppBuilderOptions> implements Builder<TConfig> {
-    private readonly _startTime = Date.now();
+  private readonly _startTime = Date.now();
 
-    constructor(public context: BuilderContext) { }
+  constructor(public context: BuilderContext) { }
 
-    run(builderConfig: BuilderConfiguration<TConfig>): Observable<BuildEvent> {
-        const workspaceRoot = getSystemPath(this.context.workspace.root);
-        const projectRoot = getSystemPath(resolve(this.context.workspace.root, builderConfig.root));
-        const options = JSON.parse(JSON.stringify(builderConfig.options)) as AppBuilderOptions;
+  run(builderConfig: BuilderConfiguration<TConfig>): Observable<BuildEvent> {
+    const workspaceRoot = getSystemPath(this.context.workspace.root);
+    const projectRoot = getSystemPath(resolve(this.context.workspace.root, builderConfig.root));
+    const options = JSON.parse(JSON.stringify(builderConfig.options)) as AppBuilderOptions;
 
-        const buildOptions = getBuildOptionsFromBuilderOptions(options);
-        if (!options.root && builderConfig.root) {
-            options.root = normalizeRelativePath(path.relative(workspaceRoot, projectRoot));
+    const buildOptions = getBuildOptionsFromBuilderOptions(options);
+    if (!options.root && builderConfig.root) {
+      options.root = normalizeRelativePath(path.relative(workspaceRoot, projectRoot));
+    }
+
+    applyAppConfigCompat(options);
+    const appConfig = options as AppProjectConfigInternal;
+    appConfig._projectType = 'app';
+    appConfig._index = 0;
+    appConfig._configPath = path.resolve(workspaceRoot, 'angular.json');
+
+    // Delete empty array
+    Object.keys(appConfig).forEach(key => {
+      const appConfigAny = <any>appConfig;
+      if (appConfigAny[key] && Array.isArray(appConfigAny[key]) && appConfigAny[key].length === 0) {
+        delete appConfigAny[key];
+      }
+    });
+
+    // extends
+    applyProjectConfigExtends(appConfig);
+
+    const appConfigEnvApplied = JSON.parse(JSON.stringify(appConfig)) as AppProjectConfigInternal;
+
+    // apply env
+    applyProjectConfigWithEnvironment(appConfigEnvApplied, buildOptions.environment);
+
+    return of(null).pipe(
+      concatMap(() => new Observable(obs => {
+        if (appConfigEnvApplied.skip) {
+          this.context.logger.info('Skip building');
+
+          obs.next({ success: true });
+          obs.complete();
+
+          return () => { };
         }
 
-        applyAppConfigCompat(options);
-        const appConfig = options as AppProjectConfigInternal;
-        appConfig._projectType = 'app';
-        appConfig._index = 0;
-        appConfig._configPath = path.resolve(workspaceRoot, 'angular.json');
+        const angularBuildContext = new AngularBuildContext({
+          workspaceRoot: workspaceRoot,
+          startTime: this._startTime,
+          host: this.context.host as any,
+          // logger: this.context.logger,
 
-        // Delete empty array
-        Object.keys(appConfig).forEach(key => {
-            const appConfigAny = <any>appConfig;
-            if (appConfigAny[key] && Array.isArray(appConfigAny[key]) && appConfigAny[key].length === 0) {
-                delete appConfigAny[key];
-            }
+          projectConfig: appConfigEnvApplied,
+          projectConfigWithoutEnvApplied: appConfig,
+          buildOptions: buildOptions,
+
         });
 
-        // extends
-        applyProjectConfigExtends(appConfig);
+        let wpConfig: webpack.Configuration;
+        try {
+          wpConfig = getAppWebpackConfig(angularBuildContext);
+        } catch (configErr) {
+          obs.error(configErr);
 
-        const appConfigEnvApplied = JSON.parse(JSON.stringify(appConfig)) as AppProjectConfigInternal;
+          return () => { };
+        }
 
-        // apply env
-        applyProjectConfigWithEnvironment(appConfigEnvApplied, buildOptions.environment);
+        const firstConfig = Array.isArray(wpConfig) ? wpConfig[0] : wpConfig;
+        const statsOptions = firstConfig.stats
+          ? firstConfig.stats
+          : getWebpackToStringStatsOptions(buildOptions.logLevel === 'debug');
 
-        // apply defaults
-        applyProjectConfigDefaults(appConfigEnvApplied, buildOptions.environment);
+        const webpackCompiler = webpack(wpConfig);
+        const callback: webpack.Compiler.Handler = (err: Error, stats: webpack.Stats) => {
+          if (err) {
+            return obs.error(err);
+          }
 
-        return of(null).pipe(
-            concatMap(() => new Observable(obs => {
-                if (appConfigEnvApplied.skip) {
-                    this.context.logger.info('Skip building');
+          if (stats.hasErrors()) {
+            AngularBuildContext.logger.error(stats.toString('errors-only'));
+          } else {
+            const result = stats.toString(statsOptions);
+            if (result && result.trim()) {
+              AngularBuildContext.logger.info(result);
+            }
+          }
 
-                    obs.next({ success: true });
-                    obs.complete();
+          if (buildOptions.watch) {
+            obs.next({ success: !stats.hasErrors() });
 
-                    return () => { };
-                }
+            // Never complete on watch mode.
+            return;
+          } else {
+            obs.next({ success: !stats.hasErrors() });
+            obs.complete();
+          }
+        };
 
-                const angularBuildContext = new AngularBuildContext({
-                    workspaceRoot: workspaceRoot,
-                    startTime: this._startTime,
-                    host: this.context.host as any,
-                    // logger: this.context.logger,
+        try {
+          if (buildOptions.watch) {
+            const watching = webpackCompiler.watch(buildOptions.watchOptions || {}, callback);
 
-                    projectConfig: appConfigEnvApplied,
-                    projectConfigWithoutEnvApplied: appConfig,
-                    buildOptions: buildOptions,
+            // Teardown logic. Close the watcher when unsubscribed from.
+            return () => watching.close(() => { });
+          } else {
+            webpackCompiler.run(callback);
 
-                });
+            return () => { };
+          }
+        } catch (e) {
+          if (e) {
+            AngularBuildContext.logger.error(
+              `\nAn error occured during the build:\n${e.stack || e}`);
+          }
 
-                let wpConfig: webpack.Configuration;
-                try {
-                    wpConfig = getAppWebpackConfig(angularBuildContext);
-                } catch (configErr) {
-                    obs.error(configErr);
-
-                    return () => { };
-                }
-
-                const firstConfig = Array.isArray(wpConfig) ? wpConfig[0] : wpConfig;
-                const statsOptions = firstConfig.stats
-                    ? firstConfig.stats
-                    : getWebpackToStringStatsOptions(buildOptions.logLevel === 'debug');
-
-                const webpackCompiler = webpack(wpConfig);
-                const callback: webpack.Compiler.Handler = (err: Error, stats: webpack.Stats) => {
-                    if (err) {
-                        return obs.error(err);
-                    }
-
-                    if (stats.hasErrors()) {
-                        AngularBuildContext.logger.error(stats.toString('errors-only'));
-                    } else {
-                        const result = stats.toString(statsOptions);
-                        if (result && result.trim()) {
-                            AngularBuildContext.logger.info(result);
-                        }
-                    }
-
-                    if (buildOptions.watch) {
-                        obs.next({ success: !stats.hasErrors() });
-
-                        // Never complete on watch mode.
-                        return;
-                    } else {
-                        obs.next({ success: !stats.hasErrors() });
-                        obs.complete();
-                    }
-                };
-
-                try {
-                    if (buildOptions.watch) {
-                        const watching = webpackCompiler.watch(buildOptions.watchOptions || {}, callback);
-
-                        // Teardown logic. Close the watcher when unsubscribed from.
-                        return () => watching.close(() => { });
-                    } else {
-                        webpackCompiler.run(callback);
-
-                        return () => { };
-                    }
-                } catch (e) {
-                    if (e) {
-                        AngularBuildContext.logger.error(
-                            `\nAn error occured during the build:\n${e.stack || e}`);
-                    }
-
-                    throw e;
-                }
-            })),
-        );
-    }
+          throw e;
+        }
+      })),
+    );
+  }
 }
 
 export default AppBuilder;

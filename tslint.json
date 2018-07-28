@@ -26,7 +26,7 @@
     "indent": [
       true,
       "spaces",
-      4
+      2
     ],
     "interface-over-type-literal": true,
     "interface-name": [
@@ -86,7 +86,7 @@
       "ignore-params"
     ],
     "no-misused-new": true,
-    "no-non-null-assertion": true,
+    "no-non-null-assertion": false,
     "no-parameter-properties": false,
     "no-shadowed-variable": true,
     "no-string-literal": false,
@@ -116,7 +116,7 @@
       "avoid-template"
     ],
     "radix": true,
-    "semicolon": [ true, "always" ],
+    "semicolon": [true, "always"],
     "space-within-parens": false,
     "strict-boolean-expressions": false,
     "trailing-comma": false,

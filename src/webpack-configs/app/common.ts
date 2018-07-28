@@ -64,7 +64,7 @@ export function
     const urlLoader = resolveLoaderPath('url-loader');
 
     // rules
-    const rules: webpack.Rule[] = [
+    const rules: webpack.RuleSetRule[] = [
         {
             test: /\.html$/,
             loader: rawLoader
@@ -111,14 +111,9 @@ export function
             cleanOptions = { ...cleanOptions, ...appConfig.clean };
         }
 
-        let beforeBuildOptionsUndefined = false;
-        if (typeof cleanOptions.beforeBuild === 'undefined') {
-            beforeBuildOptionsUndefined = true;
-        }
-
         cleanOptions.beforeBuild = cleanOptions.beforeBuild || {} as BeforeBuildCleanOptions;
         const beforeBuildOption = cleanOptions.beforeBuild;
-        if (beforeBuildOptionsUndefined && angularBuildContext.buildOptions.cleanOutDir) {
+        if (typeof cleanOptions.beforeBuild === 'undefined' && angularBuildContext.buildOptions.cleanOutDir) {
             beforeBuildOption.cleanOutDir = true;
         }
 
@@ -126,10 +121,25 @@ export function
             beforeBuildOption.cleanOutDir = false;
         }
 
+        if (beforeBuildOption.cleanOutDir && typeof beforeBuildOption.cleanCache === 'undefined') {
+            beforeBuildOption.cleanCache = true;
+        }
+
+        const cacheDirs: string[] = [];
+        if (beforeBuildOption.cleanCache) {
+            if (angularBuildContext.buildOptimizerCacheDirectory) {
+                cacheDirs.push(angularBuildContext.buildOptimizerCacheDirectory);
+            }
+            if (angularBuildContext.iconsStatCacheDirectory) {
+                cacheDirs.push(angularBuildContext.iconsStatCacheDirectory);
+            }
+        }
+
         plugins.push(new CleanWebpackPlugin({
             ...cleanOptions,
             workspaceRoot: AngularBuildContext.workspaceRoot,
             outputPath: outputPath,
+            cacheDirectries: cacheDirs,
             forceCleanToDisk: isDll,
             host: angularBuildContext.host,
             loggerOptions: {
@@ -181,7 +191,7 @@ export function
     if (!isDll) {
         try {
             const rxjsPathMappingImportModuleName =
-                appConfig._ecmaVersion && appConfig._ecmaVersion > 5
+                appConfig._supportES2015
                     ? 'rxjs/_esm2015/path-mapping'
                     : 'rxjs/_esm5/path-mapping';
             const pathMapping = require(resolve.sync(rxjsPathMappingImportModuleName,
@@ -239,12 +249,8 @@ export function
     if (appConfig.bundleAnalyzer) {
         let hasEntry = false;
         if (isDll) {
-            if (appConfig.dlls) {
-                const dllEntry = appConfig.dlls;
-                if ((Array.isArray(dllEntry) && dllEntry.length > 0) ||
-                    (typeof dllEntry === 'object' && Object.keys(dllEntry).length > 0)) {
-                    hasEntry = true;
-                }
+            if (appConfig.vendors && appConfig.vendors.length > 0) {
+                hasEntry = true;
             }
         } else {
             if (appConfig.entry) {
@@ -353,7 +359,7 @@ export function
         devtool: (devtool as any),
         profile: profile,
         resolve: {
-            extensions: ['.ts', '.js'],
+            extensions: ['.ts', '.mjs', '.js'],
             symlinks: symlinks,
             modules: [projectBaseUrl, ...nodeModulePaths],
             mainFields: appConfig._nodeResolveFields,
@@ -396,17 +402,18 @@ export function
                     parallel: true,
                     cache: true,
                     uglifyOptions: {
+                        warnings: verbose, // default false
                         // ie8: true, // default false
                         ecma: appConfig._ecmaVersion, // default undefined
                         safari10: true,
-                        compress: {
+                        compress: appConfig.platformTarget === 'node' ? false : {
                             pure_getters: appConfig.buildOptimizer && !isDll,
                             passes: appConfig.buildOptimizer && !isDll ? 3 : 1,
                             // Workaround known uglify-es issue
                             // See https://github.com/mishoo/UglifyJS2/issues/2949#issuecomment-368070307
-                            inline: appConfig._ecmaVersion && appConfig._ecmaVersion > 5 ? 1 : 3
+                            inline: appConfig._supportES2015 ? 1 : 3
                         },
-                        warnings: verbose, // default false
+                        mangle: !(appConfig.platformTarget === 'node'),
                         output: {
                             ascii_only: true, // default false
                             // comments: false, // default false

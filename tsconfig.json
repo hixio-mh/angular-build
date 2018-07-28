@@ -37,10 +37,6 @@
       "node"
     ],
 
-    "paths": {
-      "parse5": [ "./node_modules/parse5/lib/index.d.ts" ]
-    },
-
     "baseUrl": "",
     "rootDir": ".",
     "outDir": "./dist"

@@ -5,51 +5,54 @@ import { ExternalsEntry, ProjectConfig, ProjectConfigBase } from './project-conf
  */
 export interface TsTranspilationOptions {
     /**
-     * The typescript configuration file to be used.
+     * Typescript configuration file for this transpilation.
      */
-    tsConfig: string;
+    tsConfig?: string;
     /**
-     * If true, templateUrl and styleUrls resources are copy into output locations.
+     * If true, use tsc instead of ngc.
+     * @default false
      */
-    copyTemplateAndStyleUrls?: boolean;
+    useTsc?: boolean;
     /**
-     * If true, templateUrl and styleUrls resources of .metadata.json are inlined.
+     * Custom output directory for this transpilation.
      */
-    inlineMetaDataResources?: boolean;
+    outDir?: string;
+    /**
+     * Override script target for this transpilation.
+     */
+    target?: 'es5' | 'es2015' | 'es2016' | 'es2017' | 'es2018' | 'esnext';
+    /**
+     * Override declaration option for this transpilation.
+     */
+    declaration?: boolean;
+    /**
+     * If true, templateUrl and styleUrls resources are inlined.
+     * @default true
+     */
+    inlineAssets?: boolean;
     /**
      * If true, replaces version placeholder with package version.
+     * @default true
      */
     replaceVersionPlaceholder?: boolean;
     /**
-     * Path to the translation file.
+     * Move typing and metadata files to package.json output directory root.
      */
-    i18nFile?: string;
+    moveTypingFilesToPackageRoot?: boolean;
     /**
-     * Import format if different from `i18nFormat`.
+     * If true, re-export secondary entry point typing and metadata file at output root.
      */
-    i18nFormat?: string;
-    /**
-     * Locale of the imported translations.
-     */
-    i18nLocale?: string;
-    /**
-     * How to handle missing messages.
-     */
-    i18nMissingTranslation?: 'error' | 'warning' | 'ignore';
-    /**
-     *  Path to the extracted message file.
-     */
-    i18nOutFile?: string;
-    /**
-     * Export format (xlf, xlf2 or xmb).
-     */
-    i18nOutFormat?: string;
+    reExportTypingEntryToOutputRoot?: boolean;
 }
 
 /**
  * @additionalProperties false
  */
 export interface LibBundleOptions {
+    /**
+     * Bundle module format.
+     */
+    libraryTarget?: 'umd' | 'es';
     /**
      * Bundle tool to be used.
      * @default rollup
@@ -59,10 +62,6 @@ export interface LibBundleOptions {
      * Custom webpack config file to be merged.
      */
     webpackConfig?: string;
-    /**
-     * Bundle module format.
-     */
-    libraryTarget: 'var' | 'iife' | 'cjs' | 'commonjs' | 'commonjs2' | 'amd' | 'umd' | 'es';
     /**
      * The entry file to be bundled.
      */
@@ -74,19 +73,15 @@ export interface LibBundleOptions {
     /**
      * Entry root directory resolution.
      */
-    entryRoot?: 'root' | 'outputPath' | 'tsOutDir' | 'prevBundleOutDir';
+    entryRoot?: 'root' | 'outputPath' | 'tsTranspilationOutDir' | 'prevBundleOutDir';
+    /**
+     * Array index for entry root tsTranspilationResult.
+     */
+    tsTranspilationIndex?: number;
     /**
      * Custom bundle output file path.
      */
     outputFilePath?: string;
-    /**
-     * Transforms entry file or bundled result to specific ECMA script target.
-     */
-    scriptTarget?: 'es5' | 'es2015' | 'es2016' | 'es2017';
-    /**
-     * If true, the process will perform script target transformation only.
-     */
-    transformScriptTargetOnly?: boolean;
     /**
      * The externals configuration option provides a way of excluding dependencies from the output bundle.
      */
@@ -108,37 +103,19 @@ export interface LibBundleOptions {
 /**
  * @additionalProperties false
  */
-export interface PackageOptions {
-    /**
-     * The source package.json file to be updated and copied.
-     */
-    packageJsonFile: string;
-    /**
-     * Custom output file path for 'package.json'.
-     */
-    packageJsonOutputFilePath?: string;
-    /**
-     * Re-export file name for typing and metadata.
-     */
-    reExportTypingsAndMetaDataAs?: string;
-}
-
-/**
- * @additionalProperties false
- */
 export interface LibProjectConfigBase extends ProjectConfigBase {
     /**
      * Typescript transpilation options.
      */
-    tsTranspilation?: TsTranspilationOptions;
+    tsTranspilations?: TsTranspilationOptions[] | 'auto';
     /**
-     * The library name.
+     * The main entry point file for package.json.
+     */
+    packageEntryFileForTsTranspilation?: string;
+    /**
+     * Represents your umd bundle name, by which other scripts on the same page can access it.
      */
     libraryName?: string;
-    /**
-     * Bundle target options.
-     */
-    bundles?: LibBundleOptions[];
     /**
      * The externals configuration option provides a way of excluding dependencies from the output bundle.
      */
@@ -152,9 +129,18 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
      */
     includeDefaultAngularAndRxJsGlobals?: boolean;
     /**
-     * Packaging options.
+     * Bundle target options.
      */
-    packageOptions?: PackageOptions;
+    bundles?: LibBundleOptions[] | 'auto';
+    /**
+     * The output root directory for package.json file.
+     */
+    packageJsonOutDir?: string;
+    /**
+     * Copy package.json file to output path.
+     * @default true
+     */
+    packageJsonCopy?: boolean;
 }
 
 export interface LibEnvOverridesOptions {

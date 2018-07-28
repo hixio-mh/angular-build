@@ -41,21 +41,31 @@ export function
             cleanOptions = Object.assign(cleanOptions, libConfig.clean || {});
         }
 
-        let beforeBuildOptionsUndefined = false;
-        if (typeof cleanOptions.beforeBuild === 'undefined') {
-            beforeBuildOptionsUndefined = true;
-        }
-
         cleanOptions.beforeBuild = cleanOptions.beforeBuild || {} as BeforeBuildCleanOptions;
         const beforeBuildOption = cleanOptions.beforeBuild;
-        if (beforeBuildOptionsUndefined && angularBuildContext.buildOptions.cleanOutDir) {
+        if (typeof cleanOptions.beforeBuild === 'undefined' && angularBuildContext.buildOptions.cleanOutDir) {
             beforeBuildOption.cleanOutDir = true;
+        }
+
+        if (beforeBuildOption.cleanOutDir && typeof beforeBuildOption.cleanCache === 'undefined') {
+            beforeBuildOption.cleanCache = true;
+        }
+
+        const cacheDirs: string[] = [];
+        if (beforeBuildOption.cleanCache) {
+            if (angularBuildContext.buildOptimizerCacheDirectory) {
+                cacheDirs.push(angularBuildContext.buildOptimizerCacheDirectory);
+            }
+            if (angularBuildContext.iconsStatCacheDirectory) {
+                cacheDirs.push(angularBuildContext.iconsStatCacheDirectory);
+            }
         }
 
         plugins.push(new CleanWebpackPlugin({
             ...cleanOptions,
             workspaceRoot: AngularBuildContext.workspaceRoot,
             outputPath: outputPath,
+            cacheDirectries: cacheDirs,
             host: angularBuildContext.host,
             loggerOptions: {
                 logLevel: logLevel

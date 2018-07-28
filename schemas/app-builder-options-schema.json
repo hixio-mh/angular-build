@@ -3,7 +3,7 @@
     "AfterEmitCleanOptions": {
       "additionalProperties": false,
       "properties": {
-        "exclude": {
+        "excludes": {
           "description": "Path array to exclude from deleting.",
           "items": {
             "type": "string"
@@ -162,20 +162,6 @@
             ]
           },
           "type": "array"
-        },
-        "dlls": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "$ref": "#/definitions/DllOptions"
-            }
-          ],
-          "description": "The vendor module entries for dll bundle."
         },
         "entry": {
           "description": "The main typescript entry file to be bundled.",
@@ -528,6 +514,13 @@
           "description": "The output chunk name for vendor or dll chunk.",
           "type": "string"
         },
+        "vendors": {
+          "description": "The vendor module entries for dll bundle.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "webpackConfig": {
           "description": "Custom webpack config file to be merged.",
           "type": "string"
@@ -574,11 +567,15 @@
     "BeforeBuildCleanOptions": {
       "additionalProperties": false,
       "properties": {
+        "cleanCache": {
+          "description": "If true, delete cache directories before build.",
+          "type": "boolean"
+        },
         "cleanOutDir": {
           "description": "If true, delete output directory before build.",
           "type": "boolean"
         },
-        "exclude": {
+        "excludes": {
           "description": "Path array to exclude from deleting.",
           "items": {
             "type": "string"
@@ -708,31 +705,6 @@
             "noChange"
           ],
           "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "DllOptions": {
-      "additionalProperties": false,
-      "properties": {
-        "entry": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "string"
-            }
-          ]
-        },
-        "exclude": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
         }
       },
       "type": "object"
@@ -1694,20 +1666,6 @@
     "deployUrl": {
       "type": "string"
     },
-    "dlls": {
-      "anyOf": [
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        {
-          "$ref": "#/definitions/DllOptions"
-        }
-      ],
-      "description": "The vendor module entries for dll bundle."
-    },
     "entry": {
       "description": "The main typescript entry file to be bundled.",
       "type": "string"
@@ -2182,6 +2140,13 @@
       "default": "vendor",
       "description": "The output chunk name for vendor or dll chunk.",
       "type": "string"
+    },
+    "vendors": {
+      "description": "The vendor module entries for dll bundle.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
     },
     "verbose": {
       "type": "boolean"

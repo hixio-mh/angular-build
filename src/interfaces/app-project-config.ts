@@ -4,14 +4,6 @@ import { ExternalsEntry, GlobalEntry, ProjectConfig, ProjectConfigBase } from '.
 /**
  * @additionalProperties false
  */
-export interface DllOptions {
-    entry: string | string[];
-    exclude?: string[];
-}
-
-/**
- * @additionalProperties false
- */
 export interface HtmlInjectOptions {
     runtimeChunkInline?: boolean;
     dlls?: boolean;
@@ -193,7 +185,7 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     /**
      * The vendor module entries for dll bundle.
      */
-    dlls?: string[] | DllOptions;
+    vendors?: string[];
     /**
      * Module format for bundling.
      */
@@ -202,10 +194,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * The main typescript entry file to be bundled.
      */
     entry?: string;
-    /**
-     * The typescript configuration file to be used.
-     */
-    tsConfig?: string;
     /**
      * If true, requested modules started with node_modules path are chunk into [vendorChunkName].js.
      */

@@ -187,12 +187,13 @@
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\src\index.ts" />
+    <TypeScriptCompile Include="src\utils\format-ts-diagnostics.ts" />
     <TypeScriptCompile Include="src\utils\index.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\bundle-target-webpack-config.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\get-rollup-config.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\minify-file.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\perform-lib-bundles.ts" />
-    <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\perform-ngc.ts" />
+    <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\perform-ts-transpile.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\perform-package-json-copy.ts" />
     <TypeScriptCompile Include="src\helpers\prepare-configs.ts" />
     <TypeScriptCompile Include="src\helpers\normalize-environment.ts" />

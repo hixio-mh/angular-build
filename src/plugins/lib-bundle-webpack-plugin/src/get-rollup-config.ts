@@ -1,42 +1,34 @@
 import * as path from 'path';
+
 import * as rollup from 'rollup';
+
+import { AngularBuildContext, LibBundleOptionsInternal, LibProjectConfigInternal } from '../../../build-context';
+import { ExternalsEntry } from '../../../interfaces';
 
 import { getAngularGlobals } from './angular-globals';
 import { getRxJsGlobals } from './rxjs-globals';
 
-import { AngularBuildContext, LibBundleOptionsInternal, LibProjectConfigInternal } from '../../../build-context';
-import { InternalError } from '../../../error-models';
-import { ExternalsEntry } from '../../../interfaces';
 const getBuiltins = require('builtins');
 
-export function getRollupConfig<TConfig extends LibProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>,
-    currentBundle: LibBundleOptionsInternal,
-    outputFilePath: string): {
+export function getRollupConfig<TConfig extends LibProjectConfigInternal>(angularBuildContext:
+    AngularBuildContext<TConfig>,
+    currentBundle: LibBundleOptionsInternal): {
         inputOptions: rollup.InputOptions;
         outputOptions: rollup.OutputOptions;
     } {
-    if (!currentBundle._entryFilePath) {
-        throw new InternalError("The 'currentBundle._entryFilePath' is not set.");
-    }
-
     const logger = AngularBuildContext.logger;
-    const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
+    const libConfig = angularBuildContext.projectConfig;
 
     const isTsEntry = /\.ts$/i.test(currentBundle._entryFilePath);
-    const moduleName = libConfig.libraryName || libConfig._packageNameWithoutScope;
+    let moduleName = libConfig.libraryName;
+    if (!moduleName && libConfig._packageNameWithoutScope) {
+        moduleName = libConfig._packageNameWithoutScope.replace(/\//gm, '.');
+    }
 
     // library target
-    let libraryTarget: rollup.ModuleFormat = 'umd';
-    if (currentBundle.libraryTarget === 'commonjs' || currentBundle.libraryTarget === 'commonjs2') {
-        libraryTarget = 'cjs';
-    } else if (currentBundle.libraryTarget === 'var') {
-        libraryTarget = 'iife';
-    } else if (!currentBundle.libraryTarget) {
-        if (libConfig.platformTarget === 'node') {
-            libraryTarget = 'cjs';
-        }
-    } else {
-        libraryTarget = currentBundle.libraryTarget as rollup.ModuleFormat;
+    let libraryTarget: rollup.ModuleFormat = 'es';
+    if (currentBundle.libraryTarget === 'umd') {
+        libraryTarget = 'umd';
     }
 
     // externals
@@ -46,20 +38,6 @@ export function getRollupConfig<TConfig extends LibProjectConfigInternal>(angula
         externals: [] as string[],
         globals: {}
     };
-
-    if (typeof currentBundle.externals === 'undefined' && libConfig.externals) {
-        currentBundle.externals = JSON.parse(JSON.stringify(libConfig.externals));
-    }
-
-    if (typeof currentBundle.nodeModulesAsExternals === 'undefined' &&
-        typeof libConfig.nodeModulesAsExternals !== 'undefined') {
-        currentBundle.nodeModulesAsExternals = libConfig.nodeModulesAsExternals;
-    }
-
-    if (typeof currentBundle.includeDefaultAngularAndRxJsGlobals === 'undefined' &&
-        typeof libConfig.includeDefaultAngularAndRxJsGlobals !== 'undefined') {
-        currentBundle.includeDefaultAngularAndRxJsGlobals = libConfig.includeDefaultAngularAndRxJsGlobals;
-    }
 
     if (currentBundle.nodeModulesAsExternals !== false) {
         includeCommonJsModules = false;
@@ -134,15 +112,9 @@ export function getRollupConfig<TConfig extends LibProjectConfigInternal>(angula
     // plugins
     const plugins: any[] = [];
 
-    if (libraryTarget === 'umd' || libraryTarget === 'cjs' || isTsEntry || includeCommonJsModules) {
-        const nodeResolveOptions: any = {
-            // Default: false
-            jsnext: true,
-            module: true
-        };
-
+    if (libraryTarget === 'umd' || isTsEntry || includeCommonJsModules) {
         const rollupNodeResolve = require('rollup-plugin-node-resolve');
-        plugins.push(rollupNodeResolve(nodeResolveOptions));
+        plugins.push(rollupNodeResolve());
 
         if (isTsEntry) {
             const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig.root || '');
@@ -153,7 +125,7 @@ export function getRollupConfig<TConfig extends LibProjectConfigInternal>(angula
             plugins.push(typescript({
                 tsconfig: currentBundle._tsConfigPath,
                 typescript: require('typescript'),
-                rollupCommonJSResolveHack: libraryTarget === 'cjs',
+                rollupCommonJSResolveHack: libraryTarget === 'umd',
                 cacheRoot: path.resolve(projectRoot, './.rts2_cache')
             }));
         }
@@ -206,7 +178,7 @@ export function getRollupConfig<TConfig extends LibProjectConfigInternal>(angula
         // suitable if you're exporting more than one thing
         exports: 'named',
         banner: libConfig._bannerText,
-        file: outputFilePath,
+        file: currentBundle._outputFilePath,
         sourcemap: libConfig.sourceMap
     };
 

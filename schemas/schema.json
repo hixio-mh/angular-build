@@ -4,7 +4,7 @@
     "AfterEmitCleanOptions": {
       "additionalProperties": false,
       "properties": {
-        "exclude": {
+        "excludes": {
           "description": "Path array to exclude from deleting.",
           "items": {
             "type": "string"
@@ -167,20 +167,6 @@
             ]
           },
           "type": "array"
-        },
-        "dlls": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "$ref": "#/definitions/DllOptions"
-            }
-          ],
-          "description": "The vendor module entries for dll bundle."
         },
         "entry": {
           "description": "The main typescript entry file to be bundled.",
@@ -559,6 +545,13 @@
           "description": "The output chunk name for vendor or dll chunk.",
           "type": "string"
         },
+        "vendors": {
+          "description": "The vendor module entries for dll bundle.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "webpackConfig": {
           "description": "Custom webpack config file to be merged.",
           "type": "string"
@@ -628,20 +621,6 @@
             ]
           },
           "type": "array"
-        },
-        "dlls": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "$ref": "#/definitions/DllOptions"
-            }
-          ],
-          "description": "The vendor module entries for dll bundle."
         },
         "entry": {
           "description": "The main typescript entry file to be bundled.",
@@ -994,6 +973,13 @@
           "description": "The output chunk name for vendor or dll chunk.",
           "type": "string"
         },
+        "vendors": {
+          "description": "The vendor module entries for dll bundle.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "webpackConfig": {
           "description": "Custom webpack config file to be merged.",
           "type": "string"
@@ -1025,11 +1011,15 @@
     "BeforeBuildCleanOptions": {
       "additionalProperties": false,
       "properties": {
+        "cleanCache": {
+          "description": "If true, delete cache directories before build.",
+          "type": "boolean"
+        },
         "cleanOutDir": {
           "description": "If true, delete output directory before build.",
           "type": "boolean"
         },
-        "exclude": {
+        "excludes": {
           "description": "Path array to exclude from deleting.",
           "items": {
             "type": "string"
@@ -1109,31 +1099,6 @@
             "noChange"
           ],
           "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "DllOptions": {
-      "additionalProperties": false,
-      "properties": {
-        "entry": {
-          "anyOf": [
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            {
-              "type": "string"
-            }
-          ]
-        },
-        "exclude": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
         }
       },
       "type": "object"
@@ -1624,7 +1589,7 @@
             "outputPath",
             "prevBundleOutDir",
             "root",
-            "tsOutDir"
+            "tsTranspilationOutDir"
           ],
           "type": "string"
         },
@@ -1659,14 +1624,8 @@
         "libraryTarget": {
           "description": "Bundle module format.",
           "enum": [
-            "amd",
-            "cjs",
-            "commonjs",
-            "commonjs2",
             "es",
-            "iife",
-            "umd",
-            "var"
+            "umd"
           ],
           "type": "string"
         },
@@ -1682,23 +1641,13 @@
           "description": "Custom bundle output file path.",
           "type": "string"
         },
-        "scriptTarget": {
-          "description": "Transforms entry file or bundled result to specific ECMA script target.",
-          "enum": [
-            "es2015",
-            "es2016",
-            "es2017",
-            "es5"
-          ],
-          "type": "string"
-        },
-        "transformScriptTargetOnly": {
-          "description": "If true, the process will perform script target transformation only.",
-          "type": "boolean"
-        },
         "tsConfig": {
           "description": "The typescript configuration file to be used.",
           "type": "string"
+        },
+        "tsTranspilationIndex": {
+          "description": "Array index for entry root tsTranspilationResult.",
+          "type": "number"
         },
         "webpackConfig": {
           "description": "Custom webpack config file to be merged.",
@@ -1725,11 +1674,21 @@
           "type": "string"
         },
         "bundles": {
-          "description": "Bundle target options.",
-          "items": {
-            "$ref": "#/definitions/LibBundleOptions"
-          },
-          "type": "array"
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/definitions/LibBundleOptions"
+              },
+              "type": "array"
+            },
+            {
+              "enum": [
+                "auto"
+              ],
+              "type": "string"
+            }
+          ],
+          "description": "Bundle target options."
         },
         "clean": {
           "anyOf": [
@@ -1803,7 +1762,7 @@
           "type": "boolean"
         },
         "libraryName": {
-          "description": "The library name.",
+          "description": "Represents your umd bundle name, by which other scripts on the same page can access it.",
           "type": "string"
         },
         "name": {
@@ -1818,9 +1777,18 @@
           "description": "The output directory for build results.",
           "type": "string"
         },
-        "packageOptions": {
-          "$ref": "#/definitions/PackageOptions",
-          "description": "Packaging options."
+        "packageEntryFileForTsTranspilation": {
+          "description": "The main entry point file for package.json.",
+          "type": "string"
+        },
+        "packageJsonCopy": {
+          "default": true,
+          "description": "Copy package.json file to output path.",
+          "type": "boolean"
+        },
+        "packageJsonOutDir": {
+          "description": "The output root directory for package.json file.",
+          "type": "string"
         },
         "platformTarget": {
           "description": "Tell the build system which platform environment the application is targeting.",
@@ -1860,8 +1828,25 @@
           },
           "type": "array"
         },
-        "tsTranspilation": {
-          "$ref": "#/definitions/TsTranspilationOptions",
+        "tsConfig": {
+          "description": "The typescript configuration file to be used.",
+          "type": "string"
+        },
+        "tsTranspilations": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/definitions/TsTranspilationOptions"
+              },
+              "type": "array"
+            },
+            {
+              "enum": [
+                "auto"
+              ],
+              "type": "string"
+            }
+          ],
           "description": "Typescript transpilation options."
         }
       },
@@ -1875,11 +1860,21 @@
           "type": "string"
         },
         "bundles": {
-          "description": "Bundle target options.",
-          "items": {
-            "$ref": "#/definitions/LibBundleOptions"
-          },
-          "type": "array"
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/definitions/LibBundleOptions"
+              },
+              "type": "array"
+            },
+            {
+              "enum": [
+                "auto"
+              ],
+              "type": "string"
+            }
+          ],
+          "description": "Bundle target options."
         },
         "clean": {
           "anyOf": [
@@ -1935,7 +1930,7 @@
           "type": "boolean"
         },
         "libraryName": {
-          "description": "The library name.",
+          "description": "Represents your umd bundle name, by which other scripts on the same page can access it.",
           "type": "string"
         },
         "nodeModulesAsExternals": {
@@ -1946,9 +1941,18 @@
           "description": "The output directory for build results.",
           "type": "string"
         },
-        "packageOptions": {
-          "$ref": "#/definitions/PackageOptions",
-          "description": "Packaging options."
+        "packageEntryFileForTsTranspilation": {
+          "description": "The main entry point file for package.json.",
+          "type": "string"
+        },
+        "packageJsonCopy": {
+          "default": true,
+          "description": "Copy package.json file to output path.",
+          "type": "boolean"
+        },
+        "packageJsonOutDir": {
+          "description": "The output root directory for package.json file.",
+          "type": "string"
         },
         "platformTarget": {
           "description": "Tell the build system which platform environment the application is targeting.",
@@ -1984,8 +1988,25 @@
           },
           "type": "array"
         },
-        "tsTranspilation": {
-          "$ref": "#/definitions/TsTranspilationOptions",
+        "tsConfig": {
+          "description": "The typescript configuration file to be used.",
+          "type": "string"
+        },
+        "tsTranspilations": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/definitions/TsTranspilationOptions"
+              },
+              "type": "array"
+            },
+            {
+              "enum": [
+                "auto"
+              ],
+              "type": "string"
+            }
+          ],
           "description": "Typescript transpilation options."
         }
       },
@@ -2044,24 +2065,6 @@
         },
         "extractedAssets": {
           "type": "boolean"
-        }
-      },
-      "type": "object"
-    },
-    "PackageOptions": {
-      "additionalProperties": false,
-      "properties": {
-        "packageJsonFile": {
-          "description": "The source package.json file to be updated and copied.",
-          "type": "string"
-        },
-        "packageJsonOutputFilePath": {
-          "description": "Custom output file path for 'package.json'.",
-          "type": "string"
-        },
-        "reExportTypingsAndMetaDataAs": {
-          "description": "Re-export file name for typing and metadata.",
-          "type": "string"
         }
       },
       "type": "object"
@@ -2125,50 +2128,52 @@
     "TsTranspilationOptions": {
       "additionalProperties": false,
       "properties": {
-        "copyTemplateAndStyleUrls": {
-          "description": "If true, templateUrl and styleUrls resources are copy into output locations.",
+        "declaration": {
+          "description": "Override declaration option for this transpilation.",
           "type": "boolean"
         },
-        "i18nFile": {
-          "description": "Path to the translation file.",
+        "inlineAssets": {
+          "default": true,
+          "description": "If true, templateUrl and styleUrls resources are inlined.",
+          "type": "boolean"
+        },
+        "moveTypingFilesToPackageRoot": {
+          "description": "Move typing and metadata files to package.json output directory root.",
+          "type": "boolean"
+        },
+        "outDir": {
+          "description": "Custom output directory for this transpilation.",
           "type": "string"
         },
-        "i18nFormat": {
-          "description": "Import format if different from `i18nFormat`.",
-          "type": "string"
-        },
-        "i18nLocale": {
-          "description": "Locale of the imported translations.",
-          "type": "string"
-        },
-        "i18nMissingTranslation": {
-          "description": "How to handle missing messages.",
-          "enum": [
-            "error",
-            "ignore",
-            "warning"
-          ],
-          "type": "string"
-        },
-        "i18nOutFile": {
-          "description": "Path to the extracted message file.",
-          "type": "string"
-        },
-        "i18nOutFormat": {
-          "description": "Export format (xlf, xlf2 or xmb).",
-          "type": "string"
-        },
-        "inlineMetaDataResources": {
-          "description": "If true, templateUrl and styleUrls resources of .metadata.json are inlined.",
+        "reExportTypingEntryToOutputRoot": {
+          "description": "If true, re-export secondary entry point typing and metadata file at output root.",
           "type": "boolean"
         },
         "replaceVersionPlaceholder": {
+          "default": true,
           "description": "If true, replaces version placeholder with package version.",
           "type": "boolean"
         },
-        "tsConfig": {
-          "description": "The typescript configuration file to be used.",
+        "target": {
+          "description": "Override script target for this transpilation.",
+          "enum": [
+            "es2015",
+            "es2016",
+            "es2017",
+            "es2018",
+            "es5",
+            "esnext"
+          ],
           "type": "string"
+        },
+        "tsConfig": {
+          "description": "Typescript configuration file for this transpilation.",
+          "type": "string"
+        },
+        "useTsc": {
+          "default": false,
+          "description": "If true, use tsc instead of ngc.",
+          "type": "boolean"
         }
       },
       "type": "object"

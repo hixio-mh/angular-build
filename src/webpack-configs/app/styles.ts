@@ -165,7 +165,7 @@ export function
         autoprefixer({ grid: true })
     ];
 
-    const baseRules: webpack.NewUseRule[] = [
+    const baseRules: webpack.RuleSetRule[] = [
         { test: /\.css$/, use: [] },
         {
             test: /\.scss$|\.sass$/,
@@ -184,13 +184,13 @@ export function
     ];
 
     const entryPoints: { [key: string]: string[] } = {};
-    const rules: webpack.Rule[] = [];
+    const rules: webpack.RuleSetRule[] = [];
     const plugins: webpack.Plugin[] = [];
     const globalStylePaths: string[] = [];
 
     let shouldSuppressChunk = false;
     if (isDll) {
-        if (appConfig.dlls) {
+        if (appConfig.vendors && appConfig.vendors.length > 0) {
             if (!appConfig._dllParsedResult) {
                 throw new InternalError("The 'appConfig._dllParsedResult' is not set.");
             }

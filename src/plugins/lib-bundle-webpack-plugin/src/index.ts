@@ -2,9 +2,9 @@ import * as webpack from 'webpack';
 
 import { AngularBuildContext, LibProjectConfigInternal, } from '../../../build-context';
 
-import { performNgc } from './perform-ngc';
 import { performLibBundles } from './perform-lib-bundles';
 import { performPackageJsonCopy } from './perform-package-json-copy';
+import { performTsTranspile } from './perform-ts-transpile';
 import { processStyles } from './process-styles';
 
 export interface LibBundleWebpackPluginOptions {
@@ -26,8 +26,8 @@ export class LibBundleWebpackPlugin {
 
     private async performBundleTask(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): Promise<void> {
         const libConfig = angularBuildContext.projectConfig;
-        if (libConfig.tsTranspilation) {
-            await performNgc(angularBuildContext);
+        if (libConfig.tsTranspilations) {
+            await performTsTranspile(angularBuildContext);
         }
         if (libConfig.styles && Array.isArray(libConfig.styles) && libConfig.styles.length > 0) {
             await processStyles(angularBuildContext);
@@ -35,7 +35,7 @@ export class LibBundleWebpackPlugin {
         if (libConfig.bundles && Array.isArray(libConfig.bundles) && libConfig.bundles.length > 0) {
             await performLibBundles(angularBuildContext);
         }
-        if (libConfig.packageOptions) {
+        if (libConfig.packageJsonCopy) {
             await performPackageJsonCopy(angularBuildContext);
         }
     }

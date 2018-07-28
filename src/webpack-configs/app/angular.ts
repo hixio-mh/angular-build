@@ -37,14 +37,14 @@ export function
     const buildOptimizerLoader = resolveLoaderPath('@angular-devkit/build-optimizer/webpack-loader');
     const cacheLoader = resolveLoaderPath('cache-loader');
 
-    const rules: webpack.Rule[] = [];
+    const rules: webpack.RuleSetRule[] = [];
 
     rules.push({
         // Mark files inside `@angular/core` as using SystemJS style dynamic imports.
         // Removing this will cause deprecation warnings to appear.
         test: /[\/\\]@angular[\/\\]core[\/\\].+\.js$/,
         parser: { system: true }
-    } as any);
+    });
 
     const tsBuildOptimizerLoaders: any[] = [];
 
@@ -54,8 +54,7 @@ export function
             options: { sourceMap: appConfig.sourceMap }
         });
 
-        const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
-        const cacheDirectory = path.resolve(projectRoot, './.bo-cache/');
+        const cacheDirectory = angularBuildContext.buildOptimizerCacheDirectory;
 
         const buildOptimizerUseRule = {
             use: [
@@ -75,7 +74,7 @@ export function
             sideEffects: false,
             parser: { system: true },
             ...buildOptimizerUseRule,
-        } as any);
+        });
 
         rules.push({
             test: /\.js$/,

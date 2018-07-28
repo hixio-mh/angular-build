@@ -76,7 +76,7 @@ function getAppDllWebpackConfigPartial<TConfig extends AppProjectConfigInternal>
     const entries: string[] = [];
 
     // dll
-    if (appConfig.dlls) {
+    if (appConfig.vendors) {
         if (!appConfig._dllParsedResult) {
             throw new InternalError("The 'appConfig._dllParsedResult' is not set");
         }
@@ -109,7 +109,7 @@ function getAppDllWebpackConfigPartial<TConfig extends AppProjectConfigInternal>
 
     entryPoints[vendorChunkName] = entries;
 
-    const rules: webpack.Rule[] = [];
+    const rules: webpack.RuleSetRule[] = [];
 
     // plugins
     const plugins: webpack.Plugin[] = [
@@ -180,7 +180,7 @@ function getAppDllWebpackConfigPartial<TConfig extends AppProjectConfigInternal>
     const webpackDllConfig: webpack.Configuration = {
         entry: entryPoints,
         resolve: {
-            extensions: tsEntries.length > 0 ? ['.ts', '.js'] : ['.js'],
+            extensions: tsEntries.length > 0 ? ['.ts', '.mjs', '.js'] : ['.mjs', '.js'],
         },
         output: {
             publicPath: appConfig.publicPath || '/',

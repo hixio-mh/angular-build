@@ -4,7 +4,7 @@ import * as webpack from 'webpack';
 import { DynamicDllWebpackPlugin } from '../../plugins/dynamic-dll-webpack-plugin';
 
 import { AngularBuildContext, AppProjectConfigInternal } from '../../build-context';
-import { applyProjectConfigDefaults, applyProjectConfigWithEnvironment } from '../../helpers';
+import { applyProjectConfigWithEnvironment } from '../../helpers';
 import { InvalidConfigError } from '../../error-models';
 
 import { getAppDllWebpackConfig } from './dll';
@@ -43,11 +43,7 @@ export function
     const dllBuildOptions = { ...angularBuildContext.buildOptions };
     dllBuildOptions.environment = dllEnvironment;
 
-    applyProjectConfigDefaults(dllProjectConfig, dllEnvironment);
-
-    if (!dllProjectConfig.dlls ||
-        (Array.isArray(dllProjectConfig.dlls) && !dllProjectConfig.dlls.length) ||
-        (typeof dllProjectConfig.dlls === 'object' && !Object.keys(dllProjectConfig.dlls).length)) {
+    if (!dllProjectConfig.vendors || !dllProjectConfig.vendors.length) {
         return {};
     }
 

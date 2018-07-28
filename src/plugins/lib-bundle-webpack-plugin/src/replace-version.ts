@@ -9,7 +9,7 @@ const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions
 const versionRegex = /export\s+const\s+VERSION\s*=\s*['"`](.*PLACEHOLDER)['"`]/g;
 
 export async function replaceVersion(
-    outDir: string,
+    searchRootDir: string,
     projectVersion: string,
     searchPatterns: string | string[]): Promise<void> {
     if (typeof searchPatterns === 'string') {
@@ -21,7 +21,7 @@ export async function replaceVersion(
             pattern = path.join(pattern, '**', '*');
         }
 
-        let files = await globPromise(pattern, { cwd: outDir, nodir: true, dot: true });
+        let files = await globPromise(pattern, { cwd: searchRootDir, nodir: true, dot: true });
         files = files.filter(name => /\.js$/i.test(name));
         await Promise.all(files.map(async (filePath: string) => {
             const content = await readFile(filePath, 'utf-8');

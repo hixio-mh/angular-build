@@ -16,12 +16,9 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
 const webpackMerge = require('webpack-merge');
 
-type WebpackLibraryTarget = 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd';
-
 export function getBundleTargetWebpackConfig<TConfig extends LibProjectConfigInternal>(angularBuildContext:
     AngularBuildContext<TConfig>,
-    currentBundle: LibBundleOptionsInternal,
-    outputFilePath: string): { [key: string]: any } {
+    currentBundle: LibBundleOptionsInternal): { [key: string]: any } {
     if (!currentBundle._entryFilePath) {
         throw new InternalError("The 'currentBundle._entryFilePath' is not set.");
     }
@@ -30,11 +27,14 @@ export function getBundleTargetWebpackConfig<TConfig extends LibProjectConfigInt
     const logLevel = angularBuildContext.buildOptions.logLevel;
     const verbose = logLevel === 'debug';
 
-    const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
+    const libConfig = angularBuildContext.projectConfig;
 
     const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig.root || '');
     const isTsEntry = /\.ts$/i.test(currentBundle._entryFilePath);
-    const moduleName = libConfig.libraryName || libConfig._packageNameWithoutScope;
+    let moduleName = libConfig.libraryName;
+    if (!moduleName && libConfig._packageNameWithoutScope) {
+        moduleName = libConfig._packageNameWithoutScope.replace(/\//gm, '.');
+    }
 
     // library target
     if (currentBundle.libraryTarget === 'es') {
@@ -43,49 +43,14 @@ export function getBundleTargetWebpackConfig<TConfig extends LibProjectConfigInt
             }].libraryTarget = es' is currently not supported by webpack.`);
     }
 
-    let libraryTarget = currentBundle.libraryTarget as WebpackLibraryTarget;
-    if (currentBundle.libraryTarget === 'iife') {
-        libraryTarget = 'var';
-    } else if (currentBundle.libraryTarget === 'cjs') {
-        libraryTarget = 'commonjs2';
-    } else if (!currentBundle.libraryTarget) {
-        if (libConfig.platformTarget === 'node') {
-            libraryTarget = 'commonjs2';
-        } else {
-            libraryTarget = 'umd';
-        }
-    }
-
-    // platform target
-    let platformTarget = libConfig.platformTarget;
-    if (!platformTarget && (libraryTarget === 'commonjs' || libraryTarget === 'commonjs2')) {
-        platformTarget = 'node';
-    }
-
     // externals
     const externals: any = [];
     let includeCommonJsModules = true;
-
-    if (typeof currentBundle.externals === 'undefined' && libConfig.externals) {
-        currentBundle.externals = JSON.parse(JSON.stringify(libConfig.externals));
-    }
-
-    if (typeof currentBundle.nodeModulesAsExternals === 'undefined' &&
-        typeof libConfig.nodeModulesAsExternals !== 'undefined') {
-        currentBundle.nodeModulesAsExternals = libConfig.nodeModulesAsExternals;
-    }
-
-    if (typeof currentBundle.includeDefaultAngularAndRxJsGlobals === 'undefined' &&
-        typeof libConfig.includeDefaultAngularAndRxJsGlobals !== 'undefined') {
-        currentBundle.includeDefaultAngularAndRxJsGlobals = libConfig.includeDefaultAngularAndRxJsGlobals;
-    }
 
     if (currentBundle.nodeModulesAsExternals !== false) {
         externals.push(nodeExternals());
         includeCommonJsModules = false;
     }
-
-
 
     if (typeof currentBundle.externals === 'undefined') {
         if (currentBundle.includeDefaultAngularAndRxJsGlobals ||
@@ -120,7 +85,7 @@ export function getBundleTargetWebpackConfig<TConfig extends LibProjectConfigInt
         }
     }
 
-    const rules: webpack.Rule[] = [];
+    const rules: webpack.RuleSetRule[] = [];
     const plugins: webpack.Plugin[] = [];
     const resolvePlugins: webpack.Plugin[] = [];
 
@@ -201,7 +166,7 @@ export function getBundleTargetWebpackConfig<TConfig extends LibProjectConfigInt
         existsSync(path.resolve(AngularBuildContext.nodeModulesPath, 'rxjs'))) {
         try {
             const rxjsPathMappingImportModuleName =
-                currentBundle._ecmaVersion && currentBundle._ecmaVersion > 5
+                currentBundle._supportES2015
                     ? 'rxjs/_esm2015/path-mapping'
                     : 'rxjs/_esm5/path-mapping';
             const pathMapping = require(resolve.sync(rxjsPathMappingImportModuleName,
@@ -213,15 +178,15 @@ export function getBundleTargetWebpackConfig<TConfig extends LibProjectConfigInt
     }
 
     const webpackConfig: webpack.Configuration = {
-        target: platformTarget,
+        target: libConfig.platformTarget,
         devtool: libConfig.sourceMap ? 'source-map' : undefined,
         entry: currentBundle._entryFilePath,
         output: {
-            path: path.dirname(outputFilePath),
-            filename: path.basename(outputFilePath),
+            path: path.dirname(currentBundle._outputFilePath),
+            filename: path.basename(currentBundle._outputFilePath),
             library: moduleName,
-            libraryTarget: libraryTarget,
-            umdNamedDefine: libraryTarget === 'umd' ? true : undefined
+            libraryTarget: 'umd',
+            umdNamedDefine: true
         },
         resolve: {
             extensions: isTsEntry ? ['.ts', '.js'] : ['.js'],
@@ -264,7 +229,7 @@ export function getBundleTargetWebpackConfig<TConfig extends LibProjectConfigInt
                             passes: 3,
                             // Workaround known uglify-es issue
                             // See https://github.com/mishoo/UglifyJS2/issues/2949#issuecomment-368070307
-                            inline: currentBundle._ecmaVersion && currentBundle._ecmaVersion > 5 ? 1 : 3
+                            inline: currentBundle._supportES2015 ? 1 : 3
                         },
                         warnings: verbose, // default false
                         output: {
@@ -290,6 +255,7 @@ export function getBundleTargetWebpackConfig<TConfig extends LibProjectConfigInt
             webpackConfig,
             customWebpackConfig
         ]) as webpack.Configuration;
+
         return mergedConfig;
     }
 

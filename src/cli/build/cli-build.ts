@@ -48,6 +48,7 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
     if (!await exists(configPath)) {
         logger.error(`The angular-build.json config file does not exist at ${configPath}. ` +
             'Please use --config=<your config file> option or make sure angular-build.json is existed in current working directory.\n');
+
         return -1;
     }
 
@@ -57,15 +58,18 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
     } catch (err1) {
         if (err1 instanceof InvalidConfigError) {
             logger.error(`${err1.message}\n`);
+
             return -1;
         }
 
         logger.error(`${err1.stack || err1.message}\n`);
+
         return -1;
     }
 
     if (webpackConfigs.length === 0) {
         logger.error('No app or lib project is available.\n');
+
         return -1;
     }
 

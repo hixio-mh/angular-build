@@ -7,6 +7,7 @@ angular-build
 [![npm version](https://badge.fury.io/js/%40bizappframework%2Fangular-build.svg)](https://badge.fury.io/js/%40bizappframework%2Fangular-build)
 [![Dependency Status](https://david-dm.org/bizappframework/angular-build.svg)](https://david-dm.org/bizappframework/angular-build)
 [![npm](https://img.shields.io/npm/dm/@bizappframework/angular-build.svg)](https://www.npmjs.com/package/@bizappframework/angular-build)
+[![Gitter](https://badges.gitter.im/BizAppFramework/angular-build.svg)](https://gitter.im/BizAppFramework/angular-build?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 What is this
 ---------------

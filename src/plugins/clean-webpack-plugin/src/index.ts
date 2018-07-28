@@ -19,14 +19,13 @@ const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions
 export interface CleanWebpackPluginOptions extends CleanOptions {
     workspaceRoot: string;
     outputPath?: string;
+    cacheDirectries?: string[];
     forceCleanToDisk?: boolean;
-    persistedOutputFileSystemNames?: string[];
     host?: virtualFs.Host;
     loggerOptions?: LoggerOptions;
 }
 
 export class CleanWebpackPlugin {
-    private readonly _options: CleanWebpackPluginOptions;
     private readonly _logger: Logger;
     private readonly _persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
     private _beforeRunCleaned = false;
@@ -37,20 +36,8 @@ export class CleanWebpackPlugin {
         return 'clean-webpack-plugin';
     }
 
-    constructor(options: CleanWebpackPluginOptions) {
-        if (!options) {
-            throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
-        }
-
-        this._options = options;
-
+    constructor(private readonly _options: CleanWebpackPluginOptions) {
         this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
-
-        if (this._options.persistedOutputFileSystemNames && this._options.persistedOutputFileSystemNames.length) {
-            this._options.persistedOutputFileSystemNames
-                .filter(pfs => !this._persistedOutputFileSystemNames.includes(pfs))
-                .forEach(pfs => this._persistedOutputFileSystemNames.push(pfs));
-        }
     }
 
     apply(compiler: webpack.Compiler): void {
@@ -75,6 +62,9 @@ export class CleanWebpackPlugin {
             const beforeBuildOptions = this._options.beforeBuild as BeforeBuildCleanOptions;
 
             if (!beforeBuildOptions.cleanOutDir &&
+                !beforeBuildOptions.cleanCache &&
+                (beforeBuildOptions.cleanCache &&
+                    (!this._options.cacheDirectries || !this._options.cacheDirectries.length)) &&
                 (!beforeBuildOptions.paths || (beforeBuildOptions.paths && !beforeBuildOptions.paths.length))) {
                 this._beforeRunCleaned = true;
 
@@ -97,7 +87,7 @@ export class CleanWebpackPlugin {
                 return cb();
             }
 
-            this.cleanTask(beforeBuildOptions, outputPath, workspaceRoot)
+            this.cleanTask(beforeBuildOptions, true, outputPath, workspaceRoot)
                 .then(() => {
                     this._beforeRunCleaned = true;
                     const duration = Date.now() - startTime;
@@ -140,7 +130,7 @@ export class CleanWebpackPlugin {
 
             this._logger.debug('The after emit cleaning started');
 
-            this.cleanTask(afterEmitOptions, outputPath, workspaceRoot)
+            this.cleanTask(afterEmitOptions, false, outputPath, workspaceRoot)
                 .then(() => {
                     const duration = Date.now() - startTime;
 
@@ -159,6 +149,7 @@ export class CleanWebpackPlugin {
     }
 
     private async cleanTask(cleanOptions: BeforeBuildCleanOptions | AfterEmitCleanOptions,
+        isBeforeBuildClean: boolean,
         outputPath: string,
         workspaceRoot: string): Promise<void> {
         const rawPathsToClean: string[] = [];
@@ -186,7 +177,7 @@ export class CleanWebpackPlugin {
                 `The workspace root directory must not be inside the output path, outputPath: ${outputPath}.`);
         }
 
-        if ((cleanOptions as BeforeBuildCleanOptions).cleanOutDir) {
+        if (isBeforeBuildClean && (cleanOptions as BeforeBuildCleanOptions).cleanOutDir) {
             if (!isInFolder(workspaceRoot, outputPath) && this._options.allowOutsideWorkspaceRoot === false) {
                 throw new InternalError(
                     `Cleaning outside of the workspace root directory is disabled, outputPath: ${outputPath}.` +
@@ -203,6 +194,12 @@ export class CleanWebpackPlugin {
             });
         }
 
+        if (this._options.cacheDirectries && this._options.cacheDirectries.length) {
+            this._options.cacheDirectries.forEach(p => {
+                rawPathsToClean.push(p);
+            });
+        }
+
         const outputPathFragements: Path[] = [];
         const outputDirFragements: Path[] = [];
         let outputPathFragementsInitialized = false;
@@ -213,8 +210,8 @@ export class CleanWebpackPlugin {
         const existedFilesToExclude: string[] = [];
         const existedDirsToExclude: string[] = [];
 
-        if (cleanOptions.exclude) {
-            cleanOptions.exclude.forEach(excludePath => {
+        if (cleanOptions.excludes) {
+            cleanOptions.excludes.forEach(excludePath => {
                 if (isGlob(excludePath)) {
                     if (!patternsToExclude.includes(excludePath)) {
                         patternsToExclude.push(excludePath);
@@ -390,6 +387,8 @@ export class CleanWebpackPlugin {
             }
         }));
 
+        const cachePaths = this._options.cacheDirectries || [];
+
         for (const pathToClean of pathsToClean) {
             if (existedFilesToExclude.includes(pathToClean) ||
                 existedDirsToExclude.includes(pathToClean) ||
@@ -451,9 +450,9 @@ export class CleanWebpackPlugin {
                 }
 
                 if ((!isInFolder(outputPath, pathToClean) || isSamePaths(outputPath, pathToClean)) &&
-                    !this._options.allowOutsideOutDir) {
+                    !this._options.allowOutsideOutDir && !cachePaths.includes(pathToClean)) {
                     throw new InvalidConfigError(
-                        `By default, cleaning outside of output directory is disabled, path to clean: ${pathToClean
+                        `Cleaning outside of output directory is disabled, path to clean: ${pathToClean
                         }.` +
                         " To enable cleaning, please set 'allowOutsideOutDir = true' in clean option.");
                 }

@@ -7,13 +7,17 @@ export interface BeforeBuildCleanOptions {
      */
     cleanOutDir?: boolean;
     /**
+     * If true, delete cache directories before build.
+     */
+    cleanCache?: boolean;
+    /**
      * Paths to be deleted.
      */
     paths?: string[];
     /**
      * Path array to exclude from deleting.
      */
-    exclude?: string[];
+    excludes?: string[];
 }
 
 /**
@@ -27,7 +31,7 @@ export interface AfterEmitCleanOptions {
     /**
      * Path array to exclude from deleting.
      */
-    exclude?: string[];
+    excludes?: string[];
 }
 
 /**
@@ -145,6 +149,10 @@ export interface ProjectConfigBase {
      * Options to pass to style preprocessors.
      */
     stylePreprocessorOptions?: StylePreprocessorOptions;
+    /**
+     * The typescript configuration file to be used.
+     */
+    tsConfig?: string;
     /**
      * Banner text to add at the top of each generated files. It can be text file name or raw text.
      */

@@ -10,7 +10,6 @@ import { ServiceWorkerWebpackPlugin } from '../../plugins/service-worker-webpack
 import { AngularBuildContext, AppProjectConfigInternal, GlobalParsedEntry } from '../../build-context';
 import { InternalError, InvalidConfigError } from '../../error-models';
 import {
-    applyProjectConfigDefaults,
     applyProjectConfigWithEnvironment,
     outputHashFormat,
     resolveLoaderPath
@@ -59,7 +58,7 @@ export function
     //    : '';
 
     const entryPoints: { [key: string]: string[] } = {};
-    const rules: webpack.Rule[] = [];
+    const rules: webpack.RuleSetRule[] = [];
     const plugins: webpack.Plugin[] = [];
 
     // polyfills
@@ -271,12 +270,7 @@ export function
             applyProjectConfigWithEnvironment(dllProjectConfig, dllEnvironment);
             dllProjectConfig._isDll = true;
 
-            applyProjectConfigDefaults(dllProjectConfig, dllEnvironment);
-
-            if (dllProjectConfig.dlls &&
-                ((Array.isArray(dllProjectConfig.dlls) && dllProjectConfig.dlls.length > 0) ||
-                    (typeof dllProjectConfig.dlls === 'object' && Object.keys(dllProjectConfig.dlls).length > 0))) {
-
+            if (dllProjectConfig.vendors && dllProjectConfig.vendors.length > 0) {
                 dllAssetsFile = path.resolve(AngularBuildContext.workspaceRoot,
                     appConfig.outputPath,
                     `${vendorChunkName}-assets.json`);
