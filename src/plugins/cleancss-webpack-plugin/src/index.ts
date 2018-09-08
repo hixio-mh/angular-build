@@ -83,7 +83,7 @@ export class CleanCssWebpackPlugin {
 
           let content: string;
           let map: any;
-          if (asset.sourceAndMap) {
+          if (this._options.sourceMap && asset.sourceAndMap) {
             const sourceAndMap = asset.sourceAndMap();
             content = sourceAndMap.source;
             map = sourceAndMap.map;
@@ -96,7 +96,7 @@ export class CleanCssWebpackPlugin {
           }
 
           return Promise.resolve()
-            .then(() => cleancss.minify(content, map))
+            .then(() => map ? cleancss.minify(content, map) : cleancss.minify(content))
             .then((output: any) => {
               let hasWarnings = false;
               if (output.warnings && output.warnings.length > 0) {
