@@ -35,10 +35,10 @@
     ],
     "jsdoc-format": true,
     "label-position": true,
-    "linebreak-style": [
-      true,
-      "LF"
-    ],
+    // "linebreak-style": [
+    //   true,
+    //   "LF"
+    // ],
     "max-line-length": [
       true,
       140

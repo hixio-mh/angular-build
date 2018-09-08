@@ -50,12 +50,10 @@
           "cleanOutDir": true
         }
       },
-      "fileReplacements": [
-        {
-          "replace": "./environments/environment.ts",
-          "with": "./environments/environment.prod.ts"
-        }
-      ]
+      "fileReplacements": [{
+        "replace": "./environments/environment.ts",
+        "with": "./environments/environment.prod.ts"
+      }]
     }
   }
 }
