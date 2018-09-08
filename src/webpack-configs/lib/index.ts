@@ -12,101 +12,101 @@ import { InvalidConfigError } from '../../error-models';
 import { BeforeBuildCleanOptions, CleanOptions } from '../../interfaces';
 
 export function
-    getLibWebpackConfig<TConfig extends LibProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
-    webpack.Configuration {
-    const libConfig = angularBuildContext.projectConfig;
+  getLibWebpackConfig<TConfig extends LibProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
+  webpack.Configuration {
+  const libConfig = angularBuildContext.projectConfig;
 
-    if (!libConfig.outputPath) {
-        throw new InvalidConfigError(
-            `The 'projects[${libConfig.name || libConfig._index}].outputPath' value is required.`);
+  if (!libConfig.outputPath) {
+    throw new InvalidConfigError(
+      `The 'projects[${libConfig.name || libConfig._index}].outputPath' value is required.`);
+  }
+
+  const logLevel = angularBuildContext.buildOptions.logLevel;
+  const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig.root || '');
+  const outputPath = path.resolve(AngularBuildContext.workspaceRoot, libConfig.outputPath);
+
+  const plugins: webpack.Plugin[] = [
+    new AngularBuildContextWebpackPlugin(angularBuildContext)
+  ];
+
+  // clean
+  let shouldClean = outputPath &&
+    (angularBuildContext.buildOptions.cleanOutDir || libConfig.clean);
+  if (libConfig.clean === false) {
+    shouldClean = false;
+  }
+  if (shouldClean) {
+    let cleanOptions: CleanOptions = {};
+    if (typeof libConfig.clean === 'object') {
+      cleanOptions = Object.assign(cleanOptions, libConfig.clean || {});
     }
 
-    const logLevel = angularBuildContext.buildOptions.logLevel;
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig.root || '');
-    const outputPath = path.resolve(AngularBuildContext.workspaceRoot, libConfig.outputPath);
-
-    const plugins: webpack.Plugin[] = [
-        new AngularBuildContextWebpackPlugin(angularBuildContext)
-    ];
-
-    // clean
-    let shouldClean = outputPath &&
-        (angularBuildContext.buildOptions.cleanOutDir || libConfig.clean);
-    if (libConfig.clean === false) {
-        shouldClean = false;
-    }
-    if (shouldClean) {
-        let cleanOptions: CleanOptions = {};
-        if (typeof libConfig.clean === 'object') {
-            cleanOptions = Object.assign(cleanOptions, libConfig.clean || {});
-        }
-
-        cleanOptions.beforeBuild = cleanOptions.beforeBuild || {} as BeforeBuildCleanOptions;
-        const beforeBuildOption = cleanOptions.beforeBuild;
-        if (typeof cleanOptions.beforeBuild === 'undefined' && angularBuildContext.buildOptions.cleanOutDir) {
-            beforeBuildOption.cleanOutDir = true;
-        }
-
-        if (beforeBuildOption.cleanOutDir && typeof beforeBuildOption.cleanCache === 'undefined') {
-            beforeBuildOption.cleanCache = true;
-        }
-
-        const cacheDirs: string[] = [];
-        if (beforeBuildOption.cleanCache) {
-            if (angularBuildContext.buildOptimizerCacheDirectory) {
-                cacheDirs.push(angularBuildContext.buildOptimizerCacheDirectory);
-            }
-            if (angularBuildContext.iconsStatCacheDirectory) {
-                cacheDirs.push(angularBuildContext.iconsStatCacheDirectory);
-            }
-        }
-
-        plugins.push(new CleanWebpackPlugin({
-            ...cleanOptions,
-            workspaceRoot: AngularBuildContext.workspaceRoot,
-            outputPath: outputPath,
-            cacheDirectries: cacheDirs,
-            host: angularBuildContext.host,
-            loggerOptions: {
-                logLevel: logLevel
-            }
-        }));
+    cleanOptions.beforeBuild = cleanOptions.beforeBuild || {} as BeforeBuildCleanOptions;
+    const beforeBuildOption = cleanOptions.beforeBuild;
+    if (typeof cleanOptions.beforeBuild === 'undefined' && angularBuildContext.buildOptions.cleanOutDir) {
+      beforeBuildOption.cleanOutDir = true;
     }
 
-    // styles, ngc, bundle, packager
-    plugins.push(new LibBundleWebpackPlugin({
-        angularBuildContext: angularBuildContext
+    if (beforeBuildOption.cleanOutDir && typeof beforeBuildOption.cleanCache === 'undefined') {
+      beforeBuildOption.cleanCache = true;
+    }
+
+    const cacheDirs: string[] = [];
+    if (beforeBuildOption.cleanCache) {
+      if (angularBuildContext.buildOptimizerCacheDirectory) {
+        cacheDirs.push(angularBuildContext.buildOptimizerCacheDirectory);
+      }
+      if (angularBuildContext.iconsStatCacheDirectory) {
+        cacheDirs.push(angularBuildContext.iconsStatCacheDirectory);
+      }
+    }
+
+    plugins.push(new CleanWebpackPlugin({
+      ...cleanOptions,
+      workspaceRoot: AngularBuildContext.workspaceRoot,
+      outputPath: outputPath,
+      cacheDirectries: cacheDirs,
+      host: angularBuildContext.host,
+      loggerOptions: {
+        logLevel: logLevel
+      }
     }));
+  }
 
-    // copy assets
-    if (libConfig.copy && Array.isArray(libConfig.copy) && libConfig.copy.length > 0) {
-        plugins.push(new CopyWebpackPlugin({
-            assets: libConfig.copy,
-            baseDir: projectRoot,
-            outputPath: outputPath,
-            allowCopyOutsideOutputPath: true,
-            forceWriteToDisk: true,
-            loggerOptions: AngularBuildContext.logger.loggerOptions
-        }));
-    }
+  // styles, ngc, bundle, packager
+  plugins.push(new LibBundleWebpackPlugin({
+    angularBuildContext: angularBuildContext
+  }));
 
-    // telemetry plugin
-    if (!AngularBuildContext.telemetryPluginAdded) {
-        AngularBuildContext.telemetryPluginAdded = true;
-        plugins.push(new TelemetryWebpackPlugin());
-    }
+  // copy assets
+  if (libConfig.copy && Array.isArray(libConfig.copy) && libConfig.copy.length > 0) {
+    plugins.push(new CopyWebpackPlugin({
+      assets: libConfig.copy,
+      baseDir: projectRoot,
+      outputPath: outputPath,
+      allowCopyOutsideOutputPath: true,
+      forceWriteToDisk: true,
+      loggerOptions: AngularBuildContext.logger.loggerOptions
+    }));
+  }
 
-    const webpackConfig: webpack.Configuration = {
-        name: libConfig.name,
-        entry: (() => ({})) as any,
-        output: {
-            path: outputPath,
-            filename: '[name].js'
-        },
-        context: projectRoot,
-        plugins: plugins,
-        stats: 'errors-only'
-    };
+  // telemetry plugin
+  if (!AngularBuildContext.telemetryPluginAdded) {
+    AngularBuildContext.telemetryPluginAdded = true;
+    plugins.push(new TelemetryWebpackPlugin());
+  }
 
-    return webpackConfig;
+  const webpackConfig: webpack.Configuration = {
+    name: libConfig.name,
+    entry: (() => ({})) as any,
+    output: {
+      path: outputPath,
+      filename: '[name].js'
+    },
+    context: projectRoot,
+    plugins: plugins,
+    stats: 'errors-only'
+  };
+
+  return webpackConfig;
 }
