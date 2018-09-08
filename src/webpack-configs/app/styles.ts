@@ -91,14 +91,18 @@ export function
   try {
     // tslint:disable-next-line:no-implicit-dependencies
     dartSass = require('sass');
-  } catch { }
+  } catch (e1) {
+    // Do nothing
+  }
 
   let fiber: {} | undefined;
   if (dartSass) {
     try {
       // tslint:disable-next-line:no-implicit-dependencies
       fiber = require('fibers');
-    } catch { }
+    } catch (e2) {
+      // Do nothing
+    }
   }
 
   const baseRules: webpack.RuleSetRule[] = [
@@ -190,7 +194,7 @@ export function
               sourceMap: cssSourceMap && !extractCss ? 'inline' : cssSourceMap
             }
           },
-          ...(use as webpack.Loader[]),
+          ...(use as webpack.Loader[])
         ]
       };
     }));
