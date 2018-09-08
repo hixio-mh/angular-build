@@ -1,70 +1,65 @@
 {
   "$schema": "./../../schemas/schema.json#",
-  "apps": [
-    {
-      "root": "src",
-      "outputPath": "dist",
-      "entry": "main.ts",
-      "polyfills": [
-        // "core-js/es6/reflect",
-        // "core-js/es7/reflect",
-        "polyfills.ts"
-      ],
-      "tsConfig": "tsconfig.json",
-      "copy": [
-        "assets/**/*",
-        "favicon.ico"
-      ],
-      "styles": [ "styles.scss" ],
-      "dlls": [
-        "@angular/common",
-        "@angular/compiler",
-        "@angular/core",
-        "@angular/platform-browser",
-        "@angular/platform-browser-dynamic",
-        "@angular/router",
-        // "core-js/es6/reflect",
-        // "core-js/es7/reflect",
-        // "event-source-polyfill",
-        "zone.js/dist/zone"
-      ],
-      "publicPath": "/",
-      "baseHref": "~/",
-      "htmlInject": {
-        // Default true for production
-        // "runtimeChunkInline": true,
-        "resourceHints": true,
-        "index": "index.html"
+  "apps": [{
+    "root": "src",
+    "outputPath": "dist",
+    "entry": "main.ts",
+    "polyfills": [
+      // "core-js/es6/reflect",
+      // "core-js/es7/reflect",
+      "polyfills.ts"
+    ],
+    "tsConfig": "tsconfig.json",
+    "copy": [
+      "assets/**/*",
+      "favicon.ico"
+    ],
+    "styles": ["styles.scss"],
+    "dlls": [
+      "@angular/common",
+      "@angular/compiler",
+      "@angular/core",
+      "@angular/platform-browser",
+      "@angular/platform-browser-dynamic",
+      "@angular/router",
+      // "core-js/es6/reflect",
+      // "core-js/es7/reflect",
+      // "event-source-polyfill",
+      "zone.js/dist/zone"
+    ],
+    "publicPath": "/",
+    "baseHref": "~/",
+    "htmlInject": {
+      // Default true for production
+      // "runtimeChunkInline": true,
+      "resourceHints": true,
+      "index": "index.html"
+    },
+    "envOverrides": {
+      "dll": {
+        "clean": {
+          "beforeBuild": {
+            "cleanOutDir": true
+          }
+        }
       },
-      "envOverrides": {
-        "dll": {
-          "clean": {
-            "beforeBuild": {
-              "cleanOutDir": true
-            }
+      "ref": {
+        "referenceDll": true
+      },
+      "prod": {
+        "clean": {
+          "beforeBuild": {
+            "cleanOutDir": true
           }
         },
-        "ref": {
-          "referenceDll": true
-        },
-        "prod": {
-          "clean": {
-            "beforeBuild": {
-              "cleanOutDir": true
-            }
-          },
-          "copy": [
-            "assets/**/*"
-          ],
-          "favicons": "favicon-config.json",
-          "fileReplacements": [
-            {
-              "replace": "./environments/environment.ts",
-              "with": "./environments/environment.prod.ts"
-            }
-          ]
-        }
+        "copy": [
+          "assets/**/*"
+        ],
+        "fileReplacements": [{
+          "replace": "./environments/environment.ts",
+          "with": "./environments/environment.prod.ts"
+        }]
       }
     }
-  ]
+  }]
 }
