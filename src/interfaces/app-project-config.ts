@@ -1,4 +1,3 @@
-import { FaviconsConfig } from './favicons-config';
 import { ExternalsEntry, GlobalEntry, ProjectConfig, ProjectConfigBase } from './project-config';
 
 /**
@@ -13,7 +12,6 @@ export interface HtmlInjectOptions {
     index?: string;
     indexOut?: string;
     baseHrefOut?: string;
-    iconsOut?: string;
     resourceHintsOut?: string;
     stylesOut?: string;
     runtimeInlineOut?: string;
@@ -226,10 +224,6 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     htmlInject?: HtmlInjectOptions;
     /**
-     * The favicons configuration file or object.
-     */
-    favicons?: string | FaviconsConfig;
-    /**
      * The url where files will be deployed.
      */
     publicPath?: string;
@@ -371,6 +365,10 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Generates a service worker config for production builds.
      */
     serviceWorker?: boolean;
+  /**
+   * Path to ngsw-config.json.
+   */
+    ngswConfigPath?: string;
 }
 
 
