@@ -16,76 +16,76 @@ import { getAppStylesWebpackConfigPartial } from './styles';
 const webpackMerge = require('webpack-merge');
 
 export function
-    getAppWebpackConfig<TConfig extends AppProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
-    webpack.Configuration {
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    let customWebpackConfig: webpack.Configuration = {};
+  getAppWebpackConfig<TConfig extends AppProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
+  webpack.Configuration {
+  const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+  let customWebpackConfig: webpack.Configuration = {};
 
-    if (appConfig.webpackConfig) {
-        const customWebpackConfigPath =
-            path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '', appConfig.webpackConfig);
-        customWebpackConfig =
-            getCustomWebpackConfig(customWebpackConfigPath, angularBuildContext) || {};
-    }
+  if (appConfig.webpackConfig) {
+    const customWebpackConfigPath =
+      path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '', appConfig.webpackConfig);
+    customWebpackConfig =
+      getCustomWebpackConfig(customWebpackConfigPath, angularBuildContext) || {};
+  }
 
-    const configs: webpack.Configuration[] = [
-        // reference dll
-        getAppReferenceDllWebpackConfigPartial(angularBuildContext),
-        getAppCommonWebpackConfigPartial(angularBuildContext),
-        getAppStylesWebpackConfigPartial(angularBuildContext),
-        getAppAngularTypescriptWebpackConfigPartial(angularBuildContext),
+  const configs: webpack.Configuration[] = [
+    // reference dll
+    getAppReferenceDllWebpackConfigPartial(angularBuildContext),
+    getAppCommonWebpackConfigPartial(angularBuildContext),
+    getAppStylesWebpackConfigPartial(angularBuildContext),
+    getAppAngularTypescriptWebpackConfigPartial(angularBuildContext),
 
-        // browser only
-        getAppBrowserWebpackConfigPartial(angularBuildContext),
+    // browser only
+    getAppBrowserWebpackConfigPartial(angularBuildContext),
 
-        // Must be the last item(s) to merge
-        getAppWebpackConfigPartial(angularBuildContext),
-        customWebpackConfig
-    ];
+    // Must be the last item(s) to merge
+    getAppWebpackConfigPartial(angularBuildContext),
+    customWebpackConfig
+  ];
 
-    const mergedConfig = webpackMerge(configs) as webpack.Configuration;
+  const mergedConfig = webpackMerge(configs) as webpack.Configuration;
 
-    if (!mergedConfig.entry || (typeof mergedConfig.entry === 'object' && !Object.keys(mergedConfig.entry).length)) {
-        mergedConfig.entry = isFromWebpackDevServer()
-            ? [] as string[]
-            : (() => ({})) as any;
-    }
+  if (!mergedConfig.entry || (typeof mergedConfig.entry === 'object' && !Object.keys(mergedConfig.entry).length)) {
+    mergedConfig.entry = isFromWebpackDevServer()
+      ? [] as string[]
+      : (() => ({})) as any;
+  }
 
-    return mergedConfig;
+  return mergedConfig;
 }
 
 function getAppWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(angularBuildContext:
-    AngularBuildContext<TConfig>): webpack.Configuration {
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
+  AngularBuildContext<TConfig>): webpack.Configuration {
+  const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+  const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
 
-    // entry
-    const entryPoints: { [key: string]: string[] } = {};
+  // entry
+  const entryPoints: { [key: string]: string[] } = {};
 
-    if (appConfig.entry) {
-        const mainChunkName = appConfig.mainChunkName || 'main';
-        const mainEntry = path.resolve(projectRoot, appConfig.entry);
-        entryPoints[mainChunkName] = [mainEntry];
-    }
+  if (appConfig.entry) {
+    const mainChunkName = appConfig.mainChunkName || 'main';
+    const mainEntry = path.resolve(projectRoot, appConfig.entry);
+    entryPoints[mainChunkName] = [mainEntry];
+  }
 
-    // plugins
-    const plugins: webpack.Plugin[] = [
-        new AngularBuildContextWebpackPlugin(angularBuildContext)
-    ];
+  // plugins
+  const plugins: webpack.Plugin[] = [
+    new AngularBuildContextWebpackPlugin(angularBuildContext)
+  ];
 
-    // telemetry plugin
-    if (!AngularBuildContext.telemetryPluginAdded) {
-        AngularBuildContext.telemetryPluginAdded = true;
-        plugins.push(new TelemetryWebpackPlugin());
-    }
+  // telemetry plugin
+  if (!AngularBuildContext.telemetryPluginAdded) {
+    AngularBuildContext.telemetryPluginAdded = true;
+    plugins.push(new TelemetryWebpackPlugin());
+  }
 
-    const webpackAppConfig: webpack.Configuration = {
-        plugins: plugins
-    };
+  const webpackAppConfig: webpack.Configuration = {
+    plugins: plugins
+  };
 
-    if (Object.keys(entryPoints).length > 0) {
-        webpackAppConfig.entry = entryPoints;
-    }
+  if (Object.keys(entryPoints).length > 0) {
+    webpackAppConfig.entry = entryPoints;
+  }
 
-    return webpackAppConfig;
+  return webpackAppConfig;
 }
