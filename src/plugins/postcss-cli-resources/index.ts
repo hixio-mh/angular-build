@@ -24,7 +24,8 @@ function wrapUrl(urlStr: string): string {
 }
 
 export interface PostcssCliResourcesOptions {
-  deployUrl: string;
+  baseHref?: string;
+  deployUrl?: string;
   filename: string;
   loader: webpack.loader.LoaderContext;
 }
@@ -41,132 +42,157 @@ async function resolve(
   }
 }
 
-export default postcss.plugin('postcss-cli-resources',
-  ((options?: PostcssCliResourcesOptions) => {
-    if (!options) {
-      throw new Error("The 'options' is required.");
+export default postcss.plugin('postcss-cli-resources', ((options: PostcssCliResourcesOptions) => {
+  const deployUrl = options.deployUrl || '';
+  const baseHref = options.baseHref || '';
+  const filename = options.filename;
+  const loader = options.loader;
+
+  const dedupeSlashes = (urlStr: string) => urlStr.replace(/\/\/+/g, '/');
+
+  const process = async (inputUrl: string, resourceCache: Map<string, string>) => {
+    // If root-relative or absolute, leave as is
+    if (inputUrl.match(/^(?:\w+:\/\/|data:|chrome:|#)/)) {
+      return inputUrl;
+    }
+    // If starts with a caret, remove and return remainder
+    // this supports bypassing asset processing
+    if (inputUrl.startsWith('^')) {
+      return inputUrl.substr(1);
     }
 
-    const deployUrl = options.deployUrl;
-    const filename = options.filename;
-    const loader = options.loader;
+    const cachedUrl = resourceCache.get(inputUrl);
+    if (cachedUrl) {
+      return cachedUrl;
+    }
 
-    const process = async (inputUrl: string, resourceCache: Map<string, string>) => {
-      // If root-relative or absolute, leave as is
-      if (inputUrl.match(/^(?:\w+:\/\/|data:|chrome:|#|\/)/)) {
-        return inputUrl;
+    if (inputUrl.startsWith('~')) {
+      inputUrl = inputUrl.substr(1);
+    }
+
+    if (inputUrl.startsWith('/') && !inputUrl.startsWith('//')) {
+      let outputUrl: string;
+      if (deployUrl.match(/:\/\//) || deployUrl.startsWith('/')) {
+        // If deployUrl is absolute or root relative, ignore baseHref & use deployUrl as is.
+        outputUrl = `${deployUrl.replace(/\/$/, '')}${inputUrl}`;
+      } else if (baseHref.match(/:\/\//)) {
+        // If baseHref contains a scheme, include it as is.
+        outputUrl = baseHref.replace(/\/$/, '') + dedupeSlashes(`/${deployUrl}/${inputUrl}`);
+      } else {
+        // Join together base-href, deploy-url and the original URL.
+        outputUrl = dedupeSlashes(`/${baseHref}/${deployUrl}/${inputUrl}`);
       }
-      // If starts with a caret, remove and return remainder
-      // this supports bypassing asset processing
-      if (inputUrl.startsWith('^')) {
-        return inputUrl.substr(1);
-      }
 
-      const cachedUrl = resourceCache.get(inputUrl);
-      if (cachedUrl) {
-        return cachedUrl;
-      }
+      resourceCache.set(inputUrl, outputUrl);
 
-      const urlWithStringQuery = url.parse(inputUrl.replace(/\\/g, '/'));
-      const pathname = urlWithStringQuery.pathname;
-      const hash = urlWithStringQuery.hash;
-      const search = urlWithStringQuery.search;
+      return outputUrl;
+    }
 
-      const resolver = (file: string, base: string) => new Promise<string>((res, reject) => {
-        loader.resolve(base, file, (err, r) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          res(r);
-        });
-      });
+    const urlWithStringQuery = url.parse(inputUrl.replace(/\\/g, '/'));
+    const pathname = urlWithStringQuery.pathname;
+    const hash = urlWithStringQuery.hash;
+    const search = urlWithStringQuery.search;
+    const resolver = (file: string, base: string) => new Promise<string>((res, rej) => {
+      loader.resolve(base, file, (err: any, r: any) => {
+        if (err) {
+          rej(err);
 
-      const result = await resolve(pathname || '', loader.context, resolver);
-
-      return new Promise<string>((res, reject) => {
-        loader.fs.readFile(result, (err: Error, content: Buffer) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-
-          const outputPath = interpolateName(
-            { resourcePath: result } as webpack.loader.LoaderContext,
-            filename,
-            { content },
-          );
-
-          loader.addDependency(result);
-          loader.emitFile(outputPath, content, undefined);
-
-          let outputUrl = outputPath.replace(/\\/g, '/');
-          if (hash || search) {
-            outputUrl = url.format({ pathname: outputUrl, hash, search });
-          }
-
-          if (deployUrl) {
-            outputUrl = url.resolve(deployUrl, outputUrl);
-          }
-
-          resourceCache.set(inputUrl, outputUrl);
-
-          res(outputUrl);
-        });
-      });
-    };
-
-    return (root: postcss.Root) => {
-      const urlDeclarations: Array<postcss.Declaration> = [];
-      root.walkDecls(decl => {
-        if (decl.value && decl.value.includes('url')) {
-          urlDeclarations.push(decl);
+          return;
         }
+        res(r);
       });
+    });
 
-      if (urlDeclarations.length === 0) {
-        return Promise.resolve();
-      }
+    const result = await resolve(pathname as string, loader.context, resolver);
 
-      const resourceCache = new Map<string, string>();
+    return new Promise<string>((res, rej) => {
+      loader.fs.readFile(result, (err: Error, content: Buffer) => {
+        if (err) {
+          rej(err);
 
-      return Promise.all(urlDeclarations.map(async decl => {
-        const value = decl.value;
-        const urlRegex = /url\(\s*(?:"([^"]+)"|'([^']+)'|(.+?))\s*\)/g;
-        const segments: string[] = [];
-
-        let match = urlRegex.exec(value);
-        let lastIndex = 0;
-        let modified = false;
-        while (match) {
-          let processedUrl: string;
-          try {
-            const a = await process(match[1], resourceCache);
-            processedUrl = a as string;
-          } catch (err) {
-            loader.emitError(decl.error(err.message, { word: match[1] }).toString());
-            continue;
-          }
-
-          if (lastIndex !== match.index) {
-            segments.push(value.slice(lastIndex, match.index));
-          }
-
-          if (!processedUrl || match[1] === processedUrl) {
-            segments.push(match[0]);
-          } else {
-            segments.push(wrapUrl(processedUrl));
-            modified = true;
-          }
-
-          lastIndex = urlRegex.lastIndex;
-
-          match = urlRegex.exec(value);
+          return;
         }
 
-        if (modified) {
-          decl.value = segments.join('');
+        const outputPath = interpolateName(
+          { resourcePath: result } as webpack.loader.LoaderContext,
+          filename,
+          { content },
+        );
+
+        loader.addDependency(result);
+        loader.emitFile(outputPath, content, undefined);
+
+        let outputUrl = outputPath.replace(/\\/g, '/');
+        if (hash || search) {
+          outputUrl = url.format({ pathname: outputUrl, hash, search });
         }
-      }));
-    };
-  }) as any);
+
+        if (deployUrl && loader.loaders[loader.loaderIndex].options.ident !== 'extracted') {
+          outputUrl = url.resolve(deployUrl, outputUrl);
+        }
+
+        resourceCache.set(inputUrl, outputUrl);
+        res(outputUrl);
+      });
+    });
+  };
+
+  return (root: postcss.Root) => {
+    const urlDeclarations: Array<postcss.Declaration> = [];
+    root.walkDecls(decl => {
+      if (decl.value && decl.value.includes('url')) {
+        urlDeclarations.push(decl);
+      }
+    });
+
+    if (urlDeclarations.length === 0) {
+      return Promise.resolve();
+    }
+
+    const resourceCache = new Map<string, string>();
+
+    return Promise.all(urlDeclarations.map(async decl => {
+      const value = decl.value;
+      const urlRegex = /url\(\s*(?:"([^"]+)"|'([^']+)'|(.+?))\s*\)/g;
+      const segments: string[] = [];
+
+      let match = urlRegex.exec(value);
+      let lastIndex = 0;
+      let modified = false;
+      while (match) {
+        const originalUrl = match[1] || match[2] || match[3];
+        let processedUrl: string;
+        try {
+          const a = await process(originalUrl, resourceCache);
+          processedUrl = a as string;
+        } catch (err) {
+          loader.emitError(decl.error(err.message, { word: originalUrl }).toString());
+          continue;
+        }
+
+        if (lastIndex < match.index) {
+          segments.push(value.slice(lastIndex, match.index));
+        }
+
+        if (!processedUrl || originalUrl === processedUrl) {
+          segments.push(match[0]);
+        } else {
+          segments.push(wrapUrl(processedUrl));
+          modified = true;
+        }
+
+        lastIndex = match.index + match[0].length;
+
+        match = urlRegex.exec(value);
+      }
+
+      if (lastIndex < value.length) {
+        segments.push(value.slice(lastIndex));
+      }
+
+      if (modified) {
+        decl.value = segments.join('');
+      }
+    }));
+  };
+}) as any);

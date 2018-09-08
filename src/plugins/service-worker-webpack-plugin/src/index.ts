@@ -25,14 +25,14 @@ class CliFilesystem implements Filesystem {
       )
     );
 
-    return recursiveList(this._resolve(p)).pipe(
+    return recursiveList(this.res(p)).pipe(
       map(p2 => p2.replace(this._base, '')),
       toArray(),
     ).toPromise().then(x => x, () => []);
   }
 
   read(path: string): Promise<string> {
-    return this._host.read(this._resolve(path))
+    return this._host.read(this.res(path))
       .toPromise()
       .then(content => virtualFs.fileBufferToString(content));
   }
@@ -46,11 +46,11 @@ class CliFilesystem implements Filesystem {
   }
 
   write(path: string, content: string): Promise<void> {
-    return this._host.write(this._resolve(path), virtualFs.stringToFileBuffer(content))
+    return this._host.write(this.res(path), virtualFs.stringToFileBuffer(content))
       .toPromise();
   }
 
-  private _resolve(p: string): Path {
+  private res(p: string): Path {
     return join(normalize(this._base), p);
   }
 }

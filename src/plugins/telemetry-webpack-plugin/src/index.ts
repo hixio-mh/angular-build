@@ -8,7 +8,7 @@ import { AngularBuildContext } from '../../../build-context';
 const uuidv4 = require('uuid/v4');
 const uuidv5 = require('uuid/v5');
 
-const ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY = '61c38600-38ac-411a-ad18-4daf41a5f0ad';
+const ANGULAR_BUILD_APPINSIGHTS_INSTRUMENTATIONKEY = '110b2760-eac4-48ba-8a0f-3c9648c6e051';
 
 const g: any = typeof global !== 'undefined' ? global : {};
 
