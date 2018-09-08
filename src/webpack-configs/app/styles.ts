@@ -121,7 +121,7 @@ export function
     }
   ];
 
-  const entryPoints: { [key: string]: string[] } = {};
+  const entrypoints: { [key: string]: string[] } = {};
   const rules: webpack.RuleSetRule[] = [];
   const plugins: webpack.Plugin[] = [];
   const globalStylePaths: string[] = [];
@@ -156,9 +156,9 @@ export function
 
         globalStylePaths.push(...style.paths);
 
-        entryPoints[style.entry]
-          ? entryPoints[style.entry].push(...style.paths)
-          : entryPoints[style.entry] = style.paths;
+        entrypoints[style.entry]
+          ? entrypoints[style.entry].push(...style.paths)
+          : entrypoints[style.entry] = style.paths;
       });
 
       if (chunkNames.length > 0) {
@@ -204,7 +204,7 @@ export function
 
       if (shouldSuppressChunk) {
         const vendorChunkName = appConfig.vendorChunkName || 'vendor';
-        const chunks = isDll ? [vendorChunkName] : Object.keys(entryPoints);
+        const chunks = isDll ? [vendorChunkName] : Object.keys(entrypoints);
         // suppress empty .js files in css only entry points
         plugins.push(new SuppressEntryChunksWebpackPlugin({
           chunks: chunks,
@@ -240,7 +240,7 @@ export function
   rules.push(...componentStyleRules);
 
   return {
-    entry: Object.keys(entryPoints).length ? entryPoints : undefined,
+    entry: Object.keys(entrypoints).length ? entrypoints : undefined,
     module: { rules: rules },
     plugins: plugins
   };

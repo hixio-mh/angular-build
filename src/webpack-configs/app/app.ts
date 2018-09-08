@@ -60,12 +60,12 @@ function getAppWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(an
   const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
 
   // entry
-  const entryPoints: { [key: string]: string[] } = {};
+  const entrypoints: { [key: string]: string[] } = {};
 
   if (appConfig.entry) {
     const mainChunkName = appConfig.mainChunkName || 'main';
     const mainEntry = path.resolve(projectRoot, appConfig.entry);
-    entryPoints[mainChunkName] = [mainEntry];
+    entrypoints[mainChunkName] = [mainEntry];
   }
 
   // plugins
@@ -83,8 +83,8 @@ function getAppWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(an
     plugins: plugins
   };
 
-  if (Object.keys(entryPoints).length > 0) {
-    webpackAppConfig.entry = entryPoints;
+  if (Object.keys(entrypoints).length > 0) {
+    webpackAppConfig.entry = entrypoints;
   }
 
   return webpackAppConfig;

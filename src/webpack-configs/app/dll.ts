@@ -71,7 +71,7 @@ function getAppDllWebpackConfigPartial<TConfig extends AppProjectConfigInternal>
   const libraryName = `[name]_${libHashFormat || 'lib'}`;
   const vendorChunkName = appConfig.vendorChunkName || 'vendor';
 
-  const entryPoints: { [key: string]: string[] } = {};
+  const entrypoints: { [key: string]: string[] } = {};
   const tsEntries: any[] = [];
   const entries: string[] = [];
 
@@ -107,7 +107,7 @@ function getAppDllWebpackConfigPartial<TConfig extends AppProjectConfigInternal>
       }].dll'.`);
   }
 
-  entryPoints[vendorChunkName] = entries;
+  entrypoints[vendorChunkName] = entries;
 
   const rules: webpack.RuleSetRule[] = [];
 
@@ -178,7 +178,7 @@ function getAppDllWebpackConfigPartial<TConfig extends AppProjectConfigInternal>
 
   // webpack config
   const webpackDllConfig: webpack.Configuration = {
-    entry: entryPoints,
+    entry: entrypoints,
     resolve: {
       extensions: tsEntries.length > 0 ? ['.ts', '.mjs', '.js'] : ['.mjs', '.js'],
     },

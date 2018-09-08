@@ -54,7 +54,7 @@ export function
   //    ? outputHashFormat.chunk
   //    : '';
 
-  const entryPoints: { [key: string]: string[] } = {};
+  const entrypoints: { [key: string]: string[] } = {};
   const rules: webpack.RuleSetRule[] = [];
   const plugins: webpack.Plugin[] = [];
 
@@ -81,7 +81,7 @@ export function
       }
     });
 
-    entryPoints[polyfillsChunkName] = entries;
+    entrypoints[polyfillsChunkName] = entries;
   }
 
   if (tsPolyfillEntries.length > 0 && !appConfig.entry) {
@@ -353,8 +353,8 @@ export function
     };
   }
 
-  if (entryPoints && Object.keys(entryPoints).length > 0) {
-    webpackConfig.entry = entryPoints;
+  if (entrypoints && Object.keys(entrypoints).length > 0) {
+    webpackConfig.entry = entrypoints;
   }
 
   return webpackConfig;
