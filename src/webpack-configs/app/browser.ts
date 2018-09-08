@@ -182,12 +182,12 @@ export function
 
   // html inject
   if (appConfig.htmlInject && Object.keys(appConfig.htmlInject).length) {
-    const SortedEntryList: string[] = [];
+    const sortedEntryList: string[] = [];
     // chunkSortList.push('sw-register');
     if (appConfig.referenceDll) {
-      SortedEntryList.push(vendorChunkName);
+      sortedEntryList.push(vendorChunkName);
     }
-    SortedEntryList.push(polyfillsChunkName);
+    sortedEntryList.push(polyfillsChunkName);
 
     // global styles
     if (appConfig.styles && Array.isArray(appConfig.styles) && appConfig.styles.length > 0) {
@@ -195,8 +195,8 @@ export function
         throw new InternalError("The 'appConfig._styleParsedEntries' is not set.");
       }
       appConfig._styleParsedEntries.forEach(styleEntry => {
-        if (!styleEntry.lazy && !SortedEntryList.includes(styleEntry.entry)) {
-          SortedEntryList.push(styleEntry.entry);
+        if (!styleEntry.lazy && !sortedEntryList.includes(styleEntry.entry)) {
+          sortedEntryList.push(styleEntry.entry);
         }
       });
     }
@@ -208,17 +208,17 @@ export function
 
       const scriptParsedEntries = appConfig._scriptParsedEntries;
       scriptParsedEntries.forEach(scriptEntry => {
-        if (!scriptEntry.lazy && !SortedEntryList.includes(scriptEntry.entry)) {
-          SortedEntryList.push(scriptEntry.entry);
+        if (!scriptEntry.lazy && !sortedEntryList.includes(scriptEntry.entry)) {
+          sortedEntryList.push(scriptEntry.entry);
         }
       });
     }
     // vendor chunk
     if (!appConfig.referenceDll) {
-      SortedEntryList.push(vendorChunkName);
+      sortedEntryList.push(vendorChunkName);
     }
     // main entry
-    SortedEntryList.push(mainChunkName);
+    sortedEntryList.push(mainChunkName);
 
     // dll assets
     let dllAssetsFile: string | undefined;
@@ -253,7 +253,7 @@ export function
       ...appConfig.htmlInject,
       baseDir: projectRoot,
       outDir: outputPath,
-      entrypoints: SortedEntryList,
+      entrypoints: sortedEntryList,
       baseHref: appConfig.baseHref,
       publicPath: appConfig.publicPath,
 
