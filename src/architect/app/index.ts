@@ -23,12 +23,12 @@ import { AppBuilderOptions } from '../../interfaces';
 import { normalizeRelativePath } from '../../utils';
 import { getAppWebpackConfig } from '../../webpack-configs/app';
 
-export class AppBuilder<TConfig extends AppBuilderOptions> implements Builder<TConfig> {
+export class AppBuilder implements Builder<AppBuilderOptions> {
   private readonly _startTime = Date.now();
 
   constructor(public context: BuilderContext) { }
 
-  run(builderConfig: BuilderConfiguration<TConfig>): Observable<BuildEvent> {
+  run(builderConfig: BuilderConfiguration<AppBuilderOptions>): Observable<BuildEvent> {
     const workspaceRoot = getSystemPath(this.context.workspace.root);
     const projectRoot = getSystemPath(resolve(this.context.workspace.root, builderConfig.root));
     const options = JSON.parse(JSON.stringify(builderConfig.options)) as AppBuilderOptions;

@@ -59,13 +59,10 @@
     <Content Include="README.md" />
     <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.scss" />
     <Content Include="samples\hello-world-ng-app-build-test\src\assets\.gitkeep" />
-    <Content Include="samples\hello-world-ng-app-build-test\src\favicon-config.json" />
-    <Content Include="samples\hello-world-ng-app-build-test\src\favicon.svg" />
     <Content Include="samples\hello-world-ng-app-build-test\src\styles.scss" />
     <Content Include="samples\hello-world-ng-app-build-test\src\styles\main.scss" />
     <Content Include="samples\hello-world-ng-app-build-test\src\styles\_variables.scss" />
     <Content Include="configs\ngb-app-browser-default.json" />
-    <Content Include="src\plugins\favicons-webpack-plugin\package.json" />
     <Content Include="samples\hello-world-ng-app-build-test\angular-build.json" />
     <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.html" />
     <Content Include="samples\hello-world-ng-app-build-test\src\favicon.ico" />
@@ -100,6 +97,8 @@
     <Folder Include="src\plugins\html-inject-webpack-plugin\" />
     <Folder Include="src\plugins\html-inject-webpack-plugin\src\" />
     <Folder Include="src\plugins\angular-build-context-webpack-plugin\" />
+    <Folder Include="src\plugins\remove-hash-webpack-plugin\" />
+    <Folder Include="src\plugins\remove-hash-webpack-plugin\src\" />
     <Folder Include="src\plugins\service-worker-webpack-plugin\" />
     <Folder Include="src\plugins\raw-css-loader\" />
     <Folder Include="src\plugins\service-worker-webpack-plugin\src\" />
@@ -122,8 +121,6 @@
     <Folder Include="src\plugins\copy-webpack-plugin\src\" />
     <Folder Include="src\plugins\dynamic-dll-webpack-plugin\" />
     <Folder Include="src\plugins\dynamic-dll-webpack-plugin\src\" />
-    <Folder Include="src\plugins\favicons-webpack-plugin\" />
-    <Folder Include="src\plugins\favicons-webpack-plugin\src\" />
     <Folder Include="src\plugins\lib-bundle-webpack-plugin\" />
     <Folder Include="src\plugins\lib-bundle-webpack-plugin\src\" />
     <Folder Include="src\plugins\postcss-cli-resources\" />
@@ -181,6 +178,8 @@
     <TypeScriptCompile Include="src\plugins\postcss-cli-resources\index.ts" />
     <TypeScriptCompile Include="src\plugins\raw-css-loader\index.ts" />
     <TypeScriptCompile Include="src\plugins\raw-css-loader\raw-css-loader.ts" />
+    <TypeScriptCompile Include="src\plugins\remove-hash-webpack-plugin\index.ts" />
+    <TypeScriptCompile Include="src\plugins\remove-hash-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\service-worker-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\service-worker-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
@@ -203,7 +202,6 @@
     <TypeScriptCompile Include="src\index.ts" />
     <TypeScriptCompile Include="src\interfaces\angular-build-config.ts" />
     <TypeScriptCompile Include="src\error-models\index.ts" />
-    <TypeScriptCompile Include="src\interfaces\favicons-config.ts" />
     <TypeScriptCompile Include="src\interfaces\index.ts" />
     <TypeScriptCompile Include="src\plugins\bundle-analyzer-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\bundle-analyzer-webpack-plugin\src\index.ts" />
@@ -217,12 +215,6 @@
     <TypeScriptCompile Include="src\plugins\copy-webpack-plugin\src\process-assets.ts" />
     <TypeScriptCompile Include="src\plugins\dynamic-dll-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\dynamic-dll-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\compiler.ts" />
-    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\icon-generator.ts" />
-    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\internal-models.ts" />
-    <TypeScriptCompile Include="src\plugins\favicons-webpack-plugin\src\plugin.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\scripts-webpack-plugin\index.ts" />
@@ -231,10 +223,7 @@
     <TypeScriptCompile Include="src\plugins\write-assets-to-disk-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\write-stats-json-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\write-stats-json-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\utils\camel-case-to-underscore.ts" />
     <TypeScriptCompile Include="src\utils\colorize.ts" />
-    <TypeScriptCompile Include="src\utils\generate-hash-digest.ts" />
-    <TypeScriptCompile Include="src\utils\is-base64.ts" />
     <TypeScriptCompile Include="src\utils\is-glob.ts" />
     <TypeScriptCompile Include="src\utils\is-url.ts" />
     <TypeScriptCompile Include="src\utils\logger.ts" />

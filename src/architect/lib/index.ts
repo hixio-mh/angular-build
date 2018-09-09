@@ -22,12 +22,12 @@ import { LibBuilderOptions } from '../../interfaces';
 import { normalizeRelativePath } from '../../utils';
 import { getLibWebpackConfig } from '../../webpack-configs/lib';
 
-export class LibBuilder<TConfig extends LibBuilderOptions> implements Builder<TConfig> {
+export class LibBuilder implements Builder<LibBuilderOptions> {
   private readonly _startTime = Date.now();
 
   constructor(public context: BuilderContext) { }
 
-  run(builderConfig: BuilderConfiguration<TConfig>): Observable<BuildEvent> {
+  run(builderConfig: BuilderConfiguration<LibBuilderOptions>): Observable<BuildEvent> {
     const workspaceRoot = getSystemPath(this.context.workspace.root);
     const projectRoot = getSystemPath(resolve(this.context.workspace.root, builderConfig.root));
     const options = JSON.parse(JSON.stringify(builderConfig.options)) as LibBuilderOptions;
