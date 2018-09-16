@@ -1,7 +1,13 @@
-import { Injectable, Inject } from '@angular/core';
-import { DOCUMENT } from '@angular/platform-browser';
+// tslint:disable:no-any
+// tslint:disable:no-unsafe-any
+// tslint:disable:no-implicit-dependencies
 
-@Injectable()
+import { DOCUMENT } from '@angular/common';
+import { Inject, Injectable } from '@angular/core';
+
+@Injectable({
+    providedIn: 'root'
+})
 export class MyInjectable {
-  constructor(@Inject(DOCUMENT) public doc: any) { }
+    constructor(@Inject(DOCUMENT) public doc: any) { }
 }

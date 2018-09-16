@@ -6,16 +6,15 @@ root = true
 # end_of_line = lf
 indent_style = space
 
-
-# javascript and typescript files
-[*.{ts,tsx,js,jsx}]
-indent_size = 2
+# Typescript, javascript and client-side files
+[*.{ts,tsx,js,jsx,html,css,scss,less}]
+indent_size = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
 charset = utf-8
 
-# C# and VB code files
-[*.{cs,csx,vb,vbx}]
+# C#, VB and server-side files
+[*.{cs,csx,vb,vbx,cshtml,vbhtml}]
 indent_size = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
@@ -24,6 +23,7 @@ charset = utf-8-bom
 [*.md]
 insert_final_newline = false
 trim_trailing_whitespace = false
+charset = utf-8
 
 # Solution Files
 [*.sln]

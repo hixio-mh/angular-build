@@ -7,39 +7,39 @@ const path = require('path');
 const spawn = require('cross-spawn');
 
 function _updateSchema(schemaFilePath) {
-  const schemaJson = require(schemaFilePath);
-  if (schemaJson.$schema) {
-    delete schemaJson.$schema;
-  }
+    const schemaJson = require(schemaFilePath);
+    if (schemaJson.$schema) {
+        delete schemaJson.$schema;
+    }
 
-  fs.writeFileSync(schemaFilePath, JSON.stringify(schemaJson, null, 2));
+    fs.writeFileSync(schemaFilePath, JSON.stringify(schemaJson, null, 2));
 }
 
 function _generateSchema(input, typeSymbol, output) {
-  spawn.sync(path.join(process.cwd(), 'node_modules/.bin/typescript-json-schema'),
-    [input, typeSymbol, '-o', output], {
-      cwd: __dirname,
-      stdio: 'inherit'
-    });
+    spawn.sync(path.join(process.cwd(), 'node_modules/.bin/typescript-json-schema'),
+        [input, typeSymbol, '-o', output], {
+            cwd: __dirname,
+            stdio: 'inherit'
+        });
 
-  _updateSchema(output);
+    _updateSchema(output);
 }
 
 function generateSchemas() {
-  const schemaOutDir = path.resolve(__dirname, '../schemas');
-  const tsConfigInput = path.resolve(__dirname, './tsconfig-schema.json');
+    const schemaOutDir = path.resolve(__dirname, '../schemas');
+    const tsConfigInput = path.resolve(__dirname, './tsconfig-schema.json');
 
-  fs.ensureDirSync(schemaOutDir);
+    fs.ensureDirSync(schemaOutDir);
 
-  _generateSchema(tsConfigInput, 'AngularBuildConfig', path.resolve(schemaOutDir, 'schema.json'));
-  _generateSchema(tsConfigInput, 'AppBuilderOptions', path.resolve(schemaOutDir, 'app-builder-options-schema.json'));
-  _generateSchema(tsConfigInput, 'AppProjectConfig', path.resolve(schemaOutDir, 'app-project-config-schema.json'));
-  _generateSchema(tsConfigInput, 'LibBuilderOptions', path.resolve(schemaOutDir, 'lib-builder-options-schema.json'));
-  _generateSchema(tsConfigInput, 'LibProjectConfig', path.resolve(schemaOutDir, 'lib-project-config-schema.json'));
+    _generateSchema(tsConfigInput, 'AngularBuildConfig', path.resolve(schemaOutDir, 'schema.json'));
+    _generateSchema(tsConfigInput, 'AppBuilderOptions', path.resolve(schemaOutDir, 'app-builder-options-schema.json'));
+    _generateSchema(tsConfigInput, 'AppProjectConfig', path.resolve(schemaOutDir, 'app-project-config-schema.json'));
+    _generateSchema(tsConfigInput, 'LibBuilderOptions', path.resolve(schemaOutDir, 'lib-builder-options-schema.json'));
+    _generateSchema(tsConfigInput, 'LibProjectConfig', path.resolve(schemaOutDir, 'lib-project-config-schema.json'));
 }
 
 if (process.argv.length >= 2 && process.argv[1] === path.resolve(__filename)) {
-  generateSchemas();
+    generateSchemas();
 }
 
 module.exports = generateSchemas;

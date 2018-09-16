@@ -1,258 +1,294 @@
+// tslint:disable:no-any
+// tslint:disable:no-unsafe-any
+// tslint:disable:no-require-imports
+// tslint:disable:no-var-requires
+
 import * as path from 'path';
 
 import { pathExists, writeFile } from 'fs-extra';
 import { ScriptTarget } from 'typescript';
 
-import { AngularBuildContext, LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../../../build-context';
-import { TypescriptCompileError } from '../../../error-models';
-import { globCopyFiles, Logger, normalizeRelativePath } from '../../../utils';
+import { AngularBuildContext } from '../../../build-context';
+import { InternalError, TypescriptCompileError } from '../../../error-models';
+import { LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../../../interfaces/internals';
+import { globCopyFiles, normalizeRelativePath } from '../../../utils';
 
 import { processNgResources } from './process-ng-resources';
 import { replaceVersion } from './replace-version';
 
 const spawn = require('cross-spawn');
 
-export async function
-  performTsTranspile<TConfig extends LibProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>,
-    customLogger?: Logger): Promise<void> {
-  const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
-  if (!libConfig._tsTranspilations || !libConfig._tsTranspilations.length) {
-    return;
-  }
-
-  const logger = customLogger ? customLogger : AngularBuildContext.logger;
-
-  const tscCliPath = await getTscCliPath();
-  const ngcCliPath = await getNgcCliPath();
-
-  for (const tsTranspilation of libConfig._tsTranspilations) {
-    const tsConfigPath = tsTranspilation._tsConfigPath;
-    const compilerOptions = tsTranspilation._tsCompilerConfig!.options;
-
-    const commandArgs: string[] = ['-p', tsConfigPath];
-
-    if (tsTranspilation._customTsOutDir) {
-      commandArgs.push('--outDir');
-      commandArgs.push(tsTranspilation._customTsOutDir);
+export async function performTsTranspile(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): Promise<void> {
+    const libConfig = angularBuildContext.projectConfig;
+    if (!libConfig._tsTranspilations || !libConfig._tsTranspilations.length) {
+        return;
     }
 
-    if (tsTranspilation.target) {
-      commandArgs.push('--target');
-      commandArgs.push(tsTranspilation.target);
-    } else if (tsTranspilation._scriptTarget && !compilerOptions.target) {
-      commandArgs.push('--target');
-      commandArgs.push(ScriptTarget[tsTranspilation._scriptTarget]);
+    const logger = AngularBuildContext.logger;
+
+    let tscCliPath: string;
+    if (AngularBuildContext.tscCliPath) {
+        tscCliPath = AngularBuildContext.tscCliPath;
+    } else {
+        tscCliPath = await getTscCliPath();
     }
 
-    if (tsTranspilation._declaration !== compilerOptions.declaration) {
-      commandArgs.push('--declaration');
-
-      if (tsTranspilation._declaration === false) {
-        commandArgs.push('false');
-      }
+    let ngcCliPath: string;
+    if (AngularBuildContext.ngcCliPath) {
+        ngcCliPath = AngularBuildContext.ngcCliPath;
+    } else {
+        ngcCliPath = await getNgcCliPath();
     }
 
-    logger.info(
-      `Compiling typescript with ${tsTranspilation.useTsc ? 'tsc' : 'ngc'}, tsconfig: ${path.relative(
-        AngularBuildContext.workspaceRoot,
-        tsConfigPath)
-      }`);
+    for (const tsTranspilation of libConfig._tsTranspilations) {
+        const tsConfigPath = tsTranspilation._tsConfigPath;
+        if (!tsTranspilation._tsCompilerConfig) {
+            throw new InternalError("The 'tsTranspilation._tsCompilerConfig' is not set.");
+        }
+        const compilerOptions = tsTranspilation._tsCompilerConfig.options;
 
-    await new Promise((resolve, reject) => {
-      const errors: string[] = [];
-      const commandPath = tsTranspilation.useTsc ? tscCliPath : ngcCliPath;
-      const child = spawn(commandPath, commandArgs, {});
-      child.stdout.on('data',
-        (data: any) => {
-          logger.debug(`${data}`);
+        const commandArgs: string[] = ['-p', tsConfigPath];
+
+        if (tsTranspilation._customTsOutDir) {
+            commandArgs.push('--outDir');
+            commandArgs.push(tsTranspilation._customTsOutDir);
+        }
+
+        if (tsTranspilation.target) {
+            commandArgs.push('--target');
+            commandArgs.push(tsTranspilation.target);
+        } else if (tsTranspilation._scriptTarget && !compilerOptions.target) {
+            commandArgs.push('--target');
+            commandArgs.push(ScriptTarget[tsTranspilation._scriptTarget]);
+        }
+
+        if (tsTranspilation._declaration !== compilerOptions.declaration) {
+            commandArgs.push('--declaration');
+
+            if (tsTranspilation._declaration === false) {
+                commandArgs.push('false');
+            }
+        }
+
+        let scriptTargetText: string;
+        if (tsTranspilation.target) {
+            scriptTargetText = tsTranspilation.target.toUpperCase();
+        } else {
+            scriptTargetText = ScriptTarget[tsTranspilation._scriptTarget];
+        }
+
+        logger.info(
+            `Compiling typescript with ${tsTranspilation.useTsc ? 'tsc' : 'ngc'}, target: ${scriptTargetText}`);
+
+        await new Promise((resolve, reject) => {
+            const errors: string[] = [];
+            const commandPath = tsTranspilation.useTsc ? tscCliPath : ngcCliPath;
+            const child = spawn(commandPath, commandArgs, {});
+            child.stdout.on('data',
+                (data: any) => {
+                    logger.debug(`${data}`);
+                });
+            child.stderr.on('data', (data: any) => errors.push(data.toString().trim()));
+            child.on('error', reject);
+            child.on('exit',
+                (exitCode: number) => {
+                    if (exitCode === 0) {
+                        afterTsTranspileTask(angularBuildContext, tsTranspilation).then(() => {
+                            resolve();
+                        }).catch(err => {
+                            reject(err);
+                        });
+                    } else {
+                        reject(new TypescriptCompileError(errors.join('\n')));
+                    }
+                });
         });
-      child.stderr.on('data', (data: any) => errors.push(data.toString().trim()));
-      child.on('error', (err: Error) => reject(err));
-      child.on('exit',
-        (exitCode: number) => {
-          if (exitCode === 0) {
-            afterTsTranspileTask(angularBuildContext, tsTranspilation, customLogger).then(() => {
-              resolve();
-            }).catch(err => {
-              reject(err);
-            });
-          } else {
-            reject(new TypescriptCompileError(errors.join('\n')));
-          }
-        });
-    });
-  }
+    }
 }
 
-async function afterTsTranspileTask<TConfig extends LibProjectConfigInternal>(angularBuildContext:
-  AngularBuildContext<TConfig>,
-  tsTranspilation: TsTranspilationOptionsInternal,
-  customLogger?: Logger): Promise<void> {
-  const logger = customLogger ? customLogger : AngularBuildContext.logger;
-  const libConfig = angularBuildContext.projectConfig as LibProjectConfigInternal;
-  const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig.root || '');
+// tslint:disable:max-func-body-length
+async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>,
+    tsTranspilation: TsTranspilationOptionsInternal): Promise<void> {
+    const logger = AngularBuildContext.logger;
+    const libConfig = angularBuildContext.projectConfig;
 
-  const outputRootDir = libConfig.outputPath
-    ? path.resolve(AngularBuildContext.workspaceRoot, libConfig.outputPath)
-    : null;
-
-  const stylePreprocessorOptions = libConfig.stylePreprocessorOptions;
-  const flatModuleOutFile =
-    !tsTranspilation.useTsc &&
-      tsTranspilation._angularCompilerOptions &&
-      tsTranspilation._angularCompilerOptions.flatModuleOutFile
-      ? tsTranspilation._angularCompilerOptions!.flatModuleOutFile as string
-      : '';
-  const projectVersion = libConfig._projectVersion;
-
-  // replace version
-  if (tsTranspilation.replaceVersionPlaceholder !== false && projectVersion) {
-    logger.debug('Updating version placeholder');
-
-    await replaceVersion(tsTranspilation._tsOutDirRootResolved,
-      projectVersion,
-      `${path.join(tsTranspilation._tsOutDirRootResolved, '**/version.js')}`);
-  }
-
-  // inline assets
-  if (tsTranspilation.inlineAssets !== false) {
-    logger.debug('Inlining template and style urls');
-
-    let stylePreprocessorIncludePaths: string[] = [];
-    if (stylePreprocessorOptions &&
-      stylePreprocessorOptions.includePaths) {
-      stylePreprocessorIncludePaths =
-        stylePreprocessorOptions.includePaths
-          .map(p => path.resolve(projectRoot, p));
+    if (!libConfig._projectRoot) {
+        throw new InternalError("The 'libConfig._projectRoot' is not set.");
     }
 
-    await processNgResources(
-      projectRoot,
-      tsTranspilation._tsOutDirRootResolved,
-      `${path.join(tsTranspilation._tsOutDirRootResolved, '**/*.js')}`,
-      stylePreprocessorIncludePaths,
-      flatModuleOutFile
-        ? flatModuleOutFile.replace(/\.js$/i, '.metadata.json')
-        : '');
-  }
+    const projectRoot = libConfig._projectRoot;
+    const outputRootDir = libConfig._outputPath;
 
-  // move typings and metadata files
-  if (tsTranspilation.moveTypingFilesToPackageRoot &&
-    tsTranspilation._declaration &&
-    tsTranspilation._typingsOutDir &&
-    tsTranspilation._typingsOutDir !== tsTranspilation._tsOutDirRootResolved) {
-    if (tsTranspilation.useTsc) {
-      logger.debug('Moving typing files to output root');
+    const stylePreprocessorOptions = libConfig.stylePreprocessorOptions;
+    const flatModuleOutFile =
+        !tsTranspilation.useTsc &&
+            tsTranspilation._angularCompilerOptions &&
+            tsTranspilation._angularCompilerOptions.flatModuleOutFile
+            ? tsTranspilation._angularCompilerOptions.flatModuleOutFile as string
+            : '';
+    const projectVersion = libConfig._projectVersion;
 
-      await globCopyFiles(tsTranspilation._tsOutDirRootResolved,
-        '**/*.+(d.ts)',
-        tsTranspilation._typingsOutDir,
-        true);
-    } else {
-      logger.debug('Moving typing and metadata files to output root');
+    // Replace version
+    if (tsTranspilation.replaceVersionPlaceholder !== false && projectVersion
+        && (tsTranspilation._index === 0 || (tsTranspilation._index > 0 && libConfig._prevTsTranspilationVersionReplaced))) {
+        logger.debug('Checking version placeholder');
 
-      await globCopyFiles(tsTranspilation._tsOutDirRootResolved,
-        '**/*.+(d.ts|metadata.json)',
-        tsTranspilation._typingsOutDir,
-        true);
-    }
-  }
-
-  // Re-export
-  if (tsTranspilation.reExportTypingEntryToOutputRoot !== false &&
-    tsTranspilation._detectedEntryName &&
-    outputRootDir &&
-    tsTranspilation._typingsOutDir &&
-    outputRootDir !== tsTranspilation._typingsOutDir) {
-
-    const relPath = normalizeRelativePath(path.relative(outputRootDir, tsTranspilation._typingsOutDir));
-
-    // add banner to index
-    const bannerContent = libConfig._bannerText ? libConfig._bannerText + '\n' : '';
-
-    if (tsTranspilation.useTsc) {
-      logger.debug('Re-exporting typing files to output root');
-    } else {
-      logger.debug('Re-exporting typing and metadata entry files to output root');
+        const hasVersionReplaced = await replaceVersion(tsTranspilation._tsOutDirRootResolved,
+            projectVersion,
+            `${path.join(tsTranspilation._tsOutDirRootResolved, '**/version.js')}`,
+            logger);
+        if (tsTranspilation._index === 0) {
+            libConfig._prevTsTranspilationVersionReplaced = hasVersionReplaced;
+        }
     }
 
-    const reExportTypingsContent =
-      `${bannerContent}export * from './${relPath}/${tsTranspilation._detectedEntryName}';\n`;
-    const reEportTypingsFileAbs = path.resolve(outputRootDir, `${tsTranspilation._detectedEntryName}.d.ts`);
-    await writeFile(reEportTypingsFileAbs, reExportTypingsContent);
+    // Inline assets
+    if (tsTranspilation.inlineAssets !== false
+        && (tsTranspilation._index === 0 || (tsTranspilation._index > 0 && libConfig._prevTsTranspilationResourcesInlined))) {
+        logger.debug('Checking resources to be inlined');
 
-    if (!tsTranspilation.useTsc) {
-      const metadataJson: any = {
-        __symbolic: 'module',
-        version: 3,
-        metadata: {},
-        exports: [{ from: `./${relPath}/${tsTranspilation._detectedEntryName}` }],
-        flatModuleIndexRedirect: true,
-      };
+        let stylePreprocessorIncludePaths: string[] = [];
+        if (stylePreprocessorOptions &&
+            stylePreprocessorOptions.includePaths) {
+            stylePreprocessorIncludePaths =
+                stylePreprocessorOptions.includePaths
+                    .map(p => path.resolve(projectRoot, p));
+        }
 
-      const reEportMetaDataFileAbs = reEportTypingsFileAbs.replace(/\.d\.ts$/i, '.metadata.json');
-      await writeFile(reEportMetaDataFileAbs, JSON.stringify(metadataJson, null, 2));
+        const resourcesInlined = await processNgResources(
+            projectRoot,
+            tsTranspilation._tsOutDirRootResolved,
+            `${path.join(tsTranspilation._tsOutDirRootResolved, '**/*.js')}`,
+            stylePreprocessorIncludePaths,
+            tsTranspilation._declaration,
+            flatModuleOutFile
+                ? flatModuleOutFile.replace(/\.js$/i, '.metadata.json')
+                : null,
+            logger);
+
+        if (tsTranspilation._index === 0) {
+            libConfig._prevTsTranspilationResourcesInlined = resourcesInlined;
+        }
     }
-  }
+
+    // Move typings and metadata files
+    if (tsTranspilation.moveTypingFilesToPackageRoot &&
+        tsTranspilation._declaration &&
+        tsTranspilation._typingsOutDir &&
+        tsTranspilation._typingsOutDir !== tsTranspilation._tsOutDirRootResolved) {
+        if (tsTranspilation.useTsc) {
+            logger.debug('Moving typing files to output root');
+
+            await globCopyFiles(tsTranspilation._tsOutDirRootResolved,
+                '**/*.+(d.ts)',
+                tsTranspilation._typingsOutDir,
+                true);
+        } else {
+            logger.debug('Moving typing and metadata files to output root');
+
+            await globCopyFiles(tsTranspilation._tsOutDirRootResolved,
+                '**/*.+(d.ts|metadata.json)',
+                tsTranspilation._typingsOutDir,
+                true);
+        }
+    }
+
+    // Re-export
+    if (tsTranspilation.reExportTypingEntryToOutputRoot !== false &&
+        tsTranspilation._declaration &&
+        tsTranspilation._detectedEntryName &&
+        outputRootDir &&
+        tsTranspilation._typingsOutDir &&
+        outputRootDir !== tsTranspilation._typingsOutDir) {
+
+        const relPath = normalizeRelativePath(path.relative(outputRootDir, tsTranspilation._typingsOutDir));
+
+        // add banner to index
+        const bannerContent = libConfig._bannerText ? `${libConfig._bannerText}\n` : '';
+
+        if (tsTranspilation.useTsc) {
+            logger.debug('Re-exporting typing files to output root');
+        } else {
+            logger.debug('Re-exporting typing and metadata entry files to output root');
+        }
+
+        const reExportTypingsContent =
+            `${bannerContent}export * from './${relPath}/${tsTranspilation._detectedEntryName}';\n`;
+        const reEportTypingsFileAbs = path.resolve(outputRootDir, `${tsTranspilation._detectedEntryName}.d.ts`);
+        await writeFile(reEportTypingsFileAbs, reExportTypingsContent);
+
+        if (!tsTranspilation.useTsc) {
+            const metadataJson: any = {
+                __symbolic: 'module',
+                version: 3,
+                metadata: {},
+                exports: [{ from: `./${relPath}/${tsTranspilation._detectedEntryName}` }],
+                flatModuleIndexRedirect: true,
+            };
+
+            const reEportMetaDataFileAbs = reEportTypingsFileAbs.replace(/\.d\.ts$/i, '.metadata.json');
+            await writeFile(reEportMetaDataFileAbs, JSON.stringify(metadataJson, null, 2));
+        }
+    }
 }
 
 async function getNgcCliPath(): Promise<string> {
-  const ngcCli = '.bin/ngc';
+    const ngcCli = '.bin/ngc';
 
-  if (AngularBuildContext.nodeModulesPath &&
-    await pathExists(path.join(AngularBuildContext.nodeModulesPath, ngcCli))) {
-    return path.join(AngularBuildContext.nodeModulesPath, ngcCli);
-  }
-
-  if (AngularBuildContext.cliRootPath &&
-    await pathExists(path.join(AngularBuildContext.cliRootPath, 'node_modules', ngcCli))) {
-    return path.join(AngularBuildContext.cliRootPath, 'node_modules', ngcCli);
-  }
-
-  if (AngularBuildContext.nodeModulesPath &&
-    await pathExists(path.join(AngularBuildContext.nodeModulesPath,
-      '@bizappframework/angular-build/node_modules',
-      ngcCli))) {
-    return path.join(AngularBuildContext.nodeModulesPath,
-      '@bizappframework/angular-build/node_modules',
-      ngcCli);
-  }
-
-  try {
-    let internalNodeModulePath = path.dirname(require.resolve('@angular/compiler-cli'));
-    while (internalNodeModulePath &&
-      !/node_modules$/i.test(internalNodeModulePath) &&
-      internalNodeModulePath !== path.dirname(internalNodeModulePath)) {
-      internalNodeModulePath = path.dirname(internalNodeModulePath);
+    if (AngularBuildContext.nodeModulesPath &&
+        await pathExists(path.join(AngularBuildContext.nodeModulesPath, ngcCli))) {
+        return path.join(AngularBuildContext.nodeModulesPath, ngcCli);
     }
 
-    return path.join(internalNodeModulePath, ngcCli);
-  } catch (err) {
-    return 'ngc';
-  }
+    if (AngularBuildContext.cliRootPath &&
+        await pathExists(path.join(AngularBuildContext.cliRootPath, 'node_modules', ngcCli))) {
+        return path.join(AngularBuildContext.cliRootPath, 'node_modules', ngcCli);
+    }
+
+    if (AngularBuildContext.nodeModulesPath &&
+        await pathExists(path.join(AngularBuildContext.nodeModulesPath,
+            '@bizappframework/angular-build/node_modules',
+            ngcCli))) {
+        return path.join(AngularBuildContext.nodeModulesPath,
+            '@bizappframework/angular-build/node_modules',
+            ngcCli);
+    }
+
+    try {
+        let internalNodeModulePath = path.dirname(require.resolve('@angular/compiler-cli'));
+        while (internalNodeModulePath &&
+            !/node_modules$/i.test(internalNodeModulePath) &&
+            internalNodeModulePath !== path.dirname(internalNodeModulePath)) {
+            internalNodeModulePath = path.dirname(internalNodeModulePath);
+        }
+
+        return path.join(internalNodeModulePath, ngcCli);
+    } catch (err) {
+        return 'ngc';
+    }
 }
 
 async function getTscCliPath(): Promise<string> {
-  const tscCli = '.bin/tsc';
+    const tscCli = '.bin/tsc';
 
-  if (AngularBuildContext.nodeModulesPath &&
-    await pathExists(path.join(AngularBuildContext.nodeModulesPath, tscCli))) {
-    return path.join(AngularBuildContext.nodeModulesPath, tscCli);
-  }
+    if (AngularBuildContext.nodeModulesPath &&
+        await pathExists(path.join(AngularBuildContext.nodeModulesPath, tscCli))) {
+        return path.join(AngularBuildContext.nodeModulesPath, tscCli);
+    }
 
-  if (AngularBuildContext.cliRootPath &&
-    await pathExists(path.join(AngularBuildContext.cliRootPath, 'node_modules', tscCli))) {
-    return path.join(AngularBuildContext.cliRootPath, 'node_modules', tscCli);
-  }
+    if (AngularBuildContext.cliRootPath &&
+        await pathExists(path.join(AngularBuildContext.cliRootPath, 'node_modules', tscCli))) {
+        return path.join(AngularBuildContext.cliRootPath, 'node_modules', tscCli);
+    }
 
-  if (AngularBuildContext.nodeModulesPath &&
-    await pathExists(path.join(AngularBuildContext.nodeModulesPath,
-      '@bizappframework/angular-build/node_modules',
-      tscCli))) {
-    return path.join(AngularBuildContext.nodeModulesPath,
-      '@bizappframework/angular-build/node_modules',
-      tscCli);
-  }
+    if (AngularBuildContext.nodeModulesPath &&
+        await pathExists(path.join(AngularBuildContext.nodeModulesPath,
+            '@bizappframework/angular-build/node_modules',
+            tscCli))) {
+        return path.join(AngularBuildContext.nodeModulesPath,
+            '@bizappframework/angular-build/node_modules',
+            tscCli);
+    }
 
-  return 'tsc';
+    return 'tsc';
 }

@@ -1,8 +1,10 @@
+// tslint:disable:no-any
+
 export interface CliOptions {
-  args?: any;
-  cliVersion: string;
-  cliIsGlobal?: boolean;
-  cliRootPath?: string;
-  startTime?: number;
-  cliIsLink?: boolean;
+    args?: any;
+    cliVersion: string;
+    cliIsGlobal?: boolean;
+    cliRootPath?: string;
+    startTime?: number;
+    cliIsLink?: boolean;
 }

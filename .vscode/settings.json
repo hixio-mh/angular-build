@@ -1,18 +1,14 @@
 {
-  "vsicons.presets.angular": true,
-  "files.exclude": {
-    "**/.vs": true,
-    "obj": true,
-    "bin/Microsoft.NodejsTools.WebRole.dll": true,
-    "*.njsproj": true,
-    "*.sln": true,
-    "*.user": true
-  },
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/bower_components": true,
-    "**/dist": true,
-    "schemas": true,
-    "package-lock.json": true
-  },
+    "files.exclude": {
+        "*.user": true,
+        "**/.vs": true,
+        "obj": true
+    },
+    "search.exclude": {
+        "*.csproj": true,
+        "*.njsproj": true,
+        "*.sln": true,
+        "**/dist": true,
+        "package-lock.json": true
+    }
 }

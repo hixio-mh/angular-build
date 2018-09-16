@@ -10,12 +10,7 @@
   "tsConfig": "tsconfig.app.json",
   "clean": {
     "beforeBuild": {
-      "exclude": [
-        ".gitkeep",
-        "icons-*",
-        ".icons-cache",
-        "favicon.ico"
-      ]
+      "cleanOutDir": true
     }
   },
   "copy": [
@@ -44,11 +39,6 @@
         "bundles": true,
         "chunks": true,
         "extractedAssets": true
-      },
-      "clean": {
-        "beforeBuild": {
-          "cleanOutDir": true
-        }
       },
       "fileReplacements": [{
         "replace": "./environments/environment.ts",

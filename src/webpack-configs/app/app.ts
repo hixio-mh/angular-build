@@ -1,11 +1,17 @@
+ // tslint:disable:no-any
+// tslint:disable:no-unsafe-any
+
 import * as path from 'path';
+
 import * as webpack from 'webpack';
+import * as webpackMerge from 'webpack-merge';
 
 import { AngularBuildContextWebpackPlugin } from '../../plugins/angular-build-context-webpack-plugin';
 import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
-import { AngularBuildContext, AppProjectConfigInternal } from '../../build-context';
-import { isFromWebpackDevServer, getCustomWebpackConfig } from '../../helpers';
+import { AngularBuildContext } from '../../build-context';
+import { getCustomWebpackConfig, isFromWebpackDevServer } from '../../helpers';
+import { AppProjectConfigInternal } from '../../interfaces/internals';
 
 import { getAppAngularTypescriptWebpackConfigPartial } from './angular';
 import { getAppBrowserWebpackConfigPartial } from './browser';
@@ -13,79 +19,77 @@ import { getAppCommonWebpackConfigPartial } from './common';
 import { getAppReferenceDllWebpackConfigPartial } from './reference-dll';
 import { getAppStylesWebpackConfigPartial } from './styles';
 
-const webpackMerge = require('webpack-merge');
-
 export function
-  getAppWebpackConfig<TConfig extends AppProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
-  webpack.Configuration {
-  const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-  let customWebpackConfig: webpack.Configuration = {};
+    getAppWebpackConfig<TConfig extends AppProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
+    webpack.Configuration {
+    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    let customWebpackConfig: webpack.Configuration = {};
 
-  if (appConfig.webpackConfig) {
-    const customWebpackConfigPath =
-      path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '', appConfig.webpackConfig);
-    customWebpackConfig =
-      getCustomWebpackConfig(customWebpackConfigPath, angularBuildContext) || {};
-  }
+    if (appConfig.webpackConfig) {
+        const customWebpackConfigPath =
+            path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '', appConfig.webpackConfig);
+        customWebpackConfig =
+            getCustomWebpackConfig(customWebpackConfigPath, angularBuildContext) || {};
+    }
 
-  const configs: webpack.Configuration[] = [
-    // reference dll
-    getAppReferenceDllWebpackConfigPartial(angularBuildContext),
-    getAppCommonWebpackConfigPartial(angularBuildContext),
-    getAppStylesWebpackConfigPartial(angularBuildContext),
-    getAppAngularTypescriptWebpackConfigPartial(angularBuildContext),
+    const configs: webpack.Configuration[] = [
+        // reference dll
+        getAppReferenceDllWebpackConfigPartial(angularBuildContext),
+        getAppCommonWebpackConfigPartial(angularBuildContext),
+        getAppStylesWebpackConfigPartial(angularBuildContext),
+        getAppAngularTypescriptWebpackConfigPartial(angularBuildContext),
 
-    // browser only
-    getAppBrowserWebpackConfigPartial(angularBuildContext),
+        // browser only
+        getAppBrowserWebpackConfigPartial(angularBuildContext),
 
-    // Must be the last item(s) to merge
-    getAppWebpackConfigPartial(angularBuildContext),
-    customWebpackConfig
-  ];
+        // Must be the last item(s) to merge
+        getAppWebpackConfigPartial(angularBuildContext),
+        customWebpackConfig
+    ];
 
-  const mergedConfig = webpackMerge(configs) as webpack.Configuration;
+    const mergedConfig = webpackMerge(...configs);
 
-  if (!mergedConfig.entry || (typeof mergedConfig.entry === 'object' && !Object.keys(mergedConfig.entry).length)) {
-    mergedConfig.entry = isFromWebpackDevServer()
-      ? [] as string[]
-      : (() => ({})) as any;
-  }
+    if (!mergedConfig.entry || (typeof mergedConfig.entry === 'object' && !Object.keys(mergedConfig.entry).length)) {
+        mergedConfig.entry = isFromWebpackDevServer()
+            ? [] as string[]
+            : (() => ({})) as any;
+    }
 
-  return mergedConfig;
+    return mergedConfig;
 }
 
 function getAppWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(angularBuildContext:
-  AngularBuildContext<TConfig>): webpack.Configuration {
-  const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-  const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
+    AngularBuildContext<TConfig>): webpack.Configuration {
+    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
 
-  // entry
-  const entrypoints: { [key: string]: string[] } = {};
+    // entry
+    const entrypoints: { [key: string]: string[] } = {};
 
-  if (appConfig.entry) {
-    const mainChunkName = appConfig.mainChunkName || 'main';
-    const mainEntry = path.resolve(projectRoot, appConfig.entry);
-    entrypoints[mainChunkName] = [mainEntry];
-  }
+    if (appConfig.entry) {
+        const mainChunkName = appConfig.mainChunkName || 'main';
+        const mainEntry = path.resolve(projectRoot, appConfig.entry);
+        entrypoints[mainChunkName] = [mainEntry];
+    }
 
-  // plugins
-  const plugins: webpack.Plugin[] = [
-    new AngularBuildContextWebpackPlugin(angularBuildContext)
-  ];
+    // plugins
+    const plugins: webpack.Plugin[] = [
+        new AngularBuildContextWebpackPlugin(angularBuildContext)
+    ];
 
-  // telemetry plugin
-  if (!AngularBuildContext.telemetryPluginAdded) {
-    AngularBuildContext.telemetryPluginAdded = true;
-    plugins.push(new TelemetryWebpackPlugin());
-  }
+    // telemetry plugin
+    if (!AngularBuildContext.telemetryPluginAdded) {
+        AngularBuildContext.telemetryPluginAdded = true;
+        plugins.push(new TelemetryWebpackPlugin());
+    }
 
-  const webpackAppConfig: webpack.Configuration = {
-    plugins: plugins
-  };
+    const webpackAppConfig: webpack.Configuration = {
+        plugins: plugins
+    };
 
-  if (Object.keys(entrypoints).length > 0) {
-    webpackAppConfig.entry = entrypoints;
-  }
+    if (Object.keys(entrypoints).length > 0) {
+        webpackAppConfig.entry = entrypoints;
+    }
 
-  return webpackAppConfig;
+    return webpackAppConfig;
 }

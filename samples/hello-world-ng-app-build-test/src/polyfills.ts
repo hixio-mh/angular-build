@@ -14,7 +14,8 @@
  * Learn more in https://angular.io/docs/ts/latest/guide/browser-support.html
  */
 
-/* tslint:disable:no-import-side-effect */
+// tslint:disable:no-import-side-effect
+// tslint:disable:no-implicit-dependencies
 
 /***************************************************************************************************
  * BROWSER POLYFILLS
@@ -25,7 +26,7 @@
 
 // Evergreen browsers require these.
 // Used for reflect-metadata in JIT. If you use AOT (and only Angular decorators), you can remove.
-// import 'core-js/es7/reflect';
+import 'core-js/es7/reflect';
 
 /**
  * By default, zone.js will patch all possible macroTask and DomEvents

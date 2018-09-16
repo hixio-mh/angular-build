@@ -5,8 +5,6 @@
     "outputPath": "dist",
     "entry": "main.ts",
     "polyfills": [
-      // "core-js/es6/reflect",
-      // "core-js/es7/reflect",
       "polyfills.ts"
     ],
     "tsConfig": "tsconfig.json",
@@ -15,23 +13,17 @@
       "favicon.ico"
     ],
     "styles": ["styles.scss"],
-    "dlls": [
+    "vendors": [
       "@angular/common",
       "@angular/compiler",
       "@angular/core",
       "@angular/platform-browser",
       "@angular/platform-browser-dynamic",
       "@angular/router",
-      // "core-js/es6/reflect",
-      // "core-js/es7/reflect",
-      // "event-source-polyfill",
       "zone.js/dist/zone"
     ],
-    "publicPath": "/",
-    "baseHref": "~/",
+    "publicPath": "/",    
     "htmlInject": {
-      // Default true for production
-      // "runtimeChunkInline": true,
       "resourceHints": true,
       "index": "index.html"
     },
@@ -43,7 +35,7 @@
           }
         }
       },
-      "ref": {
+      "ref-dll": {
         "referenceDll": true
       },
       "prod": {
@@ -51,10 +43,7 @@
           "beforeBuild": {
             "cleanOutDir": true
           }
-        },
-        "copy": [
-          "assets/**/*"
-        ],
+        },       
         "fileReplacements": [{
           "replace": "./environments/environment.ts",
           "with": "./environments/environment.prod.ts"

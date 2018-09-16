@@ -2,8 +2,9 @@
 
 ## 6.1.0
 
-### Features
+### Changes
 
+- Code refactoring, bug fixes and updated npm dependencies
 
 ## 6.0.0
 

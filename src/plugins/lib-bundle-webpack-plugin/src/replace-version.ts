@@ -1,34 +1,42 @@
 import * as path from 'path';
 
-import { readFile, writeFile } from 'fs-extra';
 import * as denodeify from 'denodeify';
+import { readFile, writeFile } from 'fs-extra';
+
 import * as glob from 'glob';
 
-const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
+import { Logger } from '../../../utils';
 
+const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 const versionRegex = /export\s+const\s+VERSION\s*=\s*['"`](.*PLACEHOLDER)['"`]/g;
 
 export async function replaceVersion(
-  searchRootDir: string,
-  projectVersion: string,
-  searchPatterns: string | string[]): Promise<void> {
-  if (typeof searchPatterns === 'string') {
-    searchPatterns = [searchPatterns as string];
-  }
+    searchRootDir: string,
+    projectVersion: string,
+    searchPattern: string,
+    logger: Logger): Promise<boolean> {
+    let replaced = false;
 
-  await Promise.all((searchPatterns as string[]).map(async (pattern) => {
-    if (pattern.indexOf('*') < 0) {
-      pattern = path.join(pattern, '**', '*');
+    if (searchPattern.indexOf('*') < 0) {
+        searchPattern = path.join(searchPattern, '**', '*');
     }
 
-    let files = await globPromise(pattern, { cwd: searchRootDir, nodir: true, dot: true });
+    let files = await globPromise(searchPattern, { cwd: searchRootDir, nodir: true, dot: true });
     files = files.filter(name => /\.js$/i.test(name));
-    await Promise.all(files.map(async (filePath: string) => {
-      const content = await readFile(filePath, 'utf-8');
-      if (versionRegex.test(content)) {
-        content.replace(versionRegex, projectVersion);
-        await writeFile(filePath, content);
-      }
-    }));
-  }));
+
+    for (const filePath of files) {
+        const content = await readFile(filePath, 'utf-8');
+        if (versionRegex.test(content)) {
+            if (!replaced) {
+                logger.debug('Updating version placeholder');
+            }
+
+            content.replace(versionRegex, projectVersion);
+            await writeFile(filePath, content);
+
+            replaced = true;
+        }
+    }
+
+    return replaced;
 }

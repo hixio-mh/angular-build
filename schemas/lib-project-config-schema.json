@@ -78,12 +78,10 @@
           "description": "After emit clean option."
         },
         "allowOutsideOutDir": {
-          "default": false,
           "description": "Allows cleaning outside of output directory.",
           "type": "boolean"
         },
         "allowOutsideWorkspaceRoot": {
-          "default": false,
           "description": "Allows cleaning outside of workspace root.",
           "type": "boolean"
         },
@@ -159,7 +157,6 @@
       "additionalProperties": false,
       "properties": {
         "bundleTool": {
-          "default": "rollup",
           "description": "Bundle tool to be used.",
           "enum": [
             "rollup",
@@ -266,10 +263,7 @@
               "type": "array"
             },
             {
-              "enum": [
-                "auto"
-              ],
-              "type": "string"
+              "type": "boolean"
             }
           ],
           "description": "Bundle target options."
@@ -344,7 +338,6 @@
           "type": "string"
         },
         "packageJsonCopy": {
-          "default": true,
           "description": "Copy package.json file to output path.",
           "type": "boolean"
         },
@@ -399,10 +392,7 @@
               "type": "array"
             },
             {
-              "enum": [
-                "auto"
-              ],
-              "type": "string"
+              "type": "boolean"
             }
           ],
           "description": "Typescript transpilation options."
@@ -431,7 +421,6 @@
           "type": "boolean"
         },
         "inlineAssets": {
-          "default": true,
           "description": "If true, templateUrl and styleUrls resources are inlined.",
           "type": "boolean"
         },
@@ -448,7 +437,6 @@
           "type": "boolean"
         },
         "replaceVersionPlaceholder": {
-          "default": true,
           "description": "If true, replaces version placeholder with package version.",
           "type": "boolean"
         },
@@ -469,7 +457,6 @@
           "type": "string"
         },
         "useTsc": {
-          "default": false,
           "description": "If true, use tsc instead of ngc.",
           "type": "boolean"
         }
@@ -495,10 +482,7 @@
           "type": "array"
         },
         {
-          "enum": [
-            "auto"
-          ],
-          "type": "string"
+          "type": "boolean"
         }
       ],
       "description": "Bundle target options."
@@ -595,7 +579,6 @@
       "type": "string"
     },
     "packageJsonCopy": {
-      "default": true,
       "description": "Copy package.json file to output path.",
       "type": "boolean"
     },
@@ -654,10 +637,7 @@
           "type": "array"
         },
         {
-          "enum": [
-            "auto"
-          ],
-          "type": "string"
+          "type": "boolean"
         }
       ],
       "description": "Typescript transpilation options."
