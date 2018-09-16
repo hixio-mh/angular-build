@@ -15,16 +15,17 @@
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
-[Xx]64/
-[Xx]86/
-[Bb]uild/
+x64/
+x86/
+build/
 bld/
-[Oo]bj/
+# bin/
+Bin/
+obj/
+Obj/
 
 # Visual Studio 2015 cache/options directory
 .vs/
-# Uncomment if you have tasks that create the project's static files in wwwroot
-#wwwroot/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
@@ -38,10 +39,6 @@ TestResult.xml
 [Dd]ebugPS/
 [Rr]eleasePS/
 dlldata.c
-
-# DNX
-project.lock.json
-artifacts/
 
 *_i.c
 *_p.c
@@ -79,7 +76,6 @@ ipch/
 *.opensdf
 *.sdf
 *.cachefile
-*.VC.db
 
 # Visual Studio profiler
 *.psess
@@ -116,9 +112,6 @@ nCrunchTemp_*
 *.mm.*
 AutoTest.Net/
 
-# Web workbench (sass)
-.sass-cache/
-
 # Installshield output folder
 [Ee]xpress/
 
@@ -138,11 +131,9 @@ publish/
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml
-
-# TODO: Un-comment the next line if you do not want to checkin
-# your web deploy settings because they may include unencrypted
-# passwords
-#*.pubxml
+# TODO: Comment the next line if you want to checkin your web deploy settings
+# but database connection strings (with potential passwords) will be unencrypted
+*.pubxml
 *.publishproj
 
 # NuGet Packages
@@ -153,9 +144,6 @@ publish/
 !**/packages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/packages/repositories.config
-# NuGet v3's project.json files produces more ignoreable files
-*.nuget.props
-*.nuget.targets
 
 # Microsoft Azure Build Output
 csx/
@@ -164,6 +152,9 @@ csx/
 # Microsoft Azure Emulator
 ecf/
 rcf/
+
+# Microsoft Azure ApplicationInsights config file
+ApplicationInsights.config
 
 # Windows Store app package directory
 AppPackages/
@@ -177,7 +168,6 @@ BundleArtifacts/
 
 # Others
 ClientBin/
-[Ss]tyle[Cc]op.*
 ~$*
 *~
 *.dbmdl
@@ -185,6 +175,8 @@ ClientBin/
 *.pfx
 *.publishsettings
 orleans.codegen.cs
+
+/node_modules
 
 # RIA/Silverlight projects
 Generated_Code/
@@ -229,10 +221,6 @@ FakesAssemblies/
 **/*.Server/ModelManifest.xml
 _Pvt_Extensions
 
-# LightSwitch generated files
-GeneratedArtifacts/
-ModelManifest.xml
-
 # Paket dependency manager
 .paket/paket.exe
 
@@ -241,20 +229,65 @@ ModelManifest.xml
 
 # Custom
 # --------------------------------------------------
-# node_modules
-node_modules/
+# System Files
+Thumbs.db
+
+# Mac OSX Finder files.
+.DS_Store
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IDEs and editors
+/.idea
+jsconfig.json
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Typings file
+typings/
+
+# misc
+bower_components
+.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log*
+yarn-error.log*
+testem.log
+TestResults/
+.nuget/
+nuget.exe
+_ReSharper.*/
+artifacts/
+PublishProfiles/
+debugSettings.json
+*.docstates
+**/[Cc]ompiler/[Rr]esources/**/*.js
+.build/
+.testPublish/
+pubspec.lock
+.build-analytics
+bin/Microsoft.NodejsTools.WebRole.dll
+**/.bo-cache
+**/.rts2_cache/
+tmp/
+
+# package lock files
+package-lock.json
+**/npm-debug.log*
+yarn.lock
+yarn-error.log
 
 # dist
+**/out-tsc/
 **/dist/**/*
-
-# npm
-**/npm-debug.log*
-
-# User-specific files
-
-# Misc.
-**/obj/
-
-bin/Microsoft.NodejsTools.WebRole.dll
-
-**/.bo-cache
