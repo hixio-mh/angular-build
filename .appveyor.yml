@@ -20,5 +20,5 @@ build_script:
   - npm run build:samples
 test: off
 cache:
-  - node_modules -> package-lock.json
+  - node_modules -> package.json
   - '%APPDATA%\npm-cache'
