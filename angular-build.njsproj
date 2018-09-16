@@ -170,6 +170,7 @@
     <TypeScriptCompile Include="src\helpers\resolve-loader-path.ts" />
     <TypeScriptCompile Include="src\helpers\to-ts-script-target.ts" />
     <TypeScriptCompile Include="src\helpers\validate-output-path.ts" />
+    <TypeScriptCompile Include="src\interfaces\build-command-options.ts" />
     <TypeScriptCompile Include="src\interfaces\internals.ts" />
     <TypeScriptCompile Include="src\plugins\angular-build-context-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\angular-build-context-webpack-plugin\src\index.ts" />
