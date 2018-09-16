@@ -51,6 +51,7 @@
     <Content Include=".github\ISSUE_TEMPLATE\bug_report.md" />
     <Content Include=".gitignore" />
     <Content Include=".travis.yml" />
+    <Content Include="azure-pipelines.yml" />
     <Content Include="bin\ngb" />
     <Content Include="builders.json" />
     <Content Include="CHANGELOG.md" />
