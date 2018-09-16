@@ -2,7 +2,8 @@ angular-build
 =====================
 
 <!-- Badges section here. -->
-[![Build status](https://img.shields.io/appveyor/ci/mmzliveid/angular-build.svg?label=appveyor)](https://ci.appveyor.com/project/mmzliveid/angular-build)
+<!-- [![Build status](https://img.shields.io/appveyor/ci/mmzliveid/angular-build.svg?label=appveyor)](https://ci.appveyor.com/project/mmzliveid/angular-build) -->
+[![Build Status](https://bizappframework.visualstudio.com/Home/_apis/build/status/BizAppFramework.angular-build)](https://bizappframework.visualstudio.com/Home/_build/latest?definitionId=34)
 [![Build Status](https://img.shields.io/travis/BizAppFramework/angular-build/master.svg?label=travis)](https://travis-ci.org/BizAppFramework/angular-build)
 [![npm version](https://badge.fury.io/js/%40bizappframework%2Fangular-build.svg)](https://badge.fury.io/js/%40bizappframework%2Fangular-build)
 [![Dependency Status](https://david-dm.org/bizappframework/angular-build.svg)](https://david-dm.org/bizappframework/angular-build)
@@ -43,6 +44,11 @@ How to use
 ---------------
 
 See [Wiki](https://github.com/BizAppFramework/angular-build/wiki).
+
+Feedback
+---------------
+
+Check out the [contributing](https://github.com/BizAppFramework/angular-build/blob/master/CONTRIBUTING.md) page to see the best places to log issues and start discussions.
 
 License
 ---------------
