@@ -4,33 +4,31 @@ root = true
 
 [*]
 # end_of_line = lf
+charset = utf-8
 indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
 
 # Typescript, javascript and client-side files
 [*.{ts,tsx,js,jsx,html,css,scss,less}]
 indent_size = 4
-insert_final_newline = true
-trim_trailing_whitespace = true
-charset = utf-8
 
 # C#, VB and server-side files
 [*.{cs,csx,vb,vbx,cshtml,vbhtml}]
 indent_size = 4
-insert_final_newline = true
-trim_trailing_whitespace = true
 charset = utf-8-bom
 
 [*.md]
 insert_final_newline = false
 trim_trailing_whitespace = false
-charset = utf-8
 
 # Solution Files
 [*.sln]
 indent_style = tab
+charset = utf-8-bom
 
 # XML Project Files
-[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}]
+[*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj,njsproj}]
 indent_size = 2
 
 # Configuration Files
