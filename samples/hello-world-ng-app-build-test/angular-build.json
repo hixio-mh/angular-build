@@ -22,7 +22,7 @@
       "@angular/router",
       "zone.js/dist/zone"
     ],
-    "publicPath": "/",    
+    "publicPath": "/",
     "htmlInject": {
       "resourceHints": true,
       "index": "index.html"
@@ -43,7 +43,7 @@
           "beforeBuild": {
             "cleanOutDir": true
           }
-        },       
+        },
         "fileReplacements": [{
           "replace": "./environments/environment.ts",
           "with": "./environments/environment.prod.ts"

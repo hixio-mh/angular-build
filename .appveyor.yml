@@ -8,14 +8,14 @@ skip_non_tags: true
 image: Visual Studio 2017
 platform: Any CPU
 environment:
-  ANGULAR_BUILD_TELEMETRY_OPTOUT: 1  
+  ANGULAR_BUILD_TELEMETRY_OPTOUT: 1
   nodejs_version: "8"
 matrix:
   fast_finish: true
 install:
   - ps: Install-Product node $env:nodejs_version
   - set PATH=%APPDATA%\npm;%PATH%
-  - npm install  
+  - npm install
 build_script:
   - npm run build:samples
 test: off

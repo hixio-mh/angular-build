@@ -48,15 +48,18 @@
     <Content Include=".editorconfig" />
     <Content Include=".eslintignore" />
     <Content Include=".eslintrc.json" />
-    <Content Include=".github\ISSUE_TEMPLATE.md" />
+    <Content Include=".github\ISSUE_TEMPLATE\bug_report.md" />
     <Content Include=".gitignore" />
     <Content Include=".travis.yml" />
     <Content Include="bin\ngb" />
     <Content Include="builders.json" />
     <Content Include="CHANGELOG.md" />
+    <Content Include="CODE_OF_CONDUCT.md" />
     <Content Include="configs\ngb-lib-default.json" />
+    <Content Include="CONTRIBUTING.md" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
+    <Content Include="PULL_REQUEST_TEMPLATE.md" />
     <Content Include="README.md" />
     <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.scss" />
     <Content Include="samples\hello-world-ng-app-build-test\src\assets\.gitkeep" />
@@ -81,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include=".github\" />
+    <Folder Include=".github\ISSUE_TEMPLATE\" />
     <Folder Include="bin\" />
     <Folder Include="configs\" />
     <Folder Include="samples\" />
