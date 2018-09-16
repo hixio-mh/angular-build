@@ -1,4 +1,4 @@
-version: 5.0.{build}
+version: 6.1.0.{build}
 pull_requests:
   do_not_increment_build_number: true
 branches:
@@ -8,30 +8,17 @@ skip_non_tags: true
 image: Visual Studio 2017
 platform: Any CPU
 environment:
-  ANGULAR_BUILD_TELEMETRY_OPTOUT: 1
-  npm_auth_token:
-    secure: 2G57TJwGR3m40UD1G7YdkowFzezrhOxEzMKwehKpb1vNPbsbFzfKRIFYVQ7WzZzE
+  ANGULAR_BUILD_TELEMETRY_OPTOUT: 1  
   nodejs_version: "8"
 matrix:
   fast_finish: true
 install:
   - ps: Install-Product node $env:nodejs_version
   - set PATH=%APPDATA%\npm;%PATH%
-  - npm install
-  - ps: '"//registry.npmjs.org/:_authToken=$env:npm_auth_token`n" | out-file "$env:userprofile\.npmrc" -Encoding ASCII'
-  - npm whoami
-  - node --version
-  - npm --version
+  - npm install  
 build_script:
   - npm run build:samples
 test: off
-deploy_script:
-  - ps: |
-      if ($env:deploy -eq "publish")
-      {
-        iex "npm pack ./dist --access=public"
-        iex "npm publish ./dist --access=public"
-      }
 cache:
   - node_modules -> package-lock.json
   - '%APPDATA%\npm-cache'
