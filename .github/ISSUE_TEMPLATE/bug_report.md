@@ -4,9 +4,11 @@ about: Create a report to help us improve
 
 ---
 
-<!-- markdownlint-disable MD002 MD041 -->
-
+<!-- 
 This issue tracker is ONLY used for reporting bugs. NO NEW FEATURE ACCEPTED!
+
+Please fill in the *entire* template below. 
+-->
 
 ## Current behavior
 
@@ -16,26 +18,14 @@ This issue tracker is ONLY used for reporting bugs. NO NEW FEATURE ACCEPTED!
 
 <!-- Describe what the desired behavior would be. -->
 
-## Minimal reproduction of the problem with instructions
+## Playground Link
 
-<!--- Provide a link to a live example, or an unambiguous set of steps to -->
-<!--- reproduce this bug. Include code to reproduce, if relevant -->
-<!-- 
-1.
-2.
-3.
-4. 
--->
-
-## Screenshots
-
-<!-- If applicable, add screenshots to help explain your problem. -->
+<!-- A link to a Angular Build Playground "Share" link which demonstrates this behavior -->
 
 ## Environment
 
-<!-- - OS: [e.g. Windows (7/8/10). Linux (incl. distribution). macOS (El Capitan? Sierra?). iOS8.1] -->
-<!-- - Browser [e.g. chrome, safari] -->
-<!-- - Browser Version [e.g. 22] -->
+<!-- - OS: -->
+<!-- - Angular Build Version: -->
 
 ## Additional context
 
