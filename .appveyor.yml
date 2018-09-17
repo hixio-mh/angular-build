@@ -4,7 +4,6 @@ pull_requests:
 branches:
   only:
   - master
-skip_non_tags: true
 image: Visual Studio 2017
 platform: Any CPU
 environment:
@@ -17,7 +16,7 @@ install:
   - set PATH=%APPDATA%\npm;%PATH%
   - npm install
 build_script:
-  - npm run build:samples
+  - npm run test
 test: off
 cache:
   - node_modules -> package.json
