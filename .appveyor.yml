@@ -4,6 +4,8 @@ pull_requests:
 branches:
   only:
   - master
+skip_non_tags: true
+clone_depth: 1
 image: Visual Studio 2017
 platform: Any CPU
 environment:
@@ -14,10 +16,18 @@ matrix:
 install:
   - ps: Install-Product node $env:nodejs_version
   - set PATH=%APPDATA%\npm;%PATH%
+  - ps: '"//registry.npmjs.org/:_authToken=$env:npm_auth_token`n" | out-file "$env:userprofile\.npmrc" -Encoding ASCII'
+  - npm whoami
   - npm install
 build_script:
   - npm run test
 test: off
+deploy_script:
+  - ps: |
+      if ($env:deploy -eq "publish")
+      {
+        iex "npm publish ./dist --access=public"
+      }
 cache:
   - node_modules -> package.json
   - '%APPDATA%\npm-cache'
