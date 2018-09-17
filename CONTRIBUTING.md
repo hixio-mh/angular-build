@@ -10,7 +10,7 @@ We use [Github issues](https://github.com/BizAppFramework/angular-build/issues) 
 
 ### Gitter chat room
 
-The [Gitter Channel](https://gitter.im/BizAppFramework/home) provides a place where the Community can get together and collaborate. It is actually great to see that folks have already started to collaborate and support each other there.
+The [Gitter Channel](https://gitter.im/BizAppFramework/angular-build?utm_source=share-link&utm_medium=link&utm_campaign=share-link) provides a place where the Community can get together and collaborate. It is actually great to see that folks have already started to collaborate and support each other there.
 
 ### Facebook group
 
@@ -22,13 +22,13 @@ This is a rough outline of what a contributor's workflow looks like:
 
 1. Search [GitHub](https://github.com/BizAppFramework/angular-build/pulls) for an open or closed PR that relates to your submission. You don't want to duplicate effort.
 
-2. [Fork](https://help.github.com/articles/fork-a-repo/) the [repo](https://github.com/BizAppFramework/angular-build) and create your branch 'topic' from master.
+2. [Fork](https://help.github.com/articles/fork-a-repo/) the [repo](https://github.com/BizAppFramework/angular-build) and create your branch `topic` from master.
 
 3. Make your changes in a new git branch.
 
-4. Make sure your code lints.
+4. Make sure your code lints by running `npm run lint` command.
 
-5. Run the test suite if provided, and ensure that all tests pass.
+5. Run the build and test with `npm run test` command, and ensure that all builds and tests succeed.
 
 6. Commit your changes using a descriptive commit message that follows our [commit message conventions](https://gist.github.com/mmzliveid/5d1ca6579da5ee60f5f4dee8d6201045).
 
