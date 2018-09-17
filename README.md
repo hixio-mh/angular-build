@@ -2,8 +2,8 @@ angular-build
 =====================
 
 <!-- Badges section here. -->
-<!-- [![Build status](https://img.shields.io/appveyor/ci/mmzliveid/angular-build.svg?label=appveyor)](https://ci.appveyor.com/project/mmzliveid/angular-build) -->
-[![Build Status](https://dev.azure.com/bizappframework/BizAppFramework/_apis/build/status/BizAppFramework.angular-build)](https://dev.azure.com/bizappframework/BizAppFramework/_build/latest?definitionId=35)
+<!-- [![Build Status](https://dev.azure.com/bizappframework/BizAppFramework/_apis/build/status/BizAppFramework.angular-build)](https://dev.azure.com/bizappframework/BizAppFramework/_build/latest?definitionId=35) -->
+[![Build status](https://img.shields.io/appveyor/ci/mmzliveid/angular-build.svg?label=appveyor)](https://ci.appveyor.com/project/mmzliveid/angular-build)
 [![Build Status](https://img.shields.io/travis/BizAppFramework/angular-build/master.svg?label=travis)](https://travis-ci.org/BizAppFramework/angular-build)
 [![npm version](https://badge.fury.io/js/%40bizappframework%2Fangular-build.svg)](https://badge.fury.io/js/%40bizappframework%2Fangular-build)
 [![Dependency Status](https://david-dm.org/bizappframework/angular-build.svg)](https://david-dm.org/bizappframework/angular-build)
