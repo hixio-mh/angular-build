@@ -459,12 +459,10 @@ export function applyAppConfigCompat(appConfig: AppBuilderOptions): void {
                 return assetEntry;
             }
 
-            const assetPatternObject = assetEntry as AssetPatternObjectCompat;
-
             return {
-                from: path.join(assetPatternObject.input, assetPatternObject.glob || ''),
-                to: assetPatternObject.output,
-                exclude: assetPatternObject.ignore
+                from: path.join(assetEntry.input, assetEntry.glob || ''),
+                to: assetEntry.output,
+                exclude: assetEntry.ignore
             };
         });
         delete appConfig.assets;
@@ -548,12 +546,10 @@ export function applyLibConfigCompat(libConfig: LibBuilderOptions): void {
                 return assetEntry;
             }
 
-            const assetPatternObject = assetEntry as AssetPatternObjectCompat;
-
             return {
-                from: path.join(assetPatternObject.input, assetPatternObject.glob || ''),
-                to: assetPatternObject.output,
-                exclude: assetPatternObject.ignore
+                from: path.join(assetEntry.input, assetEntry.glob || ''),
+                to: assetEntry.output,
+                exclude: assetEntry.ignore
             };
         });
         delete libConfig.assets;
