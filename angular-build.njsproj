@@ -61,6 +61,7 @@
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="RELEASE_NOTE.md" />
     <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.scss" />
     <Content Include="samples\hello-world-ng-app-build-test\src\assets\.gitkeep" />
     <Content Include="samples\hello-world-ng-app-build-test\src\styles.scss" />
