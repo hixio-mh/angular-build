@@ -22,15 +22,16 @@ matrix:
       node_js: "stable"
       env: JOB_PART=test
   fast_finish: true
-  allow_failures:
-    - os: osx
-
-cache:
-  directories:
-    - ./node_modules
 
 install:
   - npm install
 
 script:
   - npm run $JOB_PART
+
+cache:
+  directories:
+    - ./node_modules
+
+git:
+  depth: 1
