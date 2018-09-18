@@ -8,6 +8,7 @@ import { InternalError, InvalidConfigError } from '../error-models';
 import {
     AngularBuildConfig,
     AppBuilderOptions,
+    AssetPatternObjectCompat,
     BuildOptions,
     BuildOptionsCompat,
     LibBuilderOptions,
@@ -453,10 +454,17 @@ export function applyAppConfigCompat(appConfig: AppBuilderOptions): void {
     if (appConfig.assets &&
         Array.isArray(appConfig.assets) &&
         (!appConfig.copy || (Array.isArray(appConfig.copy) && !appConfig.copy.length))) {
-        appConfig.copy = appConfig.assets.map(assetEntry => {
+        appConfig.copy = appConfig.assets.map((assetEntry: string | AssetPatternObjectCompat) => {
+            if (typeof assetEntry === 'string') {
+                return assetEntry;
+            }
+
+            const assetPatternObject = assetEntry as AssetPatternObjectCompat;
+
             return {
-                from: path.join(assetEntry.input, assetEntry.glob || ''),
-                to: assetEntry.output
+                from: path.join(assetPatternObject.input, assetPatternObject.glob || ''),
+                to: assetPatternObject.output,
+                exclude: assetPatternObject.ignore
             };
         });
         delete appConfig.assets;
@@ -536,9 +544,16 @@ export function applyLibConfigCompat(libConfig: LibBuilderOptions): void {
         Array.isArray(libConfig.assets) &&
         (!libConfig.copy || (Array.isArray(libConfig.copy) && !libConfig.copy.length))) {
         libConfig.copy = libConfig.assets.map(assetEntry => {
+            if (typeof assetEntry === 'string') {
+                return assetEntry;
+            }
+
+            const assetPatternObject = assetEntry as AssetPatternObjectCompat;
+
             return {
-                from: path.join(assetEntry.input, assetEntry.glob || ''),
-                to: assetEntry.output
+                from: path.join(assetPatternObject.input, assetPatternObject.glob || ''),
+                to: assetPatternObject.output,
+                exclude: assetPatternObject.ignore
             };
         });
         delete libConfig.assets;

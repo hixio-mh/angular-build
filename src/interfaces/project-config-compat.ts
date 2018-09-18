@@ -3,10 +3,11 @@
 /**
  * @additionalProperties false
  */
-export interface AssetPatternCompat {
+export interface AssetPatternObjectCompat {
     glob?: string;
     input: string;
     output: string;
+    ignore?: string[];
 }
 
 /**
@@ -67,7 +68,7 @@ export interface ProjectConfigCompat {
     /**
      * @angular-devkit/build_angular compatibility, use 'copy' instead.
      */
-    assets?: AssetPatternCompat[] | boolean;
+    assets?: (AssetPatternObjectCompat | string)[] | boolean;
     /**
      * @angular-devkit/build_angular compatibility, use 'cleanOutDirs' instead.
      */
@@ -120,4 +121,24 @@ export interface AppConfigCompat extends ProjectConfigCompat {
      * @angular-devkit/build_angular compatibility, not supported.
      */
     skipAppShell?: boolean;
+    /**
+     * @angular-devkit/build_angular compatibility, not supported.
+     */
+    vendorSourceMap?: boolean;
+    /**
+     * @angular-devkit/build_angular compatibility, not supported.
+     */
+    verbose?: boolean;
+    /**
+     * @angular-devkit/build_angular compatibility, not supported.
+     */
+    progress?: boolean;
+    /**
+     * @angular-devkit/build_angular compatibility, not supported.
+     */
+    watch?: boolean;
+    /**
+     * @angular-devkit/build_angular compatibility, not supported.
+     */
+    poll?: number;
 }
