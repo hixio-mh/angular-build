@@ -52,10 +52,6 @@
     "@angular-devkit/architect": "^0.8.2",
     "@angular-devkit/build-optimizer": "^0.8.2",
     "@angular-devkit/core": "^0.8.2",
-    "@angular/compiler": "^6.1.7",
-    "@angular/compiler-cli": "^6.1.7",
-    "@angular/core": "^6.1.7",
-    "@angular/service-worker": "^6.1.7",
     "@ngtools/webpack": "^6.2.2",
     "ajv": "^6.5.3",
     "ajv-keywords": "^3.2.0",
@@ -110,10 +106,13 @@
     "webpack-merge": "^4.1.4",
     "webpack-node-externals": "^1.7.2",
     "webpack-sources": "^1.2.0",
-    "yargs": "^12.0.2",
-    "zone.js": "^0.8.26"
+    "yargs": "^12.0.2"
   },
   "devDependencies": {
+    "@angular/compiler": "^6.1.7",
+    "@angular/compiler-cli": "^6.1.7",
+    "@angular/core": "^6.1.7",
+    "@angular/service-worker": "^6.1.7",
     "@angular/common": "^6.1.7",
     "@angular/platform-browser": "^6.1.7",
     "@angular/platform-browser-dynamic": "^6.1.7",
@@ -143,6 +142,13 @@
     "tslint": "^5.11.0",
     "tslint-eslint-rules": "^5.4.0",
     "tslint-microsoft-contrib": "^5.2.1",
-    "typescript-json-schema": "^0.32.0"
+    "typescript-json-schema": "^0.32.0",
+    "zone.js": "^0.8.26"
+  },
+  "peerDependencies": {
+    "@angular/compiler": "^6.1.7",
+    "@angular/compiler-cli": "^6.1.7",
+    "@angular/core": "^6.1.7",
+    "zone.js": "^0.8.26"
   }
 }
