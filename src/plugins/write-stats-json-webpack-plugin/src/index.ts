@@ -53,7 +53,7 @@ export class WriteStatsJsonWebpackPlugin {
                 compilation.errors.push(new InternalError(
                     `[${this.name}] Absolute output path must be specified in webpack config -> output -> path.`));
 
-                    return;
+                return;
             }
 
             const statsFilepath = this._options.path;
@@ -94,14 +94,22 @@ export class WriteStatsJsonWebpackPlugin {
                 this._logger.debug(`Emitting ${statsFileRelative}`);
                 await new Promise((resolve, reject) => {
                     compiler.outputFileSystem.mkdirp(path.dirname(statsFilepath),
-                        (err: Error) => {
+                        (err?: Error | null) => {
                             if (err) {
                                 reject(err);
 
                                 return;
                             }
 
-                            compiler.outputFileSystem.writeFile(statsFilepath, content, resolve);
+                            compiler.outputFileSystem.writeFile(statsFilepath, content, (err2?: Error | null) => {
+                                if (err2) {
+                                    reject(err2);
+
+                                    return;
+                                }
+
+                                resolve();
+                            });
                         });
                 });
             }

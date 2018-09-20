@@ -115,7 +115,7 @@ export class BundleAnalyzerWebpackPlugin {
             this._logger.debug(`Emitting ${statsFileRelative}`);
             await new Promise((resolve, reject) => {
                 compiler.outputFileSystem.mkdirp(path.dirname(statsFilepath),
-                    (err?: Error): void => {
+                    (err?: Error | null): void => {
                         if (err) {
                             reject(err);
 
@@ -128,7 +128,7 @@ export class BundleAnalyzerWebpackPlugin {
             });
             await new Promise((resolve, reject) => {
                 compiler.outputFileSystem.writeFile(statsFilepath, content,
-                    (err?: Error) => {
+                    (err?: Error | null) => {
                         if (err) {
                             reject(err);
 
@@ -189,7 +189,7 @@ export class BundleAnalyzerWebpackPlugin {
             this._logger.debug(`Emitting ${reportFileRelative}`);
             await new Promise((resolve, reject) => {
                 compiler.outputFileSystem.mkdirp(path.dirname(reportFilepath),
-                    (err2: Error) => {
+                    (err2?: Error | null) => {
                         if (err2) {
                             reject(err2);
 
@@ -201,7 +201,7 @@ export class BundleAnalyzerWebpackPlugin {
             });
             await new Promise((resolve, reject) => {
                 compiler.outputFileSystem.writeFile(reportFilepath, reportHtml,
-                    (err2: Error) => {
+                    (err2?: Error | null) => {
                         if (err2) {
                             reject(err2);
 

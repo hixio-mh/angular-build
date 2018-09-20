@@ -4,7 +4,7 @@
 import * as crypto from 'crypto';
 
 import { dirname, join, normalize, Path, tags, virtualFs } from '@angular-devkit/core';
-import { Filesystem } from '@angular/service-worker/config';
+// import { Filesystem } from '@angular/service-worker/config';
 import * as resolve from 'resolve';
 import { from, merge, Observable, of } from 'rxjs';
 import { concatMap, map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
@@ -12,7 +12,8 @@ import * as webpack from 'webpack';
 
 import { InternalError } from '../../../error-models';
 
-class CliFilesystem implements Filesystem {
+// class CliFilesystem implements Filesystem
+class CliFilesystem {
     constructor(private readonly _host: virtualFs.Host, private readonly _base: string) { }
 
     async list(p: string): Promise<string[]> {
