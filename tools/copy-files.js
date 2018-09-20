@@ -17,7 +17,12 @@ packageJson.typings = 'src/index.d.ts';
 packageJson.builders = 'builders.json';
 
 if (packageJson.devDependencies) {
-    delete packageJson.devDependencies;
+    if (packageJson.peerDependencies) {
+        packageJson.devDependencies = Object.assign({}, packageJson.peerDependencies);
+    } else {
+        delete packageJson.devDependencies;
+    }
+
 }
 if (packageJson.scripts) {
     // delete packageJson.scripts;
