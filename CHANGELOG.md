@@ -1,5 +1,19 @@
 # Change Logs
 
+## 6.1.2
+
+### Features
+
+- N/A
+  
+### Bugs
+
+- N/A
+
+### Misc
+
+- Update dependencies
+
 ## 6.1.1
 
 ### Features

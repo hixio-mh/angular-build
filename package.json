@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "6.1.1",
+  "version": "6.1.2",
   "description": "Build tool for Angular app and library projects based on Angular CLI.",
   "keywords": [
     "angular",
@@ -40,7 +40,7 @@
     "generate-schemas": "node tools/generate-schemas.js",
     "copy-files": "node tools/copy-files.js",
     "ngb:version": "node dist/bin/ngb --version",
-    "test": "npm run build && npm run build:samples",
+    "test": "npm run build:samples",
     "build": "npm run clean && npm run lint && npm run tsc && npm run generate-schemas && npm run copy-files && npm run ngb:version",
     "build:samples": "npm run build:sample-app-prod && npm run build:sample-lib-prod",
     "build:sample-app": "node -r source-map-support/register dist/bin/ngb build --config=samples/hello-world-ng-app-build-test/angular-build.json --disable-telemetry",
