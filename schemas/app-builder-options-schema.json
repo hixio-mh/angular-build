@@ -461,11 +461,17 @@
       },
       "type": "object"
     },
-    "AssetPatternCompat": {
+    "AssetPatternObjectCompat": {
       "additionalProperties": false,
       "properties": {
         "glob": {
           "type": "string"
+        },
+        "ignore": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "input": {
           "type": "string"
@@ -976,7 +982,14 @@
       "anyOf": [
         {
           "items": {
-            "$ref": "#/definitions/AssetPatternCompat"
+            "anyOf": [
+              {
+                "$ref": "#/definitions/AssetPatternObjectCompat"
+              },
+              {
+                "type": "string"
+              }
+            ]
           },
           "type": "array"
         },
@@ -1364,7 +1377,6 @@
       "type": "boolean"
     },
     "progress": {
-      "description": "Display compilation progress in percentage.",
       "type": "boolean"
     },
     "publicPath": {
@@ -1536,6 +1548,9 @@
       "description": "The output chunk name for vendor or dll chunk.",
       "type": "string"
     },
+    "vendorSourceMap": {
+      "type": "boolean"
+    },
     "vendors": {
       "description": "The vendor module entries for dll bundle.",
       "items": {
@@ -1547,7 +1562,6 @@
       "type": "boolean"
     },
     "watch": {
-      "description": "Build with watch mode.",
       "type": "boolean"
     },
     "watchOptions": {

@@ -41,11 +41,17 @@
       },
       "type": "object"
     },
-    "AssetPatternCompat": {
+    "AssetPatternObjectCompat": {
       "additionalProperties": false,
       "properties": {
         "glob": {
           "type": "string"
+        },
+        "ignore": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "input": {
           "type": "string"
@@ -508,7 +514,14 @@
       "anyOf": [
         {
           "items": {
-            "$ref": "#/definitions/AssetPatternCompat"
+            "anyOf": [
+              {
+                "$ref": "#/definitions/AssetPatternObjectCompat"
+              },
+              {
+                "type": "string"
+              }
+            ]
           },
           "type": "array"
         },
