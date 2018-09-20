@@ -14,20 +14,18 @@ matrix:
   include:
     - os: linux
       node_js: "node"
-      env: JOB_PART=build
     - os: linux
       node_js: "stable"
-      env: JOB_PART=test
     - os: osx
       node_js: "stable"
-      env: JOB_PART=test
   fast_finish: true
 
 install:
   - npm install
 
 script:
-  - npm run $JOB_PART
+  - npm run build
+  - npm run test
 
 cache:
   directories:
