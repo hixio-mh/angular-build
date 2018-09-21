@@ -3,9 +3,11 @@
   // for the documentation about the tasks.json format
   "version": "2.0.0",
   "tasks": [{
-      "type": "npm",
-      "script": "build",
-      "problemMatcher": [],
+      "type": "typescript",
+      "tsconfig": "tsconfig.json",
+      "problemMatcher": [
+        "$tsc"
+      ],
       "group": {
         "kind": "build",
         "isDefault": true
@@ -15,7 +17,7 @@
       "type": "npm",
       "script": "lint",
       "problemMatcher": {
-        "base": "$tslint5",        
+        "base": "$tslint5",
         "fileLocation": "absolute",
         "applyTo": "closedDocuments"
       }
