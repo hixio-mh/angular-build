@@ -156,14 +156,6 @@
     "LibBundleOptions": {
       "additionalProperties": false,
       "properties": {
-        "bundleTool": {
-          "description": "Bundle tool to be used.",
-          "enum": [
-            "rollup",
-            "webpack"
-          ],
-          "type": "string"
-        },
         "entry": {
           "description": "The entry file to be bundled.",
           "type": "string"
@@ -234,10 +226,6 @@
         "tsTranspilationIndex": {
           "description": "Array index for entry root tsTranspilationResult.",
           "type": "number"
-        },
-        "webpackConfig": {
-          "description": "Custom webpack config file to be merged.",
-          "type": "string"
         }
       },
       "type": "object"
