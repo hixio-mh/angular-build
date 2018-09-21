@@ -369,3 +369,7 @@ yarn.lock
 # dist
 **/out-tsc/
 **/dist/**/*
+**/dist-server/**/*
+wwwroot/*
+!wwwroot/favicon.ico
+**/*.generated.cshtml
