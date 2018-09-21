@@ -1,4 +1,4 @@
- // tslint:disable:no-any
+// tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 
 import * as path from 'path';
@@ -18,10 +18,8 @@ import { getAngularFixPlugins } from './angular';
 import { getAppCommonWebpackConfigPartial } from './common';
 import { getAppStylesWebpackConfigPartial } from './styles';
 
-export function
-    getAppDllWebpackConfig<TConfig extends AppProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
-    webpack.Configuration {
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+export function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+    const appConfig = angularBuildContext.projectConfig;
     let customWebpackConfig: webpack.Configuration = {};
 
     if (!appConfig._isDll || angularBuildContext.projectConfig._projectType !== 'app') {
@@ -51,20 +49,21 @@ export function
 }
 
 // tslint:disable:max-func-body-length
-function getAppDllWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(angularBuildContext:
-    AngularBuildContext<TConfig>): webpack.Configuration {
+function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
     const logLevel = angularBuildContext.buildOptions.logLevel;
 
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    const appConfig = angularBuildContext.projectConfig;
 
-    if (!appConfig.outputPath) {
-        throw new InvalidConfigError(
-            `The 'projects[${angularBuildContext.projectConfig.name || angularBuildContext.projectConfig._index
-            }].outputPath' value is required.`);
+    if (!appConfig._projectRoot) {
+        throw new InternalError("The 'appConfig._projectRoot' is not set.");
     }
 
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
-    const outputPath = path.resolve(AngularBuildContext.workspaceRoot, appConfig.outputPath);
+    if (!appConfig._outputPath) {
+        throw new InternalError("The 'appConfig._outputPath' is not set.");
+    }
+
+    const projectRoot = appConfig._projectRoot;
+    const outputPath = appConfig._outputPath;
 
     // TODO: to review for hash
     const libHashFormat = (!appConfig.platformTarget || appConfig.platformTarget === 'web') &&

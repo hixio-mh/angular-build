@@ -1,7 +1,6 @@
 // tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 
-import * as path from 'path';
 import * as webpack from 'webpack';
 
 import { AngularBuildContextWebpackPlugin } from '../../plugins/angular-build-context-webpack-plugin';
@@ -11,29 +10,31 @@ import { LibBundleWebpackPlugin } from '../../plugins/lib-bundle-webpack-plugin'
 import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InvalidConfigError } from '../../error-models';
+import { InternalError } from '../../error-models';
 import { prepareCleanOptions } from '../../helpers';
 import { LibProjectConfigInternal } from '../../interfaces/internals';
 
 export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): webpack.Configuration {
     const libConfig = angularBuildContext.projectConfig;
 
-    if (!libConfig.outputPath) {
-        throw new InvalidConfigError(
-            `The 'projects[${libConfig.name || libConfig._index}].outputPath' value is required.`);
+    if (!libConfig._projectRoot) {
+        throw new InternalError("The 'libConfig._projectRoot' is not set.");
+    }
+
+    if (!libConfig._outputPath) {
+        throw new InternalError("The 'libConfig._outputPath' is not set.");
     }
 
     const logLevel = angularBuildContext.buildOptions.logLevel;
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig.root || '');
-    const outputPath = path.resolve(AngularBuildContext.workspaceRoot, libConfig.outputPath);
+    const projectRoot = libConfig._projectRoot;
+    const outputPath = libConfig._outputPath;
 
     const plugins: webpack.Plugin[] = [
         new AngularBuildContextWebpackPlugin(angularBuildContext)
     ];
 
     // clean
-    let shouldClean = outputPath &&
-        (angularBuildContext.buildOptions.cleanOutDir || libConfig.clean !== false);
+    let shouldClean = angularBuildContext.buildOptions.cleanOutDir || libConfig.clean !== false;
     if (libConfig.clean === false) {
         shouldClean = false;
     }

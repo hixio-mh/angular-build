@@ -1,4 +1,4 @@
- // tslint:disable:no-any
+// tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 
 import * as path from 'path';
@@ -10,6 +10,7 @@ import { AngularBuildContextWebpackPlugin } from '../../plugins/angular-build-co
 import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
+import { InternalError } from '../../error-models';
 import { getCustomWebpackConfig, isFromWebpackDevServer } from '../../helpers';
 import { AppProjectConfigInternal } from '../../interfaces/internals';
 
@@ -19,10 +20,8 @@ import { getAppCommonWebpackConfigPartial } from './common';
 import { getAppReferenceDllWebpackConfigPartial } from './reference-dll';
 import { getAppStylesWebpackConfigPartial } from './styles';
 
-export function
-    getAppWebpackConfig<TConfig extends AppProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
-    webpack.Configuration {
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+export function getAppWebpackConfig(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+    const appConfig = angularBuildContext.projectConfig;
     let customWebpackConfig: webpack.Configuration = {};
 
     if (appConfig.webpackConfig) {
@@ -58,10 +57,14 @@ export function
     return mergedConfig;
 }
 
-function getAppWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(angularBuildContext:
-    AngularBuildContext<TConfig>): webpack.Configuration {
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
+function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+    const appConfig = angularBuildContext.projectConfig;
+
+    if (!appConfig._projectRoot) {
+        throw new InternalError("The 'appConfig._projectRoot' is not set.");
+    }
+
+    const projectRoot = appConfig._projectRoot;
 
     // entry
     const entrypoints: { [key: string]: string[] } = {};

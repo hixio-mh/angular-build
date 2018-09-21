@@ -7,16 +7,15 @@ import { AngularCompilerPluginOptions, PLATFORM } from '@ngtools/webpack';
 import * as webpack from 'webpack';
 
 import { AngularBuildContext } from '../../build-context';
-import { InvalidConfigError } from '../../error-models';
+import { InternalError, InvalidConfigError } from '../../error-models';
 import { resolveLoaderPath } from '../../helpers';
 import { FileReplacementEntry } from '../../interfaces';
 import { AppProjectConfigInternal } from '../../interfaces/internals';
 
 // tslint:disable-next-line:max-func-body-length
 export function
-    getAppAngularTypescriptWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(angularBuildContext:
-        AngularBuildContext<TConfig>): webpack.Configuration {
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    getAppAngularTypescriptWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+    const appConfig = angularBuildContext.projectConfig;
     if (!appConfig.entry && !appConfig.tsConfig) {
         return {};
     }
@@ -121,11 +120,14 @@ export function
     };
 }
 
-export function
-    getAngularFixPlugins<TConfig extends AppProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
-    webpack.Plugin[] {
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
+export function getAngularFixPlugins(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Plugin[] {
+    const appConfig = angularBuildContext.projectConfig;
+
+    if (!appConfig._projectRoot) {
+        throw new InternalError("The 'libConfig._projectRoot' is not set.");
+    }
+
+    const projectRoot = appConfig._projectRoot;
 
     const angularFixPlugins: webpack.Plugin[] = [
         // fixes WARNING Critical dependency: the request of a dependency is an expression
@@ -157,10 +159,15 @@ export function
     return angularFixPlugins;
 }
 
-function createAotPlugin<TConfig extends AppProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>,
+function createAotPlugin(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>,
     options: Partial<AngularCompilerPluginOptions>): webpack.Plugin {
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
+    const appConfig = angularBuildContext.projectConfig;
+
+    if (!appConfig._projectRoot) {
+        throw new InternalError("The 'libConfig._projectRoot' is not set.");
+    }
+
+    const projectRoot = appConfig._projectRoot;
     const hostReplacementPaths = getHostReplacementPaths(AngularBuildContext.workspaceRoot, appConfig);
     // tslint:disable-next-line:no-reserved-keywords
     const additionalLazyModules: { [module: string]: string } = {};

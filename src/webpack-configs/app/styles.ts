@@ -27,13 +27,17 @@ const postcssImports = require('postcss-import');
 
 // tslint:disable:max-func-body-length
 export function
-    getAppStylesWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(angularBuildContext:
-        AngularBuildContext<TConfig>): webpack.Configuration {
+    getAppStylesWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
     const logLevel = angularBuildContext.buildOptions.logLevel;
 
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    const appConfig = angularBuildContext.projectConfig;
 
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
+    if (!appConfig._projectRoot) {
+        throw new InternalError("The 'appConfig._projectRoot' is not set.");
+    }
+
+    const projectRoot = appConfig._projectRoot;
+
     const extractCss = appConfig.extractCss;
     const isDll = appConfig._isDll;
 

@@ -15,7 +15,7 @@ import { CleanCssWebpackPlugin } from '../../plugins/cleancss-webpack-plugin';
 import { CopyWebpackPlugin } from '../../plugins/copy-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InvalidConfigError } from '../../error-models';
+import { InternalError, InvalidConfigError } from '../../error-models';
 import {
     getWebpackToStringStatsOptions,
     isFromWebpackCli,
@@ -44,10 +44,16 @@ export function
 
     const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
 
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
-    const outputPath = appConfig.outputPath
-        ? path.resolve(AngularBuildContext.workspaceRoot, appConfig.outputPath)
-        : undefined;
+    if (!appConfig._projectRoot) {
+        throw new InternalError("The 'appConfig._projectRoot' is not set.");
+    }
+
+    if (!appConfig._outputPath) {
+        throw new InternalError("The 'appConfig._outputPath' is not set.");
+    }
+
+    const projectRoot = appConfig._projectRoot;
+    const outputPath = appConfig._outputPath;
     const isDll = appConfig._isDll;
 
     const isWebpackCli = isFromWebpackCli();

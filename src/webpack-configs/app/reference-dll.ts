@@ -5,30 +5,32 @@ import * as webpack from 'webpack';
 import { DynamicDllWebpackPlugin } from '../../plugins/dynamic-dll-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InvalidConfigError } from '../../error-models';
+import { InternalError } from '../../error-models';
 import { applyProjectConfigWithEnvironment } from '../../helpers';
 import { AppProjectConfigInternal } from '../../interfaces/internals';
 
 import { getAppDllWebpackConfig } from './dll';
 
-export function
-    getAppReferenceDllWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(angularBuildContext:
-        AngularBuildContext<TConfig>): webpack.Configuration {
+export function getAppReferenceDllWebpackConfigPartial(angularBuildContext:
+    AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
     const logLevel = angularBuildContext.buildOptions.logLevel;
 
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    const appConfig = angularBuildContext.projectConfig;
 
     if (!appConfig.referenceDll || !appConfig.entry) {
         return {};
     }
 
-    if (!appConfig.outputPath) {
-        throw new InvalidConfigError(
-            `The 'projects[${appConfig.name || appConfig._index}].outputPath' value is required.`);
+    if (!appConfig._projectRoot) {
+        throw new InternalError("The 'appConfig._projectRoot' is not set.");
     }
 
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
-    const outputPath = path.resolve(AngularBuildContext.workspaceRoot, appConfig.outputPath);
+    if (!appConfig._outputPath) {
+        throw new InternalError("The 'appConfig._outputPath' is not set.");
+    }
+
+    const projectRoot = appConfig._projectRoot;
+    const outputPath = appConfig._outputPath;
 
     const dllEnvironment = { ...angularBuildContext.buildOptions.environment };
     dllEnvironment.dll = true;

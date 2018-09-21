@@ -10,21 +10,27 @@ import { ScriptsWebpackPlugin } from '../../plugins/scripts-webpack-plugin';
 import { ServiceWorkerWebpackPlugin } from '../../plugins/service-worker-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InternalError, InvalidConfigError } from '../../error-models';
+import { InternalError } from '../../error-models';
 import {
     applyProjectConfigWithEnvironment,
     outputHashFormat,
     resolveLoaderPath
 } from '../../helpers';
-import { AppProjectConfigInternal,  GlobalParsedEntry } from '../../interfaces/internals';
+import { AppProjectConfigInternal, GlobalParsedEntry } from '../../interfaces/internals';
 
 // tslint:disable:max-func-body-length
 export function
-    getAppBrowserWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(angularBuildContext:
-        AngularBuildContext<TConfig>): webpack.Configuration {
+    getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
     const logLevel = angularBuildContext.buildOptions.logLevel;
+    const appConfig = angularBuildContext.projectConfig;
 
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    if (!appConfig._projectRoot) {
+        throw new InternalError("The 'appConfig._projectRoot' is not set.");
+    }
+
+    if (!appConfig._outputPath) {
+        throw new InternalError("The 'appConfig._outputPath' is not set.");
+    }
 
     // browser only
     if ((appConfig.platformTarget && appConfig.platformTarget !== 'web') ||
@@ -35,13 +41,8 @@ export function
         return {};
     }
 
-    if (!appConfig.outputPath) {
-        throw new InvalidConfigError(
-            `The 'projects[${appConfig.name || appConfig._index}].outputPath' value is required.`);
-    }
-
-    const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '');
-    const outputPath = path.resolve(AngularBuildContext.workspaceRoot, appConfig.outputPath);
+    const projectRoot = appConfig._projectRoot;
+    const outputPath = appConfig._outputPath;
 
     const polyfillsChunkName = appConfig.polyfillsChunkName || 'polyfills';
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
@@ -240,8 +241,7 @@ export function
             dllProjectConfig._isDll = true;
 
             if (dllProjectConfig.vendors && dllProjectConfig.vendors.length > 0) {
-                dllAssetsFile = path.resolve(AngularBuildContext.workspaceRoot,
-                    appConfig.outputPath,
+                dllAssetsFile = path.resolve(outputPath,
                     `${vendorChunkName}-assets.json`);
                 injectDllAssets = true;
             }
