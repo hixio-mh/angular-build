@@ -1,5 +1,23 @@
 # Change Logs
 
+## 6.1.4
+
+### Features
+
+- N/A
+
+### Bugs
+
+- N/A
+
+### Misc
+
+- Change cleanOutDir default to true
+- Change forkTypeChecker default to true
+- Change libraryTarget options
+- Remove bundleTool options from library bundle config
+- Update dependencies
+
 ## 6.1.3
 
 ### Features
