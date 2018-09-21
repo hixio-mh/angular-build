@@ -42,7 +42,7 @@ export function
     const watch = angularBuildContext.buildOptions.watch;
     const watchOptions = angularBuildContext.buildOptions.watchOptions;
 
-    const appConfig = angularBuildContext.projectConfig as AppProjectConfigInternal;
+    const appConfig = angularBuildContext.projectConfig;
 
     if (!appConfig._projectRoot) {
         throw new InternalError("The 'appConfig._projectRoot' is not set.");
