@@ -49,7 +49,7 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
             const wpOptions =
                 getBundleTargetWebpackConfig(angularBuildContext, currentBundle);
             logger.info(
-                `Bundling ${currentBundle.libraryTarget} module with webpack`);
+                `Bundling to ${currentBundle.libraryTarget} format with webpack`);
             try {
                 await runWebpack(wpOptions, false, logger);
             } catch (err) {
@@ -80,7 +80,7 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
         } else {
             const rollupOptions = getRollupConfig(angularBuildContext, currentBundle);
             logger.info(
-                `Bundling ${currentBundle.libraryTarget} module with rollup`);
+                `Bundling to ${currentBundle.libraryTarget} format with rollup`);
 
             const bundle = await rollup.rollup(rollupOptions.inputOptions as any);
             await bundle.write(rollupOptions.outputOptions);
