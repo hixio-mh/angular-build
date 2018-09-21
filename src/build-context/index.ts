@@ -283,49 +283,6 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         return this._buildOptions;
     }
 
-    get buildOptimizerCacheDirectory(): string {
-        if (this._buildOptimizerCachePath) {
-            return this._buildOptimizerCachePath;
-        }
-
-        let cacheDir = '';
-
-        if (AngularBuildContext.nodeModulesPath &&
-            isInFolder(AngularBuildContext.workspaceRoot, AngularBuildContext.nodeModulesPath)) {
-
-            let prefix = '';
-            if (this.projectConfig.root) {
-                prefix = `-${path.basename(this.projectConfig.root)}`;
-            } else if (this.projectConfig._packageNameWithoutScope) {
-                prefix = `-${path.basename(this.projectConfig._packageNameWithoutScope)}`;
-            }
-
-            const pkgPath = path.resolve(AngularBuildContext.nodeModulesPath, '@angular-devkit/build-optimizer');
-            if (existsSync(pkgPath)) {
-                cacheDir = path.resolve(pkgPath, `./.${prefix}cache/`);
-            }
-        }
-
-        if (!cacheDir) {
-            cacheDir = path.resolve(AngularBuildContext.workspaceRoot, this.projectConfig.root || '', './.bo-cache/');
-        }
-
-        this._buildOptimizerCachePath = cacheDir;
-
-        return this._buildOptimizerCachePath;
-    }
-
-    get rptCacheDirectory(): string {
-        if (this._rptCachePath) {
-            return this._rptCachePath;
-        }
-
-        const cacheDir = path.resolve(AngularBuildContext.workspaceRoot, this.projectConfig.root || '', './.rpt-cache/');
-        this._rptCachePath = cacheDir;
-
-        return this._rptCachePath;
-    }
-
     private static _initialized = false;
     private static _appCount = 0;
     private static _libCount = 0;
@@ -344,9 +301,6 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
     private static _angularBuildConfig: AngularBuildConfigInternal | null = null;
 
     private readonly _buildOptions: BuildOptionInternal;
-
-    private _buildOptimizerCachePath: string | null = null;
-    private _rptCachePath: string | null = null;
 
     constructor(options: BuildContextStaticOptions & BuildContextInstanceOptions<TConfig>) {
         if (!options.workspaceRoot && !AngularBuildContext._workspaceRoot) {
@@ -412,6 +366,8 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         if (this.projectConfig.outputPath) {
             this.projectConfig._outputPath = path.resolve(AngularBuildContext.workspaceRoot, this.projectConfig.outputPath);
         }
+        this.projectConfig._buildOptimizerCacheDirectory = this.getBuildOptimizerCacheDirectory();
+        this.projectConfig._rptCacheDirectory = path.resolve(this.projectConfig._projectRoot, './.rpt-cache/');
 
         // Read package.json files
         this.initPackageJsons();
@@ -600,5 +556,31 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             tempBannerText = this.replaceTokensForBanner(tempBannerText);
             this.projectConfig._bannerText = tempBannerText;
         }
+    }
+
+    private getBuildOptimizerCacheDirectory(): string {
+        let cacheDir = '';
+
+        if (AngularBuildContext.nodeModulesPath &&
+            isInFolder(AngularBuildContext.workspaceRoot, AngularBuildContext.nodeModulesPath)) {
+
+            let prefix = '';
+            if (this.projectConfig.root) {
+                prefix = `-${path.basename(this.projectConfig.root)}`;
+            } else if (this.projectConfig._packageNameWithoutScope) {
+                prefix = `-${path.basename(this.projectConfig._packageNameWithoutScope)}`;
+            }
+
+            const pkgPath = path.resolve(AngularBuildContext.nodeModulesPath, '@angular-devkit/build-optimizer');
+            if (existsSync(pkgPath)) {
+                cacheDir = path.resolve(pkgPath, `./.${prefix}cache/`);
+            }
+        }
+
+        if (!cacheDir) {
+            cacheDir = path.resolve(AngularBuildContext.workspaceRoot, this.projectConfig.root || '', './.bo-cache/');
+        }
+
+        return cacheDir;
     }
 }

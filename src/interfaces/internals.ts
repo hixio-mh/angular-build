@@ -87,6 +87,9 @@ export interface ProjectConfigInternal<TConfig extends ProjectConfigBase> extend
     _nodeModulesPath?: string | null;
     _projectRoot?: string;
     _outputPath?: string;
+    _buildOptions?: BuildOptionInternal;
+    _buildOptimizerCacheDirectory?: string;
+    _rptCacheDirectory?: string;
 
     _projectType?: 'app' | 'lib';
     _index?: number;
@@ -116,7 +119,7 @@ export interface ProjectConfigInternal<TConfig extends ProjectConfigBase> extend
     _tsConfigJson?: { [key: string]: any };
     _tsCompilerConfig?: ParsedCommandLine;
     // tslint:disable-next-line:no-any
-    _angularCompilerOptions?: { [key: string]: any};
+    _angularCompilerOptions?: { [key: string]: any };
 }
 
 export interface AppProjectConfigInternal extends AppProjectConfig, ProjectConfigInternal<AppProjectConfigBase> {

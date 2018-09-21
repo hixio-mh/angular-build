@@ -59,7 +59,7 @@ export function
             options: { sourceMap: appConfig.sourceMap }
         });
 
-        const cacheDirectory = angularBuildContext.buildOptimizerCacheDirectory;
+        const cacheDirectory = appConfig._buildOptimizerCacheDirectory;
 
         const buildOptimizerUseRule = {
             use: [
