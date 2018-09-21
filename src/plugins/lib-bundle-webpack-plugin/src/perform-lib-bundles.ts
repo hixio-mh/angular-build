@@ -10,10 +10,8 @@ import * as rollup from 'rollup';
 
 import { AngularBuildContext } from '../../../build-context';
 import { InvalidConfigError } from '../../../error-models';
-import { runWebpack } from '../../../helpers';
 import { LibProjectConfigInternal } from '../../../interfaces/internals';
 
-import { getBundleTargetWebpackConfig } from './bundle-target-webpack-config';
 import { getRollupConfig } from './get-rollup-config';
 import { minifyFile } from './minify-file';
 
@@ -45,58 +43,21 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
             !/\.ts$/i.test(entryFilePath);
 
         // main bundling
-        if (currentBundle.bundleTool === 'webpack') {
-            const wpOptions =
-                getBundleTargetWebpackConfig(angularBuildContext, currentBundle);
-            logger.info(
-                `Bundling to ${currentBundle.libraryTarget} format with webpack`);
-            try {
-                await runWebpack(wpOptions, false, logger);
-            } catch (err) {
-                if (err) {
-                    let errMsg = '\n';
-                    if (err.message && err.message.length && err.message !== err.stack) {
-                        errMsg += err.message;
-                    }
+        const rollupOptions = getRollupConfig(angularBuildContext, currentBundle);
+        logger.info(
+            `Bundling to ${currentBundle.libraryTarget} format with rollup`);
 
-                    if (err.details &&
-                        err.details.length &&
-                        err.details !== err.stack &&
-                        err.details !== err.message) {
-                        if (errMsg.trim()) {
-                            errMsg += '\nError Details:\n';
-                        }
-                        errMsg += err.details;
-                    }
-                    if (err.stack && err.stack.length && err.stack !== err.message) {
-                        if (errMsg.trim()) {
-                            errMsg += '\nCall Stack:\n';
-                        }
-                        errMsg += err.stack;
-                    }
-                    logger.error(errMsg);
-                }
-            }
-        } else {
-            const rollupOptions = getRollupConfig(angularBuildContext, currentBundle);
-            logger.info(
-                `Bundling to ${currentBundle.libraryTarget} format with rollup`);
-
-            const bundle = await rollup.rollup(rollupOptions.inputOptions as any);
-            await bundle.write(rollupOptions.outputOptions);
-        }
+        const bundle = await rollup.rollup(rollupOptions.inputOptions as any);
+        await bundle.write(rollupOptions.outputOptions);
 
         // Remapping sourcemaps
-        if (shouldReMapSourceMap && currentBundle.bundleTool !== 'webpack') {
+        if (shouldReMapSourceMap) {
             const chain: any = await sorcery.load(currentBundle._outputFilePath);
             await chain.write();
         }
 
         // minify umd files
-        if (currentBundle.bundleTool !== 'webpack' &&
-            (currentBundle.minify ||
-                (currentBundle.minify !== false &&
-                    currentBundle.libraryTarget === 'umd'))) {
+        if (currentBundle.minify || (currentBundle.minify !== false && currentBundle.libraryTarget === 'umd')) {
             const minFilePath = currentBundle._outputFilePath.replace(/\.js$/i, '.min.js');
             logger.debug(`Minifying ${path.basename(currentBundle._outputFilePath)}`);
 

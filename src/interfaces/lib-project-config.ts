@@ -51,14 +51,6 @@ export interface LibBundleOptions {
      */
     libraryTarget?: 'cjs' | 'umd' | 'esm';
     /**
-     * Bundle tool to be used.
-     */
-    bundleTool?: 'rollup' | 'webpack';
-    /**
-     * Custom webpack config file to be merged.
-     */
-    webpackConfig?: string;
-    /**
      * The entry file to be bundled.
      */
     entry?: string;

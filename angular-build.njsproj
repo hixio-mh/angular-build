@@ -210,7 +210,6 @@
     <TypeScriptCompile Include="src\utils\format-ts-diagnostics.ts" />
     <TypeScriptCompile Include="src\utils\glob-copy-files.ts" />
     <TypeScriptCompile Include="src\utils\index.ts" />
-    <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\bundle-target-webpack-config.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\get-rollup-config.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\minify-file.ts" />
     <TypeScriptCompile Include="src\plugins\lib-bundle-webpack-plugin\src\perform-lib-bundles.ts" />
