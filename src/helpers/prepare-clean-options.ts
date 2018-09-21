@@ -9,13 +9,14 @@ export function prepareCleanOptions(projectConfig: AppProjectConfigInternal | Li
 
     cleanOptions.beforeBuild = (cleanOptions.beforeBuild || {});
     const beforeBuildOption = cleanOptions.beforeBuild;
+
+    if (beforeBuildOption.cleanOutDir !== false) {
+        beforeBuildOption.cleanOutDir = true;
+    }
+
     if (projectConfig._projectType === 'app') {
         const appConfig = projectConfig as AppProjectConfigInternal;
         const isDll = appConfig._isDll;
-
-        if (beforeBuildOption.cleanOutDir !== false && !appConfig.referenceDll) {
-            beforeBuildOption.cleanOutDir = true;
-        }
 
         if (!isDll && appConfig.referenceDll && beforeBuildOption.cleanOutDir) {
             beforeBuildOption.cleanOutDir = false;
@@ -25,6 +26,8 @@ export function prepareCleanOptions(projectConfig: AppProjectConfigInternal | Li
     if (beforeBuildOption.cleanOutDir && beforeBuildOption.cleanCache == null) {
         beforeBuildOption.cleanCache = true;
     }
+
+    cleanOptions.beforeBuild = beforeBuildOption;
 
     return cleanOptions;
 }
