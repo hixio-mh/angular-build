@@ -25,7 +25,7 @@ const nodeExternals = require('webpack-node-externals');
 
 export function getBundleTargetWebpackConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>,
     currentBundle: LibBundleOptionsInternal): { [key: string]: any } {
-        const libConfig = angularBuildContext.projectConfig;
+    const libConfig = angularBuildContext.projectConfig;
 
     if (!currentBundle._entryFilePath) {
         throw new InternalError("The 'currentBundle._entryFilePath' is not set.");
@@ -46,10 +46,10 @@ export function getBundleTargetWebpackConfig(angularBuildContext: AngularBuildCo
     }
 
     // library target
-    if (currentBundle.libraryTarget === 'es') {
+    if (currentBundle.libraryTarget === 'esm') {
         throw new InvalidConfigError(
             `The 'projects[${libConfig.name || libConfig._index}].bundles[${currentBundle._index
-            }].libraryTarget = es' is currently not supported by webpack.`);
+            }].libraryTarget = esm' is currently not supported by webpack.`);
     }
 
     // externals
@@ -196,7 +196,7 @@ export function getBundleTargetWebpackConfig(angularBuildContext: AngularBuildCo
             path: path.dirname(currentBundle._outputFilePath),
             filename: path.basename(currentBundle._outputFilePath),
             library: moduleName,
-            libraryTarget: 'umd',
+            libraryTarget: currentBundle.libraryTarget === 'cjs' ? 'commonjs2' : 'umd',
             umdNamedDefine: true
         },
         resolve: {

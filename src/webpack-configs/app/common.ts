@@ -15,7 +15,7 @@ import { CleanCssWebpackPlugin } from '../../plugins/cleancss-webpack-plugin';
 import { CopyWebpackPlugin } from '../../plugins/copy-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InternalError, InvalidConfigError } from '../../error-models';
+import { InternalError } from '../../error-models';
 import {
     getWebpackToStringStatsOptions,
     isFromWebpackCli,
@@ -29,8 +29,6 @@ import { AppProjectConfigInternal } from '../../interfaces/internals';
 
 // tslint:disable-next-line:variable-name
 const TerserPlugin = require('terser-webpack-plugin');
-
-type WebpackLibraryTarget = 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd';
 
 // tslint:disable:max-func-body-length
 export function
@@ -320,25 +318,6 @@ export function
         projectBaseUrl = appConfig._tsCompilerConfig.options.baseUrl;
     }
 
-    // library target
-    if ((appConfig.libraryTarget as any) === 'es') {
-        throw new InvalidConfigError(
-            `The 'projects[${appConfig.name || appConfig._index
-            }].libraryTarget = es' is currently not supported by webpack.`);
-    }
-    let libraryTarget = appConfig.libraryTarget as WebpackLibraryTarget;
-    if (appConfig.libraryTarget === 'iife') {
-        libraryTarget = 'var';
-    } else if (appConfig.libraryTarget === 'cjs') {
-        libraryTarget = 'commonjs2';
-    } else if (!appConfig.libraryTarget) {
-        if (appConfig.platformTarget === 'node') {
-            libraryTarget = 'commonjs2';
-        } else {
-            libraryTarget = 'var';
-        }
-    }
-
     // mode
     let mode: 'development' | 'production' | 'none' = 'none';
     if (appConfig.optimization) {
@@ -396,7 +375,7 @@ export function
         externals: appConfig.platformTarget === 'node' ? appConfig.externals as any : undefined,
         context: projectRoot,
         output: {
-            libraryTarget: libraryTarget,
+            libraryTarget: appConfig.libraryTarget,
             path: outputPath,
             filename: `[name]${bundleHashFormat}.js`,
             devtoolModuleFilenameTemplate: devtool ? appConfig.sourceMapDevToolModuleFilenameTemplate : undefined,

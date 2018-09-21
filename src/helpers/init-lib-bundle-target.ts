@@ -18,16 +18,6 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
     currentBundle: Partial<LibBundleOptionsInternal>,
     i: number,
     libConfig: LibProjectConfigInternal): LibBundleOptionsInternal {
-    if (!libConfig.outputPath) {
-        throw new InvalidConfigError(`The 'projects[${libConfig.name || libConfig._index
-            }].outputPath' value is required.`);
-    }
-
-    if (!currentBundle.libraryTarget) {
-        throw new InvalidConfigError(
-            `The 'projects[${libConfig.name || libConfig._index}].bundles[${i
-            }].libraryTarget' value is required.`);
-    }
 
     if (!libConfig._workspaceRoot) {
         throw new InternalError("The 'libConfig._workspaceRoot' is not set.");
@@ -41,10 +31,14 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
         throw new InternalError("The 'libConfig._outputPath' is not set.");
     }
 
+    if (!currentBundle.libraryTarget) {
+        throw new InvalidConfigError(
+            `The 'projects[${libConfig.name || libConfig._index}].bundles[${i
+            }].libraryTarget' value is required.`);
+    }
+
     const projectRoot = libConfig._projectRoot;
     const outputPath = libConfig._outputPath;
-
-    const libraryTarget = currentBundle.libraryTarget;
 
     // externals
     if (currentBundle.externals == null && libConfig.externals) {
@@ -229,14 +223,21 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
         const outFileName =
             libConfig._packageNameWithoutScope.replace(/\//gm, '-');
 
-        if (currentBundle.libraryTarget === 'umd') {
-            bundleOutFilePath = path.resolve(outputPath, `bundles/${outFileName}.umd.js`);
-        } else if (currentBundle._destScriptTarget) {
-            const scriptTargetStr = ScriptTarget[currentBundle._destScriptTarget].replace(/^ES/i, '');
-            const fesmFolderName = `fesm${scriptTargetStr}`;
-            bundleOutFilePath = path.resolve(outputPath, fesmFolderName, `${outFileName}.js`);
+        if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs') {
+            if (bundles.length > 1 || (libConfig._tsTranspilations && libConfig._tsTranspilations.length > 0)) {
+                bundleOutFilePath = path.resolve(outputPath, `bundles/${outFileName}.${currentBundle.libraryTarget}.js`);
+            } else {
+                bundleOutFilePath = path.resolve(outputPath, `${outFileName}.js`);
+            }
+
         } else {
-            bundleOutFilePath = path.resolve(outputPath, `bundles/${outFileName}.es.js`);
+            if (currentBundle._destScriptTarget) {
+                const scriptTargetStr = ScriptTarget[currentBundle._destScriptTarget].replace(/^ES/i, '');
+                const fesmFolderName = `fesm${scriptTargetStr}`;
+                bundleOutFilePath = path.resolve(outputPath, fesmFolderName, `${outFileName}.js`);
+            } else {
+                bundleOutFilePath = path.resolve(outputPath, `bundles/${outFileName}.es.js`);
+            }
         }
     }
 
@@ -252,13 +253,13 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
         const packageJsonOutDir = libConfig._packageJsonOutDir;
         const scriptTarget = currentBundle._destScriptTarget;
 
-        if (currentBundle.libraryTarget === 'es' && scriptTarget === ScriptTarget.ES2015) {
+        if (currentBundle.libraryTarget === 'esm' && scriptTarget === ScriptTarget.ES2015) {
             packageEntryPoints.fesm2015 = normalizeRelativePath(path.relative(packageJsonOutDir,
                 bundleOutFilePath));
-        } else if (currentBundle.libraryTarget === 'es' && scriptTarget === ScriptTarget.ES5) {
+        } else if (currentBundle.libraryTarget === 'esm' && scriptTarget === ScriptTarget.ES5) {
             packageEntryPoints.fesm5 = normalizeRelativePath(path.relative(packageJsonOutDir,
                 bundleOutFilePath));
-        } else if (currentBundle.libraryTarget === 'umd') {
+        } else if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs') {
             packageEntryPoints.main = normalizeRelativePath(path.relative(packageJsonOutDir,
                 bundleOutFilePath));
         }
@@ -266,7 +267,6 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
 
     return {
         ...currentBundle,
-        libraryTarget: libraryTarget,
         _index: i,
         _entryFilePath: currentBundle._entryFilePath,
         _outputFilePath: bundleOutFilePath

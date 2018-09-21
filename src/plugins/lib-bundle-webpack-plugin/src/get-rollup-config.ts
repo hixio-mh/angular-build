@@ -32,9 +32,8 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     }
 
     // library target
-    let libraryTarget: rollup.ModuleFormat = 'es';
-    if (currentBundle.libraryTarget === 'umd') {
-        libraryTarget = 'umd';
+    if (!currentBundle.libraryTarget) {
+        currentBundle.libraryTarget = 'esm';
     }
 
     // externals
@@ -52,7 +51,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     if (currentBundle.externals == null) {
         if (currentBundle.includeDefaultAngularAndRxJsGlobals ||
             (currentBundle.includeDefaultAngularAndRxJsGlobals !== false && !includeCommonJsModules)) {
-            if (libraryTarget === 'es') {
+            if (currentBundle.libraryTarget === 'esm') {
                 rawExternals.push({
                     tslib: 'tslib'
                 });
@@ -73,7 +72,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
 
         if (noExternals) {
             if (currentBundle.includeDefaultAngularAndRxJsGlobals !== false) {
-                if (libraryTarget === 'es') {
+                if (currentBundle.libraryTarget === 'esm') {
                     rawExternals.push({
                         tslib: 'tslib'
                     });
@@ -85,7 +84,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
             }
         } else {
             if (currentBundle.includeDefaultAngularAndRxJsGlobals !== false) {
-                if (libraryTarget === 'es') {
+                if (currentBundle.libraryTarget === 'esm') {
                     rawExternals.push({
                         tslib: 'tslib'
                     });
@@ -118,7 +117,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     // plugins
     const plugins: any[] = [];
 
-    if (libraryTarget === 'umd' || isTsEntry || includeCommonJsModules) {
+    if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || isTsEntry || includeCommonJsModules) {
         const rollupNodeResolve = require('rollup-plugin-node-resolve');
         plugins.push(rollupNodeResolve());
 
@@ -131,7 +130,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
             plugins.push(typescript({
                 tsconfig: currentBundle._tsConfigPath,
                 typescript: require('typescript'),
-                rollupCommonJSResolveHack: libraryTarget === 'umd',
+                rollupCommonJSResolveHack: currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs',
                 cacheRoot: path.resolve(projectRoot, './.rts2_cache')
             }));
         }
@@ -178,7 +177,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
 
     const outputOptions: rollup.OutputOptions = {
         name: moduleName,
-        format: libraryTarget,
+        format: currentBundle.libraryTarget,
         globals: rollupExternalMap.globals,
         // suitable if you're exporting more than one thing
         exports: 'named',

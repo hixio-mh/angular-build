@@ -49,7 +49,7 @@ export interface LibBundleOptions {
     /**
      * Bundle module format.
      */
-    libraryTarget?: 'umd' | 'es';
+    libraryTarget?: 'cjs' | 'umd' | 'esm';
     /**
      * Bundle tool to be used.
      */

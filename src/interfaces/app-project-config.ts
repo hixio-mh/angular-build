@@ -152,7 +152,7 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
     /**
      * Module format for bundling.
      */
-    libraryTarget?: 'var' | 'iife' | 'cjs' | 'commonjs' | 'commonjs2' | 'amd' | 'umd';
+    libraryTarget?: 'var' | 'commonjs' | 'commonjs2' | 'umd';
     /**
      * The main typescript entry file to be bundled.
      */

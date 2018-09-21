@@ -74,7 +74,7 @@ export function initLibConfig(libConfig: LibProjectConfigInternal): void {
 
         if (shouldBundlesDefault) {
             const es2015BundlePartial: Partial<LibBundleOptionsInternal> = {
-                libraryTarget: 'es',
+                libraryTarget: 'esm',
                 entryRoot: 'tsTranspilationOutDir',
                 tsTranspilationIndex: 0
             };
@@ -84,7 +84,7 @@ export function initLibConfig(libConfig: LibProjectConfigInternal): void {
             bundleInternals.push(es2015BundleInternal);
 
             const es5BundlePartial: Partial<LibBundleOptionsInternal> = {
-                libraryTarget: 'es',
+                libraryTarget: 'esm',
                 entryRoot: 'tsTranspilationOutDir',
                 tsTranspilationIndex: 1
             };
