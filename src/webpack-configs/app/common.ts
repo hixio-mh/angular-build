@@ -1,4 +1,4 @@
- // tslint:disable:no-any
+// tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 // tslint:disable:no-var-requires
 // tslint:disable:no-require-imports
@@ -20,11 +20,11 @@ import {
     getWebpackToStringStatsOptions,
     isFromWebpackCli,
     isFromWebpackDevServer,
-
     outputHashFormat,
+    prepareCleanOptions,
     resolveLoaderPath
 } from '../../helpers';
-import { BundleAnalyzerOptions, CleanOptions } from '../../interfaces';
+import { BundleAnalyzerOptions } from '../../interfaces';
 import { AppProjectConfigInternal } from '../../interfaces/internals';
 
 // tslint:disable-next-line:variable-name
@@ -34,8 +34,7 @@ type WebpackLibraryTarget = 'var' | 'amd' | 'commonjs' | 'commonjs2' | 'umd';
 
 // tslint:disable:max-func-body-length
 export function
-    getAppCommonWebpackConfigPartial<TConfig extends AppProjectConfigInternal>(angularBuildContext:
-        AngularBuildContext<TConfig>): webpack.Configuration {
+    getAppCommonWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
     const logger = AngularBuildContext.logger;
 
     const logLevel = angularBuildContext.buildOptions.logLevel;
@@ -110,34 +109,17 @@ export function
 
     // clean
     let shouldClean = outputPath &&
-        (angularBuildContext.buildOptions.cleanOutDir || appConfig.clean);
+        (angularBuildContext.buildOptions.cleanOutDir || appConfig.clean !== false);
     if (appConfig.clean === false) {
         shouldClean = false;
     }
     if (shouldClean) {
-        let cleanOptions: CleanOptions = {};
-        if (typeof appConfig.clean === 'object') {
-            cleanOptions = { ...cleanOptions, ...appConfig.clean };
-        }
-
-        cleanOptions.beforeBuild = (cleanOptions.beforeBuild || {});
-        const beforeBuildOption = cleanOptions.beforeBuild;
-        if (cleanOptions.beforeBuild == null && angularBuildContext.buildOptions.cleanOutDir) {
-            beforeBuildOption.cleanOutDir = true;
-        }
-
-        if (!isDll && appConfig.referenceDll && beforeBuildOption.cleanOutDir) {
-            beforeBuildOption.cleanOutDir = false;
-        }
-
-        if (beforeBuildOption.cleanOutDir && beforeBuildOption.cleanCache == null) {
-            beforeBuildOption.cleanCache = true;
-        }
-
+        const cleanOptions = prepareCleanOptions(appConfig);
         const cacheDirs: string[] = [];
-        if (beforeBuildOption.cleanCache) {
-            if (angularBuildContext.buildOptimizerCacheDirectory) {
-                cacheDirs.push(angularBuildContext.buildOptimizerCacheDirectory);
+
+        if (cleanOptions.beforeBuild && cleanOptions.beforeBuild.cleanCache) {
+            if (appConfig._buildOptimizerCacheDirectory) {
+                cacheDirs.push(appConfig._buildOptimizerCacheDirectory);
             }
         }
 

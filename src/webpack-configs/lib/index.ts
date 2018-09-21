@@ -1,4 +1,4 @@
- // tslint:disable:no-any
+// tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 
 import * as path from 'path';
@@ -12,12 +12,10 @@ import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
 import { InvalidConfigError } from '../../error-models';
-import { CleanOptions } from '../../interfaces';
+import { prepareCleanOptions } from '../../helpers';
 import { LibProjectConfigInternal } from '../../interfaces/internals';
 
-export function
-    getLibWebpackConfig<TConfig extends LibProjectConfigInternal>(angularBuildContext: AngularBuildContext<TConfig>):
-    webpack.Configuration {
+export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): webpack.Configuration {
     const libConfig = angularBuildContext.projectConfig;
 
     if (!libConfig.outputPath) {
@@ -35,30 +33,20 @@ export function
 
     // clean
     let shouldClean = outputPath &&
-        (angularBuildContext.buildOptions.cleanOutDir || libConfig.clean);
+        (angularBuildContext.buildOptions.cleanOutDir || libConfig.clean !== false);
     if (libConfig.clean === false) {
         shouldClean = false;
     }
     if (shouldClean) {
-        let cleanOptions: CleanOptions = {};
-        if (typeof libConfig.clean === 'object') {
-            cleanOptions = { ...cleanOptions, ...(libConfig.clean || {}) };
-        }
-
-        cleanOptions.beforeBuild = (cleanOptions.beforeBuild || {});
-        const beforeBuildOption = cleanOptions.beforeBuild;
-        if (cleanOptions.beforeBuild == null && angularBuildContext.buildOptions.cleanOutDir) {
-            beforeBuildOption.cleanOutDir = true;
-        }
-
-        if (beforeBuildOption.cleanOutDir && beforeBuildOption.cleanCache == null) {
-            beforeBuildOption.cleanCache = true;
-        }
-
+        const cleanOptions = prepareCleanOptions(libConfig);
         const cacheDirs: string[] = [];
-        if (beforeBuildOption.cleanCache) {
-            if (angularBuildContext.buildOptimizerCacheDirectory) {
-                cacheDirs.push(angularBuildContext.buildOptimizerCacheDirectory);
+
+        if (cleanOptions.beforeBuild && cleanOptions.beforeBuild.cleanCache) {
+            if (libConfig._buildOptimizerCacheDirectory) {
+                cacheDirs.push(libConfig._buildOptimizerCacheDirectory);
+            }
+            if (libConfig._rptCacheDirectory) {
+                cacheDirs.push(libConfig._rptCacheDirectory);
             }
         }
 

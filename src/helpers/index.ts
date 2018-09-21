@@ -12,6 +12,7 @@ export * from './normalize-environment';
 export * from './output-hash-format';
 export * from './parse-dll-entries';
 export * from './parse-script-and-style-entries';
+export * from './prepare-clean-options';
 export * from './prepare-configs';
 export * from './resolve-loader-path';
 export * from './run-webpack';
