@@ -2,11 +2,6 @@
   "$schema": "../schemas/lib-project-config-schema.json#",
   "root": "src",
   "outputPath": "dist",
-  "clean": {
-    "beforeBuild": {
-      "cleanOutDir": true
-    }
-  },
   "tsTranspilations": true,
   "envOverrides": {
     "prod": {

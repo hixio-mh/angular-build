@@ -8,11 +8,6 @@
     "polyfills.ts"
   ],
   "tsConfig": "tsconfig.app.json",
-  "clean": {
-    "beforeBuild": {
-      "cleanOutDir": true
-    }
-  },
   "copy": [
     "assets/**/*",
     "favicon.ico"
