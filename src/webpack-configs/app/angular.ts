@@ -197,7 +197,7 @@ function createAotPlugin(angularBuildContext: AngularBuildContext<AppProjectConf
         sourceMap: appConfig.sourceMap,
         additionalLazyModules,
         nameLazyFiles: appConfig.namedChunks,
-        forkTypeChecker: appConfig.forkTypeChecker,
+        forkTypeChecker: appConfig.forkTypeChecker !== false,
         // tslint:disable-next-line:no-require-imports
         contextElementDependencyConstructor: require('webpack/lib/dependencies/ContextElementDependency'),
         ...options
