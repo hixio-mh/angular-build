@@ -28,22 +28,10 @@
       "index": "index.html"
     },
     "envOverrides": {
-      "dll": {
-        "clean": {
-          "beforeBuild": {
-            "cleanOutDir": true
-          }
-        }
-      },
       "ref-dll": {
         "referenceDll": true
       },
       "prod": {
-        "clean": {
-          "beforeBuild": {
-            "cleanOutDir": true
-          }
-        },
         "fileReplacements": [{
           "replace": "./environments/environment.ts",
           "with": "./environments/environment.prod.ts"

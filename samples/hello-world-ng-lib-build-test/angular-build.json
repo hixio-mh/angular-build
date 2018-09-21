@@ -5,11 +5,6 @@
     "outputPath": "dist",
     "libraryName": "hello-world",
     "banner": "banner.txt",
-    "clean": {
-      "beforeBuild": {
-        "cleanOutDir": true
-      }
-    },
     "tsTranspilations": true,
     "envOverrides": {
       "prod": {
