@@ -373,3 +373,6 @@ yarn.lock
 wwwroot/*
 !wwwroot/favicon.ico
 **/*.generated.cshtml
+
+# schema output
+schemas/
