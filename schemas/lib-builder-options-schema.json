@@ -229,7 +229,8 @@
         "libraryTarget": {
           "description": "Bundle module format.",
           "enum": [
-            "es",
+            "cjs",
+            "esm",
             "umd"
           ],
           "type": "string"

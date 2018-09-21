@@ -223,11 +223,8 @@
         "libraryTarget": {
           "description": "Module format for bundling.",
           "enum": [
-            "amd",
-            "cjs",
             "commonjs",
             "commonjs2",
-            "iife",
             "umd",
             "var"
           ],
@@ -645,11 +642,8 @@
         "libraryTarget": {
           "description": "Module format for bundling.",
           "enum": [
-            "amd",
-            "cjs",
             "commonjs",
             "commonjs2",
-            "iife",
             "umd",
             "var"
           ],
@@ -1182,7 +1176,8 @@
         "libraryTarget": {
           "description": "Bundle module format.",
           "enum": [
-            "es",
+            "cjs",
+            "esm",
             "umd"
           ],
           "type": "string"
