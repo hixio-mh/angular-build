@@ -22,7 +22,8 @@ Features
 - This npm package can be consumed by [Angular CLI](https://github.com/BizAppFramework/angular-build/wiki/Angular-CLI-Integration), [Webpack CLI](https://github.com/BizAppFramework/angular-build/wiki/Webpack-CLI-Integration), or [Built-in CLI](https://github.com/BizAppFramework/angular-build/wiki/Build-with-Built-in-CLI)
 - Bundle your library in fesm2015, fesm5, umd formats, and [more](https://github.com/BizAppFramework/angular-build/wiki/Build-Library-Projects)
 - [DLL bundling](https://github.com/BizAppFramework/angular-build/wiki/DLL-Bundling) support for optimizing build time, internally using [DllPlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllplugin), [DllReferencePlugin](https://github.com/webpack/docs/wiki/list-of-plugins#dllreferenceplugin)
-- Flexable configurations with [Extendable config options](https://github.com/BizAppFramework/angular-build/wiki/Extending-Configs) - [Customizable html injection](https://github.com/BizAppFramework/angular-build/wiki/Custom-Html-Injection), can inject bundled scripts, links, resource hints, etc into separate files or [ASP.Net Core MVC](https://docs.microsoft.com/en-us/aspnet/core/mvc/overview) partial views
+- Flexable configurations with [Extendable config options](https://github.com/BizAppFramework/angular-build/wiki/Extending-Configs) 
+- [Customizable html injection](https://github.com/BizAppFramework/angular-build/wiki/Custom-Html-Injection), can inject bundled scripts, links, resource hints, etc into separate files or [ASP.Net Core MVC](https://docs.microsoft.com/en-us/aspnet/core/mvc/overview) partial views
 - Support to [merge with custom webpack config](https://github.com/BizAppFramework/angular-build/wiki/Merge-with-Custom-Webpack-Config)
 
 Prerequisites
