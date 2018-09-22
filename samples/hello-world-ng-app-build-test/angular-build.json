@@ -28,7 +28,7 @@
       "index": "index.html"
     },
     "envOverrides": {
-      "ref-dll": {
+      "refdll": {
         "referenceDll": true
       },
       "prod": {
