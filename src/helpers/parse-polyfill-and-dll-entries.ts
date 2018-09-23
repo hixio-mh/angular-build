@@ -3,7 +3,7 @@ import * as path from 'path';
 
 import { DllParsedResult } from '../interfaces/internals';
 
-export function parseDllEntries(inputs: string | string[], forDll: boolean, projectRoot: string): DllParsedResult {
+export function parsePolyfillAndDllEntries(inputs: string | string[], forDll: boolean, projectRoot: string): DllParsedResult {
     const result: DllParsedResult = {
         tsEntries: [],
         scriptEntries: [],
@@ -36,20 +36,20 @@ export function parseDllEntries(inputs: string | string[], forDll: boolean, proj
     dllEntries
         .forEach((e: string) => {
             if (!forDll) {
-                const resolvedPath = path.resolve(projectRoot, e);
-                if (existsSync(resolvedPath)) {
+                const tempPath = path.resolve(projectRoot, e);
+                if (existsSync(tempPath)) {
                     if (e.match(/\.ts$/i)) {
-                        if (!result.tsEntries.includes(resolvedPath)) {
-                            result.tsEntries.push(resolvedPath);
+                        if (!result.tsEntries.includes(tempPath)) {
+                            result.tsEntries.push(tempPath);
                         }
                     } else {
-                        if (!result.scriptEntries.includes(resolvedPath)) {
-                            result.scriptEntries.push(resolvedPath);
+                        if (!result.scriptEntries.includes(tempPath)) {
+                            result.scriptEntries.push(tempPath);
                         }
                     }
                 } else {
-                    if (!result.scriptEntries.includes(resolvedPath)) {
-                        result.scriptEntries.push(resolvedPath);
+                    if (!result.scriptEntries.includes(e)) {
+                        result.scriptEntries.push(e);
                     }
                 }
             } else {

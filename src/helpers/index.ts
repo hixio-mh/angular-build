@@ -10,7 +10,7 @@ export * from './init-ts-transpilation-options';
 export * from './load-ts-config';
 export * from './normalize-environment';
 export * from './output-hash-format';
-export * from './parse-dll-entries';
+export * from './parse-polyfill-and-dll-entries';
 export * from './parse-script-and-style-entries';
 export * from './prepare-clean-options';
 export * from './prepare-configs';

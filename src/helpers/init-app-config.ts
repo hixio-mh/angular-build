@@ -13,7 +13,7 @@ import { findUpSync } from '../utils';
 import { getEcmaVersionFromScriptTarget } from './get-ecma-version-from-script-target';
 import { getnodeResolveFieldsFromScriptTarget } from './get-node-resolve-fields-from-script-target';
 import { loadTsConfig } from './load-ts-config';
-import { parseDllEntries } from './parse-dll-entries';
+import { parsePolyfillAndDllEntries } from './parse-polyfill-and-dll-entries';
 import { parseScriptAndStyleEntries } from './parse-script-and-style-entries';
 
 // tslint:disable-next-line:max-func-body-length
@@ -164,13 +164,13 @@ export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions:
 
     // dlls
     if (appConfig.vendors && (appConfig._isDll || appConfig.referenceDll)) {
-        appConfig._dllParsedResult = parseDllEntries(appConfig.vendors, true, projectRoot);
+        appConfig._dllParsedResult = parsePolyfillAndDllEntries(appConfig.vendors, true, projectRoot);
     }
 
     // polyfills
     if (!appConfig._isDll && appConfig.polyfills && appConfig.polyfills.length > 0) {
         const polyfills = Array.isArray(appConfig.polyfills) ? appConfig.polyfills : [appConfig.polyfills];
-        appConfig._polyfillParsedResult = parseDllEntries(polyfills, false, projectRoot);
+        appConfig._polyfillParsedResult = parsePolyfillAndDllEntries(polyfills, false, projectRoot);
     }
 
     // styles
