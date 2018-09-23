@@ -7,6 +7,7 @@
     "prod": {
       "banner": "../banner.txt",
       "copy": [
+        "../../LICENSE",
         "../LICENSE",
         "README.md"
       ],
