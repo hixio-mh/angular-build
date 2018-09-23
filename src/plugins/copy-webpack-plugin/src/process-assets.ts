@@ -64,6 +64,20 @@ export async function processAssets(preProcessedEntries: PreProcessedAssetEntry[
         // tslint:disable:max-func-body-length
         await Promise.all(relativeFromPaths.map(async (relativeFrom) => {
             const absoluteFrom = path.resolve(assetEntry.context, relativeFrom);
+
+            const isExists = await new Promise<boolean>((resolve) => {
+                inputFileSystem.stat(absoluteFrom,
+                    (statError: Error) => {
+                        resolve(statError ? false : true);
+
+                        return;
+                    });
+            });
+
+            if (!isExists) {
+                return;
+            }
+
             const content = await new Promise<Buffer>((resolve, reject) => {
                 inputFileSystem.readFile(absoluteFrom,
                     (err: Error, data: Buffer) => {
