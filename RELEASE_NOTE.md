@@ -1,12 +1,15 @@
+# Release Note
+
+## 6.1.6
+
 ### Features
 
 - N/A
 
 ### Bugs
 
-- Fix polyfills entry parsing logic
-- Fix error non-existed file copy
+- Fix glob copy files logic
 
 ### Misc
 
-- Update dependencies
+- N/A
