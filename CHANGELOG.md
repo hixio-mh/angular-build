@@ -1,5 +1,20 @@
 # Change Logs
 
+## 6.1.5
+
+### Features
+
+- N/A
+
+### Bugs
+
+- Fix polyfills entry parsing logic
+- Fix error non-existed file copy
+
+### Misc
+
+- Update dependencies
+
 ## 6.1.4
 
 ### Features
