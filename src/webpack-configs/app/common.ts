@@ -5,7 +5,6 @@
 
 import * as path from 'path';
 
-import { LicenseWebpackPlugin } from 'license-webpack-plugin';
 import * as resolve from 'resolve';
 import * as webpack from 'webpack';
 
@@ -27,7 +26,8 @@ import {
 import { BundleAnalyzerOptions } from '../../interfaces';
 import { AppProjectConfigInternal } from '../../interfaces/internals';
 
-// tslint:disable-next-line:variable-name
+// tslint:disable:variable-name
+const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlugin;
 const TerserPlugin = require('terser-webpack-plugin');
 
 // tslint:disable:max-func-body-length
@@ -231,7 +231,10 @@ export function
     // extractLicenses
     if (appConfig.extractLicenses) {
         plugins.push(new LicenseWebpackPlugin({
-            pattern: /.*/,
+            stats: {
+                warnings: verbose,
+                errors: true
+            },
             suppressErrors: true,
             perChunkOutput: false,
             outputFilename: appConfig.extractLicenseOutputFilename || '3rdpartylicenses.txt'
