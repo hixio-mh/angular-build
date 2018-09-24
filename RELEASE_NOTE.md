@@ -4,9 +4,8 @@
 
 ### Bugs
 
-- Fix polyfills entry parsing logic
-- Fix error non-existed file copy
+- Fix glob copy files logic
 
 ### Misc
 
-- Update dependencies
+- N/A

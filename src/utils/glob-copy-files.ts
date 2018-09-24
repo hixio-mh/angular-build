@@ -1,7 +1,7 @@
 import * as path from 'path';
 
 import * as denodeify from 'denodeify';
-import { copy, ensureDir, remove } from 'fs-extra';
+import { copy, remove } from 'fs-extra';
 import * as glob from 'glob';
 
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
@@ -9,12 +9,12 @@ const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions
 export async function globCopyFiles(fromPath: string, pattern: string, toPath: string, move?: boolean):
     Promise<void> {
     const files = await globPromise(pattern, { cwd: fromPath });
-    for (const filePath of files) {
-        const fileDestPath = path.join(toPath, filePath);
-        await ensureDir(path.dirname(filePath));
-        await copy(path.join(fromPath, filePath), fileDestPath);
+    for (const relFileName of files) {
+        const sourceFilePath = path.join(fromPath, relFileName);
+        const destFilePath = path.join(toPath, relFileName);
+        await copy(sourceFilePath, destFilePath);
         if (move) {
-            await remove(path.join(fromPath, filePath));
+            await remove(sourceFilePath);
         }
     }
 }
