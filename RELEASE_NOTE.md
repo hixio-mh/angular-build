@@ -9,4 +9,4 @@
 
 ### Misc
 
-- N/A
+- Update dependencies
