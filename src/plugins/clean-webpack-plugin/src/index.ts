@@ -5,10 +5,9 @@ import * as path from 'path';
 
 import { getSystemPath, join, normalize, Path, virtualFs } from '@angular-devkit/core';
 import * as denodeify from 'denodeify';
-import { pathExists, stat } from 'fs-extra';
+import { pathExists, remove, stat } from 'fs-extra';
 import * as glob from 'glob';
 import * as minimatch from 'minimatch';
-import * as rimraf from 'rimraf';
 import { concat, of } from 'rxjs';
 import { concatMap, last } from 'rxjs/operators';
 import * as webpack from 'webpack';
@@ -502,24 +501,7 @@ export class CleanWebpackPlugin {
                 const exists = await pathExists(pathToClean);
                 if (exists) {
                     this._logger.debug(`Deleting ${relToWorkspace}`);
-
-                    const statInfo = await stat(pathToClean);
-                    const pathToCleanPattern = statInfo.isDirectory() ? path.join(pathToClean, '**/*') : pathToClean;
-
-                    await new Promise((resolve, reject) => {
-                        rimraf(pathToCleanPattern,
-                            (err: Error) => {
-                                if (err) {
-                                    reject(err);
-
-                                    return;
-
-                                }
-
-                                resolve();
-                            });
-                    }
-                    );
+                    await remove(pathToClean);
                 }
             }
         }
