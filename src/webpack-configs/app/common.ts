@@ -112,8 +112,9 @@ export function
     }
 
     // clean
-    let shouldClean = outputPath &&
-        (angularBuildContext.buildOptions.cleanOutDir || appConfig.clean !== false);
+    const isReferenceDll = appConfig.referenceDll && !appConfig._isDll;
+    let shouldClean = (angularBuildContext.buildOptions.cleanOutDir && !isReferenceDll) ||
+        appConfig.clean || (appConfig.clean !== false && !isReferenceDll);
     if (appConfig.clean === false) {
         shouldClean = false;
     }

@@ -34,7 +34,8 @@ export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<Lib
     ];
 
     // clean
-    let shouldClean = angularBuildContext.buildOptions.cleanOutDir || libConfig.clean !== false;
+    let shouldClean = (angularBuildContext.buildOptions.cleanOutDir && !libConfig._isNestedPackage) ||
+        libConfig.clean || (libConfig.clean !== false && !libConfig._isNestedPackage);
     if (libConfig.clean === false) {
         shouldClean = false;
     }

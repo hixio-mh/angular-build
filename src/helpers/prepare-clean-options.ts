@@ -10,20 +10,29 @@ export function prepareCleanOptions(projectConfig: AppProjectConfigInternal | Li
     cleanOptions.beforeBuild = (cleanOptions.beforeBuild || {});
     const beforeBuildOption = cleanOptions.beforeBuild;
 
-    if (beforeBuildOption.cleanOutDir !== false) {
-        beforeBuildOption.cleanOutDir = true;
-    }
+    let skipCleanOutDir = false;
 
     if (projectConfig._projectType === 'app') {
         const appConfig = projectConfig as AppProjectConfigInternal;
-        const isDll = appConfig._isDll;
 
-        if (!isDll && appConfig.referenceDll && beforeBuildOption.cleanOutDir) {
-            beforeBuildOption.cleanOutDir = false;
+        if (!appConfig._isDll && appConfig.referenceDll && beforeBuildOption.cleanOutDir) {
+            skipCleanOutDir = true;
+        }
+    } else if (projectConfig._projectType === 'lib') {
+        const libConfig = projectConfig as LibProjectConfigInternal;
+
+        if (libConfig._isNestedPackage && beforeBuildOption.cleanOutDir) {
+            skipCleanOutDir = true;
         }
     }
 
-    if (beforeBuildOption.cleanOutDir && beforeBuildOption.cleanCache == null) {
+    if (skipCleanOutDir) {
+        beforeBuildOption.cleanOutDir = false;
+    } else if (beforeBuildOption.cleanOutDir == null) {
+        beforeBuildOption.cleanOutDir = true;
+    }
+
+    if (beforeBuildOption.cleanCache == null) {
         beforeBuildOption.cleanCache = true;
     }
 

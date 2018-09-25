@@ -437,8 +437,7 @@ export class CleanWebpackPlugin {
                 }
             }
 
-            const isDirectory = path.extname(pathToClean) === '';
-            if (isDirectory &&
+            if (path.extname(pathToClean) === '' &&
                 (existedFilesToExclude.find(e => isInFolder(pathToClean, e)) ||
                     existedDirsToExclude.find(e => isInFolder(pathToClean, e)))) {
                 continue;
@@ -504,8 +503,11 @@ export class CleanWebpackPlugin {
                 if (exists) {
                     this._logger.debug(`Deleting ${relToWorkspace}`);
 
+                    const statInfo = await stat(pathToClean);
+                    const pathToCleanPattern = statInfo.isDirectory() ? path.join(pathToClean, '**/*') : pathToClean;
+
                     await new Promise((resolve, reject) => {
-                        rimraf(isDirectory ? path.join(pathToClean, '**/*') : pathToClean,
+                        rimraf(pathToCleanPattern,
                             (err: Error) => {
                                 if (err) {
                                     reject(err);
