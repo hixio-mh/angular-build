@@ -25,10 +25,10 @@ export interface LoggerOptions {
 }
 
 export interface LoggerBase {
-    debug?(message: string, optionalParams?: any[]): void;
-    info?(message: string, optionalParams?: any[]): void;
-    warn?(message: string, optionalParams?: any[]): void;
-    error?(message: string, optionalParams?: any[]): void;
+    debug?(message: string, optionalParams?: any): void;
+    info?(message: string, optionalParams?: any): void;
+    warn?(message: string, optionalParams?: any): void;
+    error?(message: string, optionalParams?: any): void;
 }
 
 export class Logger implements LoggerBase {
@@ -63,7 +63,7 @@ export class Logger implements LoggerBase {
         }
     }
 
-    debug(message: string, optionalParams?: any[]): void {
+    debug(message: string, optionalParams?: any): void {
         if (this._minLogLevel < LogLevel.Debug || !message) {
             return;
         }
@@ -82,7 +82,7 @@ export class Logger implements LoggerBase {
         }
     }
 
-    info(message: string, optionalParams?: any[]): void {
+    info(message: string, optionalParams?: any): void {
         if (this._minLogLevel < LogLevel.Info || !message) {
             return;
         }
@@ -101,7 +101,7 @@ export class Logger implements LoggerBase {
         }
     }
 
-    warn(message: string, optionalParams?: any[]): void {
+    warn(message: string, optionalParams?: any): void {
         if (this._minLogLevel < LogLevel.Warn || !message) {
             return;
         }
@@ -124,7 +124,7 @@ export class Logger implements LoggerBase {
         }
     }
 
-    error(message: string, optionalParams?: any[]): void {
+    error(message: string, optionalParams?: any): void {
         if (this._minLogLevel < LogLevel.Error || !message) {
             return;
         }
