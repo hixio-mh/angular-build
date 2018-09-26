@@ -1,6 +1,5 @@
 export * from './angular-build-config';
 export * from './app-project-config';
-export * from './build-command-options';
 export * from './build-options';
 export * from './builder-options';
 export * from './lib-project-config';
