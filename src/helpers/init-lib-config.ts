@@ -10,7 +10,6 @@ import { initTsTranspilationOptions } from './init-ts-transpilation-options';
 import { loadTsConfig } from './load-ts-config';
 import { parseScriptAndStyleEntries } from './parse-script-and-style-entries';
 
-// tslint:disable:max-func-body-length
 export function initLibConfig(libConfig: LibProjectConfigInternal): void {
     if (!libConfig._workspaceRoot) {
         throw new InternalError("The 'libConfig._workspaceRoot' is not set.");
@@ -55,59 +54,7 @@ export function initLibConfig(libConfig: LibProjectConfigInternal): void {
     initTsTranspilationsInternal(libConfig);
 
     // bundles
-    const bundleInternals: LibBundleOptionsInternal[] = [];
-    if (libConfig.bundles && Array.isArray(libConfig.bundles)) {
-        const bundles = libConfig.bundles;
-        for (let i = 0; i < bundles.length; i++) {
-            const bundlePartial = bundles[i] as Partial<LibBundleOptionsInternal>;
-            bundleInternals.push(initLibBundleTarget(bundleInternals, bundlePartial, i, libConfig));
-        }
-    } else if (libConfig.bundles) {
-        let shouldBundlesDefault = libConfig.tsTranspilations === true;
-        if (!shouldBundlesDefault &&
-            libConfig._tsTranspilations &&
-            libConfig._tsTranspilations.length >= 2 &&
-            libConfig._tsTranspilations[0].target === 'es2015' &&
-            libConfig._tsTranspilations[1].target === 'es5') {
-            shouldBundlesDefault = true;
-        }
-
-        if (shouldBundlesDefault) {
-            const es2015BundlePartial: Partial<LibBundleOptionsInternal> = {
-                libraryTarget: 'esm',
-                entryRoot: 'tsTranspilationOutDir',
-                tsTranspilationIndex: 0
-            };
-
-            const es2015BundleInternal =
-                initLibBundleTarget(bundleInternals, es2015BundlePartial, 0, libConfig);
-            bundleInternals.push(es2015BundleInternal);
-
-            const es5BundlePartial: Partial<LibBundleOptionsInternal> = {
-                libraryTarget: 'esm',
-                entryRoot: 'tsTranspilationOutDir',
-                tsTranspilationIndex: 1
-            };
-
-            const es5BundleInternal =
-                initLibBundleTarget(bundleInternals, es5BundlePartial, 1, libConfig);
-            bundleInternals.push(es5BundleInternal);
-
-            const umdBundlePartial: Partial<LibBundleOptionsInternal> = {
-                libraryTarget: 'umd',
-                entryRoot: 'prevBundleOutDir'
-            };
-            const umdBundleInternal =
-                initLibBundleTarget(bundleInternals, umdBundlePartial, 2, libConfig);
-            bundleInternals.push(umdBundleInternal);
-        } else {
-            throw new InvalidConfigError(
-                `Counld not detect to bunlde automatically, please correct option in 'projects[${libConfig.name ||
-                libConfig._index
-                }].bundles'.`);
-        }
-    }
-    libConfig._bundles = bundleInternals;
+    initBundleOptionsInternal(libConfig);
 
     // parsed result
     if (libConfig.styles && Array.isArray(libConfig.styles) && libConfig.styles.length > 0) {
@@ -173,9 +120,8 @@ function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal): void
             tsTranspilationInternals.push(tsTranspilation);
         }
     } else if (libConfig.tsTranspilations) {
-        const tsConfigPath = libConfig.tsConfig && libConfig._tsConfigPath
-            ? libConfig._tsConfigPath
-            : detectTsConfigPathForLib(workspaceRoot, projectRoot);
+        const tsConfigPath = libConfig.tsConfig && libConfig._tsConfigPath ?
+            libConfig._tsConfigPath : detectTsConfigPathForLib(workspaceRoot, projectRoot);
 
         if (!tsConfigPath) {
             throw new InvalidConfigError(
@@ -205,6 +151,62 @@ function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal): void
     libConfig._tsTranspilations = tsTranspilationInternals;
 }
 
+function initBundleOptionsInternal(libConfig: LibProjectConfigInternal): void {
+    const bundleInternals: LibBundleOptionsInternal[] = [];
+    if (libConfig.bundles && Array.isArray(libConfig.bundles)) {
+        const bundles = libConfig.bundles;
+        for (let i = 0; i < bundles.length; i++) {
+            const bundlePartial = bundles[i] as Partial<LibBundleOptionsInternal>;
+            bundleInternals.push(initLibBundleTarget(bundleInternals, bundlePartial, i, libConfig));
+        }
+    } else if (libConfig.bundles) {
+        let shouldBundlesDefault = libConfig.tsTranspilations === true;
+        if (!shouldBundlesDefault &&
+            libConfig._tsTranspilations &&
+            libConfig._tsTranspilations.length >= 2 &&
+            libConfig._tsTranspilations[0].target === 'es2015' &&
+            libConfig._tsTranspilations[1].target === 'es5') {
+            shouldBundlesDefault = true;
+        }
+
+        if (shouldBundlesDefault) {
+            const es2015BundlePartial: Partial<LibBundleOptionsInternal> = {
+                libraryTarget: 'esm',
+                entryRoot: 'tsTranspilationOutDir',
+                tsTranspilationIndex: 0
+            };
+
+            const es2015BundleInternal =
+                initLibBundleTarget(bundleInternals, es2015BundlePartial, 0, libConfig);
+            bundleInternals.push(es2015BundleInternal);
+
+            const es5BundlePartial: Partial<LibBundleOptionsInternal> = {
+                libraryTarget: 'esm',
+                entryRoot: 'tsTranspilationOutDir',
+                tsTranspilationIndex: 1
+            };
+
+            const es5BundleInternal =
+                initLibBundleTarget(bundleInternals, es5BundlePartial, 1, libConfig);
+            bundleInternals.push(es5BundleInternal);
+
+            const umdBundlePartial: Partial<LibBundleOptionsInternal> = {
+                libraryTarget: 'umd',
+                entryRoot: 'prevBundleOutDir'
+            };
+            const umdBundleInternal =
+                initLibBundleTarget(bundleInternals, umdBundlePartial, 2, libConfig);
+            bundleInternals.push(umdBundleInternal);
+        } else {
+            throw new InvalidConfigError(
+                `Counld not detect to bunlde automatically, please correct option in 'projects[${libConfig.name ||
+                libConfig._index
+                }].bundles'.`);
+        }
+    }
+    libConfig._bundles = bundleInternals;
+}
+
 function detectTsConfigPathForLib(workspaceRoot: string, projectRoot: string): string | null {
     return findUpSync([
         'tsconfig-build.json',
@@ -212,7 +214,5 @@ function detectTsConfigPathForLib(workspaceRoot: string, projectRoot: string): s
         'tsconfig.build.json',
         'tsconfig-lib.json',
         'tsconfig.json'
-    ],
-        projectRoot,
-        workspaceRoot);
+    ], projectRoot, workspaceRoot);
 }
