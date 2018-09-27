@@ -292,7 +292,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         return AngularBuildContext._tscCliPath;
     }
 
-    static ngcCliPath(): string {
+    static get ngcCliPath(): string {
         if (!AngularBuildContext._initialized) {
             throw new InternalError('AngularBuildContext has not been initialized.');
         }
@@ -397,7 +397,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             AngularBuildContext._startTime = options.startTime;
         }
 
-        if (options.fromBuiltInCli != null && AngularBuildContext.fromBuiltInCli == null) {
+        if (options.fromBuiltInCli != null && AngularBuildContext._fromBuiltInCli == null) {
             AngularBuildContext._fromBuiltInCli = options.fromBuiltInCli;
         }
 
