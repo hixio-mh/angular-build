@@ -6,9 +6,9 @@ import * as path from 'path';
 import { copy } from 'fs-extra';
 import * as webpack from 'webpack';
 
-import { InternalError, InvalidConfigError } from '../../../error-models';
-import { AssetEntry } from '../../../interfaces';
-import { isInFolder, Logger, LoggerOptions } from '../../../utils';
+import { AssetEntry } from '../../../models';
+import { InternalError, InvalidConfigError } from '../../../models/errors';
+import { isInFolder, Logger, LogLevelString } from '../../../utils';
 
 import { preProcessAssets } from './pre-process-assets';
 import { processAssets, ProcessedAssetsResult } from './process-assets';
@@ -19,12 +19,10 @@ export interface CopyWebpackPluginOptions {
     assets: (string | AssetEntry)[];
     allowCopyOutsideOutputPath?: boolean;
     forceWriteToDisk?: boolean;
-    persistedOutputFileSystemNames?: string[];
-    loggerOptions?: LoggerOptions;
+    logLevel?: LogLevelString;
 }
 
 export class CopyWebpackPlugin {
-    private readonly _options: CopyWebpackPluginOptions;
     private readonly _logger: Logger;
     private readonly _persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
     private readonly _fileDependencies: string[] = [];
@@ -36,14 +34,10 @@ export class CopyWebpackPlugin {
         return 'copy-webpack-plugin';
     }
 
-    constructor(options: CopyWebpackPluginOptions) {
-        if (!options) {
+    constructor(private readonly _options: CopyWebpackPluginOptions) {
+        if (!this._options) {
             throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
         }
-
-        this._options = {
-            ...options,
-        };
 
         if (!this._options.baseDir) {
             throw new InternalError("The 'baseDir' property is required.");
@@ -54,13 +48,10 @@ export class CopyWebpackPlugin {
                 `The 'baseDir' must be absolute path, passed value: ${this._options.baseDir}.`);
         }
 
-        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
-
-        if (this._options.persistedOutputFileSystemNames && this._options.persistedOutputFileSystemNames.length) {
-            this._options.persistedOutputFileSystemNames
-                .filter(pfs => !this._persistedOutputFileSystemNames.includes(pfs))
-                .forEach(pfs => this._persistedOutputFileSystemNames.push(pfs));
-        }
+        this._logger = new Logger({
+            name: `[${this.name}]`,
+            logLevel: this._options.logLevel || 'info'
+        });
     }
 
     apply(compiler: webpack.Compiler): void {

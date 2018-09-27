@@ -5,8 +5,8 @@ import * as path from 'path';
 
 import { ModuleKind, ScriptTarget } from 'typescript';
 
-import { InternalError, InvalidConfigError } from '../error-models';
-import { LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../interfaces/internals';
+import { InternalError, InvalidConfigError } from '../models/errors';
+import { LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../models/internals';
 import { isInFolder, isSamePaths, normalizeRelativePath } from '../utils';
 
 import { loadTsConfig } from './load-ts-config';
@@ -95,7 +95,7 @@ export function initTsTranspilationOptions(tsConfigPath: string,
             !tsTranspilation.useTsc &&
                 tsTranspilation._angularCompilerOptions &&
                 tsTranspilation._angularCompilerOptions.flatModuleOutFile
-                ? tsTranspilation._angularCompilerOptions.flatModuleOutFile as string
+                ? tsTranspilation._angularCompilerOptions.flatModuleOutFile
                 : null;
 
         if (flatModuleOutFile) {

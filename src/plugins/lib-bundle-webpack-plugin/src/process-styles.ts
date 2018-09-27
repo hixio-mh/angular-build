@@ -10,8 +10,8 @@ import { copy, ensureDir, readFile, writeFile } from 'fs-extra';
 import * as sass from 'node-sass';
 
 import { AngularBuildContext } from '../../../build-context';
-import { InternalError, UnSupportedStyleExtError } from '../../../error-models';
-import { GlobalParsedEntry, LibProjectConfigInternal } from '../../../interfaces/internals';
+import { InternalError, UnsupportedStyleExtError } from '../../../models/errors';
+import { GlobalScriptStyleParsedEntry, LibProjectConfigInternal } from '../../../models/internals';
 
 const cssnano = require('cssnano');
 const postcss = require('postcss');
@@ -53,7 +53,7 @@ export async function processStyles(angularBuildContext: AngularBuildContext<Lib
 
     logger.info('Processing global styles');
 
-    await Promise.all(libConfig._styleParsedEntries.map(async (styleParsedEntry: GlobalParsedEntry) => {
+    await Promise.all(libConfig._styleParsedEntries.map(async (styleParsedEntry: GlobalScriptStyleParsedEntry) => {
         const input = styleParsedEntry.paths[0];
         const dest = path.resolve(outputPath, styleParsedEntry.entry);
 
@@ -89,7 +89,7 @@ export async function processStyles(angularBuildContext: AngularBuildContext<Lib
         } else if (/\.css$/i.test(input)) {
             await copy(input, dest);
         } else {
-            throw new UnSupportedStyleExtError(`The ${input} is not supported style format.`);
+            throw new UnsupportedStyleExtError(`The ${input} is not supported style format.`);
         }
 
         // minify

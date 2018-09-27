@@ -4,7 +4,7 @@
 
 import * as path from 'path';
 
-import { InternalError } from '../../../error-models';
+import { InternalError } from '../../../models/errors';
 import { isGlob } from '../../../utils';
 
 export interface PreProcessedAssetEntry {

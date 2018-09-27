@@ -1,4 +1,3 @@
-export * from './check-path-up';
 export * from './detect-cli';
 export * from './get-ecma-version-from-script-target';
 export * from './get-custom-webpack-config';
@@ -10,8 +9,8 @@ export * from './init-ts-transpilation-options';
 export * from './load-ts-config';
 export * from './normalize-environment';
 export * from './output-hash-format';
-export * from './parse-polyfill-and-dll-entries';
-export * from './parse-script-and-style-entries';
+export * from './parse-polyfill-dll-entries';
+export * from './parse-script-style-entries';
 export * from './prepare-clean-options';
 export * from './prepare-configs';
 export * from './resolve-loader-path';

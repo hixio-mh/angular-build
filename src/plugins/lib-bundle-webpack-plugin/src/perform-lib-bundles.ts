@@ -9,8 +9,8 @@ import { pathExists } from 'fs-extra';
 import * as rollup from 'rollup';
 
 import { AngularBuildContext } from '../../../build-context';
-import { InvalidConfigError } from '../../../error-models';
-import { LibProjectConfigInternal } from '../../../interfaces/internals';
+import { InvalidConfigError } from '../../../models/errors';
+import { LibProjectConfigInternal } from '../../../models/internals';
 
 import { getRollupConfig } from './get-rollup-config';
 import { minifyFile } from './minify-file';

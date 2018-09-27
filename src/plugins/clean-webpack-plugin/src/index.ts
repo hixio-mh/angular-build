@@ -12,9 +12,9 @@ import { concat, of } from 'rxjs';
 import { concatMap, last } from 'rxjs/operators';
 import * as webpack from 'webpack';
 
-import { InternalError, InvalidConfigError } from '../../../error-models';
-import { AfterEmitCleanOptions, BeforeBuildCleanOptions, CleanOptions } from '../../../interfaces';
-import { isGlob, isInFolder, isSamePaths, Logger, LoggerOptions, normalizeRelativePath } from '../../../utils';
+import { AfterEmitCleanOptions, BeforeBuildCleanOptions, CleanOptions } from '../../../models';
+import { InternalError, InvalidConfigError } from '../../../models/errors';
+import { isGlob, isInFolder, isSamePaths, Logger, LogLevelString, normalizeRelativePath } from '../../../utils';
 
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 
@@ -24,7 +24,7 @@ export interface CleanWebpackPluginOptions extends CleanOptions {
     cacheDirectries?: string[];
     forceCleanToDisk?: boolean;
     host?: virtualFs.Host;
-    loggerOptions?: LoggerOptions;
+    logLevel?: LogLevelString;
 }
 
 export class CleanWebpackPlugin {
@@ -39,7 +39,10 @@ export class CleanWebpackPlugin {
     }
 
     constructor(private readonly _options: CleanWebpackPluginOptions) {
-        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
+        this._logger = new Logger({
+            name: `[${this.name}]`,
+            logLevel: this._options.logLevel || 'info'
+        });
     }
 
     // tslint:disable-next-line:max-func-body-length

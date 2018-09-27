@@ -12,8 +12,8 @@ import * as glob from 'glob';
 import { minify as minifyHtml } from 'html-minifier';
 import * as sass from 'node-sass';
 
-import { UnSupportedStyleExtError } from '../../../error-models';
-import { Logger } from '../../../utils';
+import { UnsupportedStyleExtError } from '../../../models/errors';
+import { LoggerBase } from '../../../utils';
 
 const cssnano = require('cssnano');
 // tslint:disable-next-line:variable-name
@@ -45,7 +45,7 @@ export async function processNgResources(srcDir: string,
     stylePreprocessorIncludePaths: string[],
     metadataInline: boolean,
     flatModuleOutFile: string | null,
-    logger: Logger
+    logger: LoggerBase
 ): Promise<boolean> {
     const componentResources = new Map<string, string>();
     let replaced = false;
@@ -230,7 +230,7 @@ async function inlineStyleUrls(source: string,
             } else if (/\.css$/i.test(styleSourceFilePath)) {
                 styleContent = await readFile(styleSourceFilePath, 'utf-8');
             } else {
-                throw new UnSupportedStyleExtError(`The ${styleSourceFilePath} is not supported style format.`);
+                throw new UnsupportedStyleExtError(`The ${styleSourceFilePath} is not supported style format.`);
             }
 
             const componentKey = path.relative(outDir, styleDestFilePath).replace(/\\/g, '/').replace(/^(\.\/|\/)/, '')

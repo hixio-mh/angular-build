@@ -5,19 +5,18 @@ import * as path from 'path';
 
 import { ScriptTarget } from 'typescript';
 
-import { AppProjectConfigInternal, BuildOptionInternal } from '../interfaces/internals';
-
-import { InternalError, InvalidOptionError } from '../error-models';
+import { InternalError, InvalidConfigError } from '../models/errors';
+import { AppProjectConfigInternal, BuildOptionsInternal } from '../models/internals';
 import { findUpSync } from '../utils';
 
 import { getEcmaVersionFromScriptTarget } from './get-ecma-version-from-script-target';
 import { getnodeResolveFieldsFromScriptTarget } from './get-node-resolve-fields-from-script-target';
 import { loadTsConfig } from './load-ts-config';
-import { parsePolyfillAndDllEntries } from './parse-polyfill-and-dll-entries';
-import { parseScriptAndStyleEntries } from './parse-script-and-style-entries';
+import { parsePolyfillDllEntries } from './parse-polyfill-dll-entries';
+import { parseScriptStyleEntries } from './parse-script-style-entries';
 
 // tslint:disable-next-line:max-func-body-length
-export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions: BuildOptionInternal): void {
+export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions: BuildOptionsInternal): void {
     applyAppProjectConfigDefaults(appConfig, buildOptions);
 
     if (!appConfig._workspaceRoot) {
@@ -37,7 +36,7 @@ export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions:
     const projectRoot = appConfig._projectRoot;
 
     if (appConfig.buildOptimizer && !appConfig.aot) {
-        throw new InvalidOptionError('The `buildOptimizer` option cannot be used without `aot`.');
+        throw new InvalidConfigError('The `buildOptimizer` option cannot be used without `aot`.');
     }
 
     // tsConfig
@@ -164,19 +163,19 @@ export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions:
 
     // dlls
     if (appConfig.vendors && (appConfig._isDll || appConfig.referenceDll)) {
-        appConfig._dllParsedResult = parsePolyfillAndDllEntries(appConfig.vendors, true, projectRoot);
+        appConfig._dllParsedResult = parsePolyfillDllEntries(appConfig.vendors, true, projectRoot);
     }
 
     // polyfills
     if (!appConfig._isDll && appConfig.polyfills && appConfig.polyfills.length > 0) {
         const polyfills = Array.isArray(appConfig.polyfills) ? appConfig.polyfills : [appConfig.polyfills];
-        appConfig._polyfillParsedResult = parsePolyfillAndDllEntries(polyfills, false, projectRoot);
+        appConfig._polyfillParsedResult = parsePolyfillDllEntries(polyfills, false, projectRoot);
     }
 
     // styles
     if (!appConfig._isDll && appConfig.styles && Array.isArray(appConfig.styles) && appConfig.styles.length > 0) {
         appConfig._styleParsedEntries =
-            parseScriptAndStyleEntries(
+            parseScriptStyleEntries(
                 appConfig.styles,
                 'styles',
                 workspaceRoot,
@@ -190,7 +189,7 @@ export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions:
         Array.isArray(appConfig.scripts) &&
         appConfig.scripts.length > 0) {
         appConfig._scriptParsedEntries =
-            parseScriptAndStyleEntries(
+            parseScriptStyleEntries(
                 appConfig.scripts,
                 'scripts',
                 workspaceRoot,
@@ -200,7 +199,7 @@ export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions:
 }
 
 // tslint:disable:max-func-body-length
-function applyAppProjectConfigDefaults(appConfig: AppProjectConfigInternal, buildOptions: BuildOptionInternal): void {
+function applyAppProjectConfigDefaults(appConfig: AppProjectConfigInternal, buildOptions: BuildOptionsInternal): void {
     if (appConfig.skip) {
         return;
     }

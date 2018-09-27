@@ -14,7 +14,6 @@ import { CleanCssWebpackPlugin } from '../../plugins/cleancss-webpack-plugin';
 import { CopyWebpackPlugin } from '../../plugins/copy-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InternalError } from '../../error-models';
 import {
     getWebpackToStringStatsOptions,
     isFromWebpackCli,
@@ -23,8 +22,9 @@ import {
     prepareCleanOptions,
     resolveLoaderPath
 } from '../../helpers';
-import { BundleAnalyzerOptions } from '../../interfaces';
-import { AppProjectConfigInternal } from '../../interfaces/internals';
+import { BundleAnalyzerOptions } from '../../models';
+import { InternalError } from '../../models/errors';
+import { AppProjectConfigInternal } from '../../models/internals';
 
 // tslint:disable:variable-name
 const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlugin;
@@ -135,9 +135,7 @@ export function
             cacheDirectries: cacheDirs,
             forceCleanToDisk: isDll,
             host: angularBuildContext.host,
-            loggerOptions: {
-                logLevel: logLevel
-            }
+            logLevel: logLevel
         }));
     }
 
@@ -147,9 +145,7 @@ export function
             assets: appConfig.copy,
             baseDir: projectRoot,
             outputPath: outputPath,
-            loggerOptions: {
-                logLevel: logLevel
-            }
+            logLevel: logLevel
         }));
     }
 
@@ -280,9 +276,7 @@ export function
             plugins.push(new BundleAnalyzerWebpackPlugin({
                 ...bundleAnalyzerOptions,
                 outputPath: outputPath,
-                loggerOptions: {
-                    logLevel: 'error'
-                },
+                logLevel: 'error',
                 stats: appConfig.stats as webpack.Stats.ToJsonOptionsObject
             }));
         }

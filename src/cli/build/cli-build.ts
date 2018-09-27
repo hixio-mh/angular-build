@@ -6,14 +6,10 @@ import * as path from 'path';
 import { pathExists } from 'fs-extra';
 import * as webpack from 'webpack';
 
-import {
-    InvalidConfigError,
-    TypescriptCompileError,
-    UglifyError,
-    UnSupportedStyleExtError
-} from '../../error-models';
-import { runWebpack } from '../../helpers/run-webpack';
-import { BuildCommandOptions } from '../../interfaces';
+import { runWebpack } from '../../helpers';
+import { InvalidConfigError, TypescriptCompileError, UnsupportedStyleExtError } from '../../models/errors';
+import { BuildCommandOptions } from '../../models/internals';
+
 import { Logger } from '../../utils';
 import { getWebpackConfigFromAngularBuildConfig } from '../../webpack-configs';
 
@@ -80,8 +76,7 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
         if (err) {
             if (err instanceof InvalidConfigError ||
                 err instanceof TypescriptCompileError ||
-                err instanceof UglifyError ||
-                err instanceof UnSupportedStyleExtError) {
+                err instanceof UnsupportedStyleExtError) {
                 logger.error(`\n${err.message.trim()}\n`);
             } else {
                 logger.error(`${buildErrorMessage(err)}\n`);
@@ -99,7 +94,8 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
 function initCommandOptions(cliOptions: CliOptions, startTime: number): BuildCommandOptions {
     const commandOptions: BuildCommandOptions =
         cliOptions.args && typeof cliOptions.args === 'object' ? cliOptions.args : {};
-    commandOptions._fromAngularBuildCli = true;
+    commandOptions._fromBuiltInCli = true;
+
     commandOptions._cliIsGlobal = cliOptions.cliIsGlobal;
     commandOptions._cliRootPath = cliOptions.cliRootPath;
     commandOptions._cliVersion = cliOptions.cliVersion;

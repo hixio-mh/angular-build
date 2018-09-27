@@ -2,7 +2,7 @@ import * as path from 'path';
 
 import { isInFolder } from '../utils';
 
-export function checkPathUp(regex: RegExp, currentDir: string, rootPath: string): boolean {
+export function checkPathMatchUp(regex: RegExp, currentDir: string, rootPath: string): boolean {
     do {
         if (regex.test(currentDir)) {
             return true;

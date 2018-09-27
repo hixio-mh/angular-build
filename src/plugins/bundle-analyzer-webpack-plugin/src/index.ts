@@ -11,8 +11,8 @@ import * as path from 'path';
 import { ensureDir, readFileSync, writeFile } from 'fs-extra';
 import * as webpack from 'webpack';
 
-import { BundleAnalyzerOptions } from '../../../interfaces';
-import { Logger, LoggerOptions } from '../../../utils';
+import { BundleAnalyzerOptions } from '../../../models';
+import { Logger, LogLevelString } from '../../../utils';
 
 const ejs = require('ejs');
 const spawn = require('cross-spawn');
@@ -24,9 +24,8 @@ const webpackBundleAnalyzerRoot = path.resolve(require.resolve('webpack-bundle-a
 export interface BundleAnalyzerWebpackPluginOptions extends BundleAnalyzerOptions {
     outputPath?: string;
     forceWriteToDisk?: boolean;
-    persistedOutputFileSystemNames?: string[];
     stats?: webpack.Stats.ToJsonOptionsObject;
-    loggerOptions?: LoggerOptions;
+    logLevel?: LogLevelString;
 }
 
 export class BundleAnalyzerWebpackPlugin {
@@ -60,13 +59,10 @@ export class BundleAnalyzerWebpackPlugin {
             ...options,
         };
 
-        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
-
-        if (this._options.persistedOutputFileSystemNames && this._options.persistedOutputFileSystemNames.length) {
-            this._options.persistedOutputFileSystemNames
-                .filter(pfs => !this._persistedOutputFileSystemNames.includes(pfs))
-                .forEach(pfs => this._persistedOutputFileSystemNames.push(pfs));
-        }
+        this._logger = new Logger({
+            name: `[${this.name}]`,
+            logLevel: this._options.logLevel || 'info'
+        });
     }
 
     apply(compiler: webpack.Compiler): void {

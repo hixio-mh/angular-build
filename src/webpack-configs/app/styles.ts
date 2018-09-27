@@ -17,9 +17,9 @@ import { RemoveHashWebpacklugin } from '../../plugins/remove-hash-webpack-plugin
 import { SuppressEntryChunksWebpackPlugin } from '../../plugins/suppress-entry-chunks-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InternalError } from '../../error-models';
 import { outputHashFormat, resolveLoaderPath } from '../../helpers';
-import { AppProjectConfigInternal } from '../../interfaces/internals';
+import { InternalError } from '../../models/errors';
+import { AppProjectConfigInternal } from '../../models/internals';
 
 // tslint:disable-next-line:variable-name
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -228,9 +228,7 @@ export function
                 plugins.push(new SuppressEntryChunksWebpackPlugin({
                     chunks: chunks,
                     supressPattern: /\.js(\.map)?$/,
-                    loggerOptions: {
-                        logLevel: logLevel
-                    }
+                    logLevel: logLevel
                 }));
             }
         }

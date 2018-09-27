@@ -9,8 +9,8 @@ import * as path from 'path';
 import * as rollup from 'rollup';
 
 import { AngularBuildContext } from '../../../build-context';
-import { ExternalsEntry } from '../../../interfaces';
-import { LibBundleOptionsInternal, LibProjectConfigInternal } from '../../../interfaces/internals';
+import { ExternalsEntry } from '../../../models';
+import { LibBundleOptionsInternal, LibProjectConfigInternal } from '../../../models/internals';
 
 import { getAngularGlobals } from './angular-globals';
 import { getRxJsGlobals } from './rxjs-globals';

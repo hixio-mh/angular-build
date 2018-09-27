@@ -1,3 +1,4 @@
+export * from './check-path-match-up';
 export * from './colorize';
 export * from './find-up';
 export * from './format-ts-diagnostics';

@@ -4,7 +4,6 @@
 import { existsSync } from 'fs';
 import * as path from 'path';
 
-import { InternalError, InvalidConfigError } from '../error-models';
 import {
     AngularBuildConfig,
     AppBuilderOptions,
@@ -13,14 +12,15 @@ import {
     BuildOptionsCompat,
     LibBuilderOptions,
     ProjectConfigBase
-} from '../interfaces';
+} from '../models';
+import { InternalError, InvalidConfigError } from '../models/errors';
 import {
     AngularBuildConfigInternal,
     AppProjectConfigInternal,
-    BuildOptionInternal,
+    BuildOptionsInternal,
     LibProjectConfigInternal,
     ProjectConfigInternal
-} from '../interfaces/internals';
+} from '../models/internals';
 import { formatValidationError, readJsonSync, validateSchema } from '../utils';
 
 import { normalizeEnvironment } from './normalize-environment';
@@ -351,8 +351,8 @@ export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(pro
     }
 }
 
-export function getBuildOptionsFromBuilderOptions(options: BuildOptions & BuildOptionsCompat): BuildOptionInternal {
-    const buildOptions: BuildOptionInternal = { environment: {} };
+export function getBuildOptionsFromBuilderOptions(options: BuildOptions & BuildOptionsCompat): BuildOptionsInternal {
+    const buildOptions: BuildOptionsInternal = { environment: {} };
 
     if (options.environment) {
         const env = normalizeEnvironment(options.environment);

@@ -1,5 +1,6 @@
 export * from './angular-build-config-internal';
 export * from './app-project-config-internal';
+export * from './build-command-options';
 export * from './build-context-instance-options';
 export * from './build-context-static-options';
 export * from './build-options-internal';

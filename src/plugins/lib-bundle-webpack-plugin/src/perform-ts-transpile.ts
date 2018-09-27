@@ -5,12 +5,12 @@
 
 import * as path from 'path';
 
-import { pathExists, writeFile } from 'fs-extra';
+import { writeFile } from 'fs-extra';
 import { ScriptTarget } from 'typescript';
 
 import { AngularBuildContext } from '../../../build-context';
-import { InternalError, TypescriptCompileError } from '../../../error-models';
-import { LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../../../interfaces/internals';
+import { InternalError, TypescriptCompileError } from '../../../models/errors';
+import { LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../../../models/internals';
 import { globCopyFiles, normalizeRelativePath } from '../../../utils';
 
 import { processNgResources } from './process-ng-resources';
@@ -25,20 +25,6 @@ export async function performTsTranspile(angularBuildContext: AngularBuildContex
     }
 
     const logger = AngularBuildContext.logger;
-
-    let tscCliPath: string;
-    if (AngularBuildContext.tscCliPath) {
-        tscCliPath = AngularBuildContext.tscCliPath;
-    } else {
-        tscCliPath = await getTscCliPath();
-    }
-
-    let ngcCliPath: string;
-    if (AngularBuildContext.ngcCliPath) {
-        ngcCliPath = AngularBuildContext.ngcCliPath;
-    } else {
-        ngcCliPath = await getNgcCliPath();
-    }
 
     for (const tsTranspilation of libConfig._tsTranspilations) {
         const tsConfigPath = tsTranspilation._tsConfigPath;
@@ -82,7 +68,7 @@ export async function performTsTranspile(angularBuildContext: AngularBuildContex
 
         await new Promise((resolve, reject) => {
             const errors: string[] = [];
-            const commandPath = tsTranspilation.useTsc ? tscCliPath : ngcCliPath;
+            const commandPath = tsTranspilation.useTsc ? AngularBuildContext.tscCliPath : AngularBuildContext.ngcCliPath;
             const child = spawn(commandPath, commandArgs, {});
             child.stdout.on('data',
                 (data: any) => {
@@ -124,7 +110,7 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
         !tsTranspilation.useTsc &&
             tsTranspilation._angularCompilerOptions &&
             tsTranspilation._angularCompilerOptions.flatModuleOutFile
-            ? tsTranspilation._angularCompilerOptions.flatModuleOutFile as string
+            ? tsTranspilation._angularCompilerOptions.flatModuleOutFile
             : '';
     const projectVersion = libConfig._projectVersion;
 
@@ -230,65 +216,4 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
             await writeFile(reEportMetaDataFileAbs, JSON.stringify(metadataJson, null, 2));
         }
     }
-}
-
-async function getNgcCliPath(): Promise<string> {
-    const ngcCli = '.bin/ngc';
-
-    if (AngularBuildContext.nodeModulesPath &&
-        await pathExists(path.join(AngularBuildContext.nodeModulesPath, ngcCli))) {
-        return path.join(AngularBuildContext.nodeModulesPath, ngcCli);
-    }
-
-    if (AngularBuildContext.cliRootPath &&
-        await pathExists(path.join(AngularBuildContext.cliRootPath, 'node_modules', ngcCli))) {
-        return path.join(AngularBuildContext.cliRootPath, 'node_modules', ngcCli);
-    }
-
-    if (AngularBuildContext.nodeModulesPath &&
-        await pathExists(path.join(AngularBuildContext.nodeModulesPath,
-            '@bizappframework/angular-build/node_modules',
-            ngcCli))) {
-        return path.join(AngularBuildContext.nodeModulesPath,
-            '@bizappframework/angular-build/node_modules',
-            ngcCli);
-    }
-
-    try {
-        let internalNodeModulePath = path.dirname(require.resolve('@angular/compiler-cli'));
-        while (internalNodeModulePath &&
-            !/node_modules$/i.test(internalNodeModulePath) &&
-            internalNodeModulePath !== path.dirname(internalNodeModulePath)) {
-            internalNodeModulePath = path.dirname(internalNodeModulePath);
-        }
-
-        return path.join(internalNodeModulePath, ngcCli);
-    } catch (err) {
-        return 'ngc';
-    }
-}
-
-async function getTscCliPath(): Promise<string> {
-    const tscCli = '.bin/tsc';
-
-    if (AngularBuildContext.nodeModulesPath &&
-        await pathExists(path.join(AngularBuildContext.nodeModulesPath, tscCli))) {
-        return path.join(AngularBuildContext.nodeModulesPath, tscCli);
-    }
-
-    if (AngularBuildContext.cliRootPath &&
-        await pathExists(path.join(AngularBuildContext.cliRootPath, 'node_modules', tscCli))) {
-        return path.join(AngularBuildContext.cliRootPath, 'node_modules', tscCli);
-    }
-
-    if (AngularBuildContext.nodeModulesPath &&
-        await pathExists(path.join(AngularBuildContext.nodeModulesPath,
-            '@bizappframework/angular-build/node_modules',
-            tscCli))) {
-        return path.join(AngularBuildContext.nodeModulesPath,
-            '@bizappframework/angular-build/node_modules',
-            tscCli);
-    }
-
-    return 'tsc';
 }

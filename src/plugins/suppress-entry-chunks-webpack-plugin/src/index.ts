@@ -3,13 +3,13 @@
 
 import * as webpack from 'webpack';
 
-import { Logger, LoggerOptions } from '../../../utils';
+import { Logger, LogLevelString } from '../../../utils';
 
 export interface SuppressEntryChunksWebpackPluginOptions {
     chunks?: string[];
     exclude?: string[];
     supressPattern?: RegExp;
-    loggerOptions?: LoggerOptions;
+    logLevel?: LogLevelString;
 }
 
 export class SuppressEntryChunksWebpackPlugin {
@@ -25,7 +25,10 @@ export class SuppressEntryChunksWebpackPlugin {
             ...options
         };
 
-        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
+        this._logger = new Logger({
+            name: `[${this.name}]`,
+            logLevel: this._options.logLevel || 'info'
+        });
     }
 
     apply(compiler: webpack.Compiler): void {

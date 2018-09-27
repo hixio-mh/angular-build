@@ -1,14 +1,14 @@
 import * as path from 'path';
 
-import { LibBundleOptionsInternal, LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../interfaces/internals';
+import { InternalError, InvalidConfigError } from '../models/errors';
+import { LibBundleOptionsInternal, LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../models/internals';
 
-import { InternalError, InvalidConfigError } from '../error-models';
 import { findUpSync } from '../utils';
 
 import { initLibBundleTarget } from './init-lib-bundle-target';
 import { initTsTranspilationOptions } from './init-ts-transpilation-options';
 import { loadTsConfig } from './load-ts-config';
-import { parseScriptAndStyleEntries } from './parse-script-and-style-entries';
+import { parseScriptStyleEntries } from './parse-script-style-entries';
 
 export function initLibConfig(libConfig: LibProjectConfigInternal): void {
     if (!libConfig._workspaceRoot) {
@@ -27,6 +27,13 @@ export function initLibConfig(libConfig: LibProjectConfigInternal): void {
     const nodeModulesPath = libConfig._nodeModulesPath;
     const projectRoot = libConfig._projectRoot;
     const outputPath = libConfig._outputPath;
+
+    if (libConfig._projectName &&
+        (libConfig._projectName.split('/').length > 2 ||
+            (!libConfig._projectName.startsWith('@') &&
+                libConfig._projectName.split('/').length >= 2))) {
+        libConfig._isNestedPackage = true;
+    }
 
     // package.json
     if (libConfig.packageJsonOutDir) {
@@ -59,7 +66,7 @@ export function initLibConfig(libConfig: LibProjectConfigInternal): void {
     // parsed result
     if (libConfig.styles && Array.isArray(libConfig.styles) && libConfig.styles.length > 0) {
         libConfig._styleParsedEntries =
-            parseScriptAndStyleEntries(
+            parseScriptStyleEntries(
                 libConfig.styles,
                 'styles',
                 workspaceRoot,

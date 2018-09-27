@@ -10,9 +10,9 @@ import { WriteAssetsToDiskWebpackPlugin } from '../../plugins/write-assets-to-di
 import { WriteStatsJsonWebpackPlugin } from '../../plugins/write-stats-json-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InternalError, InvalidConfigError } from '../../error-models';
 import { getCustomWebpackConfig, outputHashFormat, resolveLoaderPath } from '../../helpers';
-import { AppProjectConfigInternal } from '../../interfaces/internals';
+import { InternalError, InvalidConfigError } from '../../models/errors';
+import { AppProjectConfigInternal } from '../../models/internals';
 
 import { getAngularFixPlugins } from './angular';
 import { getAppCommonWebpackConfigPartial } from './common';
@@ -126,17 +126,13 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<
             outputPath: outputPath,
             path: path.resolve(outputPath, `${vendorChunkName}-assets.json`),
             forceWriteToDisk: true,
-            loggerOptions: {
-                logLevel: logLevel
-            }
+            logLevel: logLevel
         }),
         new WriteAssetsToDiskWebpackPlugin({
             outputPath: outputPath,
             emittedPaths: [path.resolve(outputPath, `${vendorChunkName}-manifest.json`)],
             exclude: [`${vendorChunkName}-assets.json`],
-            loggerOptions: {
-                logLevel: logLevel
-            }
+            logLevel: logLevel
         })
     ];
 

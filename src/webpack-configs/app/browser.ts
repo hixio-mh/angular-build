@@ -10,13 +10,13 @@ import { ScriptsWebpackPlugin } from '../../plugins/scripts-webpack-plugin';
 import { ServiceWorkerWebpackPlugin } from '../../plugins/service-worker-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InternalError } from '../../error-models';
 import {
     applyProjectConfigWithEnvironment,
     outputHashFormat,
     resolveLoaderPath
 } from '../../helpers';
-import { AppProjectConfigInternal, GlobalParsedEntry } from '../../interfaces/internals';
+import { InternalError } from '../../models/errors';
+import { AppProjectConfigInternal, GlobalScriptStyleParsedEntry } from '../../models/internals';
 
 // tslint:disable:max-func-body-length
 export function
@@ -128,7 +128,7 @@ export function
         }
         const parsedEntries = appConfig._scriptParsedEntries;
         const globalScriptsByEntry = parsedEntries
-            .reduce((prev: GlobalParsedEntry[], curr: GlobalParsedEntry) => {
+            .reduce((prev: GlobalScriptStyleParsedEntry[], curr: GlobalScriptStyleParsedEntry) => {
                 const existingEntry = prev.find((el) => el.entry === curr.entry);
                 if (existingEntry) {
                     existingEntry.paths.push(...curr.paths);
@@ -262,9 +262,7 @@ export function
             runtimeChunkInline: runtimeChunkInline,
             dlls: injectDllAssets,
             dllAssetsFile: dllAssetsFile,
-            loggerOptions: {
-                logLevel: logLevel
-            }
+            logLevel: logLevel
         }));
     }
 

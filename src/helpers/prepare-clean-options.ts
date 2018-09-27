@@ -1,5 +1,5 @@
-import { CleanOptions } from '../interfaces';
-import { AppProjectConfigInternal, LibProjectConfigInternal } from '../interfaces/internals';
+import { CleanOptions } from '../models';
+import { AppProjectConfigInternal, LibProjectConfigInternal } from '../models/internals';
 
 export function prepareCleanOptions(projectConfig: AppProjectConfigInternal | LibProjectConfigInternal): CleanOptions {
     let cleanOptions: CleanOptions = {};

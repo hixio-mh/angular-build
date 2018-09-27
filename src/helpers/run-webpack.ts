@@ -3,11 +3,11 @@
 
 import * as webpack from 'webpack';
 
-import { Logger } from '../utils/logger';
+import { LoggerBase } from '../utils/logger';
 
 export async function runWebpack(wpConfig: webpack.Configuration | webpack.Configuration[],
     watch: boolean,
-    logger: Logger): Promise<any> {
+    logger: LoggerBase): Promise<any> {
     const firstConfig = Array.isArray(wpConfig) ? wpConfig[0] : wpConfig;
     const statsOptions = firstConfig.stats;
     const watchOptions = firstConfig.watchOptions;

@@ -10,7 +10,7 @@ import { from, merge, Observable, of } from 'rxjs';
 import { concatMap, map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
 import * as webpack from 'webpack';
 
-import { InternalError } from '../../../error-models';
+import { InternalError } from '../../../models/errors';
 
 // class CliFilesystem implements Filesystem
 class CliFilesystem {

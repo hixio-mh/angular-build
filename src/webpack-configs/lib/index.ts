@@ -10,9 +10,9 @@ import { LibBundleWebpackPlugin } from '../../plugins/lib-bundle-webpack-plugin'
 import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InternalError } from '../../error-models';
 import { prepareCleanOptions } from '../../helpers';
-import { LibProjectConfigInternal } from '../../interfaces/internals';
+import { InternalError } from '../../models/errors';
+import { LibProjectConfigInternal } from '../../models/internals';
 
 export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): webpack.Configuration {
     const libConfig = angularBuildContext.projectConfig;
@@ -58,9 +58,7 @@ export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<Lib
             outputPath: outputPath,
             cacheDirectries: cacheDirs,
             host: angularBuildContext.host,
-            loggerOptions: {
-                logLevel: logLevel
-            }
+            logLevel: logLevel
         }));
     }
 
@@ -77,7 +75,7 @@ export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<Lib
             outputPath: outputPath,
             allowCopyOutsideOutputPath: true,
             forceWriteToDisk: true,
-            loggerOptions: AngularBuildContext.logger.loggerOptions
+            logLevel: logLevel
         }));
     }
 

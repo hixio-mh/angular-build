@@ -7,10 +7,10 @@ import { AngularCompilerPluginOptions, PLATFORM } from '@ngtools/webpack';
 import * as webpack from 'webpack';
 
 import { AngularBuildContext } from '../../build-context';
-import { InternalError, InvalidConfigError } from '../../error-models';
 import { resolveLoaderPath } from '../../helpers';
-import { FileReplacementEntry } from '../../interfaces';
-import { AppProjectConfigInternal } from '../../interfaces/internals';
+import { FileReplacementEntry } from '../../models';
+import { InternalError, InvalidConfigError } from '../../models/errors';
+import { AppProjectConfigInternal } from '../../models/internals';
 
 // tslint:disable-next-line:max-func-body-length
 export function

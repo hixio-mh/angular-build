@@ -9,7 +9,7 @@ import * as glob from 'glob';
 import * as loaderUtils from 'loader-utils';
 import * as minimatch from 'minimatch';
 
-import { InternalError } from '../../../error-models';
+import { InternalError } from '../../../models/errors';
 import { isInFolder, isSamePaths, normalizeRelativePath } from '../../../utils';
 
 import { PreProcessedAssetEntry } from './pre-process-assets';

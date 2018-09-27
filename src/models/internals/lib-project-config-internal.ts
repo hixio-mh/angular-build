@@ -1,4 +1,4 @@
-import { LibProjectConfig, LibProjectConfigBase } from "../lib-project-config";
+import { LibProjectConfig, LibProjectConfigBase } from '../lib-project-config';
 
 import { GlobalScriptStyleParsedEntry } from './global-script-style-parsed-entry';
 import { LibBundleOptionsInternal } from './lib-bundle-options-internal';
