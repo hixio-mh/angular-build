@@ -1,11 +1,7 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-// tslint:disable:no-require-imports
-// tslint:disable:no-var-requires
-
 import * as path from 'path';
 
-import { writeFile } from 'fs-extra';
+import * as spawn from 'cross-spawn';
+import { pathExists, writeFile } from 'fs-extra';
 import { ScriptTarget } from 'typescript';
 
 import { AngularBuildContext } from '../../../build-context';
@@ -15,8 +11,6 @@ import { globCopyFiles, normalizeRelativePath } from '../../../utils';
 
 import { processNgResources } from './process-ng-resources';
 import { replaceVersion } from './replace-version';
-
-const spawn = require('cross-spawn');
 
 export async function performTsTranspile(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): Promise<void> {
     const libConfig = angularBuildContext.projectConfig;
@@ -70,11 +64,10 @@ export async function performTsTranspile(angularBuildContext: AngularBuildContex
             const errors: string[] = [];
             const commandPath = tsTranspilation.useTsc ? AngularBuildContext.tscCliPath : AngularBuildContext.ngcCliPath;
             const child = spawn(commandPath, commandArgs, {});
-            child.stdout.on('data',
-                (data: any) => {
-                    logger.debug(`${data}`);
-                });
-            child.stderr.on('data', (data: any) => errors.push(data.toString().trim()));
+            child.stdout.on('data', (data: string | Buffer) => {
+                logger.debug(`${data}`);
+            });
+            child.stderr.on('data', (data: string | Buffer | {}) => errors.push(data.toString().trim()));
             child.on('error', reject);
             child.on('exit',
                 (exitCode: number) => {
@@ -129,8 +122,9 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
     }
 
     // Inline assets
-    if (tsTranspilation.inlineAssets !== false
-        && (tsTranspilation._index === 0 || (tsTranspilation._index > 0 && libConfig._prevTsTranspilationResourcesInlined))) {
+    // angularCompilerOptions -> enableResourceInlining ?
+    if (tsTranspilation.inlineAssets &&
+        (tsTranspilation._index === 0 || (tsTranspilation._index > 0 && libConfig._prevTsTranspilationResourcesInlined))) {
         logger.debug('Checking resources to be inlined');
 
         let stylePreprocessorIncludePaths: string[] = [];
@@ -186,6 +180,13 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
         outputRootDir &&
         tsTranspilation._typingsOutDir &&
         outputRootDir !== tsTranspilation._typingsOutDir) {
+        let reExportName = tsTranspilation._detectedEntryName;
+        if (libConfig._isNestedPackage &&
+            libConfig._packageNameWithoutScope &&
+            await pathExists(path.resolve(outputRootDir, `${reExportName}.d.ts`))) {
+            reExportName =
+                libConfig._packageNameWithoutScope.substr(libConfig._packageNameWithoutScope.lastIndexOf('/') + 1);
+        }
 
         const relPath = normalizeRelativePath(path.relative(outputRootDir, tsTranspilation._typingsOutDir));
 
@@ -200,16 +201,23 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
 
         const reExportTypingsContent =
             `${bannerContent}export * from './${relPath}/${tsTranspilation._detectedEntryName}';\n`;
-        const reEportTypingsFileAbs = path.resolve(outputRootDir, `${tsTranspilation._detectedEntryName}.d.ts`);
+        const reEportTypingsFileAbs = path.resolve(outputRootDir, `${reExportName}.d.ts`);
         await writeFile(reEportTypingsFileAbs, reExportTypingsContent);
 
         if (!tsTranspilation.useTsc) {
-            const metadataJson: any = {
+            const flatModuleId =
+                tsTranspilation._angularCompilerOptions &&
+                    tsTranspilation._angularCompilerOptions.flatModuleId
+                    ? tsTranspilation._angularCompilerOptions.flatModuleId
+                    : libConfig._projectName;
+
+            const metadataJson = {
                 __symbolic: 'module',
                 version: 3,
                 metadata: {},
                 exports: [{ from: `./${relPath}/${tsTranspilation._detectedEntryName}` }],
                 flatModuleIndexRedirect: true,
+                importAs: flatModuleId
             };
 
             const reEportMetaDataFileAbs = reEportTypingsFileAbs.replace(/\.d\.ts$/i, '.metadata.json');

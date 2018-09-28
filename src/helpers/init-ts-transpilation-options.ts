@@ -1,5 +1,3 @@
-// tslint:disable:no-unsafe-any
-
 import { existsSync } from 'fs';
 import * as path from 'path';
 
@@ -141,7 +139,7 @@ export function initTsTranspilationOptions(tsConfigPath: string,
                 entryFileAbs));
         }
 
-        if (compilerOptions._declaration && tsTranspilation._typingsOutDir) {
+        if (declaration && tsTranspilation._typingsOutDir) {
             packageEntryPoints.typings = normalizeRelativePath(path.relative(packageJsonOutDir,
                 path.join(tsTranspilation._typingsOutDir, `${tsTranspilation._detectedEntryName}.d.ts`)));
         }
@@ -152,8 +150,7 @@ export function initTsTranspilationOptions(tsConfigPath: string,
         _index: i,
         _scriptTarget: scriptTarget,
         _tsConfigPath: tsConfigPath,
-        // tslint:disable-next-line:no-any
-        _tsConfigJson: tsTranspilation._tsConfigJson as { [key: string]: any },
+        _tsConfigJson: tsTranspilation._tsConfigJson as { [key: string]: string | boolean | {} },
         _tsCompilerConfig: tsTranspilation._tsCompilerConfig,
         _declaration: declaration,
         _tsOutDirRootResolved: tsOutDir
