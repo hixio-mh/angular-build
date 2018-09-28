@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { getSystemPath, join, normalize, Path, virtualFs } from '@angular-devkit/core';
@@ -10,7 +7,7 @@ import * as glob from 'glob';
 import * as minimatch from 'minimatch';
 import { concat, of } from 'rxjs';
 import { concatMap, last } from 'rxjs/operators';
-import * as webpack from 'webpack';
+import { Compiler } from 'webpack';
 
 import { AfterEmitCleanOptions, BeforeBuildCleanOptions, CleanOptions } from '../../../models';
 import { InternalError, InvalidConfigError } from '../../../models/errors';
@@ -46,7 +43,7 @@ export class CleanWebpackPlugin {
     }
 
     // tslint:disable-next-line:max-func-body-length
-    apply(compiler: webpack.Compiler): void {
+    apply(compiler: Compiler): void {
         let outputPath = this._options.outputPath;
         if (!outputPath && compiler.options.output && compiler.options.output.path) {
             outputPath = compiler.options.output.path;
@@ -58,7 +55,8 @@ export class CleanWebpackPlugin {
             this._isPersistedOutputFileSystem = false;
         }
 
-        const beforeRunCleanTaskFn = (_: any, cb: (err?: Error) => void) => {
+        // tslint:disable-next-line:no-any
+        compiler.hooks.beforeRun.tapAsync(this.name, (_: any, cb: (err?: Error) => void) => {
             const startTime = Date.now();
 
             if (this._beforeRunCleaned || !this._options.beforeBuild) {
@@ -111,9 +109,9 @@ export class CleanWebpackPlugin {
                     return;
                 })
                 .catch(cb);
-        };
-
-        const afterEmitCleanTaskFn = (_: any, cb: (err?: Error) => void) => {
+        });
+        // tslint:disable-next-line:no-any
+        compiler.hooks.afterEmit.tapAsync(this.name, (_: any, cb: (err?: Error) => void) => {
             const startTime = Date.now();
 
             if (this._afterEmitCleaned || !this._options.afterEmit) {
@@ -161,15 +159,12 @@ export class CleanWebpackPlugin {
 
                     return;
                 })
-                .catch(err => {
+                .catch((err: Error) => {
                     cb(err);
 
                     return;
                 });
-        };
-
-        compiler.hooks.beforeRun.tapAsync(this.name, beforeRunCleanTaskFn);
-        compiler.hooks.afterEmit.tapAsync(this.name, afterEmitCleanTaskFn);
+        });
     }
 
     // tslint:disable:max-func-body-length
@@ -484,27 +479,53 @@ export class CleanWebpackPlugin {
 
             const relToWorkspace = normalizeRelativePath(path.relative(workspaceRoot, pathToClean));
 
+            let retryDelete = false;
+
             if (this._options.host) {
                 const host = this._options.host;
                 const resolvedPath = normalize(pathToClean);
 
-                await host.exists(resolvedPath).pipe(
-                    concatMap(exists => {
-                        if (exists) {
+                try {
+                    await host.exists(resolvedPath).pipe(
+                        concatMap(exists => {
+                            if (exists) {
+                                this._logger.debug(`Deleting ${relToWorkspace}`);
 
-                            this._logger.debug(`Deleting ${relToWorkspace}`);
+                                return concat(host.delete(resolvedPath), of(null)).pipe(last());
+                            } else {
+                                return of(null);
+                            }
+                        }),
+                    ).toPromise();
+                } catch (deleteError) {
+                    if (this._isPersistedOutputFileSystem || this._options.forceCleanToDisk) {
+                        retryDelete = true;
+                    } else {
+                        throw deleteError;
+                    }
+                }
+            }
 
-                            return concat(host.delete(resolvedPath), of(null)).pipe(last());
-                        } else {
-                            return of(null);
-                        }
-                    }),
-                ).toPromise();
-            } else if (this._isPersistedOutputFileSystem || this._options.forceCleanToDisk) {
+            if ((!this._options.host || retryDelete) && (this._isPersistedOutputFileSystem || this._options.forceCleanToDisk)) {
                 const exists = await pathExists(pathToClean);
                 if (exists) {
-                    this._logger.debug(`Deleting ${relToWorkspace}`);
-                    await remove(pathToClean);
+                    if (!retryDelete) {
+                        this._logger.debug(`Deleting ${relToWorkspace}`);
+                    }
+                    let retryDeleteCount = 0;
+
+                    do {
+                        try {
+                            await remove(pathToClean);
+                            retryDelete = false;
+                        } catch (deleteError) {
+                            retryDelete = true;
+                            ++retryDeleteCount;
+                            if (retryDeleteCount >= 3) {
+                                throw deleteError;
+                            }
+                        }
+                    } while (retryDelete && retryDeleteCount < 3);
                 }
             }
         }
