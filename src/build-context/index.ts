@@ -417,18 +417,12 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             AngularBuildContext._cliIsGlobal = options.fromBuiltInCli && options.cliIsGlobal ? true : false;
         }
 
-        if (options.logger) {
-            AngularBuildContext._logger = options.logger;
-        }
-
-        if (!AngularBuildContext._logger) {
-            AngularBuildContext._logger = new Logger({
-                name: '',
-                logLevel: options.logLevel || 'info',
-                debugPrefix: 'DEBUG:',
-                warnPrefix: 'WARNING:'
-            });
-        }
+        AngularBuildContext._logger = new Logger({
+            name: '',
+            logLevel: options.buildOptions.logLevel || 'info',
+            debugPrefix: 'DEBUG:',
+            warnPrefix: 'WARNING:'
+        });
 
         AngularBuildContext._initialized = true;
 
