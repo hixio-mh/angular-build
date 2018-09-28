@@ -1,6 +1,6 @@
 {
   "name": "@bizappframework/angular-build",
-  "version": "6.1.6",
+  "version": "6.2.0",
   "description": "Build tool for Angular app and library projects.",
   "keywords": [
     "angular",

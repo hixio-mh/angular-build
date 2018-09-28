@@ -1,6 +1,6 @@
 # Release Note
 
-## 6.1.6
+## 6.2.0
 
 ### Features
 
@@ -8,8 +8,10 @@
 
 ### Bugs
 
-- Fix glob copy files logic
+- Fix clean logic
+- Fix ts-transpile logic
 
 ### Misc
 
-- N/A
+- Refactor code
+- Update npm dependencies
