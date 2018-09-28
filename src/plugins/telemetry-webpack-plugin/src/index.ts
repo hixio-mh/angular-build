@@ -70,7 +70,6 @@ export class TelemetryWebpackPlugin {
             });
 
             appInsights.defaultClient.flush();
-            g._telemetryFlushStartTime = Date.now();
 
             setImmediate(() => {
                 const telemetryVerbose = process.argv.indexOf('--telemetry-verbose') > -1;

@@ -29,10 +29,6 @@ function _invokeCli(cli, cliOptions) {
     cli(cliOptions)
         .then((exitCode) => {
             process.exitCode = typeof exitCode === 'number' ? exitCode : 0;
-            if (global._telemetryFlushStartTime) {
-                const flushDuration = Date.now() - global._telemetryFlushStartTime;
-                exitImmediate = exitImmediate || flushDuration > 1500;
-            }
 
             if (exitImmediate) {
                 _exit(process.exitCode);
