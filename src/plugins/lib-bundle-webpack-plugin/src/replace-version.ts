@@ -5,7 +5,7 @@ import { readFile, writeFile } from 'fs-extra';
 
 import * as glob from 'glob';
 
-import { Logger } from '../../../utils';
+import { LoggerBase } from '../../../utils';
 
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
 const versionRegex = /export\s+const\s+VERSION\s*=\s*['"`](.*PLACEHOLDER)['"`]/g;
@@ -14,7 +14,7 @@ export async function replaceVersion(
     searchRootDir: string,
     projectVersion: string,
     searchPattern: string,
-    logger: Logger): Promise<boolean> {
+    logger: LoggerBase): Promise<boolean> {
     let replaced = false;
 
     if (searchPattern.indexOf('*') < 0) {

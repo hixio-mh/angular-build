@@ -12,8 +12,8 @@ import * as htmlMinifier from 'html-minifier';
 import * as parse5 from 'parse5';
 import * as webpack from 'webpack';
 
-import { HtmlInjectOptions } from '../../../interfaces';
-import { Logger, LoggerOptions, normalizeRelativePath } from '../../../utils';
+import { HtmlInjectOptions } from '../../../models';
+import { Logger, LogLevelString, normalizeRelativePath } from '../../../utils';
 
 const sourceMapUrl = require('source-map-url');
 
@@ -37,7 +37,7 @@ export interface HtmlInjectWebpackPluginOptions extends HtmlInjectOptions {
     publicPath?: string;
     dllAssetsFile?: string;
 
-    loggerOptions?: LoggerOptions;
+    logLevel?: LogLevelString;
 }
 
 async function readFile(filename: string, compilation: webpack.compilation.Compilation): Promise<string> {
@@ -74,7 +74,10 @@ export class HtmlInjectWebpackPlugin {
     }
 
     constructor(private readonly _options: HtmlInjectWebpackPluginOptions) {
-        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
+        this._logger = new Logger({
+            name: `[${this.name}]`,
+            logLevel: this._options.logLevel || 'info'
+        });
     }
 
     // tslint:disable:max-func-body-length

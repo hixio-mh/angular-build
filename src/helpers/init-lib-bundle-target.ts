@@ -4,11 +4,10 @@ import * as path from 'path';
 
 import { ScriptTarget } from 'typescript';
 
-import { InternalError, InvalidConfigError } from '../error-models';
-import { LibBundleOptionsInternal, LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../interfaces/internals';
-import { normalizeRelativePath } from '../utils';
+import { InternalError, InvalidConfigError } from '../models/errors';
+import { LibBundleOptionsInternal, LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../models/internals';
+import { checkPathMatchUp, normalizeRelativePath } from '../utils';
 
-import { checkPathUp } from './check-path-up';
 import { getEcmaVersionFromScriptTarget } from './get-ecma-version-from-script-target';
 import { getnodeResolveFieldsFromScriptTarget } from './get-node-resolve-fields-from-script-target';
 import { loadTsConfig } from './load-ts-config';
@@ -121,19 +120,19 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
         currentBundle._entryFilePath = entryFilePath;
 
         if (/\.f?esm?2018\.js$/i.test(entryFilePath) ||
-            checkPathUp(/f?esm?2018$/i, path.dirname(entryFilePath), outputPath)) {
+            checkPathMatchUp(/f?esm?2018$/i, path.dirname(entryFilePath), outputPath)) {
             currentBundle._sourceScriptTarget = ScriptTarget.ES2018;
         } else if (/\.f?esm?2017\.js$/i.test(entryFilePath) ||
-            checkPathUp(/f?esm?2017$/i, path.dirname(entryFilePath), outputPath)) {
+            checkPathMatchUp(/f?esm?2017$/i, path.dirname(entryFilePath), outputPath)) {
             currentBundle._sourceScriptTarget = ScriptTarget.ES2017;
         } else if (/\.f?esm?2016\.js$/i.test(entryFilePath) ||
-            checkPathUp(/f?esm?2016$/i, path.dirname(entryFilePath), outputPath)) {
+            checkPathMatchUp(/f?esm?2016$/i, path.dirname(entryFilePath), outputPath)) {
             currentBundle._sourceScriptTarget = ScriptTarget.ES2016;
         } else if (/\.f?esm?2015\.js$/i.test(entryFilePath) ||
-            checkPathUp(/f?esm?2015$/i, path.dirname(entryFilePath), outputPath)) {
+            checkPathMatchUp(/f?esm?2015$/i, path.dirname(entryFilePath), outputPath)) {
             currentBundle._sourceScriptTarget = ScriptTarget.ES2015;
         } else if (/\.f?esm?5\.js$/i.test(entryFilePath) ||
-            checkPathUp(/f?esm?5$/i, path.dirname(entryFilePath), outputPath)) {
+            checkPathMatchUp(/f?esm?5$/i, path.dirname(entryFilePath), outputPath)) {
             currentBundle._sourceScriptTarget = ScriptTarget.ES5;
         }
 

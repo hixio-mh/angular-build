@@ -7,10 +7,11 @@ import * as path from 'path';
 
 import { pathExists } from 'fs-extra';
 import * as rollup from 'rollup';
+import { ScriptTarget } from 'typescript';
 
 import { AngularBuildContext } from '../../../build-context';
-import { InvalidConfigError } from '../../../error-models';
-import { LibProjectConfigInternal } from '../../../interfaces/internals';
+import { InvalidConfigError } from '../../../models/errors';
+import { LibProjectConfigInternal } from '../../../models/internals';
 
 import { getRollupConfig } from './get-rollup-config';
 import { minifyFile } from './minify-file';
@@ -25,7 +26,6 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
 
     const bundles = libConfig._bundles;
     const logger = AngularBuildContext.logger;
-    const verbose = angularBuildContext.buildOptions.logLevel === 'debug';
 
     for (const currentBundle of bundles) {
         const entryFilePath = currentBundle._entryFilePath;
@@ -44,8 +44,14 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
 
         // main bundling
         const rollupOptions = getRollupConfig(angularBuildContext, currentBundle);
+
+        let scriptTargetText = '';
+        if (currentBundle._destScriptTarget) {
+            scriptTargetText = `-${ScriptTarget[currentBundle._destScriptTarget].toLocaleLowerCase()}`;
+        }
+
         logger.info(
-            `Bundling to ${currentBundle.libraryTarget} format with rollup`);
+            `Bundling to ${currentBundle.libraryTarget}${scriptTargetText} format with rollup`);
 
         const bundle = await rollup.rollup(rollupOptions.inputOptions as any);
         await bundle.write(rollupOptions.outputOptions);
@@ -64,7 +70,7 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
             await minifyFile(currentBundle._outputFilePath,
                 minFilePath,
                 libConfig.sourceMap as boolean,
-                verbose,
+                angularBuildContext.buildOptions.logLevel === 'debug',
                 logger);
 
             // Remapping sourcemaps

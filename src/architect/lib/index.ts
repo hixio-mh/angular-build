@@ -22,8 +22,8 @@ import {
     getBuildOptionsFromBuilderOptions,
     getWebpackToStringStatsOptions
 } from '../../helpers';
-import { LibBuilderOptions } from '../../interfaces';
-import { LibProjectConfigInternal } from '../../interfaces/internals';
+import { LibBuilderOptions } from '../../models';
+import { LibProjectConfigInternal } from '../../models/internals';
 import { normalizeRelativePath } from '../../utils';
 import { getLibWebpackConfig } from '../../webpack-configs/lib';
 

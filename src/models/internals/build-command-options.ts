@@ -10,7 +10,7 @@ export interface BuildCommandOptions {
     beep?: boolean;
 
     _startTime?: number;
-    _fromAngularBuildCli?: boolean;
+    _fromBuiltInCli?: boolean;
     _cliIsGlobal?: boolean;
     _cliRootPath?: string;
     _cliVersion?: string;

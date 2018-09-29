@@ -70,7 +70,6 @@ export class TelemetryWebpackPlugin {
             });
 
             appInsights.defaultClient.flush();
-            g._telemetryFlushStartTime = Date.now();
 
             setImmediate(() => {
                 const telemetryVerbose = process.argv.indexOf('--telemetry-verbose') > -1;
@@ -100,7 +99,7 @@ export class TelemetryWebpackPlugin {
         }
 
         const telemetryVerbose = process.argv.indexOf('--telemetry-verbose') > -1;
-        const cliVersion = AngularBuildContext.cliVersion;
+        const angularBuildVersion = AngularBuildContext.angularBuildVersion;
         const cliName = path.parse(process.argv[1]).name;
 
         const angularVersion = AngularBuildContext.angularVersion;
@@ -135,7 +134,7 @@ export class TelemetryWebpackPlugin {
             ...commonAppInsightsProps,
             Identifier: identifier,
             command: 'build',
-            'angular-build version': `${cliVersion}`,
+            'angular-build version': `${angularBuildVersion}`,
             cli: `${cliName}`,
             'angular version': `${angularVersion}`,
             'webpack version': `${webpackVersion}`

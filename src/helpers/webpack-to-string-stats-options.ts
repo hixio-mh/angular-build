@@ -1,13 +1,13 @@
 // tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 
-import * as webpack from 'webpack';
+import { Stats } from 'webpack';
 
 // const verbose = process.argv.indexOf('--verbose') > -1;
 
-export function getWebpackToStringStatsOptions(verbose?: boolean, options?: webpack.Stats.ToStringOptions):
-    webpack.Stats.ToStringOptionsObject {
-    const defaultOptions: webpack.Stats.ToStringOptions = {
+export function getWebpackToStringStatsOptions(verbose?: boolean, options?: Stats.ToStringOptions):
+    Stats.ToStringOptionsObject {
+    const defaultOptions: Stats.ToStringOptions = {
         colors: true,
         errors: true,
         warnings: true,
@@ -28,7 +28,7 @@ export function getWebpackToStringStatsOptions(verbose?: boolean, options?: webp
     };
 
     if (options && typeof options === 'object') {
-        const verboseOptions: webpack.Stats.ToStringOptions = {
+        const verboseOptions: Stats.ToStringOptions = {
             version: true,
             publicPath: true,
             reasons: true,
@@ -64,7 +64,7 @@ export function getWebpackToStringStatsOptions(verbose?: boolean, options?: webp
                 warnings: false,
                 publicPath: false,
                 performance: false
-            } as webpack.Stats.ToStringOptionsObject;
+            } as Stats.ToStringOptionsObject;
         } else {
             const pn: any = options;
 
@@ -85,7 +85,7 @@ export function getWebpackToStringStatsOptions(verbose?: boolean, options?: webp
                 providedExports: pn === 'verbose',
                 colors: true,
                 performance: true
-            } as webpack.Stats.ToStringOptionsObject;
+            } as Stats.ToStringOptionsObject;
         }
 
     } else {

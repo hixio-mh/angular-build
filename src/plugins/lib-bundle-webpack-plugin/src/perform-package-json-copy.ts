@@ -6,8 +6,8 @@ import * as path from 'path';
 import { writeFile } from 'fs-extra';
 
 import { AngularBuildContext } from '../../../build-context';
-import { InvalidConfigError } from '../../../error-models';
-import { LibProjectConfigInternal } from '../../../interfaces/internals';
+import { InvalidConfigError } from '../../../models/errors';
+import { LibProjectConfigInternal } from '../../../models/internals';
 
 export async function performPackageJsonCopy(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): Promise<void> {
     const libConfig = angularBuildContext.projectConfig;

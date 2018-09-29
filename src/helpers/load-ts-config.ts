@@ -5,8 +5,8 @@ import * as path from 'path';
 
 import * as ts from 'typescript';
 
-import { InvalidConfigError } from '../error-models';
-import { AppProjectConfigInternal, LibProjectConfigInternal } from '../interfaces/internals';
+import { InvalidConfigError } from '../models/errors';
+import { AppProjectConfigInternal, LibProjectConfigInternal } from '../models/internals';
 import { formatTsDiagnostics } from '../utils';
 
 export function loadTsConfig(tsConfigPath: string,

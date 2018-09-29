@@ -10,9 +10,9 @@ import { AngularBuildContextWebpackPlugin } from '../../plugins/angular-build-co
 import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InternalError } from '../../error-models';
 import { getCustomWebpackConfig, isFromWebpackDevServer } from '../../helpers';
-import { AppProjectConfigInternal } from '../../interfaces/internals';
+import { InternalError } from '../../models/errors';
+import { AppProjectConfigInternal } from '../../models/internals';
 
 import { getAppAngularTypescriptWebpackConfigPartial } from './angular';
 import { getAppBrowserWebpackConfigPartial } from './browser';

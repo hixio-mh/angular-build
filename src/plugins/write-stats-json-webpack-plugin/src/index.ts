@@ -6,8 +6,8 @@ import * as path from 'path';
 import { ensureDir, writeFile } from 'fs-extra';
 import * as webpack from 'webpack';
 
-import { InternalError } from '../../../error-models';
-import { Logger, LoggerOptions } from '../../../utils';
+import { InternalError } from '../../../models/errors';
+import { Logger, LogLevelString } from '../../../utils';
 
 export interface WriteStatsJsonWebpackPluginOptions {
     /**
@@ -16,8 +16,7 @@ export interface WriteStatsJsonWebpackPluginOptions {
     path: string;
     outputPath?: string;
     forceWriteToDisk?: boolean;
-    persistedOutputFileSystemNames?: string[];
-    loggerOptions?: LoggerOptions;
+    logLevel?: LogLevelString;
 }
 
 export class WriteStatsJsonWebpackPlugin {
@@ -33,13 +32,10 @@ export class WriteStatsJsonWebpackPlugin {
             throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
         }
 
-        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
-
-        if (this._options.persistedOutputFileSystemNames && this._options.persistedOutputFileSystemNames.length) {
-            this._options.persistedOutputFileSystemNames
-                .filter(pfs => !this._persistedOutputFileSystemNames.includes(pfs))
-                .forEach(pfs => this._persistedOutputFileSystemNames.push(pfs));
-        }
+        this._logger = new Logger({
+            name: `[${this.name}]`,
+            logLevel: this._options.logLevel || 'info'
+        });
     }
 
     apply(compiler: webpack.Compiler): void {

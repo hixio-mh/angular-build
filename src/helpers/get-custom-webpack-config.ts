@@ -1,21 +1,19 @@
 // tslint:disable:no-unsafe-any
 // tslint:disable:non-literal-require
 
-import * as webpack from 'webpack';
+import { Configuration } from 'webpack';
 
 import { AngularBuildContext } from '../build-context';
-import { AppProjectConfigInternal, LibProjectConfigInternal } from '../interfaces/internals';
+import { AppProjectConfigInternal } from '../models/internals';
 
-export function getCustomWebpackConfig<TConfig extends AppProjectConfigInternal | LibProjectConfigInternal>(modulePath:
-    string,
-    angularBuildContext: AngularBuildContext<TConfig>):
-    webpack.Configuration | null {
-    const customWebpackModule = require(modulePath);
-    if (customWebpackModule && customWebpackModule.default && typeof customWebpackModule.default === 'function') {
-        return customWebpackModule.default(angularBuildContext) as webpack.Configuration;
+export function getCustomWebpackConfig(modulePath: string, angularBuildContext: AngularBuildContext<AppProjectConfigInternal>):
+    Configuration | null {
+    const customWebpackConfigModule = require(modulePath);
+    if (customWebpackConfigModule && customWebpackConfigModule.default && typeof customWebpackConfigModule.default === 'function') {
+        return customWebpackConfigModule.default(angularBuildContext) as Configuration;
     }
-    if (customWebpackModule && typeof customWebpackModule === 'function') {
-        return customWebpackModule(angularBuildContext) as webpack.Configuration;
+    if (customWebpackConfigModule && typeof customWebpackConfigModule === 'function') {
+        return customWebpackConfigModule(angularBuildContext) as Configuration;
     }
 
     return null;

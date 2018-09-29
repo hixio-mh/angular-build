@@ -1,6 +1,7 @@
 import * as path from 'path';
-import { InvalidConfigError } from '../error-models';
-import { AppProjectConfigInternal, LibProjectConfigInternal } from '../interfaces/internals';
+
+import { InvalidConfigError } from '../models/errors';
+import { AppProjectConfigInternal, LibProjectConfigInternal } from '../models/internals';
 import { isInFolder, isSamePaths } from '../utils';
 
 export function validateOutputPath(workspaceRoot: string, projectConfig: AppProjectConfigInternal | LibProjectConfigInternal): void {

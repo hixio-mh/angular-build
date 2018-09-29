@@ -8,80 +8,80 @@ import { NodeJsSyncHost } from '@angular-devkit/core/node';
 import * as webpack from 'webpack';
 
 import { AngularBuildContext } from '../build-context';
-import { InternalError, InvalidConfigError, InvalidOptionError } from '../error-models';
 import {
     applyProjectConfigExtends,
     applyProjectConfigWithEnvironment,
     normalizeEnvironment
 } from '../helpers';
-import { AngularBuildConfig, BuildCommandOptions } from '../interfaces';
+import { AngularBuildConfig } from '../models';
+import { InternalError, InvalidConfigError } from '../models/errors';
 import {
     AngularBuildConfigInternal,
     AppProjectConfigInternal,
+    BuildCommandOptions,
     BuildContextStaticOptions,
-    BuildOptionInternal,
+    BuildOptionsInternal,
     LibProjectConfigInternal,
-} from '../interfaces/internals';
+} from '../models/internals';
 import { formatValidationError, readJsonSync, validateSchema } from '../utils';
 
 import { getAppWebpackConfig } from './app';
 import { getLibWebpackConfig } from './lib';
 
 // tslint:disable:max-func-body-length
-export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?: any, argv?: BuildCommandOptions): webpack.Configuration[] {
+export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?: any, argv?: any): webpack.Configuration[] {
     let startTime = Date.now();
     if (!configPath || !configPath.length) {
-        throw new InvalidOptionError("The 'configPath' is required.");
+        throw new InvalidConfigError("The 'configPath' is required.");
     }
 
     if (!/\.json$/i.test(configPath)) {
-        throw new InvalidOptionError(`Invalid config file, path: ${configPath}.`);
+        throw new InvalidConfigError(`Invalid config file, path: ${configPath}.`);
     }
 
     if (!existsSync(configPath)) {
-        throw new InvalidOptionError(`The angular-build.json config file does not exist at ${configPath}.`);
+        throw new InvalidConfigError(`The angular-build.json config file does not exist at ${configPath}.`);
     }
 
-    let buildOptions: BuildOptionInternal = { environment: {} };
+    let buildOptions: BuildOptionsInternal = { environment: {} };
+    const buildCommandOptions = argv && typeof argv === 'object' ? argv as BuildCommandOptions : {};
 
     if (env) {
-        buildOptions.environment = normalizeEnvironment(env, argv && argv.prod);
+        buildOptions.environment = normalizeEnvironment(env, buildCommandOptions.prod);
     }
 
-    const fromAngularBuildCli = argv && argv._fromAngularBuildCli ? true : false;
-    const cliRootPath = fromAngularBuildCli && argv && argv._cliRootPath ? argv._cliRootPath : undefined;
-    const cliIsGlobal = fromAngularBuildCli && argv && argv._cliIsGlobal ? true : false;
-    const cliVersion = fromAngularBuildCli && argv && argv._cliVersion ? argv._cliVersion : undefined;
+    const fromBuiltInCli = buildCommandOptions._fromBuiltInCli;
+    const cliRootPath = fromBuiltInCli && buildCommandOptions._cliRootPath ? buildCommandOptions._cliRootPath : undefined;
+    const cliIsGlobal = fromBuiltInCli && buildCommandOptions._cliIsGlobal ? true : false;
+    const cliVersion = fromBuiltInCli && buildCommandOptions._cliVersion ? buildCommandOptions._cliVersion : undefined;
+    const verbose = buildCommandOptions.verbose;
 
-    const verbose = argv && argv.verbose ? true : false;
     if (verbose) {
         buildOptions.logLevel = 'debug';
     }
 
-    buildOptions.watch = argv && (argv.watch || (argv as any).w) ? true : false;
-    buildOptions.progress = argv && argv.progress ? true : false;
+    buildOptions.watch = (buildCommandOptions.watch || (buildCommandOptions as any).w) ? true : false;
+    buildOptions.progress = buildCommandOptions.progress ? true : false;
 
     const filteredConfigNames: string[] = [];
 
-    if (fromAngularBuildCli) {
-        buildOptions.beep = argv && argv.beep;
+    if (fromBuiltInCli) {
+        buildOptions.beep = buildCommandOptions.beep;
 
-        if (argv && argv._startTime) {
-            startTime = argv._startTime;
+        if (buildCommandOptions._startTime) {
+            startTime = buildCommandOptions._startTime;
         }
 
-        // buildOptions = { ...argv, ...buildOptions };
-        buildOptions.cleanOutDir =
-            argv &&
-                (argv.clean || (argv as any).cleanOutDirs || (argv as any).cleanOutputPath || (argv as any).deleteOutputPath)
-                ? true
-                : false;
-        if (argv && argv.filter && argv.filter.length) {
-            filteredConfigNames.push(...prepareFilterNames(argv.filter));
+        buildOptions.cleanOutDir = buildCommandOptions.clean || (buildCommandOptions as any).cleanOutDirs ||
+            (buildCommandOptions as any).cleanOutputPath || (buildCommandOptions as any).deleteOutputPath
+            ? true
+            : false;
+        if (buildCommandOptions.filter && buildCommandOptions.filter.length) {
+            filteredConfigNames.push(...prepareFilterNames(buildCommandOptions.filter));
         }
     } else {
-        if (argv && ((argv as any).configName || (argv as any)['config-name'])) {
-            filteredConfigNames.push(((argv as any).configName || (argv as any)['config-name']));
+        if (((buildCommandOptions as any).configName || (buildCommandOptions as any)['config-name'])) {
+            filteredConfigNames.push(((buildCommandOptions as any).configName || (buildCommandOptions as any)['config-name']));
         }
 
         if (!env && process.env.WEBPACK_ENV) {
@@ -89,11 +89,11 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
             const rawEnv: any = typeof rawEnvStr === 'string'
                 ? JSON.parse(rawEnvStr)
                 : rawEnvStr;
-            buildOptions.environment = { ...buildOptions.environment, ...normalizeEnvironment(rawEnv, argv && argv.prod) };
+            buildOptions.environment = { ...buildOptions.environment, ...normalizeEnvironment(rawEnv, buildCommandOptions.prod) };
         }
 
-        if (argv && (argv as any).mode) {
-            if ((argv as any).mode === 'production') {
+        if ((buildCommandOptions as any).mode) {
+            if ((buildCommandOptions as any).mode === 'production') {
                 buildOptions.environment.prod = true;
                 buildOptions.environment.production = true;
 
@@ -103,7 +103,7 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
                 if (buildOptions.environment.development) {
                     buildOptions.environment.development = false;
                 }
-            } else if ((argv as any).mode === 'development') {
+            } else if ((buildCommandOptions as any).mode === 'development') {
                 buildOptions.environment.dev = true;
                 buildOptions.environment.development = true;
 
@@ -193,7 +193,7 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
         workspaceRoot: path.dirname(configPath),
         filteredConfigNames: filteredConfigNames,
         startTime: startTime,
-        fromAngularBuildCli: fromAngularBuildCli,
+        fromBuiltInCli: fromBuiltInCli,
         angularBuildConfig: angularBuildConfigInternal,
         cliRootPath: cliRootPath,
         cliVersion: cliVersion,
@@ -223,7 +223,7 @@ function prepareFilterNames(filter: string | string[]): string[] {
 }
 
 function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfigInternal,
-    buildOptions: BuildOptionInternal,
+    buildOptions: BuildOptionsInternal,
     staticBuildContextOptions: BuildContextStaticOptions): webpack.Configuration[] {
 
     const webpackConfigs: webpack.Configuration[] = [];

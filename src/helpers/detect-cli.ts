@@ -1,4 +1,3 @@
-// TODO: to review
 export function isFromWebpackCli(): boolean {
     return process.argv.length >= 2 && /(\\|\/)?webpack(\.js)?$/i.test(process.argv[1]);
 }

@@ -3,11 +3,11 @@
 
 import * as webpack from 'webpack';
 
-import { Logger, LoggerOptions } from '../../../utils';
+import { Logger, LogLevelString } from '../../../utils';
 
 export interface DynamicDllWebpackPluginOptions {
     manifests: { file: string; chunkName: string }[];
-    loggerOptions?: LoggerOptions;
+    logLevel?: LogLevelString;
     getDllConfigFunc(): webpack.Configuration;
 }
 
@@ -19,7 +19,10 @@ export class DynamicDllWebpackPlugin {
     }
 
     constructor(private readonly _options: DynamicDllWebpackPluginOptions) {
-        this._logger = new Logger({ name: `[${this.name}]`, ...this._options.loggerOptions });
+        this._logger = new Logger({
+            name: `[${this.name}]`,
+            logLevel: this._options.logLevel || 'info'
+        });
     }
 
     apply(compiler: webpack.Compiler): void {

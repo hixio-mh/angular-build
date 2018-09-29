@@ -1,10 +1,10 @@
 import { existsSync } from 'fs';
 import * as path from 'path';
 
-import { DllParsedResult } from '../interfaces/internals';
+import { PolyfillDllParsedEntry } from '../models/internals';
 
-export function parsePolyfillAndDllEntries(inputs: string | string[], forDll: boolean, projectRoot: string): DllParsedResult {
-    const result: DllParsedResult = {
+export function parsePolyfillDllEntries(inputs: string | string[], forDll: boolean, projectRoot: string): PolyfillDllParsedEntry {
+    const result: PolyfillDllParsedEntry = {
         tsEntries: [],
         scriptEntries: [],
         styleEntries: []

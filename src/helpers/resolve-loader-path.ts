@@ -3,43 +3,43 @@ import * as path from 'path';
 
 import { AngularBuildContext } from '../build-context';
 
-export function resolveLoaderPath(loader: string): string {
-    let loaderPath = loader;
+export function resolveLoaderPath(loaderName: string): string {
+    let resolvedPath = loaderName;
     let resolved = false;
 
     if (AngularBuildContext.nodeModulesPath) {
-        const tempPath = path.resolve(AngularBuildContext.nodeModulesPath, loader);
+        const tempPath = path.resolve(AngularBuildContext.nodeModulesPath, loaderName);
         if (existsSync(tempPath)) {
-            loaderPath = tempPath;
+            resolvedPath = tempPath;
             resolved = true;
         }
     }
 
-    if (!resolved && AngularBuildContext.fromAngularBuildCli) {
+    if (!resolved && AngularBuildContext.fromBuiltInCli) {
         if (AngularBuildContext.cliRootPath) {
-            const tempPath = path.resolve(AngularBuildContext.cliRootPath, 'node_modules', loader);
+            const tempPath = path.resolve(AngularBuildContext.cliRootPath, 'node_modules', loaderName);
             if (existsSync(tempPath)) {
-                loaderPath = tempPath;
+                resolvedPath = tempPath;
                 resolved = true;
             }
         }
 
         if (!resolved && AngularBuildContext.nodeModulesPath) {
             const tempPath = path.resolve(AngularBuildContext.nodeModulesPath,
-                '@bizappframework/angular-build/node_modules', loader);
+                '@bizappframework/angular-build/node_modules', loaderName);
             if (existsSync(tempPath)) {
-                loaderPath = tempPath;
+                resolvedPath = tempPath;
                 resolved = true;
             }
         }
 
         if (!resolved) {
-            const tempPath = require.resolve(loader);
+            const tempPath = require.resolve(loaderName);
             if (existsSync(tempPath)) {
-                loaderPath = tempPath;
+                resolvedPath = tempPath;
             }
         }
     }
 
-    return loaderPath;
+    return resolvedPath;
 }

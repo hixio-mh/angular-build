@@ -3,6 +3,7 @@
   "root": "src",
   "outputPath": "dist",
   "tsTranspilations": true,
+  "packageJsonCopy": true,
   "envOverrides": {
     "prod": {
       "banner": "../banner.txt",
@@ -11,8 +12,7 @@
         "../LICENSE",
         "README.md"
       ],
-      "bundles": true,
-      "packageJsonCopy": true
+      "bundles": true
     }
   }
 }

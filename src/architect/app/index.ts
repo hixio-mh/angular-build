@@ -23,8 +23,8 @@ import {
     getBuildOptionsFromBuilderOptions,
     getWebpackToStringStatsOptions
 } from '../../helpers';
-import { AppBuilderOptions } from '../../interfaces';
-import { AppProjectConfigInternal } from '../../interfaces/internals';
+import { AppBuilderOptions } from '../../models';
+import { AppProjectConfigInternal } from '../../models/internals';
 import { normalizeRelativePath } from '../../utils';
 import { getAppWebpackConfig } from '../../webpack-configs/app';
 
@@ -87,8 +87,7 @@ export class AppBuilder implements Builder<AppBuilderOptions> {
 
                     projectConfig: appConfigEnvApplied,
                     projectConfigWithoutEnvApplied: appConfig,
-                    buildOptions: buildOptions,
-
+                    buildOptions: buildOptions
                 });
 
                 let wpConfig: webpack.Configuration;

@@ -4,7 +4,7 @@
 import * as webpack from 'webpack';
 
 import { AngularBuildContext } from '../../../build-context';
-import { AppProjectConfigInternal, LibProjectConfigInternal } from '../../../interfaces/internals';
+import { AppProjectConfigInternal, LibProjectConfigInternal } from '../../../models/internals';
 
 export class AngularBuildContextWebpackPlugin<TConfig extends AppProjectConfigInternal | LibProjectConfigInternal> {
 

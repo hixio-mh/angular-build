@@ -1,7 +1,7 @@
 import * as webpack from 'webpack';
 
 import { AngularBuildContext } from '../../../build-context';
-import { LibProjectConfigInternal, } from '../../../interfaces/internals';
+import { LibProjectConfigInternal, } from '../../../models/internals';
 
 import { performLibBundles } from './perform-lib-bundles';
 import { performPackageJsonCopy } from './perform-package-json-copy';

@@ -5,9 +5,9 @@ import * as webpack from 'webpack';
 import { DynamicDllWebpackPlugin } from '../../plugins/dynamic-dll-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { InternalError } from '../../error-models';
 import { applyProjectConfigWithEnvironment } from '../../helpers';
-import { AppProjectConfigInternal } from '../../interfaces/internals';
+import { InternalError } from '../../models/errors';
+import { AppProjectConfigInternal } from '../../models/internals';
 
 import { getAppDllWebpackConfig } from './dll';
 
@@ -74,9 +74,7 @@ export function getAppReferenceDllWebpackConfigPartial(angularBuildContext:
     plugins.push(new DynamicDllWebpackPlugin({
         manifests: manifests,
         getDllConfigFunc: () => getAppDllWebpackConfig(dllAngularBuildContext),
-        loggerOptions: {
-            logLevel: logLevel
-        }
+        logLevel: logLevel
     }));
 
     let sourceType = dllProjectConfig.libraryTarget;

@@ -4,15 +4,14 @@
 import { existsSync } from 'fs';
 import * as path from 'path';
 
-import { GlobalEntry } from '../interfaces';
+import { GlobalEntry } from '../models';
+import { GlobalScriptStyleParsedEntry } from '../models/internals';
 
-import { GlobalParsedEntry } from '../interfaces/internals';
-
-export function parseScriptAndStyleEntries(extraEntries: string | (string | GlobalEntry)[],
+export function parseScriptStyleEntries(extraEntries: string | (string | GlobalEntry)[],
     defaultEntry: string,
     workspaceRoot: string,
     nodeModulesPath: string | null | undefined,
-    projectRoot: string): GlobalParsedEntry[] {
+    projectRoot: string): GlobalScriptStyleParsedEntry[] {
     if (!extraEntries || !extraEntries.length) {
         return [];
     }
@@ -26,7 +25,7 @@ export function parseScriptAndStyleEntries(extraEntries: string | (string | Glob
         .map((extraEntry: string | GlobalEntry) =>
             typeof extraEntry === 'object' ? extraEntry : { input: extraEntry })
         .map((extraEntry: GlobalEntry) => {
-            const parsedEntry: GlobalParsedEntry = {
+            const parsedEntry: GlobalScriptStyleParsedEntry = {
                 paths: [],
                 entry: '',
                 lazy: extraEntry.lazy

@@ -1,4 +1,4 @@
- // tslint:disable:no-any
+// tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 
 import * as path from 'path';
@@ -6,14 +6,13 @@ import * as path from 'path';
 import { existsSync, readFile, writeFile } from 'fs-extra';
 import * as uglify from 'uglify-js';
 
-import { UglifyError } from '../../../error-models';
-import { Logger } from '../../../utils';
+import { LoggerBase } from '../../../utils';
 
 export async function minifyFile(inputPath: string,
     outputPath: string,
     sourceMap: boolean,
     verbose: boolean,
-    logger: Logger): Promise<any> {
+    logger: LoggerBase): Promise<any> {
     const content = await readFile(inputPath, 'utf-8');
     let sourceMapContent: string | null = null;
     if (sourceMap && existsSync(`${inputPath}.map`)) {
@@ -44,8 +43,8 @@ export async function minifyFile(inputPath: string,
             }
         } as any);
 
-    if ((result as any).error) {
-        throw new UglifyError((result as any).error);
+    if (result.error) {
+        throw result.error;
     }
 
     if ((result as any).warnings && verbose) {
