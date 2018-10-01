@@ -49,7 +49,7 @@ export interface LibBundleOptions {
     /**
      * Entry root directory resolution.
      */
-    entryRoot?: 'root' | 'outputPath' | 'tsTranspilationOutDir' | 'prevBundleOutDir';
+    entryRoot?: 'root' | 'tsTranspilationOutput' | 'prevBundleOutput';
     /**
      * Array index for entry root tsTranspilationResult.
      */

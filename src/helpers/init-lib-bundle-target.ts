@@ -6,7 +6,7 @@ import { ScriptTarget } from 'typescript';
 
 import { InternalError, InvalidConfigError } from '../models/errors';
 import { LibBundleOptionsInternal, LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../models/internals';
-import { checkPathMatchUp, normalizeRelativePath } from '../utils';
+import { normalizeRelativePath } from '../utils';
 
 import { getEcmaVersionFromScriptTarget } from './get-ecma-version-from-script-target';
 import { getnodeResolveFieldsFromScriptTarget } from './get-node-resolve-fields-from-script-target';
@@ -56,7 +56,7 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
         currentBundle.includeDefaultAngularAndRxJsGlobals = libConfig.includeDefaultAngularAndRxJsGlobals;
     }
 
-    if (currentBundle.entryRoot && currentBundle.entryRoot === 'prevBundleOutDir') {
+    if (currentBundle.entryRoot === 'prevBundleOutput') {
         let foundBundleTarget: LibBundleOptionsInternal | undefined;
         if (i > 0) {
             foundBundleTarget = bundles[i - 1];
@@ -72,7 +72,7 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
         currentBundle._entryFilePath = foundBundleTarget._outputFilePath;
         currentBundle._sourceScriptTarget = foundBundleTarget._destScriptTarget;
         currentBundle._destScriptTarget = foundBundleTarget._destScriptTarget;
-    } else if (currentBundle.entryRoot && currentBundle.entryRoot === 'tsTranspilationOutDir') {
+    } else if (currentBundle.entryRoot === 'tsTranspilationOutput') {
         if (!libConfig._tsTranspilations || !libConfig._tsTranspilations.length) {
             throw new InvalidConfigError(
                 `To use 'tsTranspilationOutDir', the 'projects[${libConfig.name || libConfig._index
@@ -109,44 +109,17 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
 
         currentBundle._sourceScriptTarget = foundTsTranspilation._scriptTarget;
         currentBundle._destScriptTarget = foundTsTranspilation._scriptTarget;
-    } else if (currentBundle.entryRoot && currentBundle.entryRoot === 'outputPath') {
-        if (!currentBundle.entry) {
-            throw new InvalidConfigError(
-                `The 'projects[${libConfig.name || libConfig._index}].bundles[${i
-                }].entry' value is required.`);
-        }
-
-        const entryFilePath = path.resolve(outputPath, currentBundle.entry);
-        currentBundle._entryFilePath = entryFilePath;
-
-        if (/\.f?esm?2018\.js$/i.test(entryFilePath) ||
-            checkPathMatchUp(/f?esm?2018$/i, path.dirname(entryFilePath), outputPath)) {
-            currentBundle._sourceScriptTarget = ScriptTarget.ES2018;
-        } else if (/\.f?esm?2017\.js$/i.test(entryFilePath) ||
-            checkPathMatchUp(/f?esm?2017$/i, path.dirname(entryFilePath), outputPath)) {
-            currentBundle._sourceScriptTarget = ScriptTarget.ES2017;
-        } else if (/\.f?esm?2016\.js$/i.test(entryFilePath) ||
-            checkPathMatchUp(/f?esm?2016$/i, path.dirname(entryFilePath), outputPath)) {
-            currentBundle._sourceScriptTarget = ScriptTarget.ES2016;
-        } else if (/\.f?esm?2015\.js$/i.test(entryFilePath) ||
-            checkPathMatchUp(/f?esm?2015$/i, path.dirname(entryFilePath), outputPath)) {
-            currentBundle._sourceScriptTarget = ScriptTarget.ES2015;
-        } else if (/\.f?esm?5\.js$/i.test(entryFilePath) ||
-            checkPathMatchUp(/f?esm?5$/i, path.dirname(entryFilePath), outputPath)) {
-            currentBundle._sourceScriptTarget = ScriptTarget.ES5;
-        }
-
-        currentBundle._destScriptTarget = currentBundle._sourceScriptTarget;
     } else {
-        if (!currentBundle.entry) {
+        const entryFile = currentBundle.entry || libConfig.main;
+        if (!entryFile) {
             throw new InvalidConfigError(
                 `The 'projects[${libConfig.name || libConfig._index}].bundles[${i
                 }].entry' value is required.`);
         }
 
-        currentBundle._entryFilePath = path.resolve(projectRoot, currentBundle.entry);
+        currentBundle._entryFilePath = path.resolve(projectRoot, entryFile);
 
-        if (/\.ts$/i.test(currentBundle.entry)) {
+        if (/\.ts$/i.test(entryFile)) {
             if (currentBundle.tsConfig) {
                 currentBundle._tsConfigPath = path.resolve(projectRoot, currentBundle.tsConfig);
             } else if (libConfig._tsConfigPath) {

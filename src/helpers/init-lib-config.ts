@@ -176,7 +176,7 @@ function initBundleOptionsInternal(libConfig: LibProjectConfigInternal): void {
         if (shouldBundlesDefault) {
             const es2015BundlePartial: Partial<LibBundleOptionsInternal> = {
                 libraryTarget: 'esm',
-                entryRoot: 'tsTranspilationOutDir',
+                entryRoot: 'tsTranspilationOutput',
                 tsTranspilationIndex: 0
             };
 
@@ -186,7 +186,7 @@ function initBundleOptionsInternal(libConfig: LibProjectConfigInternal): void {
 
             const es5BundlePartial: Partial<LibBundleOptionsInternal> = {
                 libraryTarget: 'esm',
-                entryRoot: 'tsTranspilationOutDir',
+                entryRoot: 'tsTranspilationOutput',
                 tsTranspilationIndex: 1
             };
 
@@ -196,7 +196,7 @@ function initBundleOptionsInternal(libConfig: LibProjectConfigInternal): void {
 
             const umdBundlePartial: Partial<LibBundleOptionsInternal> = {
                 libraryTarget: 'umd',
-                entryRoot: 'prevBundleOutDir'
+                entryRoot: 'prevBundleOutput'
             };
             const umdBundleInternal =
                 initLibBundleTarget(bundleInternals, umdBundlePartial, 2, libConfig);
