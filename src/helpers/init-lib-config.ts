@@ -137,8 +137,7 @@ function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal): void
 
         const esm2015TranspilationPartial: Partial<TsTranspilationOptionsInternal> = {
             target: 'es2015',
-            outDir: 'esm2015',
-            moveTypingFilesToPackageRoot: true
+            outDir: 'esm2015'
         };
         const esm2015Transpilation =
             initTsTranspilationOptions(tsConfigPath, esm2015TranspilationPartial, 0, libConfig);
@@ -147,9 +146,7 @@ function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal): void
         const esm5TranspilationPartial: Partial<TsTranspilationOptionsInternal> = {
             target: 'es5',
             outDir: 'esm5',
-            declaration: false,
-            moveTypingFilesToPackageRoot: false,
-            reExportTypingEntryToOutputRoot: false
+            declaration: false
         };
         const esm5Transpilation =
             initTsTranspilationOptions(tsConfigPath, esm5TranspilationPartial, 1, libConfig);

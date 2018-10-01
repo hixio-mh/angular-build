@@ -3,7 +3,7 @@ import * as path from 'path';
 
 import { ModuleKind, ScriptTarget } from 'typescript';
 
-import { InternalError, InvalidConfigError } from '../models/errors';
+import { InternalError } from '../models/errors';
 import { LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../models/internals';
 import { isInFolder, isSamePaths, normalizeRelativePath } from '../utils';
 
@@ -14,12 +14,18 @@ import { toTsScriptTarget } from './to-ts-script-target';
 export function initTsTranspilationOptions(tsConfigPath: string,
     tsTranspilation: Partial<TsTranspilationOptionsInternal>,
     i: number,
-    libConfig: LibProjectConfigInternal):
-    TsTranspilationOptionsInternal {
+    libConfig: LibProjectConfigInternal): TsTranspilationOptionsInternal {
+    if (!libConfig._outputPath) {
+        throw new InternalError("The 'libConfig._outputPath' is not set.");
+    }
+
     loadTsConfig(tsConfigPath, tsTranspilation, libConfig);
+
     if (!tsTranspilation._tsCompilerConfig) {
         throw new InternalError("The 'tsTranspilation._tsCompilerConfig' is not set.");
     }
+
+    const outputRootDir = libConfig._outputPath;
     const compilerOptions = tsTranspilation._tsCompilerConfig.options;
 
     // scriptTarget
@@ -42,14 +48,8 @@ export function initTsTranspilationOptions(tsConfigPath: string,
     }
 
     // tsOutDir
-    const outputRootDir = libConfig._outputPath;
     let tsOutDir: string;
     if (tsTranspilation.outDir) {
-        if (!outputRootDir) {
-            throw new InvalidConfigError(
-                `The 'projects[${libConfig.name || libConfig._index}].outputPath' value is required.`);
-        }
-
         tsOutDir =
             path.resolve(outputRootDir, tsTranspilation.outDir);
         tsTranspilation._customTsOutDir = tsOutDir;
@@ -59,11 +59,6 @@ export function initTsTranspilationOptions(tsConfigPath: string,
                 ? path.resolve(compilerOptions.outDir)
                 : path.resolve(path.dirname(tsConfigPath), compilerOptions.outDir);
         } else {
-            if (!outputRootDir) {
-                throw new InvalidConfigError(
-                    `The 'projects[${libConfig.name || libConfig._index}].outputPath' value is required.`);
-            }
-
             tsOutDir = outputRootDir;
             tsTranspilation._customTsOutDir = tsOutDir;
         }
@@ -78,20 +73,17 @@ export function initTsTranspilationOptions(tsConfigPath: string,
     }
 
     // typingsOutDir
-    if (tsTranspilation.moveTypingFilesToPackageRoot) {
-        tsTranspilation._typingsOutDir = libConfig._packageJsonOutDir;
-    } else {
-        tsTranspilation._typingsOutDir = tsOutDir;
+    if (declaration) {
+        tsTranspilation._typingsOutDir = libConfig._packageJsonOutDir || tsOutDir;
     }
 
     // detect entry
-    if (libConfig.packageEntryFileForTsTranspilation) {
+    if (libConfig.main) {
         tsTranspilation._detectedEntryName =
-            libConfig.packageEntryFileForTsTranspilation.replace(/\.(js|ts)$/i, '');
+            libConfig.main.replace(/\.(js|jsx|ts|tsx)$/i, '');
     } else {
         const flatModuleOutFile =
-            !tsTranspilation.useTsc &&
-                tsTranspilation._angularCompilerOptions &&
+            tsTranspilation._angularCompilerOptions &&
                 tsTranspilation._angularCompilerOptions.flatModuleOutFile
                 ? tsTranspilation._angularCompilerOptions.flatModuleOutFile
                 : null;
@@ -140,8 +132,16 @@ export function initTsTranspilationOptions(tsConfigPath: string,
         }
 
         if (declaration && tsTranspilation._typingsOutDir) {
-            packageEntryPoints.typings = normalizeRelativePath(path.relative(packageJsonOutDir,
-                path.join(tsTranspilation._typingsOutDir, `${tsTranspilation._detectedEntryName}.d.ts`)));
+            if (libConfig._isNestedPackage && libConfig._packageNameWithoutScope) {
+                const typingEntryName =
+                    libConfig._packageNameWithoutScope.substr(libConfig._packageNameWithoutScope.lastIndexOf('/') + 1);
+
+                packageEntryPoints.typings = normalizeRelativePath(path.relative(packageJsonOutDir,
+                    path.join(outputRootDir, `${typingEntryName}.d.ts`)));
+            } else {
+                packageEntryPoints.typings = normalizeRelativePath(path.relative(packageJsonOutDir,
+                    path.join(tsTranspilation._typingsOutDir, `${tsTranspilation._detectedEntryName}.d.ts`)));
+            }
         }
     }
 

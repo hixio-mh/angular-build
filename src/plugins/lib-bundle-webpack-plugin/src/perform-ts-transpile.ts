@@ -1,7 +1,7 @@
 import * as path from 'path';
 
 import * as spawn from 'cross-spawn';
-import { pathExists, writeFile } from 'fs-extra';
+import { writeFile } from 'fs-extra';
 import { ScriptTarget } from 'typescript';
 
 import { AngularBuildContext } from '../../../build-context';
@@ -58,11 +58,11 @@ export async function performTsTranspile(angularBuildContext: AngularBuildContex
         }
 
         logger.info(
-            `Compiling typescript with ${tsTranspilation.useTsc ? 'tsc' : 'ngc'}, target: ${scriptTargetText}`);
+            `Compiling typescript with ngc, target: ${scriptTargetText}`);
 
         await new Promise((resolve, reject) => {
             const errors: string[] = [];
-            const commandPath = tsTranspilation.useTsc ? AngularBuildContext.tscCliPath : AngularBuildContext.ngcCliPath;
+            const commandPath = AngularBuildContext.ngcCliPath;
             const child = spawn(commandPath, commandArgs, {});
             child.stdout.on('data', (data: string | Buffer) => {
                 logger.debug(`${data}`);
@@ -94,14 +94,16 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
     if (!libConfig._projectRoot) {
         throw new InternalError("The 'libConfig._projectRoot' is not set.");
     }
+    if (!libConfig._outputPath) {
+        throw new InternalError("The 'libConfig._outputPath' is not set.");
+    }
 
     const projectRoot = libConfig._projectRoot;
     const outputRootDir = libConfig._outputPath;
 
     const stylePreprocessorOptions = libConfig.stylePreprocessorOptions;
     const flatModuleOutFile =
-        !tsTranspilation.useTsc &&
-            tsTranspilation._angularCompilerOptions &&
+        tsTranspilation._angularCompilerOptions &&
             tsTranspilation._angularCompilerOptions.flatModuleOutFile
             ? tsTranspilation._angularCompilerOptions.flatModuleOutFile
             : '';
@@ -122,8 +124,11 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
     }
 
     // Inline assets
-    // angularCompilerOptions -> enableResourceInlining ?
-    if (tsTranspilation.inlineAssets &&
+    let inlineAssets = true;
+    if (tsTranspilation._angularCompilerOptions && tsTranspilation._angularCompilerOptions.enableResourceInlining != null) {
+        inlineAssets = false;
+    }
+    if (inlineAssets && tsTranspilation.enableResourceInlining !== false &&
         (tsTranspilation._index === 0 || (tsTranspilation._index > 0 && libConfig._prevTsTranspilationResourcesInlined))) {
         logger.debug('Checking resources to be inlined');
 
@@ -152,38 +157,24 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
     }
 
     // Move typings and metadata files
-    if (tsTranspilation.moveTypingFilesToPackageRoot &&
-        tsTranspilation._declaration &&
+    if (tsTranspilation._declaration &&
         tsTranspilation._typingsOutDir &&
         tsTranspilation._typingsOutDir !== tsTranspilation._tsOutDirRootResolved) {
-        if (tsTranspilation.useTsc) {
-            logger.debug('Moving typing files to output root');
+        logger.debug('Moving typing and metadata files to output root');
 
-            await globCopyFiles(tsTranspilation._tsOutDirRootResolved,
-                '**/*.+(d.ts)',
-                tsTranspilation._typingsOutDir,
-                true);
-        } else {
-            logger.debug('Moving typing and metadata files to output root');
-
-            await globCopyFiles(tsTranspilation._tsOutDirRootResolved,
-                '**/*.+(d.ts|metadata.json)',
-                tsTranspilation._typingsOutDir,
-                true);
-        }
+        await globCopyFiles(tsTranspilation._tsOutDirRootResolved,
+            '**/*.+(d.ts|metadata.json)',
+            tsTranspilation._typingsOutDir,
+            true);
     }
 
     // Re-export
-    if (tsTranspilation.reExportTypingEntryToOutputRoot !== false &&
+    if (libConfig._isNestedPackage &&
         tsTranspilation._declaration &&
-        tsTranspilation._detectedEntryName &&
-        outputRootDir &&
         tsTranspilation._typingsOutDir &&
-        outputRootDir !== tsTranspilation._typingsOutDir) {
+        tsTranspilation._detectedEntryName) {
         let reExportName = tsTranspilation._detectedEntryName;
-        if (libConfig._isNestedPackage &&
-            libConfig._packageNameWithoutScope &&
-            await pathExists(path.resolve(outputRootDir, `${reExportName}.d.ts`))) {
+        if (libConfig._isNestedPackage && libConfig._packageNameWithoutScope) {
             reExportName =
                 libConfig._packageNameWithoutScope.substr(libConfig._packageNameWithoutScope.lastIndexOf('/') + 1);
         }
@@ -193,35 +184,29 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
         // add banner to index
         const bannerContent = libConfig._bannerText ? `${libConfig._bannerText}\n` : '';
 
-        if (tsTranspilation.useTsc) {
-            logger.debug('Re-exporting typing files to output root');
-        } else {
-            logger.debug('Re-exporting typing and metadata entry files to output root');
-        }
+        logger.debug('Re-exporting typing and metadata entry files to output root');
 
         const reExportTypingsContent =
             `${bannerContent}export * from './${relPath}/${tsTranspilation._detectedEntryName}';\n`;
-        const reEportTypingsFileAbs = path.resolve(outputRootDir, `${reExportName}.d.ts`);
-        await writeFile(reEportTypingsFileAbs, reExportTypingsContent);
+        const reEportTypingsOutFileAbs = path.resolve(outputRootDir, `${reExportName}.d.ts`);
+        await writeFile(reEportTypingsOutFileAbs, reExportTypingsContent);
 
-        if (!tsTranspilation.useTsc) {
-            const flatModuleId =
-                tsTranspilation._angularCompilerOptions &&
-                    tsTranspilation._angularCompilerOptions.flatModuleId
-                    ? tsTranspilation._angularCompilerOptions.flatModuleId
-                    : libConfig._projectName;
+        const flatModuleId =
+            tsTranspilation._angularCompilerOptions &&
+                tsTranspilation._angularCompilerOptions.flatModuleId
+                ? tsTranspilation._angularCompilerOptions.flatModuleId
+                : libConfig._projectName;
 
-            const metadataJson = {
-                __symbolic: 'module',
-                version: 3,
-                metadata: {},
-                exports: [{ from: `./${relPath}/${tsTranspilation._detectedEntryName}` }],
-                flatModuleIndexRedirect: true,
-                importAs: flatModuleId
-            };
+        const metadataJson = {
+            __symbolic: 'module',
+            version: 3,
+            metadata: {},
+            exports: [{ from: `./${relPath}/${tsTranspilation._detectedEntryName}` }],
+            flatModuleIndexRedirect: true,
+            importAs: flatModuleId
+        };
 
-            const reEportMetaDataFileAbs = reEportTypingsFileAbs.replace(/\.d\.ts$/i, '.metadata.json');
-            await writeFile(reEportMetaDataFileAbs, JSON.stringify(metadataJson, null, 2));
-        }
+        const reEportMetaDataFileAbs = reEportTypingsOutFileAbs.replace(/\.d\.ts$/i, '.metadata.json');
+        await writeFile(reEportMetaDataFileAbs, JSON.stringify(metadataJson, null, 2));
     }
 }
