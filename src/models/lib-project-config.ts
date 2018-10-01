@@ -9,10 +9,6 @@ export interface TsTranspilationOptions {
      */
     tsConfig?: string;
     /**
-     * If true, use tsc instead of ngc.
-     */
-    useTsc?: boolean;
-    /**
      * Custom output directory for this transpilation.
      */
     outDir?: string;
@@ -27,19 +23,11 @@ export interface TsTranspilationOptions {
     /**
      * If true, templateUrl and styleUrls resources are inlined.
      */
-    inlineAssets?: boolean;
+    enableResourceInlining?: boolean;
     /**
      * If true, replaces version placeholder with package version.
      */
     replaceVersionPlaceholder?: boolean;
-    /**
-     * Move typing and metadata files to package.json output directory root.
-     */
-    moveTypingFilesToPackageRoot?: boolean;
-    /**
-     * If true, re-export secondary entry point typing and metadata file at output root.
-     */
-    reExportTypingEntryToOutputRoot?: boolean;
 }
 
 /**
@@ -99,7 +87,7 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
     /**
      * The main entry point file for package.json.
      */
-    packageEntryFileForTsTranspilation?: string;
+    main?: string;
     /**
      * Represents your umd bundle name, by which other scripts on the same page can access it.
      */
