@@ -3,7 +3,7 @@
 
 import * as path from 'path';
 
-import * as webpack from 'webpack';
+import { Configuration, DllPlugin, IgnorePlugin, Plugin, RuleSetRule } from 'webpack';
 import * as webpackMerge from 'webpack-merge';
 
 import { WriteAssetsToDiskWebpackPlugin } from '../../plugins/write-assets-to-disk-webpack-plugin';
@@ -18,9 +18,9 @@ import { getAngularFixPlugins } from './angular';
 import { getAppCommonWebpackConfigPartial } from './common';
 import { getAppStylesWebpackConfigPartial } from './styles';
 
-export function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+export function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
     const appConfig = angularBuildContext.projectConfig;
-    let customWebpackConfig: webpack.Configuration = {};
+    let customWebpackConfig: Configuration = {};
 
     if (!appConfig._isDll || angularBuildContext.projectConfig._projectType !== 'app') {
         return {};
@@ -33,7 +33,7 @@ export function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext<
             getCustomWebpackConfig(customWebpackConfigPath, angularBuildContext) || {};
     }
 
-    const configs: webpack.Configuration[] = [
+    const configs: Configuration[] = [
         getAppCommonWebpackConfigPartial(angularBuildContext),
         getAppStylesWebpackConfigPartial(angularBuildContext),
         getAppDllWebpackConfigPartial(angularBuildContext),
@@ -49,7 +49,7 @@ export function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext<
 }
 
 // tslint:disable:max-func-body-length
-function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
     const logLevel = angularBuildContext.buildOptions.logLevel;
 
     const appConfig = angularBuildContext.projectConfig;
@@ -113,11 +113,11 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<
 
     entrypoints[vendorChunkName] = entries;
 
-    const rules: webpack.RuleSetRule[] = [];
+    const rules: RuleSetRule[] = [];
 
     // plugins
-    const plugins: webpack.Plugin[] = [
-        new webpack.DllPlugin({
+    const plugins: Plugin[] = [
+        new DllPlugin({
             context: projectRoot,
             path: path.resolve(outputPath, `${vendorChunkName}-manifest.json`),
             name: libraryName
@@ -156,7 +156,7 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<
         const tsLoader = resolveLoaderPath('ts-loader');
 
         rules.push({
-            test: /\.ts$/,
+            test: /\.tsx?$/,
             use: [
                 {
                     loader: tsLoader,
@@ -169,7 +169,7 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<
 
     // es6-promise
     // workaround for https://github.com/stefanpenner/es6-promise/issues/100
-    plugins.push(new webpack.IgnorePlugin(/^vertx$/));
+    plugins.push(new IgnorePlugin(/^vertx$/));
 
     // workaround for https://github.com/andris9/encoding/issues/16
     // commonPlugins.push(new webpack.NormalModuleReplacementPlugin(/\/iconv-loader$/, require.resolve('node-noop'))));
@@ -179,7 +179,7 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<
 
     // webpack config
     // tslint:disable-next-line:no-unnecessary-local-variable
-    const webpackDllConfig: webpack.Configuration = {
+    const webpackDllConfig: Configuration = {
         entry: entrypoints,
         resolve: {
             extensions: tsEntries.length > 0 ? ['.ts', '.mjs', '.js'] : ['.mjs', '.js'],

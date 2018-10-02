@@ -17,7 +17,7 @@ import {
 
 import { initAppConfig, initLibConfig, validateOutputPath } from '../helpers';
 import { InternalError, InvalidConfigError } from '../models/errors';
-import { findUpSync, isInFolder, Logger, LoggerBase, readJsonSync } from '../utils';
+import { findUpSync, Logger, LoggerBase, readJsonSync } from '../utils';
 
 export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibProjectConfigInternal> {
     // Static public fields
@@ -446,7 +446,6 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         if (this.projectConfig.outputPath) {
             this.projectConfig._outputPath = path.resolve(AngularBuildContext.workspaceRoot, this.projectConfig.outputPath);
         }
-        this.projectConfig._buildOptimizerCacheDirectory = this.getBuildOptimizerCacheDirectory();
         this.projectConfig._rptCacheDirectory = path.resolve(this.projectConfig._projectRoot, './.rpt-cache/');
 
         // Read package.json files
@@ -630,31 +629,5 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             tempBannerText = this.replaceTokensForBanner(tempBannerText);
             this.projectConfig._bannerText = tempBannerText;
         }
-    }
-
-    private getBuildOptimizerCacheDirectory(): string {
-        let cacheDir = '';
-
-        if (AngularBuildContext.nodeModulesPath &&
-            isInFolder(AngularBuildContext.workspaceRoot, AngularBuildContext.nodeModulesPath)) {
-
-            let prefix = '';
-            if (this.projectConfig.root) {
-                prefix = `-${path.basename(this.projectConfig.root)}`;
-            } else if (this.projectConfig._packageNameWithoutScope) {
-                prefix = `-${path.basename(this.projectConfig._packageNameWithoutScope)}`;
-            }
-
-            const pkgPath = path.resolve(AngularBuildContext.nodeModulesPath, '@angular-devkit/build-optimizer');
-            if (existsSync(pkgPath)) {
-                cacheDir = path.resolve(pkgPath, `./.${prefix}cache/`);
-            }
-        }
-
-        if (!cacheDir) {
-            cacheDir = path.resolve(AngularBuildContext.workspaceRoot, this.projectConfig.root || '', './.bo-cache/');
-        }
-
-        return cacheDir;
     }
 }

@@ -1,7 +1,7 @@
 // tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 
-import * as webpack from 'webpack';
+import { Configuration, Plugin } from 'webpack';
 
 import { AngularBuildContextWebpackPlugin } from '../../plugins/angular-build-context-webpack-plugin';
 import { CleanWebpackPlugin } from '../../plugins/clean-webpack-plugin';
@@ -14,7 +14,7 @@ import { prepareCleanOptions } from '../../helpers';
 import { InternalError } from '../../models/errors';
 import { LibProjectConfigInternal } from '../../models/internals';
 
-export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): webpack.Configuration {
+export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): Configuration {
     const libConfig = angularBuildContext.projectConfig;
 
     if (!libConfig._projectRoot) {
@@ -29,7 +29,7 @@ export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<Lib
     const projectRoot = libConfig._projectRoot;
     const outputPath = libConfig._outputPath;
 
-    const plugins: webpack.Plugin[] = [
+    const plugins: Plugin[] = [
         new AngularBuildContextWebpackPlugin(angularBuildContext)
     ];
 
@@ -44,9 +44,6 @@ export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<Lib
         const cacheDirs: string[] = [];
 
         if (cleanOptions.beforeBuild && cleanOptions.beforeBuild.cleanCache) {
-            if (libConfig._buildOptimizerCacheDirectory) {
-                cacheDirs.push(libConfig._buildOptimizerCacheDirectory);
-            }
             if (libConfig._rptCacheDirectory) {
                 cacheDirs.push(libConfig._rptCacheDirectory);
             }
@@ -86,7 +83,7 @@ export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<Lib
     }
 
     // tslint:disable-next-line:no-unnecessary-local-variable
-    const webpackConfig: webpack.Configuration = {
+    const webpackConfig: Configuration = {
         name: libConfig.name,
         entry: (() => ({})) as any,
         output: {

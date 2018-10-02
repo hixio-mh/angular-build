@@ -38,7 +38,7 @@ export function parsePolyfillDllEntries(inputs: string | string[], forDll: boole
             if (!forDll) {
                 const tempPath = path.resolve(projectRoot, e);
                 if (existsSync(tempPath)) {
-                    if (e.match(/\.ts$/i)) {
+                    if (e.match(/\.tsx?$/i)) {
                         if (!result.tsEntries.includes(tempPath)) {
                             result.tsEntries.push(tempPath);
                         }

@@ -3,7 +3,7 @@
 
 import * as path from 'path';
 
-import * as webpack from 'webpack';
+import { Configuration, Plugin } from 'webpack';
 import * as webpackMerge from 'webpack-merge';
 
 import { AngularBuildContextWebpackPlugin } from '../../plugins/angular-build-context-webpack-plugin';
@@ -14,15 +14,15 @@ import { getCustomWebpackConfig, isFromWebpackDevServer } from '../../helpers';
 import { InternalError } from '../../models/errors';
 import { AppProjectConfigInternal } from '../../models/internals';
 
-import { getAppAngularTypescriptWebpackConfigPartial } from './angular';
+import { getAppAngularWebpackConfigPartial } from './angular';
 import { getAppBrowserWebpackConfigPartial } from './browser';
 import { getAppCommonWebpackConfigPartial } from './common';
 import { getAppReferenceDllWebpackConfigPartial } from './reference-dll';
 import { getAppStylesWebpackConfigPartial } from './styles';
 
-export function getAppWebpackConfig(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+export function getAppWebpackConfig(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
     const appConfig = angularBuildContext.projectConfig;
-    let customWebpackConfig: webpack.Configuration = {};
+    let customWebpackConfig: Configuration = {};
 
     if (appConfig.webpackConfig) {
         const customWebpackConfigPath =
@@ -31,12 +31,12 @@ export function getAppWebpackConfig(angularBuildContext: AngularBuildContext<App
             getCustomWebpackConfig(customWebpackConfigPath, angularBuildContext) || {};
     }
 
-    const configs: webpack.Configuration[] = [
+    const configs: Configuration[] = [
         // reference dll
         getAppReferenceDllWebpackConfigPartial(angularBuildContext),
         getAppCommonWebpackConfigPartial(angularBuildContext),
         getAppStylesWebpackConfigPartial(angularBuildContext),
-        getAppAngularTypescriptWebpackConfigPartial(angularBuildContext),
+        getAppAngularWebpackConfigPartial(angularBuildContext),
 
         // browser only
         getAppBrowserWebpackConfigPartial(angularBuildContext),
@@ -57,7 +57,7 @@ export function getAppWebpackConfig(angularBuildContext: AngularBuildContext<App
     return mergedConfig;
 }
 
-function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
     const appConfig = angularBuildContext.projectConfig;
 
     if (!appConfig._projectRoot) {
@@ -76,7 +76,7 @@ function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext<App
     }
 
     // plugins
-    const plugins: webpack.Plugin[] = [
+    const plugins: Plugin[] = [
         new AngularBuildContextWebpackPlugin(angularBuildContext)
     ];
 
@@ -86,7 +86,7 @@ function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext<App
         plugins.push(new TelemetryWebpackPlugin());
     }
 
-    const webpackAppConfig: webpack.Configuration = {
+    const webpackAppConfig: Configuration = {
         plugins: plugins
     };
 

@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-import * as webpack from 'webpack';
+import { Configuration, DllReferencePlugin, Plugin } from 'webpack';
 
 import { DynamicDllWebpackPlugin } from '../../plugins/dynamic-dll-webpack-plugin';
 
@@ -11,8 +11,7 @@ import { AppProjectConfigInternal } from '../../models/internals';
 
 import { getAppDllWebpackConfig } from './dll';
 
-export function getAppReferenceDllWebpackConfigPartial(angularBuildContext:
-    AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+export function getAppReferenceDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
     const logLevel = angularBuildContext.buildOptions.logLevel;
 
     const appConfig = angularBuildContext.projectConfig;
@@ -51,7 +50,7 @@ export function getAppReferenceDllWebpackConfigPartial(angularBuildContext:
         return {};
     }
 
-    const plugins: webpack.Plugin[] = [];
+    const plugins: Plugin[] = [];
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
     const manifests: { file: string; chunkName: string }[] = [];
@@ -83,7 +82,7 @@ export function getAppReferenceDllWebpackConfigPartial(angularBuildContext:
     }
     manifests.forEach(manifest => {
         plugins.push(
-            new webpack.DllReferencePlugin({
+            new DllReferencePlugin({
                 context: projectRoot,
                 manifest: manifest.file,
                 name: appConfig.platformTarget === 'node' ? `./${manifest.chunkName}` : undefined,
@@ -93,7 +92,7 @@ export function getAppReferenceDllWebpackConfigPartial(angularBuildContext:
     });
 
     // tslint:disable-next-line:no-unnecessary-local-variable
-    const webpackReferenceDllConfig: webpack.Configuration = {
+    const webpackReferenceDllConfig: Configuration = {
         plugins: plugins
     };
 

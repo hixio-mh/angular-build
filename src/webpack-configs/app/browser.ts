@@ -3,7 +3,7 @@
 
 import * as path from 'path';
 
-import * as webpack from 'webpack';
+import { Configuration, Options, Plugin, RuleSetRule } from 'webpack';
 
 import { HtmlInjectWebpackPlugin } from '../../plugins/html-inject-webpack-plugin';
 import { ScriptsWebpackPlugin } from '../../plugins/scripts-webpack-plugin';
@@ -19,8 +19,7 @@ import { InternalError } from '../../models/errors';
 import { AppProjectConfigInternal, GlobalScriptStyleParsedEntry } from '../../models/internals';
 
 // tslint:disable:max-func-body-length
-export function
-    getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
     const logLevel = angularBuildContext.buildOptions.logLevel;
     const appConfig = angularBuildContext.projectConfig;
 
@@ -61,8 +60,8 @@ export function
     //    : '';
 
     const entrypoints: { [key: string]: string[] } = {};
-    const rules: webpack.RuleSetRule[] = [];
-    const plugins: webpack.Plugin[] = [];
+    const rules: RuleSetRule[] = [];
+    const plugins: Plugin[] = [];
 
     // polyfills
     const tsPolyfillEntries: string[] = [];
@@ -110,7 +109,7 @@ export function
         const tsLoader = resolveLoaderPath('ts-loader');
 
         rules.push({
-            test: /\.ts$/,
+            test: /\.tsx?$/,
             use: [
                 {
                     loader: tsLoader,
@@ -174,9 +173,9 @@ export function
     }
 
     // performance options
-    let performanceOptions: webpack.Options.Performance;
+    let performanceOptions: Options.Performance;
     if (appConfig.performance) {
-        performanceOptions = appConfig.performance as webpack.Options.Performance;
+        performanceOptions = appConfig.performance as Options.Performance;
     } else {
         performanceOptions = {
             hints: false
@@ -276,7 +275,7 @@ export function
         });
     }
 
-    const webpackConfig: webpack.Configuration = {
+    const webpackConfig: Configuration = {
         module: {
             rules: rules
         },

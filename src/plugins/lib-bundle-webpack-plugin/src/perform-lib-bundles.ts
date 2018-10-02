@@ -40,7 +40,7 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
 
         // path.dirname(entryFilePath) !== srcDir
         const shouldReMapSourceMap = libConfig.sourceMap &&
-            !/\.ts$/i.test(entryFilePath);
+            !/\.tsx?$/i.test(entryFilePath);
 
         // main bundling
         const rollupOptions = getRollupConfig(angularBuildContext, currentBundle);

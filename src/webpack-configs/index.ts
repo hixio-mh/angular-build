@@ -5,7 +5,7 @@ import { existsSync } from 'fs';
 import * as path from 'path';
 
 import { NodeJsSyncHost } from '@angular-devkit/core/node';
-import * as webpack from 'webpack';
+import { Configuration } from 'webpack';
 
 import { AngularBuildContext } from '../build-context';
 import {
@@ -29,7 +29,7 @@ import { getAppWebpackConfig } from './app';
 import { getLibWebpackConfig } from './lib';
 
 // tslint:disable:max-func-body-length
-export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?: any, argv?: any): webpack.Configuration[] {
+export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?: any, argv?: any): Configuration[] {
     let startTime = Date.now();
     if (!configPath || !configPath.length) {
         throw new InvalidConfigError("The 'configPath' is required.");
@@ -224,9 +224,9 @@ function prepareFilterNames(filter: string | string[]): string[] {
 
 function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfigInternal,
     buildOptions: BuildOptionsInternal,
-    staticBuildContextOptions: BuildContextStaticOptions): webpack.Configuration[] {
+    staticBuildContextOptions: BuildContextStaticOptions): Configuration[] {
 
-    const webpackConfigs: webpack.Configuration[] = [];
+    const webpackConfigs: Configuration[] = [];
 
     const workspaceRoot = staticBuildContextOptions.workspaceRoot;
     const filterNames = staticBuildContextOptions.filteredConfigNames || [];
@@ -269,7 +269,7 @@ function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfi
                     ...staticBuildContextOptions
                 });
 
-                const wpConfig = getLibWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
+                const wpConfig = getLibWebpackConfig(angularBuildContext) as (Configuration | null);
                 if (wpConfig) {
                     webpackConfigs.push(wpConfig);
                 }
@@ -315,7 +315,7 @@ function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfi
                     ...staticBuildContextOptions
                 });
 
-                const wpConfig = getAppWebpackConfig(angularBuildContext) as (webpack.Configuration | null);
+                const wpConfig = getAppWebpackConfig(angularBuildContext) as (Configuration | null);
                 if (wpConfig) {
                     webpackConfigs.push(wpConfig);
                 }

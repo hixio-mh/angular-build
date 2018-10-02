@@ -12,7 +12,6 @@ export interface ProjectConfigInternal<TConfig extends ProjectConfigBase> extend
     _projectRoot?: string;
     _outputPath?: string;
     _buildOptions?: BuildOptionsInternal;
-    _buildOptimizerCacheDirectory?: string;
     _rptCacheDirectory?: string;
 
     _projectType?: 'app' | 'lib';

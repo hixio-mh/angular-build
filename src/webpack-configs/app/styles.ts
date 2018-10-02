@@ -8,7 +8,7 @@
 import * as path from 'path';
 
 import * as autoprefixer from 'autoprefixer';
-import * as webpack from 'webpack';
+import { Configuration, Loader, loader as loaderWebpack, Plugin, RuleSetRule } from 'webpack';
 
 // tslint:disable-next-line:import-name
 import PostcssCliResources from '../../plugins/postcss-cli-resources';
@@ -27,7 +27,7 @@ const postcssImports = require('postcss-import');
 
 // tslint:disable:max-func-body-length
 export function
-    getAppStylesWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+    getAppStylesWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
     const logLevel = angularBuildContext.buildOptions.logLevel;
 
     const appConfig = angularBuildContext.projectConfig;
@@ -75,7 +75,7 @@ export function
     const sassLoader = resolveLoaderPath('sass-loader');
     const styleLoader = resolveLoaderPath('style-loader');
 
-    const postcssPluginCreator = (loader: webpack.loader.LoaderContext) => [
+    const postcssPluginCreator = (loader: loaderWebpack.LoaderContext) => [
         postcssImports({
             resolve: (url: string) => url.startsWith('~') ? url.substr(1) : url,
             load: async (filename: string) => {
@@ -120,7 +120,7 @@ export function
         }
     }
 
-    const baseRules: webpack.RuleSetRule[] = [
+    const baseRules: RuleSetRule[] = [
         { test: /\.css$/, use: [] },
         {
             test: /\.scss$|\.sass$/,
@@ -141,8 +141,8 @@ export function
     ];
 
     const entrypoints: { [key: string]: string[] } = {};
-    const rules: webpack.RuleSetRule[] = [];
-    const plugins: webpack.Plugin[] = [];
+    const rules: RuleSetRule[] = [];
+    const plugins: Plugin[] = [];
     const globalStylePaths: string[] = [];
 
     let shouldSuppressChunk = false;
@@ -209,7 +209,7 @@ export function
                             sourceMap: cssSourceMap && !extractCss ? 'inline' : cssSourceMap
                         }
                     },
-                    ...(use as webpack.Loader[])
+                    ...(use as Loader[])
                 ]
             };
         }));
@@ -250,7 +250,7 @@ export function
                     sourceMap: cssSourceMap ? 'inline' : false
                 }
             },
-            ...(use as webpack.Loader[])
+            ...(use as Loader[])
         ]
     }));
 

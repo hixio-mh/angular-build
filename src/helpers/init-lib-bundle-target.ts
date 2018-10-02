@@ -119,7 +119,7 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
 
         currentBundle._entryFilePath = path.resolve(projectRoot, entryFile);
 
-        if (/\.ts$/i.test(entryFile)) {
+        if (/\.tsx?$/i.test(entryFile)) {
             if (currentBundle.tsConfig) {
                 currentBundle._tsConfigPath = path.resolve(projectRoot, currentBundle.tsConfig);
             } else if (libConfig._tsConfigPath) {
