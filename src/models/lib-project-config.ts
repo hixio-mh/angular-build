@@ -24,10 +24,6 @@ export interface TsTranspilationOptions {
      * If true, templateUrl and styleUrls resources are inlined.
      */
     enableResourceInlining?: boolean;
-    /**
-     * If true, replaces version placeholder with package version.
-     */
-    replaceVersionPlaceholder?: boolean;
 }
 
 /**
@@ -116,6 +112,10 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
      * Copy package.json file to output path.
      */
     packageJsonCopy?: boolean;
+    /**
+     * If true, replaces version placeholder with package version.
+     */
+    replaceVersionPlaceholder?: boolean;
 }
 
 export interface LibEnvOverridesOptions {

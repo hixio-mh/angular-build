@@ -110,7 +110,7 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
     const projectVersion = libConfig._projectVersion;
 
     // Replace version
-    if (tsTranspilation.replaceVersionPlaceholder !== false && projectVersion
+    if (libConfig.replaceVersionPlaceholder !== false && projectVersion
         && (tsTranspilation._index === 0 || (tsTranspilation._index > 0 && libConfig._prevTsTranspilationVersionReplaced))) {
         logger.debug('Checking version placeholder');
 
@@ -118,8 +118,8 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
             projectVersion,
             `${path.join(tsTranspilation._tsOutDirRootResolved, '**/version.js')}`,
             logger);
-        if (tsTranspilation._index === 0) {
-            libConfig._prevTsTranspilationVersionReplaced = hasVersionReplaced;
+        if (hasVersionReplaced && !libConfig._prevTsTranspilationVersionReplaced) {
+            libConfig._prevTsTranspilationVersionReplaced = true;
         }
     }
 

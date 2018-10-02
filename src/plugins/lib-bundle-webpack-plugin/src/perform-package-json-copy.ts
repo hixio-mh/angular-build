@@ -9,6 +9,8 @@ import { AngularBuildContext } from '../../../build-context';
 import { InvalidConfigError } from '../../../models/errors';
 import { LibProjectConfigInternal } from '../../../models/internals';
 
+const versionPlaceholderRegex = new RegExp('0.0.0-PLACEHOLDER', 'i');
+
 export async function performPackageJsonCopy(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): Promise<void> {
     const libConfig = angularBuildContext.projectConfig;
     if (!libConfig.packageJsonCopy) {
@@ -38,9 +40,6 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
 
     if (packageJson.devDependencies) {
         delete packageJson.devDependencies;
-    }
-    if (libConfig._projectVersion) {
-        packageJson.version = libConfig._projectVersion;
     }
 
     if (rootPackageJson.description &&
@@ -76,6 +75,24 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
     }
     if (packageJson.sideEffects == null) {
         packageJson.sideEffects = false;
+    }
+
+    if (libConfig._projectVersion && packageJson.version == null) {
+        packageJson.version = libConfig._projectVersion;
+    }
+
+    if (libConfig.replaceVersionPlaceholder !== false && libConfig._projectVersion) {
+        if (versionPlaceholderRegex.test(packageJson.version)) {
+            packageJson.version = libConfig._projectVersion;
+        }
+        if (packageJson.peerDependencies) {
+            Object.keys(packageJson.peerDependencies).forEach(key => {
+                if (versionPlaceholderRegex.test(packageJson.peerDependencies[key])) {
+                    packageJson.peerDependencies[key] =
+                        packageJson.peerDependencies[key].replace(versionPlaceholderRegex, libConfig._projectVersion);
+                }
+            });
+        }
     }
 
     // write package config

@@ -8,7 +8,7 @@ import * as glob from 'glob';
 import { LoggerBase } from '../../../utils';
 
 const globPromise = denodeify(glob) as (pattern: string, options?: glob.IOptions) => Promise<string[]>;
-const versionRegex = /export\s+const\s+VERSION\s*=\s*['"`](.*PLACEHOLDER)['"`]/g;
+const versionPlaceholderRegex = new RegExp('0.0.0-PLACEHOLDER', 'gi');
 
 export async function replaceVersion(
     searchRootDir: string,
@@ -25,13 +25,13 @@ export async function replaceVersion(
     files = files.filter(name => /\.js$/i.test(name));
 
     for (const filePath of files) {
-        const content = await readFile(filePath, 'utf-8');
-        if (versionRegex.test(content)) {
+        let content = await readFile(filePath, 'utf-8');
+        if (versionPlaceholderRegex.test(content)) {
             if (!replaced) {
                 logger.debug('Updating version placeholder');
             }
 
-            content.replace(versionRegex, projectVersion);
+            content = content.replace(versionPlaceholderRegex, projectVersion);
             await writeFile(filePath, content);
 
             replaced = true;

@@ -19,6 +19,8 @@ import { initAppConfig, initLibConfig, validateOutputPath } from '../helpers';
 import { InternalError, InvalidConfigError } from '../models/errors';
 import { findUpSync, Logger, LoggerBase, readJsonSync } from '../utils';
 
+const versionPlaceholderRegex = new RegExp('0.0.0-PLACEHOLDER', 'i');
+
 export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibProjectConfigInternal> {
     // Static public fields
     static telemetryPluginAdded = false;
@@ -509,8 +511,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         if (!this.projectConfig._packageJson ||
             (!this.projectConfig._packageJson.version ||
                 this.projectConfig._packageJson.version === '0.0.0' ||
-                this.projectConfig._packageJson.version === '[PLACEHOLDER]' ||
-                this.projectConfig._packageJson.version === '0.0.0-[PLACEHOLDER]')) {
+                versionPlaceholderRegex.test(this.projectConfig._packageJson.version))) {
             if (this.projectConfig._rootPackageJson &&
                 this.projectConfig._rootPackageJson.version) {
                 this.projectConfig._projectVersion = this.projectConfig._rootPackageJson.version;
@@ -570,6 +571,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         if (this.projectConfig._projectVersion) {
             str = str.replace(/[\$|\[](PACKAGE|APP|APPLICATION|PROJECT)?[_\-]?VERSION[\$|\]]/gim,
                 this.projectConfig._projectVersion);
+            str = str.replace(versionPlaceholderRegex, this.projectConfig._projectVersion);
         }
 
         if (this.projectConfig._packageScope) {
