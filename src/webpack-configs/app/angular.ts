@@ -4,7 +4,7 @@
 import * as path from 'path';
 
 import { AngularCompilerPluginOptions, PLATFORM } from '@ngtools/webpack';
-import * as webpack from 'webpack';
+import { Configuration, ContextReplacementPlugin, Loader, Plugin, RuleSetRule } from 'webpack';
 
 import { AngularBuildContext } from '../../build-context';
 import { resolveLoaderPath } from '../../helpers';
@@ -13,8 +13,7 @@ import { InternalError, InvalidConfigError } from '../../models/errors';
 import { AppProjectConfigInternal } from '../../models/internals';
 
 // tslint:disable-next-line:max-func-body-length
-export function
-    getAppAngularTypescriptWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+export function getAppAngularWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
     const appConfig = angularBuildContext.projectConfig;
     if (!appConfig.entry && !appConfig.tsConfig) {
         return {};
@@ -39,63 +38,42 @@ export function
 
     const ngToolsLoader = resolveLoaderPath('@ngtools/webpack');
     const buildOptimizerLoader = resolveLoaderPath('@angular-devkit/build-optimizer/webpack-loader');
-    const cacheLoader = resolveLoaderPath('cache-loader');
 
-    const rules: webpack.RuleSetRule[] = [];
-
-    rules.push({
+    const rules: RuleSetRule[] = [{
         // Mark files inside `@angular/core` as using SystemJS style dynamic imports.
         // Removing this will cause deprecation warnings to appear.
         test: /[\/\\]@angular[\/\\]core[\/\\].+\.js$/,
         parser: { system: true }
-    });
+    }];
 
-    const tsBuildOptimizerLoaders: webpack.Loader[] = [];
+    const buildOptimizerLoaders: Loader[] = [];
 
     if (appConfig.buildOptimizer) {
-        tsBuildOptimizerLoaders.push({
+        const buildOptimizerLoaderConfig: Loader = {
             loader: buildOptimizerLoader,
             options: { sourceMap: appConfig.sourceMap }
-        });
-
-        const cacheDirectory = appConfig._buildOptimizerCacheDirectory;
-
-        const buildOptimizerUseRule = {
-            use: [
-                {
-                    loader: cacheLoader,
-                    options: { cacheDirectory }
-                },
-                {
-                    loader: buildOptimizerLoader,
-                    options: { sourceMap: appConfig.sourceMap }
-                }
-            ]
         };
 
-        rules.push({
-            test: /[\/\\]@angular[\/\\].+\.js$/,
-            sideEffects: false,
-            parser: { system: true },
-            ...buildOptimizerUseRule,
-        });
+        buildOptimizerLoaders.push(buildOptimizerLoaderConfig);
 
         rules.push({
             test: /\.js$/,
-            ...buildOptimizerUseRule
+            use: [
+                buildOptimizerLoaderConfig
+            ]
         });
     }
 
     const tsLoaderTestRegex = isAot
-        ? /(?:\.ngfactory\.js|\.ngstyle\.js|\.ts)$/
-        : /\.ts$/;
+        ? /(?:\.ngfactory\.js|\.ngstyle\.js|\.tsx?)$/
+        : /\.tsx?$/;
 
     rules.push({
         test: tsLoaderTestRegex,
-        use: [...tsBuildOptimizerLoaders, ngToolsLoader]
+        use: [...buildOptimizerLoaders, ngToolsLoader]
     });
 
-    const plugins: webpack.Plugin[] = [
+    const plugins: Plugin[] = [
         createAotPlugin(angularBuildContext,
             {
                 tsConfigPath: tsConfigPath,
@@ -103,10 +81,10 @@ export function
             })
     ];
 
-    // TODO: to reivew necessary?
-    if (appConfig.platformTarget === 'node' ||
+    if (AngularBuildContext.cliIsGlobal ||
+        appConfig.platformTarget === 'node' ||
         (appConfig._nodeResolveFields &&
-            appConfig._nodeResolveFields.length &&
+            appConfig._nodeResolveFields.length > 0 &&
             appConfig._nodeResolveFields[0] === 'main')) {
         const angularFixPlugins = getAngularFixPlugins(angularBuildContext);
         plugins.push(...angularFixPlugins);
@@ -120,7 +98,7 @@ export function
     };
 }
 
-export function getAngularFixPlugins(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Plugin[] {
+export function getAngularFixPlugins(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Plugin[] {
     const appConfig = angularBuildContext.projectConfig;
 
     if (!appConfig._projectRoot) {
@@ -129,27 +107,26 @@ export function getAngularFixPlugins(angularBuildContext: AngularBuildContext<Ap
 
     const projectRoot = appConfig._projectRoot;
 
-    const angularFixPlugins: webpack.Plugin[] = [
+    const angularFixPlugins: Plugin[] = [
         // fixes WARNING Critical dependency: the request of a dependency is an expression
-        new webpack.ContextReplacementPlugin(
-            /angular(\\|\/)core(\\|\/)(@angular|esm.+)/,
+        new ContextReplacementPlugin(
+            /angular(\\|\/)core(\\|\/)(@angular|f?esm.+)/,
             projectRoot
         ),
 
         // fixes WARNING Critical dependency: the request of a dependency is an expression
-        new webpack.ContextReplacementPlugin(
+        new ContextReplacementPlugin(
             /(.+)?express(\\|\/)(.+)?/,
             projectRoot
         )
     ];
 
-    // TODO: to review
     if (appConfig._nodeResolveFields &&
         appConfig._nodeResolveFields.length &&
         appConfig._nodeResolveFields[0] === 'main') {
         // Workaround for https://github.com/angular/angular/issues/11580
         angularFixPlugins.push(
-            new webpack.ContextReplacementPlugin(
+            new ContextReplacementPlugin(
                 /\@angular\b.*\b(bundles|linker)/,
                 projectRoot
             )
@@ -160,7 +137,7 @@ export function getAngularFixPlugins(angularBuildContext: AngularBuildContext<Ap
 }
 
 function createAotPlugin(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>,
-    options: Partial<AngularCompilerPluginOptions>): webpack.Plugin {
+    options: Partial<AngularCompilerPluginOptions>): Plugin {
     const appConfig = angularBuildContext.projectConfig;
 
     if (!appConfig._projectRoot) {
