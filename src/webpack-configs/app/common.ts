@@ -6,7 +6,15 @@
 import * as path from 'path';
 
 import * as resolve from 'resolve';
-import * as webpack from 'webpack';
+import {
+    BannerPlugin,
+    Configuration,
+    EnvironmentPlugin,
+    HashedModuleIdsPlugin,
+    Options, Plugin,
+    ProgressPlugin,
+    RuleSetRule, Stats
+} from 'webpack';
 
 import { BundleAnalyzerWebpackPlugin } from '../../plugins/bundle-analyzer-webpack-plugin';
 import { CleanWebpackPlugin } from '../../plugins/clean-webpack-plugin';
@@ -31,15 +39,13 @@ const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlu
 const TerserPlugin = require('terser-webpack-plugin');
 
 // tslint:disable:max-func-body-length
-export function
-    getAppCommonWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): webpack.Configuration {
+export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
     const logger = AngularBuildContext.logger;
 
     const logLevel = angularBuildContext.buildOptions.logLevel;
     const verbose = angularBuildContext.buildOptions.logLevel === 'debug';
     const watch = angularBuildContext.buildOptions.watch;
     const watchOptions = angularBuildContext.buildOptions.watchOptions;
-
     const appConfig = angularBuildContext.projectConfig;
 
     if (!appConfig._projectRoot) {
@@ -76,7 +82,7 @@ export function
     const urlLoader = resolveLoaderPath('url-loader');
 
     // rules
-    const rules: webpack.RuleSetRule[] = [
+    const rules: RuleSetRule[] = [
         {
             test: /\.html$/,
             loader: rawLoader
@@ -100,15 +106,15 @@ export function
     ];
 
     // hot || devServer ? 'errors-only'
-    const statOptions: webpack.Options.Stats =
+    const statOptions: Options.Stats =
         getWebpackToStringStatsOptions(verbose, appConfig.stats);
 
     // plugins
-    const plugins: webpack.Plugin[] = [];
+    const plugins: Plugin[] = [];
 
     // progress
     if (angularBuildContext.buildOptions.progress && !isWebpackCli) {
-        plugins.push(new webpack.ProgressPlugin());
+        plugins.push(new ProgressPlugin());
     }
 
     // clean
@@ -121,12 +127,6 @@ export function
     if (shouldClean) {
         const cleanOptions = prepareCleanOptions(appConfig);
         const cacheDirs: string[] = [];
-
-        if (cleanOptions.beforeBuild && cleanOptions.beforeBuild.cleanCache) {
-            if (appConfig._buildOptimizerCacheDirectory) {
-                cacheDirs.push(appConfig._buildOptimizerCacheDirectory);
-            }
-        }
 
         plugins.push(new CleanWebpackPlugin({
             ...cleanOptions,
@@ -155,7 +155,7 @@ export function
         appConfig._bannerText &&
         appConfig.entry) {
         const bannerText = appConfig._bannerText;
-        plugins.push(new webpack.BannerPlugin({
+        plugins.push(new BannerPlugin({
             banner: bannerText,
             raw: true,
             entryOnly: true
@@ -221,7 +221,7 @@ export function
         }
 
         plugins.push(
-            new webpack.EnvironmentPlugin(envVariables)
+            new EnvironmentPlugin(envVariables)
         );
     }
 
@@ -230,7 +230,7 @@ export function
         plugins.push(new LicenseWebpackPlugin({
             stats: {
                 warnings: verbose,
-                errors: true
+                errors: verbose
             },
             suppressErrors: true,
             perChunkOutput: false,
@@ -277,7 +277,7 @@ export function
                 ...bundleAnalyzerOptions,
                 outputPath: outputPath,
                 logLevel: 'error',
-                stats: appConfig.stats as webpack.Stats.ToJsonOptionsObject
+                stats: appConfig.stats as Stats.ToJsonOptionsObject
             }));
         }
     }
@@ -354,7 +354,7 @@ export function
 
     // webpack config
     // tslint:disable-next-line:no-unnecessary-local-variable
-    const webpackCommonConfig: webpack.Configuration = {
+    const webpackCommonConfig: Configuration = {
         name: appConfig.name,
         mode: mode,
         target: appConfig.platformTarget,
@@ -389,7 +389,7 @@ export function
             noEmitOnErrors: true,
             concatenateModules: !isDll && appConfig.concatenateModules,
             minimizer: [
-                new webpack.HashedModuleIdsPlugin(),
+                new HashedModuleIdsPlugin(),
                 new CleanCssWebpackPlugin({
                     sourceMap: appConfig.sourceMap,
                     // component styles retain their original file name
