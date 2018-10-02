@@ -1,6 +1,6 @@
 # Release Note
 
-## 6.2.0
+## 6.3.0
 
 ### Features
 
@@ -8,8 +8,7 @@
 
 ### Bugs
 
-- Fix clean logic
-- Fix ts-transpile logic
+- Fix WARNING Critical dependency: the request of a dependency is an expression
 
 ### Misc
 
