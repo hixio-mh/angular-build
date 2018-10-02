@@ -1,6 +1,6 @@
 # Release Note
 
-## 6.3.0
+## 6.4.0
 
 ### Features
 
@@ -8,9 +8,8 @@
 
 ### Bugs
 
-- Fix WARNING Critical dependency: the request of a dependency is an expression
+- Fix replace version placeholder logic
 
 ### Misc
 
-- Refactor code
 - Update npm dependencies
