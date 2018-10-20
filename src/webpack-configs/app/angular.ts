@@ -36,8 +36,11 @@ export function getAppAngularWebpackConfigPartial(angularBuildContext: AngularBu
         isAot = true;
     }
 
-    const ngToolsLoader = resolveLoaderPath('@ngtools/webpack');
-    const buildOptimizerLoader = resolveLoaderPath('@angular-devkit/build-optimizer/webpack-loader');
+    // TODO: to review
+    const ngToolsLoader = (global as any)._DevKitIsLocal ? require.resolve('@ngtools/webpack') : resolveLoaderPath('@ngtools/webpack');
+    const buildOptimizerLoader = (global as any)._DevKitIsLocal ?
+        require.resolve('@angular-devkit/build-optimizer/src/build-optimizer/webpack-loader') :
+        resolveLoaderPath('@angular-devkit/build-optimizer/webpack-loader');
 
     const rules: RuleSetRule[] = [{
         // Mark files inside `@angular/core` as using SystemJS style dynamic imports.
