@@ -36,6 +36,9 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
         } else {
             moduleName = libConfig._projectName.split('/').join('.');
         }
+        moduleName = moduleName.replace(/-([a-z])/g, (_, g1) => {
+            return g1 ? g1.toUpperCase() : '';
+        });
     }
 
     let amdId: {} | undefined;
