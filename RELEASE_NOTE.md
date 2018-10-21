@@ -2,6 +2,5 @@
 
 ## 7.0.0
 
-### Misc
-
+- Upgrade to Angular 7
 - Update npm dependencies
