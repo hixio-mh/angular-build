@@ -104,6 +104,19 @@ export interface StylePreprocessorOptions {
     includePaths: string[];
 }
 
+export interface ExternalsObjectElement {
+    [key: string]: boolean |
+    string |
+    {
+        commonjs: string;
+        amd: string;
+        root: string;
+        [key: string]: string | boolean;
+    };
+}
+
+export type ExternalsEntry = string | ExternalsObjectElement;
+
 export interface EnvOverridesOptions<TConfig extends ProjectConfigBase> {
     [name: string]: TConfig;
 }
