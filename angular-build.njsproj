@@ -55,6 +55,7 @@
     <Content Include="azure-pipelines.yml" />
     <Content Include="bin\ngb" />
     <Content Include="builders.json" />
+    <Content Include="CHANGELOG.md" />
     <Content Include="configs\ngb-lib-default.json" />
     <Content Include="CONTRIBUTING.md" />
     <Content Include="LICENSE" />
