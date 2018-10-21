@@ -1,4 +1,4 @@
-import { ExternalsEntry, ProjectConfig, ProjectConfigBase } from './project-config';
+import { ProjectConfig, ProjectConfigBase } from './project-config';
 
 /**
  * @additionalProperties false
@@ -72,6 +72,19 @@ export interface LibBundleOptions {
     minify?: boolean;
 }
 
+export interface ExternalsObjectElement {
+    [key: string]: boolean |
+    string |
+    {
+        commonjs: string;
+        amd: string;
+        root: string;
+        [key: string]: string | boolean;
+    };
+}
+
+export type ExternalsEntry = string | ExternalsObjectElement;
+
 /**
  * @additionalProperties false
  */
@@ -85,7 +98,7 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
      */
     main?: string;
     /**
-     * Represents your umd bundle name, by which other scripts on the same page can access it.
+     * Represents your umd module id.
      */
     libraryName?: string;
     /**
