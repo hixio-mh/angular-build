@@ -27,8 +27,15 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
 
     const isTsEntry = /\.tsx?$/i.test(currentBundle._entryFilePath);
     let moduleName = libConfig.libraryName;
-    if (!moduleName && libConfig._packageNameWithoutScope) {
-        moduleName = libConfig._packageNameWithoutScope.replace(/\//gm, '.');
+    if (!moduleName && libConfig._projectName) {
+        if (libConfig._projectName.startsWith('@')) {
+            moduleName = libConfig._projectName
+                .substring(1)
+                .split('/')
+                .join('.');
+        } else {
+            moduleName = libConfig._projectName.split('/').join('.');
+        }
     }
 
     // library target
