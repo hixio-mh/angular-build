@@ -38,6 +38,11 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
         }
     }
 
+    let amdId: {} | undefined;
+    if (libConfig._projectName) {
+        amdId = { id: libConfig._projectName };
+    }
+
     // library target
     if (!currentBundle.libraryTarget) {
         currentBundle.libraryTarget = 'esm';
@@ -184,6 +189,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
 
     const outputOptions: rollup.OutputOptions = {
         name: moduleName,
+        amd: amdId,
         format: currentBundle.libraryTarget,
         globals: rollupExternalMap.globals,
         // suitable if you're exporting more than one thing
