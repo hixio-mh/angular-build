@@ -48,7 +48,7 @@ export async function minifyFile(inputPath: string,
     if (result.warnings && verbose) {
         const warnings = result.warnings;
         if (Array.isArray(warnings)) {
-            (warnings as string[]).forEach(msg => {
+            warnings.forEach(msg => {
                 logger.warn(msg);
             });
         } else if (typeof warnings === 'string') {

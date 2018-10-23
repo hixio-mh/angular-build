@@ -1,3 +1,4 @@
+// tslint:disable:no-unsafe-any
 // tslint:disable:no-require-imports
 import * as path from 'path';
 

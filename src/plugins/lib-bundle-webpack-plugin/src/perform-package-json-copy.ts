@@ -1,3 +1,5 @@
+// tslint:disable:no-unsafe-any
+
 import * as path from 'path';
 
 import { writeFile } from 'fs-extra';

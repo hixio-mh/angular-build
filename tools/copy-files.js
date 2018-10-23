@@ -43,4 +43,4 @@ fs.copy(path.resolve(rootDir, 'configs'), path.resolve(destDir, 'configs'));
 fs.copy(path.resolve(rootDir, 'schemas'), path.resolve(destDir, 'schemas'));
 
 // copy scripts
-fs.copy(path.resolve(rootDir, 'scripts'), path.resolve(destDir, 'scripts'));
+// fs.copy(path.resolve(rootDir, 'scripts'), path.resolve(destDir, 'scripts'));
