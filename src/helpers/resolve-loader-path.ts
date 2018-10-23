@@ -7,12 +7,9 @@ export function resolveLoaderPath(loaderName: string): string {
     let resolvedPath = loaderName;
     let resolved = false;
 
-    if (AngularBuildContext.nodeModulesPath) {
-        const tempPath = path.resolve(AngularBuildContext.nodeModulesPath, loaderName);
-        if (existsSync(tempPath)) {
-            resolvedPath = tempPath;
-            resolved = true;
-        }
+    if (existsSync(path.resolve(AngularBuildContext.nodeModulesPath, loaderName))) {
+        resolvedPath = path.resolve(AngularBuildContext.nodeModulesPath, loaderName);
+        resolved = true;
     }
 
     if (!resolved && AngularBuildContext.fromBuiltInCli) {
@@ -24,7 +21,7 @@ export function resolveLoaderPath(loaderName: string): string {
             }
         }
 
-        if (!resolved && AngularBuildContext.nodeModulesPath) {
+        if (!resolved) {
             const tempPath = path.resolve(AngularBuildContext.nodeModulesPath,
                 '@bizappframework/angular-build/node_modules', loaderName);
             if (existsSync(tempPath)) {
