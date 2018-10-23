@@ -7,7 +7,6 @@ import { Configuration, Plugin } from 'webpack';
 import * as webpackMerge from 'webpack-merge';
 
 import { AngularBuildContextWebpackPlugin } from '../../plugins/angular-build-context-webpack-plugin';
-import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
 import { getCustomWebpackConfig, isFromWebpackDevServer } from '../../helpers';
@@ -79,12 +78,6 @@ function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext<App
     const plugins: Plugin[] = [
         new AngularBuildContextWebpackPlugin(angularBuildContext)
     ];
-
-    // telemetry plugin
-    if (!AngularBuildContext.telemetryPluginAdded) {
-        AngularBuildContext.telemetryPluginAdded = true;
-        plugins.push(new TelemetryWebpackPlugin());
-    }
 
     const webpackAppConfig: Configuration = {
         plugins: plugins

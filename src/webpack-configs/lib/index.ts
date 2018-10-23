@@ -7,7 +7,6 @@ import { AngularBuildContextWebpackPlugin } from '../../plugins/angular-build-co
 import { CleanWebpackPlugin } from '../../plugins/clean-webpack-plugin';
 import { CopyWebpackPlugin } from '../../plugins/copy-webpack-plugin';
 import { LibBundleWebpackPlugin } from '../../plugins/lib-bundle-webpack-plugin';
-import { TelemetryWebpackPlugin } from '../../plugins/telemetry-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
 import { prepareCleanOptions } from '../../helpers';
@@ -74,12 +73,6 @@ export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<Lib
             forceWriteToDisk: true,
             logLevel: logLevel
         }));
-    }
-
-    // telemetry plugin
-    if (!AngularBuildContext.telemetryPluginAdded) {
-        AngularBuildContext.telemetryPluginAdded = true;
-        plugins.push(new TelemetryWebpackPlugin());
     }
 
     // tslint:disable-next-line:no-unnecessary-local-variable
