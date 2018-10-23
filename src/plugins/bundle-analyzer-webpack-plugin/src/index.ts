@@ -8,6 +8,7 @@
 
 import * as path from 'path';
 
+import * as spawn from 'cross-spawn';
 import { ensureDir, readFileSync, writeFile } from 'fs-extra';
 import * as webpack from 'webpack';
 
@@ -15,7 +16,6 @@ import { BundleAnalyzerOptions } from '../../../models';
 import { Logger, LogLevelString } from '../../../utils';
 
 const ejs = require('ejs');
-const spawn = require('cross-spawn');
 
 // tslint:disable-next-line:non-literal-require
 const analyzer = require(path.join(require.resolve('webpack-bundle-analyzer'), '..', 'analyzer'));

@@ -22,8 +22,6 @@ import { findUpSync, Logger, LoggerBase, readJsonSync } from '../utils';
 const versionPlaceholderRegex = new RegExp('0.0.0-PLACEHOLDER', 'i');
 
 export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibProjectConfigInternal> {
-    // Static public fields
-    static telemetryPluginAdded = false;
     static get startTime(): number {
         return AngularBuildContext._startTime;
     }
@@ -80,12 +78,12 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         return AngularBuildContext._workspaceRoot;
     }
 
-    static get nodeModulesPath(): string | null {
+    static get nodeModulesPath(): string {
         if (!AngularBuildContext._initialized) {
             throw new InternalError('AngularBuildContext has not been initialized.');
         }
 
-        if (AngularBuildContext._nodeModulesPathInitialized) {
+        if (AngularBuildContext._nodeModulesPath) {
             return AngularBuildContext._nodeModulesPath;
         }
 
@@ -93,12 +91,11 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             AngularBuildContext.workspaceRoot,
             path.parse(AngularBuildContext.workspaceRoot).root);
 
-        if (foundNodeModulesPath) {
-            AngularBuildContext._nodeModulesPath = foundNodeModulesPath;
-        } else {
-            AngularBuildContext._nodeModulesPath = null;
-            AngularBuildContext._nodeModulesPathInitialized = true;
+        if (!foundNodeModulesPath) {
+            throw new InvalidConfigError('Could not detect node_modules path.');
         }
+
+        AngularBuildContext._nodeModulesPath = foundNodeModulesPath;
 
         return AngularBuildContext._nodeModulesPath;
     }
@@ -113,12 +110,10 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         }
 
         let packageJsonPath = '';
-        if (AngularBuildContext.nodeModulesPath) {
-            const tempPath =
-                path.resolve(AngularBuildContext.nodeModulesPath, '@bizappframework/angular-build/package.json');
-            if (existsSync(tempPath)) {
-                packageJsonPath = tempPath;
-            }
+        const tempPath =
+            path.resolve(AngularBuildContext.nodeModulesPath, '@bizappframework/angular-build/package.json');
+        if (existsSync(tempPath)) {
+            packageJsonPath = tempPath;
         }
 
         if (!packageJsonPath &&
@@ -135,210 +130,6 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         }
 
         return AngularBuildContext._angularBuildVersion;
-    }
-
-    static get angularVersion(): string | null {
-        if (AngularBuildContext._angularVersion != null) {
-            return AngularBuildContext._angularVersion;
-        }
-
-        let packageJsonPath = '';
-
-        if (AngularBuildContext.nodeModulesPath) {
-            const tempPath = path.resolve(AngularBuildContext.nodeModulesPath, '@angular/core/package.json');
-            if (existsSync(tempPath)) {
-                packageJsonPath = tempPath;
-            }
-        }
-
-        if (!packageJsonPath &&
-            AngularBuildContext.cliRootPath &&
-            existsSync(path.resolve(AngularBuildContext.cliRootPath, 'node_modules/@angular/core/package.json'))) {
-            packageJsonPath = path.resolve(AngularBuildContext.cliRootPath, 'node_modules/@angular/core/package.json');
-        }
-
-        if (packageJsonPath) {
-            const pkgJson = readJsonSync(packageJsonPath);
-            AngularBuildContext._angularVersion = pkgJson.version;
-        } else {
-            AngularBuildContext._angularVersion = '';
-        }
-
-        return AngularBuildContext._angularVersion;
-    }
-
-    static get typescriptVersion(): string | null {
-        if (AngularBuildContext._typescriptVersion != null) {
-            return AngularBuildContext._typescriptVersion;
-        }
-
-        let packageJsonPath = '';
-
-        if (AngularBuildContext.nodeModulesPath) {
-            const tempPath = path.resolve(AngularBuildContext.nodeModulesPath, 'typescript/package.json');
-            if (existsSync(tempPath)) {
-                packageJsonPath = tempPath;
-            }
-        }
-
-        if (!packageJsonPath &&
-            AngularBuildContext.cliRootPath &&
-            existsSync(path.resolve(AngularBuildContext.cliRootPath, 'node_modules/typescript/package.json'))) {
-            packageJsonPath = path.resolve(AngularBuildContext.cliRootPath, 'node_modules/typescript/package.json');
-        }
-
-        if (packageJsonPath) {
-            const pkgJson = readJsonSync(packageJsonPath);
-            AngularBuildContext._typescriptVersion = pkgJson.version;
-        } else {
-            AngularBuildContext._typescriptVersion = '';
-        }
-
-        return AngularBuildContext._typescriptVersion;
-    }
-
-    static get webpackVersion(): string | null {
-        if (typeof AngularBuildContext._webpackVersion != null) {
-            return AngularBuildContext._webpackVersion;
-        }
-
-        let packageJsonPath = '';
-
-        if (AngularBuildContext.nodeModulesPath) {
-            const tempPath = path.resolve(AngularBuildContext.nodeModulesPath, 'webpack/package.json');
-            if (existsSync(tempPath)) {
-                packageJsonPath = tempPath;
-            }
-        }
-
-        if (!packageJsonPath &&
-            AngularBuildContext.cliRootPath &&
-            existsSync(path.resolve(AngularBuildContext.cliRootPath, 'node_modules/webpack/package.json'))) {
-            packageJsonPath = path.resolve(AngularBuildContext.cliRootPath, 'node_modules/webpack/package.json');
-        }
-
-        if (packageJsonPath) {
-            const pkgJson = readJsonSync(packageJsonPath);
-            AngularBuildContext._webpackVersion = pkgJson.version;
-        } else {
-            AngularBuildContext._webpackVersion = '';
-        }
-
-        return AngularBuildContext._webpackVersion;
-    }
-
-    static get rollupVersion(): string | undefined | null {
-        if (typeof AngularBuildContext._rollupVersion != null) {
-            return AngularBuildContext._rollupVersion;
-        }
-
-        let packageJsonPath = '';
-
-        if (AngularBuildContext.nodeModulesPath) {
-            const tempPath = path.resolve(AngularBuildContext.nodeModulesPath, 'rollup/package.json');
-            if (existsSync(tempPath)) {
-                packageJsonPath = tempPath;
-            }
-        }
-
-        if (!packageJsonPath &&
-            AngularBuildContext.cliRootPath &&
-            existsSync(path.resolve(AngularBuildContext.cliRootPath, 'node_modules/rollup/package.json'))) {
-            packageJsonPath = path.resolve(AngularBuildContext.cliRootPath, 'node_modules/rollup/package.json');
-        }
-
-        if (packageJsonPath) {
-            const pkgJson = readJsonSync(packageJsonPath);
-            AngularBuildContext._rollupVersion = pkgJson.version;
-        } else {
-            AngularBuildContext._rollupVersion = '';
-        }
-
-        return AngularBuildContext._rollupVersion;
-    }
-
-    static get tscCliPath(): string {
-        if (!AngularBuildContext._initialized) {
-            throw new InternalError('AngularBuildContext has not been initialized.');
-        }
-
-        if (AngularBuildContext._tscCliPath) {
-            return AngularBuildContext._tscCliPath;
-        }
-
-        const tscCli = '.bin/tsc';
-
-        if (AngularBuildContext.nodeModulesPath && existsSync(path.join(AngularBuildContext.nodeModulesPath, tscCli))) {
-            AngularBuildContext._tscCliPath = path.join(AngularBuildContext.nodeModulesPath, tscCli);
-        }
-
-        if (!AngularBuildContext._tscCliPath && AngularBuildContext.cliRootPath &&
-            existsSync(path.join(AngularBuildContext.cliRootPath, 'node_modules', tscCli))) {
-            AngularBuildContext._tscCliPath = path.join(AngularBuildContext.cliRootPath, 'node_modules', tscCli);
-        }
-
-        if (!AngularBuildContext._tscCliPath && AngularBuildContext.nodeModulesPath &&
-            existsSync(path.join(AngularBuildContext.nodeModulesPath,
-                '@bizappframework/angular-build/node_modules',
-                tscCli))) {
-
-            AngularBuildContext._tscCliPath = path.join(AngularBuildContext.nodeModulesPath,
-                '@bizappframework/angular-build/node_modules',
-                tscCli);
-        }
-
-        if (!AngularBuildContext._tscCliPath) {
-            AngularBuildContext._tscCliPath = 'tsc';
-        }
-
-        return AngularBuildContext._tscCliPath;
-    }
-
-    static get ngcCliPath(): string {
-        if (!AngularBuildContext._initialized) {
-            throw new InternalError('AngularBuildContext has not been initialized.');
-        }
-
-        if (AngularBuildContext._ngcCliPath) {
-            return AngularBuildContext._ngcCliPath;
-        }
-
-        const ngcCli = '.bin/ngc';
-
-        if (AngularBuildContext.nodeModulesPath && existsSync(path.join(AngularBuildContext.nodeModulesPath, ngcCli))) {
-            AngularBuildContext._ngcCliPath = path.join(AngularBuildContext.nodeModulesPath, ngcCli);
-        }
-
-        if (!AngularBuildContext._ngcCliPath && AngularBuildContext.cliRootPath &&
-            existsSync(path.join(AngularBuildContext.cliRootPath, 'node_modules', ngcCli))) {
-            AngularBuildContext._ngcCliPath = path.join(AngularBuildContext.cliRootPath, 'node_modules', ngcCli);
-        }
-
-        if (!AngularBuildContext._ngcCliPath && AngularBuildContext.nodeModulesPath &&
-            existsSync(path.join(AngularBuildContext.nodeModulesPath,
-                '@bizappframework/angular-build/node_modules',
-                ngcCli))) {
-            AngularBuildContext._ngcCliPath = path.join(AngularBuildContext.nodeModulesPath,
-                '@bizappframework/angular-build/node_modules',
-                ngcCli);
-        }
-
-        if (!AngularBuildContext._ngcCliPath) {
-            try {
-                let internalNodeModulePath = path.dirname(require.resolve('@angular/compiler-cli'));
-                while (internalNodeModulePath &&
-                    !/node_modules$/i.test(internalNodeModulePath) &&
-                    internalNodeModulePath !== path.dirname(internalNodeModulePath)) {
-                    internalNodeModulePath = path.dirname(internalNodeModulePath);
-                }
-
-                AngularBuildContext._ngcCliPath = path.join(internalNodeModulePath, ngcCli);
-            } catch (err) {
-                AngularBuildContext._ngcCliPath = 'ngc';
-            }
-        }
-
-        return AngularBuildContext._ngcCliPath;
     }
 
     static get libCount(): number {
@@ -369,14 +160,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
     private static _startTime = Date.now();
     private static _workspaceRoot: string;
     private static _nodeModulesPath: string | null;
-    private static _nodeModulesPathInitialized = false;
     private static _angularBuildVersion: string | null = null;
-    private static _angularVersion: string | null = null;
-    private static _typescriptVersion: string | null = null;
-    private static _webpackVersion: string | null = null;
-    private static _rollupVersion: string | null = null;
-    private static _tscCliPath: string | null = null;
-    private static _ngcCliPath: string | null = null;
     private static _cliIsGlobal: boolean | null = null;
     private static _cliRootPath: string | null = null;
     private static _fromBuiltInCli: boolean | null;
