@@ -1,5 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
 // tslint:disable:no-var-requires
 // tslint:disable:no-require-imports
 
@@ -53,12 +51,12 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
         logger.info(
             `Bundling to ${currentBundle.libraryTarget}${scriptTargetText} format with rollup`);
 
-        const bundle = await rollup.rollup(rollupOptions.inputOptions as any);
+        const bundle = await rollup.rollup(rollupOptions.inputOptions);
         await bundle.write(rollupOptions.outputOptions);
 
         // Remapping sourcemaps
         if (shouldReMapSourceMap) {
-            const chain: any = await sorcery.load(currentBundle._outputFilePath);
+            const chain = await sorcery.load(currentBundle._outputFilePath);
             await chain.write();
         }
 
@@ -75,7 +73,7 @@ export async function performLibBundles(angularBuildContext: AngularBuildContext
 
             // Remapping sourcemaps
             if (libConfig.sourceMap) {
-                const chain: any = await sorcery.load(currentBundle._outputFilePath);
+                const chain = await sorcery.load(currentBundle._outputFilePath);
                 await chain.write();
             }
         }

@@ -1,11 +1,7 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-// tslint:disable:no-var-requires
 // tslint:disable:no-require-imports
-// tslint:disable:max-func-body-length
-
 import * as path from 'path';
 
+import * as resolve from 'resolve';
 import * as rollup from 'rollup';
 
 import { AngularBuildContext } from '../../../build-context';
@@ -15,11 +11,10 @@ import { LibBundleOptionsInternal, LibProjectConfigInternal } from '../../../mod
 import { getAngularGlobals } from './angular-globals';
 import { getRxJsGlobals } from './rxjs-globals';
 
-const getBuiltins = require('builtins');
-
+// tslint:disable-next-line:max-func-body-length
 export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>,
     currentBundle: LibBundleOptionsInternal): {
-        inputOptions: rollup.InputOptions;
+        inputOptions: rollup.RollupFileOptions;
         outputOptions: rollup.OutputOptions;
     } {
     const logger = AngularBuildContext.logger;
@@ -52,16 +47,12 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     }
 
     // externals
-    let includeCommonJsModules = true;
+    const includeCommonJsModules = currentBundle.nodeModulesAsExternals !== false ? false : true;
     const rawExternals: ExternalsEntry[] = [];
     const rollupExternalMap = {
         externals: [] as string[],
         globals: {}
     };
-
-    if (currentBundle.nodeModulesAsExternals !== false) {
-        includeCommonJsModules = false;
-    }
 
     if (currentBundle.externals == null) {
         if (currentBundle.includeDefaultAngularAndRxJsGlobals ||
@@ -119,32 +110,41 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     }
 
     if (rawExternals.length) {
-        rawExternals.forEach((external: any) => {
+        rawExternals.forEach((external) => {
             mapToRollupGlobalsAndExternals(external, rollupExternalMap);
         });
     }
 
     const externals = rollupExternalMap.externals || [];
     if (libConfig.platformTarget === 'node') {
+        const getBuiltins = require('builtins');
         externals.push(...getBuiltins());
     }
 
     // plugins
-    const plugins: any[] = [];
+    const plugins: rollup.Plugin[] = [];
 
     if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || isTsEntry || includeCommonJsModules) {
         const rollupNodeResolve = require('rollup-plugin-node-resolve');
         plugins.push(rollupNodeResolve());
 
         if (isTsEntry) {
-            const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig.root || '');
-            const typescript = require('rollup-plugin-typescript2');
+            const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig._projectRoot || '');
+            const typescriptPlugin = require('rollup-plugin-typescript2');
+
+            let typescriptModulePath = 'typescript';
+            try {
+                typescriptModulePath = resolve.sync('typescript', { basedir: AngularBuildContext.nodeModulesPath });
+            } catch (err) {
+                // do nothing
+            }
 
             // rollup-plugin-typescript@0.8.1 doesn't support custom tsconfig path
             // so we use rollup-plugin-typescript2
-            plugins.push(typescript({
+            plugins.push(typescriptPlugin({
                 tsconfig: currentBundle._tsConfigPath,
-                typescript: require('typescript'),
+                // tslint:disable-next-line:non-literal-require
+                typescript: require(typescriptModulePath),
                 rollupCommonJSResolveHack: currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs',
                 cacheRoot: path.resolve(projectRoot, './.rts2_cache')
             }));
@@ -153,7 +153,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
         if (includeCommonJsModules) {
             const rollupCommonjs = require('rollup-plugin-commonjs');
             plugins.push(rollupCommonjs({
-                extensions: isTsEntry ? ['.js', '.ts'] : ['.js'],
+                extensions: isTsEntry ? ['.js', '.ts', '.tsx'] : ['.js'],
                 // If false then skip sourceMap generation for CommonJS modules
                 sourceMap: libConfig.sourceMap, // Default: true
             }));
@@ -168,7 +168,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
         preserveSymlinks = true;
     }
 
-    const inputOptions: rollup.InputOptions = {
+    const inputOptions: rollup.RollupFileOptions = {
         input: currentBundle._entryFilePath,
         preserveSymlinks: preserveSymlinks,
         external: externals,
@@ -220,14 +220,14 @@ function mapToRollupGlobalsAndExternals(external: ExternalsEntry,
         }
     } else if (typeof external === 'object') {
         Object.keys(external).forEach((k: string) => {
-            const tempValue = external[k] as any;
+            const tempValue = external[k];
             if (typeof tempValue === 'string') {
                 mapResult.globals[k] = tempValue;
                 if (!mapResult.externals.includes(k)) {
                     mapResult.externals.push(k);
                 }
             } else if (typeof tempValue === 'object' && Object.keys(tempValue).length) {
-                const selectedKey = tempValue.root ? (tempValue).root : Object.keys(tempValue)[0];
+                const selectedKey = tempValue.root ? tempValue.root : Object.keys(tempValue)[0];
                 mapResult.globals[k] = tempValue[selectedKey];
                 if (!mapResult.externals.includes(k)) {
                     mapResult.externals.push(k);

@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { writeFile } from 'fs-extra';
@@ -33,6 +30,7 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
 
     // merge config
     const rootPackageJson = libConfig._rootPackageJson || {};
+    // tslint:disable-next-line:no-any
     const packageJson: any = {
         ...JSON.parse(JSON.stringify(libConfig._packageJson)),
         ...(libConfig._packageEntryPoints || {})
@@ -50,7 +48,7 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
     if (rootPackageJson.keywords &&
         (packageJson.keywords === '' ||
             packageJson.keywords === '[PLACEHOLDER]' ||
-            (packageJson.keywords && !packageJson.keywords.length))) {
+            (packageJson.keywords && !(packageJson.keywords as string[]).length))) {
         packageJson.keywords = rootPackageJson.keywords;
     }
     if (rootPackageJson.author &&
@@ -82,7 +80,7 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
     }
 
     if (libConfig.replaceVersionPlaceholder !== false && libConfig._projectVersion) {
-        if (versionPlaceholderRegex.test(packageJson.version)) {
+        if (versionPlaceholderRegex.test(packageJson.version as string)) {
             packageJson.version = libConfig._projectVersion;
         }
         if (packageJson.peerDependencies) {

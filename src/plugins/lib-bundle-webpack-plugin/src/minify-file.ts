@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { existsSync, readFile, writeFile } from 'fs-extra';
@@ -12,14 +9,14 @@ export async function minifyFile(inputPath: string,
     outputPath: string,
     sourceMap: boolean,
     verbose: boolean,
-    logger: LoggerBase): Promise<any> {
+    logger: LoggerBase): Promise<void> {
     const content = await readFile(inputPath, 'utf-8');
     let sourceMapContent: string | null = null;
     if (sourceMap && existsSync(`${inputPath}.map`)) {
         sourceMapContent = await readFile(`${inputPath}.map`, 'utf-8');
     }
     const outputFileName = path.parse(outputPath).base;
-    const sourceObj: any = {};
+    const sourceObj: { [key: string]: string } = {};
     sourceObj[outputFileName] = content;
 
     const result: uglify.MinifyOutput = uglify.minify(sourceObj,
@@ -29,10 +26,11 @@ export async function minifyFile(inputPath: string,
             sourceMap: sourceMap
                 ? {
                     // filename: outputFileName,
-                    content: sourceMapContent,
+                    // tslint:disable-next-line:no-any
+                    content: sourceMapContent as any,
                     url: `${outputFileName}.map`
                 }
-                : null,
+                : false,
             compress: {
                 passes: 3, // default 1
                 negate_iife: false // default true, we need this for lazy v8
@@ -41,14 +39,14 @@ export async function minifyFile(inputPath: string,
                 comments: /^\**!|@preserve|@license/,
                 beautify: false // default true
             }
-        } as any);
+        });
 
     if (result.error) {
         throw result.error;
     }
 
-    if ((result as any).warnings && verbose) {
-        const warnings = (result as any).warnings;
+    if (result.warnings && verbose) {
+        const warnings = result.warnings;
         if (Array.isArray(warnings)) {
             (warnings as string[]).forEach(msg => {
                 logger.warn(msg);

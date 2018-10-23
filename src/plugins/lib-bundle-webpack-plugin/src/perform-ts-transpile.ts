@@ -62,7 +62,7 @@ export async function performTsTranspile(angularBuildContext: AngularBuildContex
 
         await new Promise((resolve, reject) => {
             const errors: string[] = [];
-            const commandPath = AngularBuildContext.ngcCliPath;
+            const commandPath = path.join(AngularBuildContext.nodeModulesPath, '.bin/ngc');
             const child = spawn(commandPath, commandArgs, {});
             child.stdout.on('data', (data: string | Buffer) => {
                 logger.debug(`${data}`);
