@@ -105,13 +105,12 @@ export interface StylePreprocessorOptions {
 }
 
 export interface ExternalsObjectElement {
-    [key: string]: boolean |
-    string |
+    [key: string]: string |
     {
         commonjs: string;
         amd: string;
         root: string;
-        [key: string]: string | boolean;
+        [key: string]: string;
     };
 }
 
