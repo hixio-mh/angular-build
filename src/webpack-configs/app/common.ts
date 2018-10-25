@@ -185,7 +185,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
                     : 'rxjs/_esm5/path-mapping';
             // tslint:disable-next-line:non-literal-require
             const pathMapping = require(resolve.sync(rxjsPathMappingImportModuleName,
-                { basedir: AngularBuildContext.nodeModulesPath }));
+                { basedir: AngularBuildContext.nodeModulesPath || AngularBuildContext.workspaceRoot }));
             alias = pathMapping();
         } catch (e) {
             logger.warn(`Failed rxjs path alias. ${e.message}`);
@@ -283,7 +283,9 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     }
 
     const nodeModulePaths = ['node_modules'];
-    nodeModulePaths.push(AngularBuildContext.nodeModulesPath);
+    if (AngularBuildContext.nodeModulesPath) {
+        nodeModulePaths.push(AngularBuildContext.nodeModulesPath);
+    }
 
     const loaderModulePaths = [...nodeModulePaths];
     if (AngularBuildContext.cliRootPath) {
@@ -291,7 +293,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         if (!loaderModulePaths.includes(cliNodeModulePath)) {
             loaderModulePaths.push(cliNodeModulePath);
         }
-    } else {
+    } else if (AngularBuildContext.nodeModulesPath) {
         const cliNodeModulePath = path.resolve(AngularBuildContext.nodeModulesPath,
             '@bizappframework/angular-build/node_modules');
         if (!loaderModulePaths.includes(cliNodeModulePath)) {

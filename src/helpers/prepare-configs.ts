@@ -325,6 +325,17 @@ export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(pro
 
                 foundBaseProject = config;
             }
+
+            if (foundBaseProject &&
+                foundBaseProject.name &&
+                !foundBaseProject.name.startsWith('ngb:') &&
+                !foundBaseProject.name.startsWith('angular-build:') &&
+                !projectConfig.name &&
+                extendArray.length === 1 &&
+                (foundBaseProject as any)._extendLevel === 1 &&
+                !/(\\|\/)angular-build\.json$/.test(projectConfig._configPath)) {
+                projectConfig.name = foundBaseProject.name;
+            }
         }
 
         if (!foundBaseProject) {
@@ -422,7 +433,7 @@ export function getBuildOptionsFromBuilderOptions(options: BuildOptions & BuildO
 
 export function applyAppConfigCompat(appConfig: AppBuilderOptions): void {
     if (appConfig.target && !appConfig.platformTarget) {
-        appConfig.platformTarget = appConfig.target as any;
+        appConfig.platformTarget = appConfig.target as ('web' | 'node');
         delete appConfig.target;
     }
     if (appConfig.platform && !appConfig.platformTarget) {
@@ -524,7 +535,7 @@ export function applyAppConfigCompat(appConfig: AppBuilderOptions): void {
 
 export function applyLibConfigCompat(libConfig: LibBuilderOptions): void {
     if (libConfig.target && !libConfig.platformTarget) {
-        libConfig.platformTarget = libConfig.target as any;
+        libConfig.platformTarget = libConfig.target as ('web' | 'node');
         delete libConfig.target;
     }
 

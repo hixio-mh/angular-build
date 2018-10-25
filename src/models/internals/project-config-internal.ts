@@ -14,8 +14,8 @@ export interface ProjectConfigInternal<TConfig extends ProjectConfigBase> extend
     _buildOptions?: BuildOptionsInternal;
     _rptCacheDirectory?: string;
 
-    _projectType?: 'app' | 'lib';
-    _index?: number;
+    _projectType: 'app' | 'lib';
+    _index: number;
 
     _bannerText?: string;
     _packageConfigPath?: string;

@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { pathExists } from 'fs-extra';
@@ -44,9 +41,9 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
             logger.error(`${configErr.message}\n`);
 
             return -1;
+        } else if (configErr) {
+            logger.error(`${(configErr as Error).stack || (configErr as Error).message || configErr}\n`);
         }
-
-        logger.error(`${configErr.stack || configErr.message}\n`);
 
         return -1;
     }
@@ -79,7 +76,7 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
                 err instanceof UnsupportedStyleExtError) {
                 logger.error(`\n${err.message.trim()}\n`);
             } else {
-                logger.error(`${buildErrorMessage(err)}\n`);
+                logger.error(`${buildErrorMessage(err as Error)}\n`);
             }
         }
     }
@@ -93,10 +90,11 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
 
 function initCommandOptions(cliOptions: CliOptions, startTime: number): BuildCommandOptions {
     const commandOptions: BuildCommandOptions =
-        cliOptions.args && typeof cliOptions.args === 'object' ? cliOptions.args : {};
+        cliOptions.commandOptions && typeof cliOptions.commandOptions === 'object' ? cliOptions.commandOptions : {};
     commandOptions._fromBuiltInCli = true;
 
     commandOptions._cliIsGlobal = cliOptions.cliIsGlobal;
+    commandOptions._cliIsLink = cliOptions.cliIsLink;
     commandOptions._cliRootPath = cliOptions.cliRootPath;
     commandOptions._cliVersion = cliOptions.cliVersion;
     commandOptions._startTime = startTime;
@@ -117,7 +115,7 @@ function initConfigPath(commandOptions: BuildCommandOptions): string {
     return configPath;
 }
 
-function buildErrorMessage(err: any): string {
+function buildErrorMessage(err: Error & { details?: string }): string {
     let errMsg = '\n';
     if (err.message && err.message.length && err.message !== err.stack) {
         errMsg += err.message;

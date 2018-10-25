@@ -1,7 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-// tslint:disable:no-default-export
-
 import * as yargs from 'yargs';
 
 import { colorize } from '../utils/colorize';
@@ -9,7 +5,7 @@ import { colorize } from '../utils/colorize';
 import { getBuildCommandModule } from './build/build-command-module';
 import { CliOptions } from './cli-options';
 
-function initYargs(cliVersion: string, args?: any[]): yargs.Argv {
+function initYargs(cliVersion: string, args?: string[]): yargs.Argv {
     const cliUsage = `\n${colorize(`angular-build ${cliVersion}`, 'white')}\n
 Usage:
   ngb command [options...]
@@ -53,21 +49,21 @@ function displayAngularBuildVersion(cliOptions: CliOptions): void {
         'white')}\n`);
 }
 
+// tslint:disable-next-line:no-default-export
 export default async function (cliOptions: CliOptions): Promise<number> {
+    let args = process.argv.slice(2);
     let isHelpCommand = false;
-    if (cliOptions.args && (cliOptions.args as string[]).includes('help')) {
+    if (args.includes('help')) {
         isHelpCommand = true;
-        cliOptions.args = cliOptions.args.filter((p: string) => p !== 'help');
-        cliOptions.args.push('-h');
-
-    } else if (cliOptions.args && (cliOptions.args as string[]).includes('--help')) {
+        args = args.filter((p: string) => p !== 'help');
+        args.push('-h');
+    } else if (args.includes('--help')) {
         isHelpCommand = true;
-        cliOptions.args = cliOptions.args.filter((p: string) => p !== '--help');
-        cliOptions.args.push('-h');
-
+        args = args.filter((p: string) => p !== '--help');
+        args.push('-h');
     }
 
-    const yargsInstance = initYargs(cliOptions.cliVersion, cliOptions.args);
+    const yargsInstance = initYargs(cliOptions.cliVersion, args);
     const command = yargsInstance.argv._[0] ? yargsInstance.argv._[0].toLowerCase() : undefined;
     const commandOptions = yargsInstance.argv;
 
@@ -78,7 +74,7 @@ export default async function (cliOptions: CliOptions): Promise<number> {
         const cliBuildModule = await import('./build/cli-build');
         const cliBuild = cliBuildModule.cliBuild;
 
-        return cliBuild({ ...cliOptions, args: commandOptions });
+        return cliBuild({ ...cliOptions, commandOptions: commandOptions });
     }
     if (commandOptions.version) {
         return Promise.resolve(cliOptions)

@@ -181,7 +181,7 @@ export interface ProjectConfig<TConfig extends ProjectConfigBase> extends Projec
     /**
      * The name of build-in configuration preset, or path(s) to other configuration files which are extended by this configuration.
      */
-    extends?: string | string[];
+    extends?: 'ngb:lib-default' | 'ngb-app-browser-default' | string | string[];
     /**
      * The project root folder.
      */

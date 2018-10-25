@@ -135,7 +135,8 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
 
             let typescriptModulePath = 'typescript';
             try {
-                typescriptModulePath = resolve.sync('typescript', { basedir: AngularBuildContext.nodeModulesPath });
+                typescriptModulePath =
+                    resolve.sync('typescript', { basedir: AngularBuildContext.nodeModulesPath || AngularBuildContext.workspaceRoot });
             } catch (err) {
                 // do nothing
             }

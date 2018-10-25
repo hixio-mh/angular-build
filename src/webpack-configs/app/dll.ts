@@ -140,7 +140,7 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<
         const tsConfigPath = appConfig._tsConfigPath;
         const tsLoaderOptions: { [key: string]: string | boolean } = {
             // tslint:disable-next-line:prefer-template
-            instance: `at-${appConfig.name || 'apps[' + (appConfig._index as number).toString() + ']'}-loader`,
+            instance: `at-${appConfig.name || 'apps[' + appConfig._index.toString() + ']'}-loader`,
             transpileOnly: appConfig.tsConfig ? false : true,
             onlyCompileBundledFiles: appConfig.tsConfig ? false : true,
             silent: logLevel !== 'debug'
