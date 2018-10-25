@@ -10,7 +10,7 @@ angular-build
 [![npm](https://img.shields.io/npm/dm/@bizappframework/angular-build.svg)](https://www.npmjs.com/package/@bizappframework/angular-build)
 [![Gitter](https://badges.gitter.im/BizAppFramework/angular-build.svg)](https://gitter.im/BizAppFramework/angular-build?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-[Angular CLI](https://github.com/angular/angular-cli) architect builder plugin for building [Angular](https://github.com/angular/angular) application and library projects as well as can be used as a standalone CLI.
+Another cli build tool and [Angular CLI](https://github.com/angular/angular-cli) architect builder plugin for building [Angular](https://github.com/angular/angular) application and library projects.
 
 Features
 ---------------
