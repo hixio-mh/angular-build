@@ -12,6 +12,7 @@ export interface BuildCommandOptions {
     _startTime?: number;
     _fromBuiltInCli?: boolean;
     _cliIsGlobal?: boolean;
+    _cliIsLink?: boolean;
     _cliRootPath?: string;
     _cliVersion?: string;
 }

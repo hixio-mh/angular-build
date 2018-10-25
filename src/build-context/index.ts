@@ -1,7 +1,7 @@
 // tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, realpathSync } from 'fs';
 import * as path from 'path';
 
 import { virtualFs } from '@angular-devkit/core';
@@ -17,7 +17,7 @@ import {
 
 import { initAppConfig, initLibConfig, validateOutputPath } from '../helpers';
 import { InternalError, InvalidConfigError } from '../models/errors';
-import { findUpSync, Logger, LoggerBase, readJsonSync } from '../utils';
+import { findUpSync, isSamePaths, Logger, LoggerBase, readJsonSync } from '../utils';
 
 const versionPlaceholderRegex = new RegExp('0.0.0-PLACEHOLDER', 'i');
 
@@ -70,6 +70,29 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         return AngularBuildContext._cliIsGlobal;
     }
 
+    static get angularBuildIsLink(): boolean {
+        if (!AngularBuildContext._initialized) {
+            throw new InternalError('AngularBuildContext has not been initialized.');
+        }
+
+        if (AngularBuildContext._cliIsLink != null) {
+            return AngularBuildContext._cliIsLink;
+        }
+
+        if (!AngularBuildContext.cliIsGlobal && AngularBuildContext.nodeModulesPath) {
+            const p1 = path.resolve(AngularBuildContext.nodeModulesPath, '@bizappframework/angular-build');
+            if (existsSync(p1) && !isSamePaths(p1, realpathSync(p1))) {
+                AngularBuildContext._cliIsLink = true;
+
+                return AngularBuildContext._cliIsLink;
+            }
+        }
+
+        AngularBuildContext._cliIsLink = false;
+
+        return AngularBuildContext._cliIsLink;
+    }
+
     static get workspaceRoot(): string {
         if (!AngularBuildContext._initialized) {
             throw new InternalError('AngularBuildContext has not been initialized.');
@@ -78,12 +101,12 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         return AngularBuildContext._workspaceRoot;
     }
 
-    static get nodeModulesPath(): string {
+    static get nodeModulesPath(): string | null {
         if (!AngularBuildContext._initialized) {
             throw new InternalError('AngularBuildContext has not been initialized.');
         }
 
-        if (AngularBuildContext._nodeModulesPath) {
+        if (AngularBuildContext._nodeModulesPath != null) {
             return AngularBuildContext._nodeModulesPath;
         }
 
@@ -91,29 +114,31 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             AngularBuildContext.workspaceRoot,
             path.parse(AngularBuildContext.workspaceRoot).root);
 
-        if (!foundNodeModulesPath) {
-            throw new InvalidConfigError('Could not detect node_modules path.');
+        if (foundNodeModulesPath) {
+            AngularBuildContext._nodeModulesPath = foundNodeModulesPath;
+        } else {
+            AngularBuildContext._nodeModulesPath = '';
         }
-
-        AngularBuildContext._nodeModulesPath = foundNodeModulesPath;
 
         return AngularBuildContext._nodeModulesPath;
     }
 
-    static get angularBuildVersion(): string | null {
+    static get angularBuildVersion(): string {
         if (!AngularBuildContext._initialized) {
             throw new InternalError('AngularBuildContext has not been initialized.');
         }
 
-        if (AngularBuildContext._angularBuildVersion != null) {
+        if (AngularBuildContext._angularBuildVersion) {
             return AngularBuildContext._angularBuildVersion;
         }
 
         let packageJsonPath = '';
-        const tempPath =
-            path.resolve(AngularBuildContext.nodeModulesPath, '@bizappframework/angular-build/package.json');
-        if (existsSync(tempPath)) {
-            packageJsonPath = tempPath;
+        if (AngularBuildContext.nodeModulesPath) {
+            const tempPath =
+                path.resolve(AngularBuildContext.nodeModulesPath, '@bizappframework/angular-build/package.json');
+            if (existsSync(tempPath)) {
+                packageJsonPath = tempPath;
+            }
         }
 
         if (!packageJsonPath &&
@@ -124,12 +149,12 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
 
         if (packageJsonPath) {
             const pkgJson = readJsonSync(packageJsonPath);
-            AngularBuildContext._angularBuildVersion = pkgJson.version;
-        } else {
-            AngularBuildContext._angularBuildVersion = '';
-        }
+            AngularBuildContext._angularBuildVersion = pkgJson.version as string;
 
-        return AngularBuildContext._angularBuildVersion;
+            return AngularBuildContext._angularBuildVersion;
+        } else {
+            throw new InternalError('Could not detect angular-build version.');
+        }
     }
 
     static get libCount(): number {
@@ -138,10 +163,6 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
 
     static get appCount(): number {
         return AngularBuildContext._appCount;
-    }
-
-    static get telemetryDisabled(): boolean {
-        return process.argv.includes('--disable-telemetry') || process.env.ANGULAR_BUILD_TELEMETRY_OPTOUT ? true : false;
     }
 
     // Instance public fields
@@ -159,9 +180,10 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
     private static _libCount = 0;
     private static _startTime = Date.now();
     private static _workspaceRoot: string;
-    private static _nodeModulesPath: string | null;
+    private static _nodeModulesPath: string | null = null;
     private static _angularBuildVersion: string | null = null;
     private static _cliIsGlobal: boolean | null = null;
+    private static _cliIsLink: boolean | null = null;
     private static _cliRootPath: string | null = null;
     private static _fromBuiltInCli: boolean | null;
     private static _logger: LoggerBase | null = null;
@@ -201,6 +223,10 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
 
         if (options.cliIsGlobal != null && AngularBuildContext._cliIsGlobal == null) {
             AngularBuildContext._cliIsGlobal = options.fromBuiltInCli && options.cliIsGlobal ? true : false;
+        }
+
+        if (options.cliIsLink != null && AngularBuildContext._cliIsLink == null) {
+            AngularBuildContext._cliIsLink = options.fromBuiltInCli && options.cliIsLink ? true : false;
         }
 
         AngularBuildContext._logger = new Logger({

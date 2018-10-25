@@ -9,4 +9,5 @@ export interface BuildContextStaticOptions {
     cliRootPath?: string;
     cliVersion?: string;
     cliIsGlobal?: boolean;
+    cliIsLink?: boolean;
 }

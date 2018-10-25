@@ -53,6 +53,7 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
     const fromBuiltInCli = buildCommandOptions._fromBuiltInCli;
     const cliRootPath = fromBuiltInCli && buildCommandOptions._cliRootPath ? buildCommandOptions._cliRootPath : undefined;
     const cliIsGlobal = fromBuiltInCli && buildCommandOptions._cliIsGlobal ? true : false;
+    const cliIsLink = fromBuiltInCli && buildCommandOptions._cliIsLink ? true : false;
     const cliVersion = fromBuiltInCli && buildCommandOptions._cliVersion ? buildCommandOptions._cliVersion : undefined;
     const verbose = buildCommandOptions.verbose;
 
@@ -197,7 +198,8 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
         angularBuildConfig: angularBuildConfigInternal,
         cliRootPath: cliRootPath,
         cliVersion: cliVersion,
-        cliIsGlobal: cliIsGlobal
+        cliIsGlobal: cliIsGlobal,
+        cliIsLink: cliIsLink
     };
 
     return getWebpackConfigsInternal(angularBuildConfigInternal, buildOptions, staticBuildContextOptions);
