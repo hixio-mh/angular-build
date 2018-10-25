@@ -61,7 +61,6 @@
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
-    <Content Include="RELEASE_NOTE.md" />
     <Content Include="samples\hello-world-ng-app-build-test\src\app\app.component.scss" />
     <Content Include="samples\hello-world-ng-app-build-test\src\assets\.gitkeep" />
     <Content Include="samples\hello-world-ng-app-build-test\src\styles.scss" />
@@ -92,7 +91,6 @@
     <Folder Include="samples\hello-world-ng-app-build-test\src\app\feature\" />
     <Folder Include="samples\hello-world-ng-app-build-test\src\assets\" />
     <Folder Include="samples\hello-world-ng-app-build-test\src\styles\" />
-    <Folder Include="scripts\" />
     <Folder Include="src\architect\" />
     <Folder Include="src\architect\app\" />
     <Folder Include="src\architect\lib\" />
@@ -112,8 +110,6 @@
     <Folder Include="src\plugins\service-worker-webpack-plugin\src\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\" />
     <Folder Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\" />
-    <Folder Include="src\plugins\telemetry-webpack-plugin\" />
-    <Folder Include="src\plugins\telemetry-webpack-plugin\src\" />
     <Folder Include="src\cli\" />
     <Folder Include="src\cli\build\" />
     <Folder Include="src\plugins\cleancss-webpack-plugin\" />
@@ -224,9 +220,6 @@
     <TypeScriptCompile Include="src\plugins\service-worker-webpack-plugin\src\index.ts" />
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\index.ts" />
     <TypeScriptCompile Include="src\plugins\suppress-entry-chunks-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\index.ts" />
-    <TypeScriptCompile Include="src\plugins\telemetry-webpack-plugin\src\index.ts" />
-    <TypeScriptCompile Include="src\utils\check-path-match-up.ts" />
     <TypeScriptCompile Include="src\utils\find-up.ts" />
     <TypeScriptCompile Include="src\utils\format-ts-diagnostics.ts" />
     <TypeScriptCompile Include="src\utils\glob-copy-files.ts" />
@@ -292,7 +285,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="bin\ngb-cli.js" />
-    <Compile Include="scripts\postinstall.js" />
     <Compile Include="tools\generate-schemas.js" />
     <Compile Include="tools\copy-files.js" />
   </ItemGroup>
