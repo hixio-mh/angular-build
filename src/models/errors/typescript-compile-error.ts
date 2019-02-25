@@ -1,5 +1,5 @@
 export class TypescriptCompileError extends Error {
-    private _nativeError: Error;
+    private readonly _nativeError: Error;
 
     constructor(message: string) {
         super(message);

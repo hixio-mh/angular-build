@@ -27,7 +27,7 @@ export class CopyWebpackPlugin {
     private readonly _persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
     private readonly _fileDependencies: string[] = [];
     private readonly _contextDependencies: string[] = [];
-    private _cachedFiles: { [key: string]: any } = {};
+    private readonly _cachedFiles: { [key: string]: any } = {};
     private _newWrittenCount = 0;
 
     get name(): string {

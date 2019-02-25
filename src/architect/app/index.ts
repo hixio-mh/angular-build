@@ -48,45 +48,46 @@ export class AppBuilder implements Builder<AppBuilderOptions> {
         // apply env
         applyProjectConfigWithEnvironment(appConfigEnvApplied, buildOptions.environment);
 
-        return of(null).pipe(
-            concatMap(() => {
-                if (appConfigEnvApplied.skip) {
-                    const configName = appConfigEnvApplied.name ? appConfigEnvApplied.name : '';
-                    this.context.logger.info(`Skip building ${configName}`);
+        return of(null)
+            .pipe(
+                concatMap(() => {
+                    if (appConfigEnvApplied.skip) {
+                        const configName = appConfigEnvApplied.name ? appConfigEnvApplied.name : '';
+                        this.context.logger.info(`Skip building ${configName}`);
 
-                    return of({ success: true });
-                }
-
-                const angularBuildContext = new AngularBuildContext({
-                    workspaceRoot: workspaceRoot,
-                    startTime: this._startTime,
-                    host: this.context.host,
-                    projectConfig: appConfigEnvApplied,
-                    projectConfigWithoutEnvApplied: appConfig,
-                    buildOptions: buildOptions
-                });
-
-                let wpConfig: webpack.Configuration;
-                try {
-                    wpConfig = getAppWebpackConfig(angularBuildContext);
-                } catch (err) {
-                    return throwError(err);
-                }
-
-                return runWebpackForArchitectBuilder(wpConfig, buildOptions, AngularBuildContext.logger);
-            }),
-            concatMap(buildEvent => {
-                if (buildEvent.success) {
-                    const duration = Date.now() - this._startTime;
-                    this.context.logger.info(`Build completed in [${duration}ms]`);
-                    if (buildOptions.beep && !buildOptions.watch && process.stdout.isTTY) {
-                        process.stdout.write('\x07');
+                        return of({ success: true });
                     }
-                }
 
-                return of(buildEvent);
-            })
-        );
+                    const angularBuildContext = new AngularBuildContext({
+                        workspaceRoot: workspaceRoot,
+                        startTime: this._startTime,
+                        host: this.context.host,
+                        projectConfig: appConfigEnvApplied,
+                        projectConfigWithoutEnvApplied: appConfig,
+                        buildOptions: buildOptions
+                    });
+
+                    let wpConfig: webpack.Configuration;
+                    try {
+                        wpConfig = getAppWebpackConfig(angularBuildContext);
+                    } catch (err) {
+                        return throwError(err);
+                    }
+
+                    return runWebpackForArchitectBuilder(wpConfig, buildOptions, AngularBuildContext.logger);
+                }),
+                concatMap(buildEvent => {
+                    if (buildEvent.success) {
+                        const duration = Date.now() - this._startTime;
+                        this.context.logger.info(`Build completed in [${duration}ms]`);
+                        if (buildOptions.beep && !buildOptions.watch && process.stdout.isTTY) {
+                            process.stdout.write('\x07');
+                        }
+                    }
+
+                    return of(buildEvent);
+                })
+            );
     }
 
     private toAppProjectConfigInternal(workspaceRoot: string, options: AppBuilderOptions): AppProjectConfigInternal {
@@ -100,18 +101,21 @@ export class AppBuilder implements Builder<AppBuilderOptions> {
         };
 
         // Delete empty
-        Object.keys(appConfig).forEach(key => {
-            /* tslint:disable:no-unsafe-any */
-            // tslint:disable-next-line:no-any
-            const configAny = appConfig as (AppProjectConfigInternal & { [key: string]: any });
-            if (configAny[key] && Array.isArray(configAny[key]) && configAny[key].length === 0) {
-                delete configAny[key];
-            } else if (configAny[key] && typeof configAny[key] === 'object' &&
-                (Object.keys(configAny[key]).length === 0 || this.isDefaultObject(configAny[key]))) {
-                delete configAny[key];
-            }
-            /* tslint:enable:no-unsafe-any */
-        });
+        Object.keys(appConfig)
+            .forEach(key => {
+                /* tslint:disable:no-unsafe-any */
+                // tslint:disable-next-line:no-any
+                const configAny = appConfig as (AppProjectConfigInternal & { [key: string]: any });
+                if (configAny[key] && Array.isArray(configAny[key]) && configAny[key].length === 0) {
+                    // tslint:disable-next-line: no-dynamic-delete
+                    delete configAny[key];
+                } else if (configAny[key] && typeof configAny[key] === 'object' &&
+                    (Object.keys(configAny[key]).length === 0 || this.isDefaultObject(configAny[key]))) {
+                    // tslint:disable-next-line: no-dynamic-delete
+                    delete configAny[key];
+                }
+                /* tslint:enable:no-unsafe-any */
+            });
 
         return appConfig;
     }
@@ -120,15 +124,16 @@ export class AppBuilder implements Builder<AppBuilderOptions> {
     private isDefaultObject(obj: { [key: string]: any }): boolean {
         let hasData = false;
         /* tslint:disable:no-unsafe-any */
-        Object.keys(obj).forEach(key => {
-            if (obj[key] && Array.isArray(obj[key]) && obj[key].length === 0) {
-                // do nothing
-            } else if (obj[key] && typeof obj[key] === 'object' && Object.keys(obj[key]).length === 0) {
-                // do nothing
-            } else {
-                hasData = true;
-            }
-        });
+        Object.keys(obj)
+            .forEach(key => {
+                if (obj[key] && Array.isArray(obj[key]) && obj[key].length === 0) {
+                    // do nothing
+                } else if (obj[key] && typeof obj[key] === 'object' && Object.keys(obj[key]).length === 0) {
+                    // do nothing
+                } else {
+                    hasData = true;
+                }
+            });
         /* tslint:enable:no-unsafe-any */
 
         return !hasData;

@@ -10,7 +10,7 @@ export interface RemoveHashWebpackPluginOptions {
 
 export class RemoveHashWebpacklugin {
 
-    constructor(private options: RemoveHashWebpackPluginOptions) { }
+    constructor(private readonly options: RemoveHashWebpackPluginOptions) { }
 
     apply(compiler: webpack.Compiler): void {
         compiler.hooks.compilation.tap('remove-hash-webpack-plugin', (compilation: any) => {

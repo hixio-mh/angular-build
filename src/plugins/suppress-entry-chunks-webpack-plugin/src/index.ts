@@ -49,6 +49,8 @@ export class SuppressEntryChunksWebpackPlugin {
                                 file.match(this._options.supressPattern) &&
                                 compilation.assets[file]) {
                                 this._logger.debug(`Deleting compilation asset - ${file}`);
+
+                                // tslint:disable-next-line: no-dynamic-delete
                                 delete compilation.assets[file];
                                 deleted = true;
                             } else {

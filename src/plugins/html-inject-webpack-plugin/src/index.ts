@@ -524,6 +524,7 @@ export class HtmlInjectWebpackPlugin {
                     insertText(element, tagDefinition.innerHtml || '');
                 }
 
+                // tslint:disable-next-line: no-dynamic-delete
                 delete compilation.assets[runtimeFileName];
             }
             if (separateRuntimeInlineOut && runtimeInlineRelative) {

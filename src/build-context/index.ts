@@ -363,7 +363,9 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
     }
 
     private replaceTokensForBanner(input: string): string {
-        let str = input.replace(/[\$|\[]CURRENT[_\-]?YEAR[\$|\]]/gim, (new Date()).getFullYear().toString());
+        let str = input.replace(/[\$|\[]CURRENT[_\-]?YEAR[\$|\]]/gim, (new Date())
+            .getFullYear()
+            .toString());
 
         if (this.projectConfig._projectName) {
             const name = this.projectConfig._projectName;
@@ -392,6 +394,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
     }
 
     private addCommentToBanner(banner: string): string {
+        // tslint:disable-next-line: newline-per-chained-call
         if (!banner || banner.trim().startsWith('/')) {
             return banner;
         }
