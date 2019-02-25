@@ -15,7 +15,7 @@ import { getRxJsGlobals } from './rxjs-globals';
 // tslint:disable-next-line:max-func-body-length
 export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>,
     currentBundle: LibBundleOptionsInternal): {
-        inputOptions: rollup.RollupFileOptions;
+        inputOptions: rollup.InputOptions;
         outputOptions: rollup.OutputOptions;
     } {
     const logger = AngularBuildContext.logger;
@@ -170,7 +170,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
         preserveSymlinks = true;
     }
 
-    const inputOptions: rollup.RollupFileOptions = {
+    const inputOptions: rollup.InputOptions = {
         input: currentBundle._entryFilePath,
         preserveSymlinks: preserveSymlinks,
         external: externals,
