@@ -6,12 +6,16 @@
     "node_modules/tslint-microsoft-contrib"
   ],
   "rules": {
-    "align": [
-      true,
-      "elements",
-      "members",
-      "statements"
-    ],
+    // These should be done automatically by a formatter. https://github.com/Microsoft/TypeScript/issues/18340
+    "align": false,
+    "eofline": false,
+    "linebreak-style": false,
+    "max-line-length": false,
+    "no-consecutive-blank-lines": false,
+    "space-before-function-paren": false,
+
+    // Core rules with custom configurations
+    "array-type": [true, "array"],
     "arrow-return-shorthand": true,
     "callable-types": true,
     "class-name": true,
@@ -25,7 +29,6 @@
     "deprecation": {
       "severity": "warn"
     },
-    "eofline": true,
     "forin": true,
     "import-spacing": true,
     "indent": [
@@ -40,15 +43,6 @@
     ],
     "jsdoc-format": true,
     "label-position": true,
-    "linebreak-style": false,
-    // "linebreak-style": [
-    //   true,
-    //   "CRLF"
-    // ],
-    "max-line-length": [
-      true,
-      140
-    ],
     "member-access": [
       true,
       "no-public"
@@ -176,9 +170,9 @@
     "function-name": false,
     "missing-jsdoc": false,
     "no-backbone-get-set-outside-model": false,
+    "no-http-string": false,
     "no-increment-decrement": false,
     "no-suspicious-comment": false,
-    "no-http-string": false,
     "no-relative-imports": false,
     "prefer-type-cast": false
   }
