@@ -6,23 +6,19 @@ One of the easiest ways to contribute is to participate in discussions and discu
 
 ### Github issues
 
-We use [Github issues](https://github.com/BizAppFramework/angular-build/issues) to track public bugs. Please ensure your description is clear and has sufficient instructions to be able to reproduce the issue.
+We use [Github issues](https://github.com/DagonMetric/angular-build/issues) to track public bugs. Please ensure your description is clear and has sufficient instructions to be able to reproduce the issue.
 
-### Gitter chat room
+### Discussions
 
-The [Gitter Channel](https://gitter.im/BizAppFramework/angular-build?utm_source=share-link&utm_medium=link&utm_campaign=share-link) provides a place where the Community can get together and collaborate. It is actually great to see that folks have already started to collaborate and support each other there.
-
-### Facebook group
-
-We use the [Sahtagan DevConnect](https://www.facebook.com/groups/sahtagandevconnect) group on [facebook](https://www.facebook.com/sahtagan) for sharing ideas, articles and announcements among group members.
+[Gitter Channel](https://gitter.im/DagonMetric/angular-build?utm_source=share-link&utm_medium=link&utm_campaign=share-link) or general angular-build discussions.
 
 ## Contributing code and content
 
 This is a rough outline of what a contributor's workflow looks like:
 
-1. Search [GitHub](https://github.com/BizAppFramework/angular-build/pulls) for an open or closed PR that relates to your submission. You don't want to duplicate effort.
+1. Search [GitHub](https://github.com/DagonMetric/angular-build/pulls) for an open or closed PR that relates to your submission. You don't want to duplicate effort.
 
-2. [Fork](https://help.github.com/articles/fork-a-repo/) the [repo](https://github.com/BizAppFramework/angular-build) and create your branch `topic` from master.
+2. [Fork](https://help.github.com/articles/fork-a-repo/) the [repo](https://github.com/DagonMetric/angular-build) and create your branch `topic` from master.
 
 3. Make your changes in a new git branch.
 
@@ -34,7 +30,7 @@ This is a rough outline of what a contributor's workflow looks like:
 
 7. Push your branch to GitHub forked repo.
 
-8. In GitHub, submit a [pull request](https://help.github.com/articles/about-pull-requests) to [BizAppFramework/angular-build](https://github.com/BizAppFramework/angular-build).
+8. In GitHub, submit a [pull request](https://help.github.com/articles/about-pull-requests) to [DagonMetric/angular-build](https://github.com/DagonMetric/angular-build).
 
 9. If you haven’t signed the CLA, you will see a automatic comment in the pull request. Click on the Details link. You will see the CLA. Click on sign in with Github to agree. And authorize CLA assistant to use your Github account to sign the CLA.
 
