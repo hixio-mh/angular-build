@@ -3,10 +3,8 @@
     "target": "es2016",
     "module": "commonjs",
     "moduleResolution": "node",
-
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
@@ -16,30 +14,30 @@
     "noUnusedParameters": true,
     "strictNullChecks": true,
     "strict": true,
-
     "inlineSourceMap": true,
     "inlineSources": true,
     "sourceRoot": ".",
-
     "declaration": true,
-
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
     "lib": [
       "es2017"
     ],
-
     "typeRoots": [
       "./node_modules/@types"
     ],
-
     "types": [
       "node"
     ],
-
     "baseUrl": "",
     "rootDir": ".",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "plugins": [
+      {
+        "name": "typescript-tslint-plugin",
+        "configFile": "tslint.json",
+      }
+    ]
   },
   "include": [
     "./src"
