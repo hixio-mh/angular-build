@@ -1,8 +1,5 @@
 // tslint:disable:no-unsafe-any
 // tslint:disable:no-require-imports
-import * as path from 'path';
-
-import * as resolve from 'resolve';
 import * as rollup from 'rollup';
 
 import { AngularBuildContext } from '../../../build-context';
@@ -21,7 +18,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     const logger = AngularBuildContext.logger;
     const libConfig = angularBuildContext.projectConfig;
 
-    const isTsEntry = /\.tsx?$/i.test(currentBundle._entryFilePath);
+    // const isTsEntry = /\.tsx?$/i.test(currentBundle._entryFilePath);
     let moduleName = libConfig.libraryName;
     if (!moduleName && libConfig._projectName) {
         if (libConfig._projectName.startsWith('@')) {
@@ -30,11 +27,14 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
                 .split('/')
                 .join('.');
         } else {
-            moduleName = libConfig._projectName.split('/').join('.');
+            moduleName = libConfig._projectName
+                .split('/')
+                .join('.');
         }
-        moduleName = moduleName.replace(/-([a-z])/g, (_, g1) => {
-            return g1 ? g1.toUpperCase() : '';
-        });
+        moduleName = moduleName
+            .replace(/-([a-z])/g, (_, g1) => {
+                return g1 ? g1.toUpperCase() : '';
+            });
     }
 
     let amdId: {} | undefined;
@@ -55,7 +55,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
         globals: {}
     };
 
-    if (currentBundle.externals == null) {
+    if (typeof currentBundle.externals !== 'boolean' && !currentBundle.externals) {
         if (currentBundle.includeDefaultAngularAndRxJsGlobals ||
             (currentBundle.includeDefaultAngularAndRxJsGlobals !== false && !includeCommonJsModules)) {
             if (currentBundle.libraryTarget === 'esm') {
@@ -125,54 +125,56 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     // plugins
     const plugins: rollup.Plugin[] = [];
 
-    if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || isTsEntry || includeCommonJsModules) {
+    // if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || isTsEntry || includeCommonJsModules) {
+    if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || includeCommonJsModules) {
         const rollupNodeResolve = require('rollup-plugin-node-resolve');
         plugins.push(rollupNodeResolve());
 
-        if (isTsEntry) {
-            const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig._projectRoot || '');
-            const typescriptPlugin = require('rollup-plugin-typescript2');
+        // if (isTsEntry) {
+        //     const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig._projectRoot || '');
+        //     const typescriptPlugin = require('rollup-plugin-typescript2');
 
-            let typescriptModulePath = 'typescript';
-            try {
-                typescriptModulePath =
-                    resolve.sync('typescript', { basedir: AngularBuildContext.nodeModulesPath || AngularBuildContext.workspaceRoot });
-            } catch (err) {
-                // do nothing
-            }
+        //     let typescriptModulePath = 'typescript';
+        //     try {
+        //         typescriptModulePath =
+        //             resolve.sync('typescript', { basedir: AngularBuildContext.nodeModulesPath || AngularBuildContext.workspaceRoot });
+        //     } catch (err) {
+        //         // do nothing
+        //     }
 
-            // rollup-plugin-typescript@0.8.1 doesn't support custom tsconfig path
-            // so we use rollup-plugin-typescript2
-            plugins.push(typescriptPlugin({
-                tsconfig: currentBundle._tsConfigPath,
-                // tslint:disable-next-line:non-literal-require
-                typescript: require(typescriptModulePath),
-                rollupCommonJSResolveHack: currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs',
-                cacheRoot: path.resolve(projectRoot, './.rts2_cache')
-            }));
-        }
+        //     // rollup-plugin-typescript@0.8.1 doesn't support custom tsconfig path
+        //     // so we use rollup-plugin-typescript2
+        //     plugins.push(typescriptPlugin({
+        //         tsconfig: currentBundle._tsConfigPath,
+        //         // tslint:disable-next-line:non-literal-require
+        //         typescript: require(typescriptModulePath),
+        //         rollupCommonJSResolveHack: currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs',
+        //         cacheRoot: path.resolve(projectRoot, './.rts2_cache')
+        //     }));
+        // }
 
         if (includeCommonJsModules) {
             const rollupCommonjs = require('rollup-plugin-commonjs');
             plugins.push(rollupCommonjs({
-                extensions: isTsEntry ? ['.js', '.ts', '.tsx'] : ['.js'],
+                // extensions: isTsEntry ? ['.js', '.ts', '.tsx'] : ['.js'],
+                extensions: ['.js'],
                 // If false then skip sourceMap generation for CommonJS modules
                 sourceMap: libConfig.sourceMap, // Default: true
             }));
         }
     }
 
-    let preserveSymlinks = false;
-    if (isTsEntry &&
-        currentBundle._tsConfigPath &&
-        currentBundle._tsCompilerConfig &&
-        currentBundle._tsCompilerConfig.options.preserveSymlinks) {
-        preserveSymlinks = true;
-    }
+    // let preserveSymlinks = false;
+    // if (isTsEntry &&
+    //     currentBundle._tsConfigPath &&
+    //     currentBundle._tsCompilerConfig &&
+    //     currentBundle._tsCompilerConfig.options.preserveSymlinks) {
+    //     preserveSymlinks = true;
+    // }
 
     const inputOptions: rollup.InputOptions = {
         input: currentBundle._entryFilePath,
-        preserveSymlinks: preserveSymlinks,
+        // preserveSymlinks: preserveSymlinks,
         external: externals,
         plugins: plugins,
         onwarn(warning: string | rollup.RollupWarning): void {
@@ -221,24 +223,25 @@ function mapToRollupGlobalsAndExternals(external: ExternalsEntry,
             mapResult.externals.push(external);
         }
     } else if (typeof external === 'object') {
-        Object.keys(external).forEach((k: string) => {
-            const tempValue = external[k];
-            if (typeof tempValue === 'string') {
-                mapResult.globals[k] = tempValue;
-                if (!mapResult.externals.includes(k)) {
-                    mapResult.externals.push(k);
+        Object.keys(external)
+            .forEach((k: string) => {
+                const tempValue = external[k];
+                if (typeof tempValue === 'string') {
+                    mapResult.globals[k] = tempValue;
+                    if (!mapResult.externals.includes(k)) {
+                        mapResult.externals.push(k);
+                    }
+                } else if (typeof tempValue === 'object' && Object.keys(tempValue).length) {
+                    const selectedKey = tempValue.root ? tempValue.root : Object.keys(tempValue)[0];
+                    mapResult.globals[k] = tempValue[selectedKey];
+                    if (!mapResult.externals.includes(k)) {
+                        mapResult.externals.push(k);
+                    }
+                } else {
+                    if (!mapResult.externals.includes(k)) {
+                        mapResult.externals.push(k);
+                    }
                 }
-            } else if (typeof tempValue === 'object' && Object.keys(tempValue).length) {
-                const selectedKey = tempValue.root ? tempValue.root : Object.keys(tempValue)[0];
-                mapResult.globals[k] = tempValue[selectedKey];
-                if (!mapResult.externals.includes(k)) {
-                    mapResult.externals.push(k);
-                }
-            } else {
-                if (!mapResult.externals.includes(k)) {
-                    mapResult.externals.push(k);
-                }
-            }
-        });
+            });
     }
 }
