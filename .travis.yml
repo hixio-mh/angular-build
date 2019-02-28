@@ -6,10 +6,6 @@ branches:
   only:
     - master
 
-env:
-  global:
-    - ANGULAR_BUILD_TELEMETRY_OPTOUT: 1
-
 matrix:
   include:
     - os: linux

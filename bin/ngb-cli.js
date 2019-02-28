@@ -73,7 +73,6 @@ function _cliGlobal() {
     };
 
     _invokeCli(cli, cliOptions);
-
 }
 
 // main
@@ -93,7 +92,7 @@ if (_args.length >= 2 && _args[0] === 'build') {
         _workspaceRoot = path.dirname(configPath);
     }
 }
-resolve('@bizappframework/angular-build', {
+resolve('@dagonmetric/angular-build', {
     basedir: _workspaceRoot
 }, (error, projectLocalCli) => {
     if (error) {

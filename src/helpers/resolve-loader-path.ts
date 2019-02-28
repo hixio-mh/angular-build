@@ -25,7 +25,7 @@ export function resolveLoaderPath(loaderName: string): string {
 
         if (!resolved && AngularBuildContext.nodeModulesPath) {
             const tempPath = path.resolve(AngularBuildContext.nodeModulesPath,
-                '@bizappframework/angular-build/node_modules', loaderName);
+                '@dagonmetric/angular-build/node_modules', loaderName);
             if (existsSync(tempPath)) {
                 resolvedPath = tempPath;
                 resolved = true;

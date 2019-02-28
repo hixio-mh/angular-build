@@ -2,12 +2,12 @@
     "files.exclude": {
         "*.user": true,
         "**/.vs": true,
-        "obj": true
+        "obj": true,
+        "*.sln": true,
+        "*.csproj": true,
+        "*.njsproj": true
     },
     "search.exclude": {
-        "*.csproj": true,
-        "*.njsproj": true,
-        "*.sln": true,
         "**/dist": true,
         "package-lock.json": true
     }

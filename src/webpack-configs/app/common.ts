@@ -295,7 +295,7 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         }
     } else if (AngularBuildContext.nodeModulesPath) {
         const cliNodeModulePath = path.resolve(AngularBuildContext.nodeModulesPath,
-            '@bizappframework/angular-build/node_modules');
+            '@dagonmetric/angular-build/node_modules');
         if (!loaderModulePaths.includes(cliNodeModulePath)) {
             loaderModulePaths.push(cliNodeModulePath);
         }

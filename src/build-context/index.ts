@@ -80,7 +80,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         }
 
         if (!AngularBuildContext.cliIsGlobal && AngularBuildContext.nodeModulesPath) {
-            const p1 = path.resolve(AngularBuildContext.nodeModulesPath, '@bizappframework/angular-build');
+            const p1 = path.resolve(AngularBuildContext.nodeModulesPath, '@dagonmetric/angular-build');
             if (existsSync(p1) && !isSamePaths(p1, realpathSync(p1))) {
                 AngularBuildContext._cliIsLink = true;
 
@@ -135,7 +135,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         let packageJsonPath = '';
         if (AngularBuildContext.nodeModulesPath) {
             const tempPath =
-                path.resolve(AngularBuildContext.nodeModulesPath, '@bizappframework/angular-build/package.json');
+                path.resolve(AngularBuildContext.nodeModulesPath, '@dagonmetric/angular-build/package.json');
             if (existsSync(tempPath)) {
                 packageJsonPath = tempPath;
             }
