@@ -1,5 +1,10 @@
 # Another Angular Build Tool
 
+[![Build status](https://ci.appveyor.com/api/projects/status/195c2h2orc2q2rur?svg=true)](https://ci.appveyor.com/project/admindagonmetriccom/angular-build)
+[![Build Status](https://dev.azure.com/DagonMetric/angular-build/_apis/build/status/DagonMetric.angular-build?branchName=master)](https://dev.azure.com/DagonMetric/angular-build/_build/latest?definitionId=3&branchName=master)
+[![latest](https://img.shields.io/npm/v/%40dagonmetric%2Fangular-build/latest.svg)](https://npmjs.com/package/@dagonmetric/angular-build)
+[![Gitter](https://badges.gitter.im/DagonMetric/angular-build.svg)](https://gitter.im/DagonMetric/angular-build?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 Another [Angular](https://github.com/angular/angular) build tool, and [Angular Architect](https://github.com/angular/angular-cli) builder plugin for building [Angular](https://github.com/angular/angular) application and library projects.
 
 [WIP]
