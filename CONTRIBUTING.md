@@ -26,7 +26,7 @@ This is a rough outline of what a contributor's workflow looks like:
 
 5. Run the build and test with `npm run test` command, and ensure that all builds and tests succeed.
 
-6. Commit your changes using a descriptive commit message that follows our [commit message conventions](https://gist.github.com/mmzliveid/5d1ca6579da5ee60f5f4dee8d6201045).
+6. Commit your changes using a descriptive commit message that follows our [commit message conventions](https://gist.github.com/dagonmetric-contributor/b3815561401555fa9ac2530f32e56dd3).
 
 7. Push your branch to GitHub forked repo.
 
