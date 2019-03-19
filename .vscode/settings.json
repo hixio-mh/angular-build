@@ -1,14 +1,15 @@
 {
-    "files.exclude": {
-        "*.user": true,
-        "**/.vs": true,
-        "obj": true,
-        "*.sln": true,
-        "*.csproj": true,
-        "*.njsproj": true
-    },
-    "search.exclude": {
-        "**/dist": true,
-        "package-lock.json": true
-    }
+  "files.exclude": {
+    "*.user": true,
+    "**/.vs": true,
+    "obj": true,
+    "*.sln": true,
+    "*.csproj": true,
+    "*.njsproj": true
+  },
+  "search.exclude": {
+    "**/dist": true,
+    "package-lock.json": true,
+    "yarn.lock": true
+  }
 }
