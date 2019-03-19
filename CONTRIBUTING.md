@@ -10,7 +10,7 @@ We use [Github issues](https://github.com/DagonMetric/angular-build/issues) to t
 
 ### Discussions
 
-[Gitter Channel](https://gitter.im/DagonMetric/angular-build?utm_source=share-link&utm_medium=link&utm_campaign=share-link) or general angular-build discussions.
+[Gitter Channel](https://gitter.im/DagonMetric/angular-build?utm_source=share-link&utm_medium=link&utm_campaign=share-link) for general angular-build discussions.
 
 ## Contributing code and content
 
