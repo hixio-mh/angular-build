@@ -1,9 +1,10 @@
-import { existsSync } from 'fs';
 import * as path from 'path';
+
+import { pathExists } from 'fs-extra';
 
 import { isInFolder, isSamePaths } from './path-helpers';
 
-export function findUpSync(fileName: string | string[], currentDir: string, workingDir: string): string | null {
+export async function findUp(fileName: string | string[], currentDir: string, workingDir: string): Promise<string | null> {
     let currentDirLocal = currentDir;
     const fileNames = Array.isArray(fileName) ? fileName : [fileName];
     const rootPath = path.parse(currentDirLocal).root;
@@ -11,7 +12,8 @@ export function findUpSync(fileName: string | string[], currentDir: string, work
     do {
         for (const f of fileNames) {
             const tempPath = path.isAbsolute(f) ? f : path.resolve(currentDirLocal, f);
-            if (existsSync(tempPath)) {
+            const isExsists = await pathExists(tempPath);
+            if (isExsists) {
                 return tempPath;
             }
         }
