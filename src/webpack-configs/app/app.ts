@@ -19,29 +19,35 @@ import { getAppCommonWebpackConfigPartial } from './common';
 import { getAppReferenceDllWebpackConfigPartial } from './reference-dll';
 import { getAppStylesWebpackConfigPartial } from './styles';
 
-export function getAppWebpackConfig(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
+export async function getAppWebpackConfig(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Promise<Configuration> {
     const appConfig = angularBuildContext.projectConfig;
     let customWebpackConfig: Configuration = {};
 
     if (appConfig.webpackConfig) {
         const customWebpackConfigPath =
             path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '', appConfig.webpackConfig);
-        customWebpackConfig =
-            getCustomWebpackConfig(customWebpackConfigPath, angularBuildContext) || {};
+        customWebpackConfig = await getCustomWebpackConfig(customWebpackConfigPath, angularBuildContext) || {};
     }
 
+    const refDllWpConfig = await getAppReferenceDllWebpackConfigPartial(angularBuildContext);
+    const commonWpConfig = await getAppCommonWebpackConfigPartial(angularBuildContext);
+    const stylesWpConfig = await getAppStylesWebpackConfigPartial(angularBuildContext);
+    const angularWpConfig = await getAppAngularWebpackConfigPartial(angularBuildContext);
+    const browserWpConfig = await getAppBrowserWebpackConfigPartial(angularBuildContext);
+
+    const appWpConfig = await getAppWebpackConfigPartial(angularBuildContext);
     const configs: Configuration[] = [
         // reference dll
-        getAppReferenceDllWebpackConfigPartial(angularBuildContext),
-        getAppCommonWebpackConfigPartial(angularBuildContext),
-        getAppStylesWebpackConfigPartial(angularBuildContext),
-        getAppAngularWebpackConfigPartial(angularBuildContext),
+        refDllWpConfig,
+        commonWpConfig,
+        stylesWpConfig,
+        angularWpConfig,
 
         // browser only
-        getAppBrowserWebpackConfigPartial(angularBuildContext),
+        browserWpConfig,
 
         // Must be the last item(s) to merge
-        getAppWebpackConfigPartial(angularBuildContext),
+        appWpConfig,
         customWebpackConfig
     ];
 
@@ -56,7 +62,7 @@ export function getAppWebpackConfig(angularBuildContext: AngularBuildContext<App
     return mergedConfig;
 }
 
-function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
+async function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Promise<Configuration> {
     const appConfig = angularBuildContext.projectConfig;
 
     if (!appConfig._projectRoot) {
@@ -87,5 +93,5 @@ function getAppWebpackConfigPartial(angularBuildContext: AngularBuildContext<App
         webpackAppConfig.entry = entrypoints;
     }
 
-    return webpackAppConfig;
+    return Promise.resolve(webpackAppConfig);
 }
