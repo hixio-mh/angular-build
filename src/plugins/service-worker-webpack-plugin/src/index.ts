@@ -4,8 +4,9 @@
 import * as crypto from 'crypto';
 
 import { dirname, join, normalize, Path, tags, virtualFs } from '@angular-devkit/core';
-// import { Filesystem } from '@angular/service-worker/config';
-import * as resolve from 'resolve';
+import { NodeJsSyncHost, resolve } from '@angular-devkit/core/node';
+
+// import * as resolve from 'resolve';
 import { from, merge, Observable, of } from 'rxjs';
 import { concatMap, map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
 import * as webpack from 'webpack';
@@ -60,8 +61,18 @@ class CliFilesystem {
     }
 }
 
+export function resolveProjectModule(root: string, moduleName: string): string {
+    return resolve(moduleName,
+        {
+            basedir: root,
+            checkGlobal: false,
+            checkLocal: true
+        },
+    );
+}
+
 export interface ServiceWorkerWebpackPluginOptions {
-    host: virtualFs.Host;
+    host?: virtualFs.Host;
     workspaceRoot: string;
     projectRoot: string;
     outputPath: string;
@@ -70,6 +81,8 @@ export interface ServiceWorkerWebpackPluginOptions {
 }
 
 export class ServiceWorkerWebpackPlugin {
+    private readonly _host: virtualFs.Host;
+
     get name(): string {
         return 'service-worker-webpack-plugin';
     }
@@ -78,21 +91,20 @@ export class ServiceWorkerWebpackPlugin {
         if (!_options) {
             throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
         }
+
+        this._host = this._options.host || new NodeJsSyncHost();
     }
 
     apply(compiler: webpack.Compiler): void {
         compiler.hooks.afterEmit.tapPromise(this.name, async () => {
-            await this.augmentAppWithServiceWorker(this._options.host,
+            await this.augmentAppWithServiceWorker(
+                this._host,
                 this._options.workspaceRoot,
                 this._options.projectRoot,
                 this._options.outputPath,
                 this._options.baseHref,
                 this._options.ngswConfigPath);
         });
-    }
-
-    private resolveProjectModule(root: string, moduleName: string): string {
-        return resolve.sync(moduleName, { basedir: root });
     }
 
     private async augmentAppWithServiceWorker(
@@ -106,10 +118,10 @@ export class ServiceWorkerWebpackPlugin {
         // Path to the worker script itself.
         const distPath = normalize(outputPath);
         const workerPath = normalize(
-            this.resolveProjectModule(workspaceRoot, '@angular/service-worker/ngsw-worker.js'),
+            resolveProjectModule(workspaceRoot, '@angular/service-worker/ngsw-worker.js'),
         );
 
-        const swConfigPath = this.resolveProjectModule(
+        const swConfigPath = resolveProjectModule(
             workspaceRoot,
             '@angular/service-worker/config'
         );
