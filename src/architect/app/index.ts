@@ -1,144 +1,37 @@
-import * as path from 'path';
+import { BuilderContext, BuilderOutput, createBuilder } from '@angular-devkit/architect/src/index2';
+import { runWebpack } from '@angular-devkit/build-webpack/src/webpack/index2';
+import { json } from '@angular-devkit/core';
+import { NodeJsSyncHost } from '@angular-devkit/core/node';
 
-import {
-    Builder,
-    BuilderConfiguration,
-    BuilderContext,
-    BuildEvent
-} from '@angular-devkit/architect';
-import { getSystemPath, resolve } from '@angular-devkit/core';
-import { Observable, of, throwError } from 'rxjs';
-import { concatMap } from 'rxjs/operators';
-import * as webpack from 'webpack';
+import { from, Observable, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
-import { AngularBuildContext } from '../../build-context';
-import {
-    applyAppConfigCompat,
-    applyProjectConfigExtends,
-    applyProjectConfigWithEnvironment,
-    getBuildOptionsFromBuilderOptions,
-    runWebpackForArchitectBuilder
-} from '../../helpers';
-import { AppBuilderOptions } from '../../models';
-import { AppProjectConfigInternal } from '../../models/internals';
-import { normalizeRelativePath } from '../../utils';
-import { getAppWebpackConfig } from '../../webpack-configs/app';
+import { createWebpackLoggingCallback, getWebpackConfigFromContext } from '../helpers';
 
-export class AppBuilder implements Builder<AppBuilderOptions> {
-    private readonly _startTime = Date.now();
+import { AppBuilderOptions } from '../models';
+export type AppBuilderSchema = json.JsonObject & AppBuilderOptions;
 
-    constructor(public context: BuilderContext) { }
+export function buildApp(options: AppBuilderSchema, context: BuilderContext): Observable<BuilderOutput> {
+    const startTime = Date.now();
+    const host = new NodeJsSyncHost();
 
-    run(builderConfig: BuilderConfiguration<AppBuilderOptions>): Observable<BuildEvent> {
-        const workspaceRoot = getSystemPath(this.context.workspace.root);
-        const projectRoot = getSystemPath(resolve(this.context.workspace.root, builderConfig.root));
-        const options = JSON.parse(JSON.stringify(builderConfig.options)) as AppBuilderOptions;
-        if (!options.root && builderConfig.root) {
-            options.root = normalizeRelativePath(path.relative(workspaceRoot, projectRoot));
-        }
+    return of(null).pipe(
+        // tslint:disable-next-line: no-unsafe-any
+        switchMap(() => from(getWebpackConfigFromContext('app', options, context, host, startTime))),
+        switchMap(webpackConfigFromContext => {
+            if (webpackConfigFromContext.webpackConfig == null) {
+                return of({ success: true });
+            }
 
-        const buildOptions = getBuildOptionsFromBuilderOptions(options);
-        const appConfig = this.toAppProjectConfigInternal(workspaceRoot, options);
+            const verbose = webpackConfigFromContext.buildOptions.logLevel === 'debug';
 
-        // extends
-        applyProjectConfigExtends(appConfig);
+            const webpackConfig = webpackConfigFromContext.webpackConfig;
+            const loggingFn = createWebpackLoggingCallback(verbose, context.logger);
 
-        const appConfigEnvApplied = JSON.parse(JSON.stringify(appConfig)) as AppProjectConfigInternal;
-
-        // apply env
-        applyProjectConfigWithEnvironment(appConfigEnvApplied, buildOptions.environment);
-
-        return of(null)
-            .pipe(
-                concatMap(() => {
-                    if (appConfigEnvApplied.skip) {
-                        const configName = appConfigEnvApplied.name ? appConfigEnvApplied.name : '';
-                        this.context.logger.info(`Skip building ${configName}`);
-
-                        return of({ success: true });
-                    }
-
-                    const angularBuildContext = new AngularBuildContext({
-                        workspaceRoot: workspaceRoot,
-                        startTime: this._startTime,
-                        host: this.context.host,
-                        projectConfig: appConfigEnvApplied,
-                        projectConfigWithoutEnvApplied: appConfig,
-                        buildOptions: buildOptions
-                    });
-
-                    let wpConfig: webpack.Configuration;
-                    try {
-                        wpConfig = getAppWebpackConfig(angularBuildContext);
-                    } catch (err) {
-                        return throwError(err);
-                    }
-
-                    return runWebpackForArchitectBuilder(wpConfig, buildOptions, AngularBuildContext.logger);
-                }),
-                concatMap(buildEvent => {
-                    if (buildEvent.success) {
-                        const duration = Date.now() - this._startTime;
-                        this.context.logger.info(`Build completed in [${duration}ms]`);
-                        if (buildOptions.beep && !buildOptions.watch && process.stdout.isTTY) {
-                            process.stdout.write('\x07');
-                        }
-                    }
-
-                    return of(buildEvent);
-                })
-            );
-    }
-
-    private toAppProjectConfigInternal(workspaceRoot: string, options: AppBuilderOptions): AppProjectConfigInternal {
-        applyAppConfigCompat(options);
-
-        const appConfig: AppProjectConfigInternal = {
-            _index: 0,
-            _projectType: 'app',
-            _configPath: path.resolve(workspaceRoot, 'angular.json'),
-            ...options
-        };
-
-        // Delete empty
-        Object.keys(appConfig)
-            .forEach(key => {
-                /* tslint:disable:no-unsafe-any */
-                // tslint:disable-next-line:no-any
-                const configAny = appConfig as (AppProjectConfigInternal & { [key: string]: any });
-                if (configAny[key] && Array.isArray(configAny[key]) && configAny[key].length === 0) {
-                    // tslint:disable-next-line: no-dynamic-delete
-                    delete configAny[key];
-                } else if (configAny[key] && typeof configAny[key] === 'object' &&
-                    (Object.keys(configAny[key]).length === 0 || this.isDefaultObject(configAny[key]))) {
-                    // tslint:disable-next-line: no-dynamic-delete
-                    delete configAny[key];
-                }
-                /* tslint:enable:no-unsafe-any */
-            });
-
-        return appConfig;
-    }
-
-    // tslint:disable-next-line:no-any
-    private isDefaultObject(obj: { [key: string]: any }): boolean {
-        let hasData = false;
-        /* tslint:disable:no-unsafe-any */
-        Object.keys(obj)
-            .forEach(key => {
-                if (obj[key] && Array.isArray(obj[key]) && obj[key].length === 0) {
-                    // do nothing
-                } else if (obj[key] && typeof obj[key] === 'object' && Object.keys(obj[key]).length === 0) {
-                    // do nothing
-                } else {
-                    hasData = true;
-                }
-            });
-        /* tslint:enable:no-unsafe-any */
-
-        return !hasData;
-    }
+            return runWebpack(webpackConfig, context, { logging: loggingFn });
+        })
+    );
 }
 
-// tslint:disable-next-line:no-default-export
-export default AppBuilder;
+// tslint:disable-next-line: no-default-export
+export default createBuilder<json.JsonObject & AppBuilderSchema>(buildApp);
