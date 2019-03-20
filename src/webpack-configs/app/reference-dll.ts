@@ -11,7 +11,7 @@ import { AppProjectConfigInternal } from '../../models/internals';
 
 import { getAppDllWebpackConfig } from './dll';
 
-export function getAppReferenceDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
+export async function getAppReferenceDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Promise<Configuration> {
     const logLevel = angularBuildContext.buildOptions.logLevel;
 
     const appConfig = angularBuildContext.projectConfig;
@@ -68,6 +68,7 @@ export function getAppReferenceDllWebpackConfigPartial(angularBuildContext: Angu
         projectConfig: dllProjectConfig,
         buildOptions: dllBuildOptions
     });
+    await dllAngularBuildContext.init();
 
     // dynamic dll
     plugins.push(new DynamicDllWebpackPlugin({
