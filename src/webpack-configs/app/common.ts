@@ -82,15 +82,15 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
 
     const fileLoader = await resolveLoaderPath('file-loader');
-    // const rawLoader = await resolveLoaderPath('raw-loader');
+    const rawLoader = await resolveLoaderPath('raw-loader');
     // const urlLoader = await resolveLoaderPath('url-loader');
 
     // rules
     const rules: RuleSetRule[] = [
-        // {
-        //     test: /\.html$/,
-        //     loader: rawLoader
-        // },
+        {
+            test: /\.html$/,
+            loader: rawLoader
+        },
         {
             // test: /\.(eot|svg|cur)$/,
             test: /\.(eot|svg|cur|jpg|png|webp|gif|otf|ttf|woff|woff2|ani)$/,
