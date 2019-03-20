@@ -7,7 +7,7 @@ import { ScriptTarget } from 'typescript';
 
 import { InternalError, InvalidConfigError } from '../models/errors';
 import { AppProjectConfigInternal, BuildOptionsInternal } from '../models/internals';
-import { findUpSync } from '../utils';
+import { findUp } from '../utils';
 
 import { getEcmaVersionFromScriptTarget } from './get-ecma-version-from-script-target';
 import { getnodeResolveFieldsFromScriptTarget } from './get-node-resolve-fields-from-script-target';
@@ -16,7 +16,7 @@ import { parsePolyfillDllEntries } from './parse-polyfill-dll-entries';
 import { parseScriptStyleEntries } from './parse-script-style-entries';
 
 // tslint:disable-next-line:max-func-body-length
-export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions: BuildOptionsInternal): void {
+export async function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions: BuildOptionsInternal): Promise<void> {
     applyAppProjectConfigDefaults(appConfig, buildOptions);
 
     if (!appConfig._workspaceRoot) {
@@ -43,7 +43,7 @@ export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions:
     if (appConfig.tsConfig) {
         appConfig._tsConfigPath = path.resolve(projectRoot, appConfig.tsConfig);
     } else {
-        const tsconfigFiles = ['tsconfing.app.json', 'tsconfing-app.json'];
+        const tsconfigFiles = ['tsconfig.app.json', 'tsconfig-app.json'];
         if (appConfig.platformTarget === 'node') {
             tsconfigFiles.push('tsconfig.server.json');
             tsconfigFiles.push('tsconfig-server.json');
@@ -52,8 +52,7 @@ export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions:
             tsconfigFiles.push('tsconfig-browser.json');
         }
 
-        const foundTsConfigFilePath =
-            findUpSync(tsconfigFiles, projectRoot, workspaceRoot);
+        const foundTsConfigFilePath = await findUp(tsconfigFiles, projectRoot, workspaceRoot);
         if (foundTsConfigFilePath) {
             appConfig._tsConfigPath = foundTsConfigFilePath;
         }
@@ -163,19 +162,19 @@ export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions:
 
     // dlls
     if (appConfig.vendors && (appConfig._isDll || appConfig.referenceDll)) {
-        appConfig._dllParsedResult = parsePolyfillDllEntries(appConfig.vendors, true, projectRoot);
+        appConfig._dllParsedResult = await parsePolyfillDllEntries(appConfig.vendors, true, projectRoot);
     }
 
     // polyfills
     if (!appConfig._isDll && appConfig.polyfills && appConfig.polyfills.length > 0) {
         const polyfills = Array.isArray(appConfig.polyfills) ? appConfig.polyfills : [appConfig.polyfills];
-        appConfig._polyfillParsedResult = parsePolyfillDllEntries(polyfills, false, projectRoot);
+        appConfig._polyfillParsedResult = await parsePolyfillDllEntries(polyfills, false, projectRoot);
     }
 
     // styles
     if (!appConfig._isDll && appConfig.styles && Array.isArray(appConfig.styles) && appConfig.styles.length > 0) {
         appConfig._styleParsedEntries =
-            parseScriptStyleEntries(
+            await parseScriptStyleEntries(
                 appConfig.styles,
                 'styles',
                 workspaceRoot,
@@ -189,7 +188,7 @@ export function initAppConfig(appConfig: AppProjectConfigInternal, buildOptions:
         Array.isArray(appConfig.scripts) &&
         appConfig.scripts.length > 0) {
         appConfig._scriptParsedEntries =
-            parseScriptStyleEntries(
+            await parseScriptStyleEntries(
                 appConfig.scripts,
                 'scripts',
                 workspaceRoot,
