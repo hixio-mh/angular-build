@@ -81,32 +81,33 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
 
-    const rawLoader = await resolveLoaderPath('raw-loader');
     const fileLoader = await resolveLoaderPath('file-loader');
-    const urlLoader = await resolveLoaderPath('url-loader');
+    // const rawLoader = await resolveLoaderPath('raw-loader');
+    // const urlLoader = await resolveLoaderPath('url-loader');
 
     // rules
     const rules: RuleSetRule[] = [
+        // {
+        //     test: /\.html$/,
+        //     loader: rawLoader
+        // },
         {
-            test: /\.html$/,
-            loader: rawLoader
-        },
-        {
-            test: /\.(eot|svg|cur)$/,
+            // test: /\.(eot|svg|cur)$/,
+            test: /\.(eot|svg|cur|jpg|png|webp|gif|otf|ttf|woff|woff2|ani)$/,
             loader: fileLoader,
             options: {
-                name: `[name]${extractedAssetsHashFormat}.[ext]`,
-                limit: 10000
-            }
-        },
-        {
-            test: /\.(jpg|png|webp|gif|otf|ttf|woff|woff2|ani)$/,
-            loader: urlLoader,
-            options: {
-                name: `[name]${extractedAssetsHashFormat}.[ext]`,
-                limit: 10000
+                name: `[name]${extractedAssetsHashFormat}.[ext]`
+                // limit: 10000
             }
         }
+        // {
+        //     test: /\.(jpg|png|webp|gif|otf|ttf|woff|woff2|ani)$/,
+        //     loader: urlLoader,
+        //     options: {
+        //         name: `[name]${extractedAssetsHashFormat}.[ext]`,
+        //         limit: 10000
+        //     }
+        // }
     ];
 
     // hot || devServer ? 'errors-only'
@@ -350,7 +351,8 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
         // to remove dev code.
         compress: (appConfig.platformTarget === 'node' ? {
             global_defs: {
-                ngDevMode: false
+                ngDevMode: false,
+                ngI18nClosureMode: false
             },
         } : {
                 pure_getters: appConfig.buildOptimizer && !isDll,
@@ -358,7 +360,8 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
                 // See https://github.com/webpack/webpack/issues/2899#issuecomment-317425926.
                 passes: appConfig.buildOptimizer && !isDll ? 3 : 1,
                 global_defs: {
-                    ngDevMode: false
+                    ngDevMode: false,
+                    ngI18nClosureMode: false
                 },
             }),
         ...(appConfig.platformTarget === 'node' ? { mangle: false } : {})
@@ -385,6 +388,7 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
         externals: appConfig.platformTarget === 'node' ? appConfig.externals as any : undefined,
         context: projectRoot,
         output: {
+            // futureEmitAssets: true,
             libraryTarget: appConfig.libraryTarget,
             path: outputPath,
             filename: `[name]${bundleHashFormat}.js`,
