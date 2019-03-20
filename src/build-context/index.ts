@@ -172,18 +172,14 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
 
     // Instance public fields
     get buildOptions(): BuildOptionsInternal {
-        if (!this._initialized) {
-            throw new InternalError('Please call init() method first.');
-        }
-
         return this._buildOptions;
     }
 
-    get projectConfigWithoutEnvApplied(): TConfig {
-        if (!this._initialized) {
-            throw new InternalError('Please call init() method first.');
-        }
+    get host(): virtualFs.Host | undefined {
+        return this._host;
+    }
 
+    get projectConfigWithoutEnvApplied(): TConfig {
         return this._projectConfigWithoutEnvApplied;
     }
 
@@ -193,14 +189,6 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         }
 
         return this._projectConfig;
-    }
-
-    get host(): virtualFs.Host | undefined {
-        if (!this._initialized) {
-            throw new InternalError('Please call init() method first.');
-        }
-
-        return this._host;
     }
 
     // Static private fields
@@ -279,121 +267,121 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
     }
 
     async init(): Promise<void> {
-        if (this.projectConfig.root && path.isAbsolute(this.projectConfig.root)) {
+        if (this._projectConfig.root && path.isAbsolute(this._projectConfig.root)) {
             throw new InvalidConfigError(
-                `The 'projects[${this.projectConfig.name || this.projectConfig._index}].root' must be relative path.`);
+                `The 'projects[${this._projectConfig.name || this._projectConfig._index}].root' must be relative path.`);
         }
 
-        this.projectConfig._workspaceRoot = AngularBuildContext.workspaceRoot;
-        this.projectConfig._nodeModulesPath = await AngularBuildContext.getNodeModulesPath();
-        this.projectConfig._projectRoot = path.resolve(AngularBuildContext.workspaceRoot, this.projectConfig.root || '');
-        if (this.projectConfig.outputPath) {
-            this.projectConfig._outputPath = path.resolve(AngularBuildContext.workspaceRoot, this.projectConfig.outputPath);
+        this._projectConfig._workspaceRoot = AngularBuildContext.workspaceRoot;
+        this._projectConfig._nodeModulesPath = await AngularBuildContext.getNodeModulesPath();
+        this._projectConfig._projectRoot = path.resolve(AngularBuildContext.workspaceRoot, this._projectConfig.root || '');
+        if (this._projectConfig.outputPath) {
+            this._projectConfig._outputPath = path.resolve(AngularBuildContext.workspaceRoot, this._projectConfig.outputPath);
         }
-        this.projectConfig._rptCacheDirectory = path.resolve(this.projectConfig._projectRoot, './.rpt-cache/');
+        this._projectConfig._rptCacheDirectory = path.resolve(this._projectConfig._projectRoot, './.rpt-cache/');
 
         // Read package.json files
         await this.initPackageJsons();
 
         // Validation
-        validateOutputPath(AngularBuildContext.workspaceRoot, this.projectConfig);
+        validateOutputPath(AngularBuildContext.workspaceRoot, this._projectConfig);
 
         // Init banner
         await this.initBannerText();
 
-        if (this.projectConfig._projectType === 'lib') {
+        if (this._projectConfig._projectType === 'lib') {
             AngularBuildContext._libCount = AngularBuildContext._libCount + 1;
-            await initLibConfig(this.projectConfig as LibProjectConfigInternal);
+            await initLibConfig(this._projectConfig as LibProjectConfigInternal);
         } else {
             AngularBuildContext._appCount = AngularBuildContext._appCount + 1;
-            await initAppConfig(this.projectConfig as AppProjectConfigInternal, this.buildOptions);
+            await initAppConfig(this._projectConfig as AppProjectConfigInternal, this._buildOptions);
         }
 
         this._initialized = true;
     }
 
     private async initPackageJsons(): Promise<void> {
-        const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, this.projectConfig.root || '');
+        const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, this._projectConfig.root || '');
 
-        if (!this.projectConfig._packageConfigPath) {
+        if (!this._projectConfig._packageConfigPath) {
             const foundPath = await findUp('package.json', projectRoot, AngularBuildContext.workspaceRoot);
             if (foundPath) {
-                this.projectConfig._packageConfigPath = foundPath;
+                this._projectConfig._packageConfigPath = foundPath;
                 if (foundPath === path.resolve(AngularBuildContext.workspaceRoot, 'package.json')) {
-                    this.projectConfig._rootPackageConfigPath = foundPath;
+                    this._projectConfig._rootPackageConfigPath = foundPath;
                 }
             }
         }
 
-        if (!this.projectConfig._rootPackageConfigPath) {
+        if (!this._projectConfig._rootPackageConfigPath) {
             const rootPkgConfigPath = path.resolve(AngularBuildContext.workspaceRoot, 'package.json');
             if (await pathExists(rootPkgConfigPath)) {
-                this.projectConfig._rootPackageConfigPath = rootPkgConfigPath;
+                this._projectConfig._rootPackageConfigPath = rootPkgConfigPath;
             }
         }
 
-        if (this.projectConfig._packageConfigPath) {
+        if (this._projectConfig._packageConfigPath) {
             // tslint:disable-next-line: no-unsafe-any
-            this.projectConfig._packageJson = await readJson(this.projectConfig._packageConfigPath);
-        } else if (this.projectConfig._projectType === 'lib') {
+            this._projectConfig._packageJson = await readJson(this._projectConfig._packageConfigPath);
+        } else if (this._projectConfig._projectType === 'lib') {
             throw new InvalidConfigError('Could not detect package.json file.');
         }
 
-        if (this.projectConfig._rootPackageConfigPath) {
-            if (this.projectConfig._rootPackageConfigPath === this.projectConfig._packageConfigPath &&
-                this.projectConfig._packageJson) {
-                this.projectConfig._rootPackageJson = this.projectConfig._packageJson;
+        if (this._projectConfig._rootPackageConfigPath) {
+            if (this._projectConfig._rootPackageConfigPath === this._projectConfig._packageConfigPath &&
+                this._projectConfig._packageJson) {
+                this._projectConfig._rootPackageJson = this._projectConfig._packageJson;
             } else {
                 // tslint:disable-next-line: no-unsafe-any
-                this.projectConfig._rootPackageJson = await readJson(this.projectConfig._rootPackageConfigPath);
+                this._projectConfig._rootPackageJson = await readJson(this._projectConfig._rootPackageConfigPath);
             }
         }
 
-        if (this.projectConfig._packageJson && this.projectConfig._packageJson.name) {
-            this.projectConfig._projectName = this.projectConfig._packageJson.name as string;
+        if (this._projectConfig._packageJson && this._projectConfig._packageJson.name) {
+            this._projectConfig._projectName = this._projectConfig._packageJson.name as string;
         }
 
-        if (!this.projectConfig._packageJson ||
-            !this.projectConfig._packageJson.version ||
-            this.projectConfig._packageJson.version === '0.0.0' ||
-            versionPlaceholderRegex.test(this.projectConfig._packageJson.version as string)) {
-            if (this.projectConfig._rootPackageJson &&
-                this.projectConfig._rootPackageJson.version) {
-                this.projectConfig._projectVersion = this.projectConfig._rootPackageJson.version as string;
+        if (!this._projectConfig._packageJson ||
+            !this._projectConfig._packageJson.version ||
+            this._projectConfig._packageJson.version === '0.0.0' ||
+            versionPlaceholderRegex.test(this._projectConfig._packageJson.version as string)) {
+            if (this._projectConfig._rootPackageJson &&
+                this._projectConfig._rootPackageJson.version) {
+                this._projectConfig._projectVersion = this._projectConfig._rootPackageJson.version as string;
             }
         } else {
-            this.projectConfig._projectVersion = this.projectConfig._packageJson.version as string;
+            this._projectConfig._projectVersion = this._projectConfig._packageJson.version as string;
         }
 
-        if (this.projectConfig._packageJson && this.projectConfig._packageJson.author) {
-            this.projectConfig._projectAuthor = this.projectConfig._packageJson.author as string;
-        } else if (this.projectConfig._rootPackageJson && this.projectConfig._rootPackageJson.author) {
-            this.projectConfig._projectAuthor = this.projectConfig._rootPackageJson.author as string;
+        if (this._projectConfig._packageJson && this._projectConfig._packageJson.author) {
+            this._projectConfig._projectAuthor = this._projectConfig._packageJson.author as string;
+        } else if (this._projectConfig._rootPackageJson && this._projectConfig._rootPackageJson.author) {
+            this._projectConfig._projectAuthor = this._projectConfig._rootPackageJson.author as string;
         }
 
-        if (this.projectConfig._packageJson && this.projectConfig._packageJson.homePage) {
-            this.projectConfig._projectHomePage = this.projectConfig._packageJson.homePage as string;
-        } else if (this.projectConfig._rootPackageJson && this.projectConfig._rootPackageJson.homePage) {
-            this.projectConfig._projectHomePage = this.projectConfig._rootPackageJson.homePage as string;
+        if (this._projectConfig._packageJson && this._projectConfig._packageJson.homePage) {
+            this._projectConfig._projectHomePage = this._projectConfig._packageJson.homePage as string;
+        } else if (this._projectConfig._rootPackageJson && this._projectConfig._rootPackageJson.homePage) {
+            this._projectConfig._projectHomePage = this._projectConfig._rootPackageJson.homePage as string;
         }
 
-        if (this.projectConfig._projectName &&
-            this.projectConfig._projectName.indexOf('/') > -1 &&
-            this.projectConfig._projectName.startsWith('@')) {
-            const nameParts = this.projectConfig._projectName.split('/');
-            this.projectConfig._packageScope = nameParts[0];
+        if (this._projectConfig._projectName &&
+            this._projectConfig._projectName.indexOf('/') > -1 &&
+            this._projectConfig._projectName.startsWith('@')) {
+            const nameParts = this._projectConfig._projectName.split('/');
+            this._projectConfig._packageScope = nameParts[0];
         }
 
-        if (this.projectConfig._projectName && this.projectConfig._packageScope) {
-            const startIndex = this.projectConfig._projectName.indexOf('/') + 1;
-            this.projectConfig._packageNameWithoutScope =
-                this.projectConfig._projectName.substr(startIndex);
+        if (this._projectConfig._projectName && this._projectConfig._packageScope) {
+            const startIndex = this._projectConfig._projectName.indexOf('/') + 1;
+            this._projectConfig._packageNameWithoutScope =
+                this._projectConfig._projectName.substr(startIndex);
         } else {
-            this.projectConfig._packageNameWithoutScope = this.projectConfig._projectName;
+            this._projectConfig._packageNameWithoutScope = this._projectConfig._projectName;
         }
 
-        if (this.projectConfig._packageJson && this.projectConfig._packageJson.private) {
-            this.projectConfig._isPackagePrivate = true;
+        if (this._projectConfig._packageJson && this._projectConfig._packageJson.private) {
+            this._projectConfig._isPackagePrivate = true;
         }
     }
 
@@ -402,27 +390,27 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             .getFullYear()
             .toString());
 
-        if (this.projectConfig._projectName) {
-            const name = this.projectConfig._projectName;
+        if (this._projectConfig._projectName) {
+            const name = this._projectConfig._projectName;
             str = str
                 .replace(/[\$|\[](APP|APPLICATION|PROJECT|PACKAGE)[_\-]?NAME[\$|\]]/gim,
                     name);
         }
 
-        if (this.projectConfig._packageNameWithoutScope) {
-            const name = this.projectConfig._packageNameWithoutScope;
+        if (this._projectConfig._packageNameWithoutScope) {
+            const name = this._projectConfig._packageNameWithoutScope;
             str = str.replace(/[\$|\[]PACKAGE[_\-]?NAME[_\-]?NAME[_\-]?NO[_\-]?SCOPE[\$|\]]/gim,
                 name);
         }
 
-        if (this.projectConfig._projectVersion) {
+        if (this._projectConfig._projectVersion) {
             str = str.replace(/[\$|\[](PACKAGE|APP|APPLICATION|PROJECT)?[_\-]?VERSION[\$|\]]/gim,
-                this.projectConfig._projectVersion);
-            str = str.replace(versionPlaceholderRegex, this.projectConfig._projectVersion);
+                this._projectConfig._projectVersion);
+            str = str.replace(versionPlaceholderRegex, this._projectConfig._projectVersion);
         }
 
-        if (this.projectConfig._packageScope) {
-            str = str.replace(/[\$|\[]PACKAGE[_\-]?SCOPE[\$|\]]/gim, this.projectConfig._packageScope);
+        if (this._projectConfig._packageScope) {
+            str = str.replace(/[\$|\[]PACKAGE[_\-]?SCOPE[\$|\]]/gim, this._projectConfig._packageScope);
         }
 
         return str;
@@ -454,12 +442,12 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
     }
 
     private async initBannerText(): Promise<void> {
-        if (!this.projectConfig.banner) {
+        if (!this._projectConfig.banner) {
             return;
         }
 
-        const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, this.projectConfig.root || '');
-        let tempBannerText = this.projectConfig.banner;
+        const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, this._projectConfig.root || '');
+        let tempBannerText = this._projectConfig.banner;
 
         // read banner
         if (/\.txt$/i.test(tempBannerText)) {
@@ -470,14 +458,14 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
                 throw new InvalidConfigError(
                     `The banner text file: ${path.resolve(projectRoot, tempBannerText)
                     } doesn't exist, please correct value in 'projects[${
-                    this.projectConfig.name || this.projectConfig._index}].banner'.`);
+                    this._projectConfig.name || this._projectConfig._index}].banner'.`);
             }
         }
 
         if (tempBannerText) {
             tempBannerText = this.addCommentToBanner(tempBannerText);
             tempBannerText = this.replaceTokensForBanner(tempBannerText);
-            this.projectConfig._bannerText = tempBannerText;
+            this._projectConfig._bannerText = tempBannerText;
         }
     }
 }
