@@ -3,14 +3,14 @@ import * as path from 'path';
 import { InternalError, InvalidConfigError } from '../models/errors';
 import { LibBundleOptionsInternal, LibProjectConfigInternal, TsTranspilationOptionsInternal } from '../models/internals';
 
-import { findUpSync } from '../utils';
+import { findUp } from '../utils';
 
 import { initLibBundleTarget } from './init-lib-bundle-target';
 import { initTsTranspilationOptions } from './init-ts-transpilation-options';
 import { loadTsConfig } from './load-ts-config';
 import { parseScriptStyleEntries } from './parse-script-style-entries';
 
-export function initLibConfig(libConfig: LibProjectConfigInternal): void {
+export async function initLibConfig(libConfig: LibProjectConfigInternal): Promise<void> {
     if (!libConfig._workspaceRoot) {
         throw new InternalError("The 'libConfig._workspaceRoot' is not set.");
     }
@@ -58,7 +58,7 @@ export function initLibConfig(libConfig: LibProjectConfigInternal): void {
         loadTsConfig(tsConfigPath, libConfig, libConfig);
     }
 
-    initTsTranspilationsInternal(libConfig);
+    await initTsTranspilationsInternal(libConfig);
 
     // bundles
     initBundleOptionsInternal(libConfig);
@@ -66,7 +66,7 @@ export function initLibConfig(libConfig: LibProjectConfigInternal): void {
     // parsed result
     if (libConfig.styles && Array.isArray(libConfig.styles) && libConfig.styles.length > 0) {
         libConfig._styleParsedEntries =
-            parseScriptStyleEntries(
+            await parseScriptStyleEntries(
                 libConfig.styles,
                 'styles',
                 workspaceRoot,
@@ -75,7 +75,7 @@ export function initLibConfig(libConfig: LibProjectConfigInternal): void {
     }
 }
 
-function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal): void {
+async function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal): Promise<void> {
     if (!libConfig._workspaceRoot) {
         throw new InternalError("The 'libConfig._workspaceRoot' is not set.");
     }
@@ -101,7 +101,7 @@ function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal): void
                 } else if (i > 0 && tsTranspilationInternals[i - 1]._tsConfigPath) {
                     tsConfigPath = tsTranspilationInternals[i - 1]._tsConfigPath;
                 } else if (i === 0) {
-                    const foundTsConfigPath = detectTsConfigPathForLib(workspaceRoot, projectRoot);
+                    const foundTsConfigPath = await detectTsConfigPathForLib(workspaceRoot, projectRoot);
                     if (foundTsConfigPath) {
                         tsConfigPath = foundTsConfigPath;
                     }
@@ -122,13 +122,12 @@ function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal): void
                     tsTranspilationInternals[i - 1]._angularCompilerOptions;
             }
 
-            const tsTranspilation =
-                initTsTranspilationOptions(tsConfigPath, tsTranspilationPartial, 1, libConfig);
+            const tsTranspilation = await initTsTranspilationOptions(tsConfigPath, tsTranspilationPartial, 1, libConfig);
             tsTranspilationInternals.push(tsTranspilation);
         }
     } else if (libConfig.tsTranspilations) {
         const tsConfigPath = libConfig.tsConfig && libConfig._tsConfigPath ?
-            libConfig._tsConfigPath : detectTsConfigPathForLib(workspaceRoot, projectRoot);
+            libConfig._tsConfigPath : await detectTsConfigPathForLib(workspaceRoot, projectRoot);
 
         if (!tsConfigPath) {
             throw new InvalidConfigError(
@@ -139,8 +138,7 @@ function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal): void
             target: 'es2015',
             outDir: 'esm2015'
         };
-        const esm2015Transpilation =
-            initTsTranspilationOptions(tsConfigPath, esm2015TranspilationPartial, 0, libConfig);
+        const esm2015Transpilation = await initTsTranspilationOptions(tsConfigPath, esm2015TranspilationPartial, 0, libConfig);
         tsTranspilationInternals.push(esm2015Transpilation);
 
         const esm5TranspilationPartial: Partial<TsTranspilationOptionsInternal> = {
@@ -148,8 +146,7 @@ function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal): void
             outDir: 'esm5',
             declaration: false
         };
-        const esm5Transpilation =
-            initTsTranspilationOptions(tsConfigPath, esm5TranspilationPartial, 1, libConfig);
+        const esm5Transpilation = await initTsTranspilationOptions(tsConfigPath, esm5TranspilationPartial, 1, libConfig);
         tsTranspilationInternals.push(esm5Transpilation);
     }
     libConfig._tsTranspilations = tsTranspilationInternals;
@@ -211,8 +208,8 @@ function initBundleOptionsInternal(libConfig: LibProjectConfigInternal): void {
     libConfig._bundles = bundleInternals;
 }
 
-function detectTsConfigPathForLib(workspaceRoot: string, projectRoot: string): string | null {
-    return findUpSync([
+async function detectTsConfigPathForLib(workspaceRoot: string, projectRoot: string): Promise<string | null> {
+    return findUp([
         'tsconfig-build.json',
         'tsconfig.lib.json',
         'tsconfig.build.json',
