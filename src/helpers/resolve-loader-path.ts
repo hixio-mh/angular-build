@@ -1,15 +1,17 @@
-import { existsSync } from 'fs';
 import * as path from 'path';
+
+import { pathExists } from 'fs-extra';
 
 import { AngularBuildContext } from '../build-context';
 
-export function resolveLoaderPath(loaderName: string): string {
+export async function resolveLoaderPath(loaderName: string): Promise<string> {
     let resolvedPath = loaderName;
     let resolved = false;
 
-    if (AngularBuildContext.nodeModulesPath) {
-        if (existsSync(path.resolve(AngularBuildContext.nodeModulesPath, loaderName))) {
-            resolvedPath = path.resolve(AngularBuildContext.nodeModulesPath, loaderName);
+    const nodeModulesPath = await AngularBuildContext.getNodeModulesPath();
+    if (nodeModulesPath) {
+        if (await pathExists(path.resolve(nodeModulesPath, loaderName))) {
+            resolvedPath = path.resolve(nodeModulesPath, loaderName);
             resolved = true;
         }
     }
@@ -17,16 +19,16 @@ export function resolveLoaderPath(loaderName: string): string {
     if (!resolved && AngularBuildContext.fromBuiltInCli) {
         if (AngularBuildContext.cliRootPath) {
             const tempPath = path.resolve(AngularBuildContext.cliRootPath, 'node_modules', loaderName);
-            if (existsSync(tempPath)) {
+            if (await pathExists(tempPath)) {
                 resolvedPath = tempPath;
                 resolved = true;
             }
         }
 
-        if (!resolved && AngularBuildContext.nodeModulesPath) {
-            const tempPath = path.resolve(AngularBuildContext.nodeModulesPath,
+        if (!resolved && nodeModulesPath) {
+            const tempPath = path.resolve(nodeModulesPath,
                 '@dagonmetric/angular-build/node_modules', loaderName);
-            if (existsSync(tempPath)) {
+            if (await pathExists(tempPath)) {
                 resolvedPath = tempPath;
                 resolved = true;
             }
@@ -34,7 +36,7 @@ export function resolveLoaderPath(loaderName: string): string {
 
         if (!resolved) {
             const tempPath = require.resolve(loaderName);
-            if (existsSync(tempPath)) {
+            if (await pathExists(tempPath)) {
                 resolvedPath = tempPath;
             }
         }
