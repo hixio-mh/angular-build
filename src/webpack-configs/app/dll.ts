@@ -18,7 +18,7 @@ import { getAngularFixPlugins } from './angular';
 import { getAppCommonWebpackConfigPartial } from './common';
 import { getAppStylesWebpackConfigPartial } from './styles';
 
-export function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
+export async function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Promise<Configuration> {
     const appConfig = angularBuildContext.projectConfig;
     let customWebpackConfig: Configuration = {};
 
@@ -29,14 +29,17 @@ export function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext<
     if (appConfig.webpackConfig) {
         const customWebpackConfigPath =
             path.resolve(AngularBuildContext.workspaceRoot, appConfig.root || '', appConfig.webpackConfig);
-        customWebpackConfig =
-            getCustomWebpackConfig(customWebpackConfigPath, angularBuildContext) || {};
+        customWebpackConfig = await getCustomWebpackConfig(customWebpackConfigPath, angularBuildContext) || {};
     }
 
+    const angularWpConfig = await getAppCommonWebpackConfigPartial(angularBuildContext);
+    const stylesWpConfig = await getAppStylesWebpackConfigPartial(angularBuildContext);
+    const dllWpConfig = await getAppDllWebpackConfigPartial(angularBuildContext);
+
     const configs: Configuration[] = [
-        getAppCommonWebpackConfigPartial(angularBuildContext),
-        getAppStylesWebpackConfigPartial(angularBuildContext),
-        getAppDllWebpackConfigPartial(angularBuildContext),
+        angularWpConfig,
+        stylesWpConfig,
+        dllWpConfig,
         customWebpackConfig
     ];
 
@@ -49,7 +52,7 @@ export function getAppDllWebpackConfig(angularBuildContext: AngularBuildContext<
 }
 
 // tslint:disable:max-func-body-length
-function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
+async function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Promise<Configuration> {
     const logLevel = angularBuildContext.buildOptions.logLevel;
 
     const appConfig = angularBuildContext.projectConfig;
@@ -153,7 +156,7 @@ function getAppDllWebpackConfigPartial(angularBuildContext: AngularBuildContext<
             tsLoaderOptions.logLevel = logLevel;
         }
 
-        const tsLoader = resolveLoaderPath('ts-loader');
+        const tsLoader = await resolveLoaderPath('ts-loader');
 
         rules.push({
             test: /\.tsx?$/,
