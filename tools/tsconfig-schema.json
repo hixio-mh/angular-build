@@ -12,6 +12,11 @@
     "outDir": "../out-tsc/schemas"
   },
   "include": [
-    "../src/models/*.ts"
+    "../src/models/angular-build-config.ts",
+    "../src/models/app-project-config.ts",
+    "../src/models/build-options.ts",
+    "../src/models/lib-project-config.ts",
+    "../src/architect/models/app-builder-options.ts",
+    "../src/architect/models/lib-builder-options.ts"
   ]
 }
