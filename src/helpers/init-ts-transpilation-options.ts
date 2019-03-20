@@ -1,6 +1,6 @@
-import { existsSync } from 'fs';
 import * as path from 'path';
 
+import { pathExists } from 'fs-extra';
 import { ModuleKind, ScriptTarget } from 'typescript';
 
 import { InternalError } from '../models/errors';
@@ -11,10 +11,10 @@ import { loadTsConfig } from './load-ts-config';
 import { toTsScriptTarget } from './to-ts-script-target';
 
 // tslint:disable-next-line:max-func-body-length
-export function initTsTranspilationOptions(tsConfigPath: string,
+export async function initTsTranspilationOptions(tsConfigPath: string,
     tsTranspilation: Partial<TsTranspilationOptionsInternal>,
     i: number,
-    libConfig: LibProjectConfigInternal): TsTranspilationOptionsInternal {
+    libConfig: LibProjectConfigInternal): Promise<TsTranspilationOptionsInternal> {
     if (!libConfig._outputPath) {
         throw new InternalError("The 'libConfig._outputPath' is not set.");
     }
@@ -92,9 +92,9 @@ export function initTsTranspilationOptions(tsConfigPath: string,
             tsTranspilation._detectedEntryName = flatModuleOutFile.replace(/\.js$/i, '');
         } else {
             const tsSrcDir = path.dirname(tsConfigPath);
-            if (existsSync(path.resolve(tsSrcDir, 'index.ts'))) {
+            if (await pathExists(path.resolve(tsSrcDir, 'index.ts'))) {
                 tsTranspilation._detectedEntryName = 'index';
-            } else if (existsSync(path.resolve(tsSrcDir, 'main.ts'))) {
+            } else if (await pathExists(path.resolve(tsSrcDir, 'main.ts'))) {
                 tsTranspilation._detectedEntryName = 'main';
             }
         }
