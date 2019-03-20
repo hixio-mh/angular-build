@@ -26,8 +26,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const postcssImports = require('postcss-import');
 
 // tslint:disable:max-func-body-length
-export function
-    getAppStylesWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
+export async function
+    getAppStylesWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Promise<Configuration> {
     const logLevel = angularBuildContext.buildOptions.logLevel;
 
     const appConfig = angularBuildContext.projectConfig;
@@ -70,10 +70,10 @@ export function
     const deployUrl = appConfig.publicPath || '';
     const baseHref = appConfig.baseHref || '';
 
-    const rawLoader = resolveLoaderPath('raw-loader');
-    const postcssLoader = resolveLoaderPath('postcss-loader');
-    const sassLoader = resolveLoaderPath('sass-loader');
-    const styleLoader = resolveLoaderPath('style-loader');
+    const rawLoader = await resolveLoaderPath('raw-loader');
+    const postcssLoader = await resolveLoaderPath('postcss-loader');
+    const sassLoader = await resolveLoaderPath('sass-loader');
+    const styleLoader = await resolveLoaderPath('style-loader');
 
     const postcssPluginCreator = (loader: loaderWebpack.LoaderContext) => [
         postcssImports({
