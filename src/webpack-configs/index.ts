@@ -1,8 +1,9 @@
 // tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 
-import { existsSync } from 'fs';
 import * as path from 'path';
+
+import { pathExists } from 'fs-extra';
 
 import { NodeJsSyncHost } from '@angular-devkit/core/node';
 import { Configuration } from 'webpack';
@@ -21,15 +22,16 @@ import {
     BuildCommandOptions,
     BuildContextStaticOptions,
     BuildOptionsInternal,
-    LibProjectConfigInternal,
+    LibProjectConfigInternal
+
 } from '../models/internals';
-import { formatValidationError, readJsonSync, validateSchema } from '../utils';
+import { formatValidationError, readJson, validateSchema } from '../utils';
 
 import { getAppWebpackConfig } from './app';
 import { getLibWebpackConfig } from './lib';
 
 // tslint:disable:max-func-body-length
-export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?: any, argv?: any): Configuration[] {
+export async function getWebpackConfigFromAngularBuildConfig(configPath: string, env?: any, argv?: any): Promise<Configuration[]> {
     let startTime = Date.now();
     if (!configPath || !configPath.length) {
         throw new InvalidConfigError("The 'configPath' is required.");
@@ -39,7 +41,7 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
         throw new InvalidConfigError(`Invalid config file, path: ${configPath}.`);
     }
 
-    if (!existsSync(configPath)) {
+    if (!await pathExists(configPath)) {
         throw new InvalidConfigError(`The angular-build.json config file does not exist at ${configPath}.`);
     }
 
@@ -129,7 +131,7 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
     let angularBuildConfig: AngularBuildConfig | null = null;
 
     try {
-        angularBuildConfig = readJsonSync(configPath) as AngularBuildConfigInternal;
+        angularBuildConfig = await readJson(configPath) as AngularBuildConfigInternal;
     } catch (jsonErr) {
         throw new InvalidConfigError(`Invalid configuration, error: ${jsonErr.message || jsonErr}.`);
     }
@@ -137,9 +139,9 @@ export function getWebpackConfigFromAngularBuildConfig(configPath: string, env?:
     // Validate schema
     const schemaFileName = 'schema.json';
     let schemaPath = '';
-    if (existsSync(path.resolve(__dirname, `../schemas/${schemaFileName}`))) {
+    if (await pathExists(path.resolve(__dirname, `../schemas/${schemaFileName}`))) {
         schemaPath = `../schemas/${schemaFileName}`;
-    } else if (existsSync(path.resolve(__dirname, `../../schemas/${schemaFileName}`))) {
+    } else if (await pathExists(path.resolve(__dirname, `../../schemas/${schemaFileName}`))) {
         schemaPath = `../../schemas/${schemaFileName}`;
     }
 
@@ -224,9 +226,9 @@ function prepareFilterNames(filter: string | string[]): string[] {
     return filterNames;
 }
 
-function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfigInternal,
+async function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfigInternal,
     buildOptions: BuildOptionsInternal,
-    staticBuildContextOptions: BuildContextStaticOptions): Configuration[] {
+    staticBuildContextOptions: BuildContextStaticOptions): Promise<Configuration[]> {
 
     const webpackConfigs: Configuration[] = [];
 
@@ -251,7 +253,7 @@ function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfi
                 const libConfig = JSON.parse(JSON.stringify(filteredLibConfig)) as LibProjectConfigInternal;
 
                 // extends
-                applyProjectConfigExtends(libConfig, angularBuildConfigInternal.libs);
+                await applyProjectConfigExtends(libConfig, angularBuildConfigInternal.libs);
 
                 const clonedLibConfig = JSON.parse(JSON.stringify(libConfig)) as LibProjectConfigInternal;
 
@@ -270,8 +272,9 @@ function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfi
                     host: new NodeJsSyncHost(),
                     ...staticBuildContextOptions
                 });
+                await angularBuildContext.init();
 
-                const wpConfig = getLibWebpackConfig(angularBuildContext) as (Configuration | null);
+                const wpConfig = await getLibWebpackConfig(angularBuildContext) as (Configuration | null);
                 if (wpConfig) {
                     webpackConfigs.push(wpConfig);
                 }
@@ -297,7 +300,7 @@ function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfi
                 const appConfig = JSON.parse(JSON.stringify(filteredAppConfig)) as AppProjectConfigInternal;
 
                 // extends
-                applyProjectConfigExtends(appConfig, angularBuildConfigInternal.apps);
+                await applyProjectConfigExtends(appConfig, angularBuildConfigInternal.apps);
 
                 const clonedAppConfig = JSON.parse(JSON.stringify(appConfig)) as AppProjectConfigInternal;
 
@@ -316,8 +319,9 @@ function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfi
                     host: new NodeJsSyncHost(),
                     ...staticBuildContextOptions
                 });
+                await angularBuildContext.init();
 
-                const wpConfig = getAppWebpackConfig(angularBuildContext) as (Configuration | null);
+                const wpConfig = await getAppWebpackConfig(angularBuildContext) as (Configuration | null);
                 if (wpConfig) {
                     webpackConfigs.push(wpConfig);
                 }
