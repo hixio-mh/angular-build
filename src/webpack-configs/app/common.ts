@@ -5,7 +5,9 @@
 
 import * as path from 'path';
 
-import * as resolve from 'resolve';
+import { resolve } from '@angular-devkit/core/node';
+
+// import * as resolve from 'resolve';
 import {
     BannerPlugin,
     Configuration,
@@ -39,7 +41,7 @@ const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlu
 const TerserPlugin = require('terser-webpack-plugin');
 
 // tslint:disable:max-func-body-length
-export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
+export async function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Promise<Configuration> {
     const logger = AngularBuildContext.logger;
 
     const logLevel = angularBuildContext.buildOptions.logLevel;
@@ -60,6 +62,8 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     const outputPath = appConfig._outputPath;
     const isDll = appConfig._isDll;
 
+    const nodeModulesPath = await AngularBuildContext.getNodeModulesPath();
+
     const isWebpackCli = isFromWebpackCli();
     const isWebpackDevServer = isFromWebpackDevServer();
 
@@ -77,9 +81,9 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
 
     const vendorChunkName = appConfig.vendorChunkName || 'vendor';
 
-    const rawLoader = resolveLoaderPath('raw-loader');
-    const fileLoader = resolveLoaderPath('file-loader');
-    const urlLoader = resolveLoaderPath('url-loader');
+    const rawLoader = await resolveLoaderPath('raw-loader');
+    const fileLoader = await resolveLoaderPath('file-loader');
+    const urlLoader = await resolveLoaderPath('url-loader');
 
     // rules
     const rules: RuleSetRule[] = [
@@ -183,9 +187,17 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
                 appConfig._supportES2015
                     ? 'rxjs/_esm2015/path-mapping'
                     : 'rxjs/_esm5/path-mapping';
+
+            const rxjsMappingPath = resolve(rxjsPathMappingImportModuleName,
+                {
+                    basedir: nodeModulesPath || AngularBuildContext.workspaceRoot,
+                    checkGlobal: false,
+                    checkLocal: true
+                },
+            );
+
             // tslint:disable-next-line:non-literal-require
-            const pathMapping = require(resolve.sync(rxjsPathMappingImportModuleName,
-                { basedir: AngularBuildContext.nodeModulesPath || AngularBuildContext.workspaceRoot }));
+            const pathMapping = require(rxjsMappingPath);
             alias = pathMapping();
         } catch (e) {
             logger.warn(`Failed rxjs path alias. ${e.message}`);
@@ -283,8 +295,8 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
     }
 
     const nodeModulePaths = ['node_modules'];
-    if (AngularBuildContext.nodeModulesPath) {
-        nodeModulePaths.push(AngularBuildContext.nodeModulesPath);
+    if (nodeModulesPath) {
+        nodeModulePaths.push(nodeModulesPath);
     }
 
     const loaderModulePaths = [...nodeModulePaths];
@@ -293,8 +305,8 @@ export function getAppCommonWebpackConfigPartial(angularBuildContext: AngularBui
         if (!loaderModulePaths.includes(cliNodeModulePath)) {
             loaderModulePaths.push(cliNodeModulePath);
         }
-    } else if (AngularBuildContext.nodeModulesPath) {
-        const cliNodeModulePath = path.resolve(AngularBuildContext.nodeModulesPath,
+    } else if (nodeModulesPath) {
+        const cliNodeModulePath = path.resolve(nodeModulesPath,
             '@dagonmetric/angular-build/node_modules');
         if (!loaderModulePaths.includes(cliNodeModulePath)) {
             loaderModulePaths.push(cliNodeModulePath);
