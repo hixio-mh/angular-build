@@ -19,7 +19,7 @@ import { InternalError } from '../../models/errors';
 import { AppProjectConfigInternal, GlobalScriptStyleParsedEntry } from '../../models/internals';
 
 // tslint:disable:max-func-body-length
-export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
+export async function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Promise<Configuration> {
     const logLevel = angularBuildContext.buildOptions.logLevel;
     const appConfig = angularBuildContext.projectConfig;
 
@@ -106,7 +106,7 @@ export function getAppBrowserWebpackConfigPartial(angularBuildContext: AngularBu
             tsLoaderOptions.logLevel = logLevel;
         }
 
-        const tsLoader = resolveLoaderPath('ts-loader');
+        const tsLoader = await resolveLoaderPath('ts-loader');
 
         rules.push({
             test: /\.tsx?$/,
