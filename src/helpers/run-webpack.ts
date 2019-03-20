@@ -1,9 +1,5 @@
-import { BuildEvent } from '@angular-devkit/architect';
-import { Observable } from 'rxjs';
 import * as webpack from 'webpack';
 
-import { getWebpackToStringStatsOptions } from '../helpers';
-import { BuildOptions } from '../models';
 import { LoggerBase } from '../utils/logger';
 
 export async function runWebpack(wpConfig: webpack.Configuration | webpack.Configuration[],
@@ -53,69 +49,10 @@ export async function runWebpack(wpConfig: webpack.Configuration | webpack.Confi
         };
 
         if (watch) {
-            webpackCompiler.watch(watchOptions as webpack.Options.WatchOptions, callback);
+            webpackCompiler.watch(watchOptions || {}, callback);
             logger.info('\nWebpack is watching the files…\n');
         } else {
             webpackCompiler.run(callback);
-        }
-    });
-}
-
-export function runWebpackForArchitectBuilder(wpConfig: webpack.Configuration,
-    buildOptions: BuildOptions,
-    logger: LoggerBase): Observable<BuildEvent> {
-    return new Observable(obs => {
-        const statsOptions = wpConfig.stats
-            ? wpConfig.stats
-            : getWebpackToStringStatsOptions(buildOptions.logLevel === 'debug');
-
-        const webpackCompiler = webpack(wpConfig);
-        const callback: webpack.Compiler.Handler = (err: Error, stats: webpack.Stats) => {
-            if (err) {
-                obs.error(err);
-
-                return;
-            }
-
-            if (stats.hasErrors()) {
-                logger.error(stats.toString('errors-only'));
-            } else {
-                const result = stats.toString(statsOptions);
-                if (result && result.trim()) {
-                    logger.info(result);
-                }
-            }
-
-            obs.next({ success: !stats.hasErrors() });
-
-            if (!buildOptions.watch) {
-                obs.complete();
-            }
-        };
-
-        try {
-            if (buildOptions.watch) {
-                const watching = webpackCompiler.watch(buildOptions.watchOptions || {}, callback);
-
-                // Teardown logic. Close the watcher when unsubscribed from.
-                return () => {
-                    watching.close(() => {
-                        // Do nothing
-                    });
-                };
-            } else {
-                webpackCompiler.run(callback);
-
-                return () => {
-                    // Do nothing
-                };
-            }
-        } catch (e) {
-            if (e) {
-                logger.error(`\nAn error occured during the build:\n${(e as Error).stack || e}`);
-            }
-
-            throw e;
         }
     });
 }
