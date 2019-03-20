@@ -35,7 +35,7 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
 
     let webpackConfigs: webpack.Configuration[] = [];
     try {
-        webpackConfigs = getWebpackConfigFromAngularBuildConfig(configPath, environment, commandOptions);
+        webpackConfigs = await getWebpackConfigFromAngularBuildConfig(configPath, environment, commandOptions);
     } catch (configErr) {
         if (configErr instanceof InvalidConfigError) {
             logger.error(`${configErr.message}\n`);
