@@ -8,5 +8,5 @@ export interface BuildContextInstanceOptions<TConfig extends AppProjectConfigInt
     projectConfigWithoutEnvApplied: TConfig;
     projectConfig: TConfig;
     buildOptions: BuildOptionsInternal;
-    host: virtualFs.Host;
+    host?: virtualFs.Host;
 }
