@@ -8,7 +8,7 @@ import { Logger, LogLevelString } from '../../../utils';
 export interface DynamicDllWebpackPluginOptions {
     manifests: { file: string; chunkName: string }[];
     logLevel?: LogLevelString;
-    getDllConfigFunc(): webpack.Configuration;
+    getDllConfigFunc(): Promise<webpack.Configuration>;
 }
 
 export class DynamicDllWebpackPlugin {
@@ -42,15 +42,17 @@ export class DynamicDllWebpackPlugin {
             return;
         } else {
             this._logger.debug('Initializing dll config');
-            const webpackDllConfig = this._options.getDllConfigFunc();
-            if (webpackDllConfig.watch) {
-                delete webpackDllConfig.watch;
+            const wpConfig = await this._options.getDllConfigFunc();
+
+            // webpackDllConfig
+            if (wpConfig.watch) {
+                delete wpConfig.watch;
             }
 
-            const statsConfig = webpackDllConfig.stats || {};
+            const statsConfig = wpConfig.stats || {};
 
             this._logger.debug('Creating webpack compiler for dll bundling');
-            const webpackCompiler = webpack(webpackDllConfig);
+            const webpackCompiler = webpack(wpConfig);
 
             await new Promise((resolve, reject) => {
                 webpackCompiler.run((err: Error, stats: webpack.Stats) => {

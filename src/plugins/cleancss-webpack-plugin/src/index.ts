@@ -1,11 +1,3 @@
-/**
- * @license
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
- */
-
 // tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 // tslint:disable:no-require-imports
@@ -30,7 +22,6 @@ function hook(
     compiler: Compiler,
     action: (compilation: any, chunks: Chunk[]) => Promise<void | void[]>,
 ): void {
-    // Webpack 4
     compiler.hooks.compilation.tap('cleancss-webpack-plugin', (compilation: any) => {
         compilation.hooks.optimizeChunkAssets.tapPromise(
             'cleancss-webpack-plugin',
@@ -54,7 +45,14 @@ export class CleanCssWebpackPlugin {
         hook(compiler, async (compilation: any, chunks: Chunk[]) => {
             const cleancss = new CleanCSS({
                 compatibility: 'ie9',
-                level: 2,
+                level: {
+                    2: {
+                        skipProperties: [
+                            'transition', // Fixes #12408
+                            'font', // Fixes #9648
+                        ]
+                    }
+                },
                 inline: false,
                 returnPromise: true,
                 sourceMap: this._options.sourceMap,

@@ -57,17 +57,24 @@ export async function performTsTranspile(angularBuildContext: AngularBuildContex
             scriptTargetText = ScriptTarget[tsTranspilation._scriptTarget];
         }
 
+        const nodeModulesPath = await AngularBuildContext.getNodeModulesPath();
         logger.info(
             `Compiling typescript with ngc, target: ${scriptTargetText}`);
 
         await new Promise((resolve, reject) => {
             const errors: string[] = [];
-            const commandPath = AngularBuildContext.nodeModulesPath ? path.join(AngularBuildContext.nodeModulesPath, '.bin/ngc') : 'ngc';
+            const commandPath = nodeModulesPath ? path.join(nodeModulesPath, '.bin/ngc') : 'ngc';
             const child = spawn(commandPath, commandArgs, {});
-            child.stdout.on('data', (data: string | Buffer) => {
-                logger.debug(`${data}`);
-            });
-            child.stderr.on('data', (data: string | Buffer | {}) => errors.push(data.toString().trim()));
+            if (child.stdout) {
+                child.stdout.on('data', (data: string | Buffer) => {
+                    logger.debug(`${data}`);
+                });
+            }
+
+            if (child.stderr) {
+                child.stderr.on('data', (data: string | Buffer | {}) => errors.push(data.toString().trim()));
+            }
+
             child.on('error', reject);
             child.on('exit',
                 (exitCode: number) => {

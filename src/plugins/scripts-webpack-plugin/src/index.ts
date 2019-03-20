@@ -1,26 +1,15 @@
 // tslint:disable
-// TODO: cleanup this file, it's copied as is from Angular CLI.
 
-/**
- * @license
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
- */
-/**
- * @license
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
- */
-import { Compiler, loader } from 'webpack';
-import { CachedSource, ConcatSource, OriginalSource, RawSource, Source } from 'webpack-sources';
-import { interpolateName } from 'loader-utils';
 import * as path from 'path';
 
+import { interpolateName } from 'loader-utils';
+
+import { Compiler, loader } from 'webpack';
+import { CachedSource, ConcatSource, OriginalSource, RawSource, Source } from 'webpack-sources';
+
+// tslint:disable-next-line: variable-name
 const Chunk = require('webpack/lib/Chunk');
+// tslint:disable-next-line: variable-name
 const EntryPoint = require('webpack/lib/Entrypoint');
 
 export interface ScriptsWebpackPluginOptions {
