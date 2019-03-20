@@ -1,29 +1,14 @@
 // tslint:disable:no-any
 // tslint:disable:no-unsafe-any
 
-import { existsSync } from 'fs';
 import * as path from 'path';
 
-import {
-    AngularBuildConfig,
-    AppBuilderOptions,
-    AssetPatternObjectCompat,
-    BuildOptions,
-    BuildOptionsCompat,
-    LibBuilderOptions,
-    ProjectConfigBase
-} from '../models';
-import { InternalError, InvalidConfigError } from '../models/errors';
-import {
-    AngularBuildConfigInternal,
-    AppProjectConfigInternal,
-    BuildOptionsInternal,
-    LibProjectConfigInternal,
-    ProjectConfigInternal
-} from '../models/internals';
-import { formatValidationError, readJsonSync, validateSchema } from '../utils';
+import { pathExists } from 'fs-extra';
 
-import { normalizeEnvironment } from './normalize-environment';
+import { AngularBuildConfig, ProjectConfigBase } from '../models';
+import { InternalError, InvalidConfigError } from '../models/errors';
+import { AngularBuildConfigInternal, AppProjectConfigInternal, LibProjectConfigInternal, ProjectConfigInternal } from '../models/internals';
+import { formatValidationError, readJson, validateSchema } from '../utils';
 
 export function applyProjectConfigWithEnvironment(
     projectConfig: AppProjectConfigInternal | LibProjectConfigInternal,
@@ -77,9 +62,9 @@ export function applyProjectConfigWithEnvironment(
 }
 
 // tslint:disable:max-func-body-length
-export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(projectConfig:
+export async function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(projectConfig:
     ProjectConfigInternal<TConfig>,
-    projects?: ProjectConfigInternal<TConfig>[]): void {
+    projects?: ProjectConfigInternal<TConfig>[]): Promise<void> {
     if (!projectConfig.extends) {
         return;
     }
@@ -112,9 +97,9 @@ export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(pro
             builtInConfigFileName = `ngb-${builtInConfigFileName}.json`;
             let builtInConfigPath = '';
 
-            if (existsSync(path.resolve(__dirname, `../configs/${builtInConfigFileName}`))) {
+            if (await pathExists(path.resolve(__dirname, `../configs/${builtInConfigFileName}`))) {
                 builtInConfigPath = path.resolve(__dirname, `../configs/${builtInConfigFileName}`);
-            } else if (existsSync(path.resolve(__dirname, `../../configs/${builtInConfigFileName}`))) {
+            } else if (await pathExists(path.resolve(__dirname, `../../configs/${builtInConfigFileName}`))) {
                 builtInConfigPath = path.resolve(__dirname, `../../configs/${builtInConfigFileName}`);
             }
 
@@ -124,7 +109,7 @@ export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(pro
                     projectConfig._configPath}.`);
             }
 
-            const config = readJsonSync(builtInConfigPath);
+            const config = await readJson(builtInConfigPath);
 
             (config as ProjectConfigInternal<TConfig>)._projectType = projectConfig._projectType;
             (config as ProjectConfigInternal<TConfig>)._configPath = builtInConfigPath;
@@ -181,7 +166,7 @@ export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(pro
                 ? path.resolve(destPath)
                 : path.resolve(path.dirname(projectConfig._configPath), destPath);
 
-            if (!existsSync(destPath)) {
+            if (!await pathExists(destPath)) {
                 throw new InvalidConfigError(
                     `Can't extend from non existed config file - ${destPath}, check your configuration file - ${
                     projectConfig._configPath}.`);
@@ -190,7 +175,7 @@ export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(pro
             let config: any = null;
 
             try {
-                config = readJsonSync(destPath);
+                config = await pathExists(destPath);
 
             } catch (jsonErr2) {
                 throw new InvalidConfigError(`Invalid configuration, error: ${jsonErr2.message || jsonErr2}.`);
@@ -215,9 +200,9 @@ export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(pro
                     // Validate schema
                     const schemaFileName = 'schema.json';
                     let schemaPath = '';
-                    if (existsSync(path.resolve(__dirname, `../schemas/${schemaFileName}`))) {
+                    if (await pathExists(path.resolve(__dirname, `../schemas/${schemaFileName}`))) {
                         schemaPath = `../schemas/${schemaFileName}`;
-                    } else if (existsSync(path.resolve(__dirname, `../../schemas/${schemaFileName}`))) {
+                    } else if (await pathExists(path.resolve(__dirname, `../../schemas/${schemaFileName}`))) {
                         schemaPath = `../../schemas/${schemaFileName}`;
                     }
 
@@ -290,9 +275,9 @@ export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(pro
                     : 'app-project-config-schema.json';
                 let schemaPath = '';
 
-                if (existsSync(path.resolve(__dirname, `../schemas/${schemaFileName}`))) {
+                if (await pathExists(path.resolve(__dirname, `../schemas/${schemaFileName}`))) {
                     schemaPath = `../schemas/${schemaFileName}`;
-                } else if (existsSync(path.resolve(__dirname, `../../schemas/${schemaFileName}`))) {
+                } else if (await pathExists(path.resolve(__dirname, `../../schemas/${schemaFileName}`))) {
                     schemaPath = `../../schemas/${schemaFileName}`;
                 }
 
@@ -344,7 +329,7 @@ export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(pro
 
         const clonedBaseProject = JSON.parse(JSON.stringify(foundBaseProject)) as ProjectConfigInternal<TConfig>;
         if (clonedBaseProject.extends) {
-            applyProjectConfigExtends(clonedBaseProject, projects);
+            await applyProjectConfigExtends(clonedBaseProject, projects);
 
             delete clonedBaseProject.extends;
         }
@@ -359,224 +344,6 @@ export function applyProjectConfigExtends<TConfig extends ProjectConfigBase>(pro
 
         const extendedConfig = { ...clonedBaseProject, ...projectConfig };
         Object.assign(projectConfig, extendedConfig);
-    }
-}
-
-export function getBuildOptionsFromBuilderOptions(options: BuildOptions & BuildOptionsCompat): BuildOptionsInternal {
-    const buildOptions: BuildOptionsInternal = { environment: {} };
-
-    if (options.environment) {
-        const env = normalizeEnvironment(options.environment);
-        buildOptions.environment = env;
-        delete options.environment;
-    }
-
-    if (options.filter) {
-        buildOptions.filter = options.filter;
-        delete options.filter;
-    }
-
-    if (options.verbose != null) {
-        if (options.verbose) {
-            buildOptions.logLevel = 'debug';
-        }
-        delete options.verbose;
-    }
-
-    if (options.logLevel) {
-        buildOptions.logLevel = options.logLevel;
-        delete options.logLevel;
-    }
-
-    if (options.progress != null) {
-        if (options.progress) {
-            buildOptions.progress = true;
-        }
-        delete options.progress;
-    }
-
-    if (options.poll != null) {
-        buildOptions.watchOptions = {
-            poll: options.poll
-        };
-        delete options.poll;
-    }
-
-    if (options.cleanOutDir != null) {
-        if (options.cleanOutDir) {
-            buildOptions.cleanOutDir = true;
-        }
-        delete options.cleanOutDir;
-    }
-
-    if (options.watch != null) {
-        if (options.watch) {
-            buildOptions.watch = true;
-        }
-        delete options.watch;
-    }
-
-    if (options.watchOptions) {
-        buildOptions.watchOptions = { ...options.watchOptions };
-        delete options.watchOptions;
-    }
-
-    if (options.beep != null) {
-        if (options.beep) {
-            buildOptions.beep = true;
-        }
-        delete options.beep;
-    }
-
-    return buildOptions;
-}
-
-export function applyAppConfigCompat(appConfig: AppBuilderOptions): void {
-    if (appConfig.target && !appConfig.platformTarget) {
-        appConfig.platformTarget = appConfig.target as ('web' | 'node');
-        delete appConfig.target;
-    }
-    if (appConfig.platform && !appConfig.platformTarget) {
-        appConfig.platformTarget = appConfig.platform === 'server' ? 'node' : 'web';
-        delete appConfig.platform;
-    }
-    if (appConfig.outDir && !appConfig.outputPath) {
-        appConfig.outputPath = appConfig.outDir;
-        delete appConfig.outDir;
-    }
-    if (appConfig.main && !appConfig.entry) {
-        appConfig.entry = appConfig.main;
-        delete appConfig.main;
-    }
-    if (appConfig.index && !appConfig.htmlInject) {
-        appConfig.htmlInject = {
-            index: appConfig.index
-        };
-        delete appConfig.index;
-    }
-    if (appConfig.evalSourceMap && !appConfig.sourceMapDevTool) {
-        appConfig.sourceMapDevTool = 'eval';
-        delete appConfig.evalSourceMap;
-    }
-    if (appConfig.deployUrl && !appConfig.publicPath) {
-        appConfig.publicPath = appConfig.deployUrl;
-        delete appConfig.deployUrl;
-    }
-    if (appConfig.assets &&
-        Array.isArray(appConfig.assets) &&
-        (!appConfig.copy || (Array.isArray(appConfig.copy) && !appConfig.copy.length))) {
-        appConfig.copy = appConfig.assets.map((assetEntry: string | AssetPatternObjectCompat) => {
-            if (typeof assetEntry === 'string') {
-                return assetEntry;
-            }
-
-            return {
-                from: path.join(assetEntry.input, assetEntry.glob || ''),
-                to: assetEntry.output,
-                exclude: assetEntry.ignore
-            };
-        });
-        delete appConfig.assets;
-    }
-    if (appConfig.deleteOutputPath && !appConfig.clean) {
-        appConfig.clean = {
-            beforeBuild: {
-                cleanOutDir: true
-            }
-        };
-        delete appConfig.deleteOutputPath;
-    }
-    if (appConfig.statsJson && !appConfig.bundleAnalyzer) {
-        appConfig.bundleAnalyzer = {
-            generateStatsFile: true
-        };
-        delete appConfig.statsJson;
-    }
-    if (appConfig.bundleDependencies && appConfig.bundleDependencies === 'none') {
-        appConfig.nodeModulesAsExternals = true;
-        const externals = [
-            /^@angular/,
-            (_: any, request: any, callback: (error?: any, result?: any) => void) => {
-                // Absolute & Relative paths are not externals
-                if (request.match(/^\.{0,2}\//)) {
-                    callback();
-
-                    return;
-                }
-
-                try {
-                    // Attempt to resolve the module via Node
-                    const e = require.resolve(request);
-                    if (/node_modules/.test(e)) {
-                        // It's a node_module
-                        callback(null, request);
-                    } else {
-                        // It's a system thing (.ie util, fs...)
-                        callback();
-                    }
-                } catch (e) {
-                    // Node couldn't find it, so it must be user-aliased
-                    callback();
-                }
-            }
-        ];
-        if (!appConfig.externals) {
-            appConfig.externals = externals as any;
-        } else {
-            if (Array.isArray(appConfig.externals)) {
-                appConfig.externals = [...(appConfig.externals as any[]), ...externals];
-            } else {
-                appConfig.externals = [appConfig.externals as any, ...externals];
-            }
-        }
-        delete appConfig.bundleDependencies;
-    }
-}
-
-export function applyLibConfigCompat(libConfig: LibBuilderOptions): void {
-    if (libConfig.target && !libConfig.platformTarget) {
-        libConfig.platformTarget = libConfig.target as ('web' | 'node');
-        delete libConfig.target;
-    }
-
-    if (libConfig.platform && !libConfig.platformTarget) {
-        libConfig.platformTarget = libConfig.platform === 'server' ? 'node' : 'web';
-        delete libConfig.platform;
-    }
-
-    if (libConfig.outDir && !libConfig.outputPath) {
-        libConfig.outputPath = libConfig.outDir;
-        delete libConfig.outDir;
-    }
-
-    if (libConfig.assets &&
-        Array.isArray(libConfig.assets) &&
-        (!libConfig.copy || (Array.isArray(libConfig.copy) && !libConfig.copy.length))) {
-        libConfig.copy = libConfig.assets.map(assetEntry => {
-            if (typeof assetEntry === 'string') {
-                return assetEntry;
-            }
-
-            return {
-                from: path.join(assetEntry.input, assetEntry.glob || ''),
-                to: assetEntry.output,
-                exclude: assetEntry.ignore
-            };
-        });
-        delete libConfig.assets;
-    }
-
-    if (libConfig.deleteOutputPath && !libConfig.clean) {
-        libConfig.clean = {
-            beforeBuild: {
-                cleanOutDir: true
-            }
-        };
-        delete libConfig.deleteOutputPath;
-    }
-
-    if (libConfig.bundleDependencies && libConfig.bundleDependencies === 'all') {
-        libConfig.nodeModulesAsExternals = false;
     }
 }
 
