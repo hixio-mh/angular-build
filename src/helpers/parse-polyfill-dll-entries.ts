@@ -1,9 +1,10 @@
-import { existsSync } from 'fs';
 import * as path from 'path';
+
+import { pathExists } from 'fs-extra';
 
 import { PolyfillDllParsedEntry } from '../models/internals';
 
-export function parsePolyfillDllEntries(inputs: string | string[], forDll: boolean, projectRoot: string): PolyfillDllParsedEntry {
+export async function parsePolyfillDllEntries(inputs: string | string[], forDll: boolean, projectRoot: string): Promise<PolyfillDllParsedEntry> {
     const result: PolyfillDllParsedEntry = {
         tsEntries: [],
         scriptEntries: [],
@@ -33,37 +34,36 @@ export function parsePolyfillDllEntries(inputs: string | string[], forDll: boole
         return result;
     }
 
-    dllEntries
-        .forEach((e: string) => {
-            if (!forDll) {
-                const tempPath = path.resolve(projectRoot, e);
-                if (existsSync(tempPath)) {
-                    if (e.match(/\.tsx?$/i)) {
-                        if (!result.tsEntries.includes(tempPath)) {
-                            result.tsEntries.push(tempPath);
-                        }
-                    } else {
-                        if (!result.scriptEntries.includes(tempPath)) {
-                            result.scriptEntries.push(tempPath);
-                        }
+    for (const e of dllEntries) {
+        if (!forDll) {
+            const tempPath = path.resolve(projectRoot, e);
+            if (await pathExists(tempPath)) {
+                if (e.match(/\.tsx?$/i)) {
+                    if (!result.tsEntries.includes(tempPath)) {
+                        result.tsEntries.push(tempPath);
                     }
                 } else {
-                    if (!result.scriptEntries.includes(e)) {
-                        result.scriptEntries.push(e);
+                    if (!result.scriptEntries.includes(tempPath)) {
+                        result.scriptEntries.push(tempPath);
                     }
                 }
             } else {
-                if (e.match(/\.(css|sass|scss|less|styl)$/i)) {
-                    if (!result.styleEntries.includes(e)) {
-                        result.styleEntries.push(e);
-                    }
-                } else {
-                    if (!result.scriptEntries.includes(e)) {
-                        result.scriptEntries.push(e);
-                    }
+                if (!result.scriptEntries.includes(e)) {
+                    result.scriptEntries.push(e);
                 }
             }
-        });
+        } else {
+            if (e.match(/\.(css|sass|scss|less|styl)$/i)) {
+                if (!result.styleEntries.includes(e)) {
+                    result.styleEntries.push(e);
+                }
+            } else {
+                if (!result.scriptEntries.includes(e)) {
+                    result.scriptEntries.push(e);
+                }
+            }
+        }
+    }
 
     return result;
 }
