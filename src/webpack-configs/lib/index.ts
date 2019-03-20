@@ -13,7 +13,7 @@ import { prepareCleanOptions } from '../../helpers';
 import { InternalError } from '../../models/errors';
 import { LibProjectConfigInternal } from '../../models/internals';
 
-export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): Configuration {
+export async function getLibWebpackConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>): Promise<Configuration> {
     const libConfig = angularBuildContext.projectConfig;
 
     if (!libConfig._projectRoot) {
@@ -88,5 +88,5 @@ export function getLibWebpackConfig(angularBuildContext: AngularBuildContext<Lib
         stats: 'errors-only'
     };
 
-    return webpackConfig;
+    return Promise.resolve(webpackConfig);
 }
