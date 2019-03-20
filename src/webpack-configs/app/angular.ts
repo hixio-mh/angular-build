@@ -13,7 +13,7 @@ import { InternalError, InvalidConfigError } from '../../models/errors';
 import { AppProjectConfigInternal } from '../../models/internals';
 
 // tslint:disable-next-line:max-func-body-length
-export function getAppAngularWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Configuration {
+export async function getAppAngularWebpackConfigPartial(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>): Promise<Configuration> {
     const appConfig = angularBuildContext.projectConfig;
     if (!appConfig.entry && !appConfig.tsConfig) {
         return {};
@@ -37,8 +37,8 @@ export function getAppAngularWebpackConfigPartial(angularBuildContext: AngularBu
     }
 
     // TODO: to review
-    const ngToolsLoader = resolveLoaderPath('@ngtools/webpack');
-    const buildOptimizerLoader = resolveLoaderPath('@angular-devkit/build-optimizer/webpack-loader');
+    const ngToolsLoader = await resolveLoaderPath('@ngtools/webpack');
+    const buildOptimizerLoader = await resolveLoaderPath('@angular-devkit/build-optimizer/webpack-loader');
 
     const rules: RuleSetRule[] = [{
         // Mark files inside `@angular/core` as using SystemJS style dynamic imports.
@@ -74,16 +74,20 @@ export function getAppAngularWebpackConfigPartial(angularBuildContext: AngularBu
         use: [...buildOptimizerLoaders, ngToolsLoader]
     });
 
+    const aotPlugin = await createAotPlugin(angularBuildContext,
+        {
+            tsConfigPath: tsConfigPath,
+            skipCodeGeneration: !isAot
+        });
+
     const plugins: Plugin[] = [
-        createAotPlugin(angularBuildContext,
-            {
-                tsConfigPath: tsConfigPath,
-                skipCodeGeneration: !isAot
-            })
+        aotPlugin
     ];
 
+    const isCliIsLink = await AngularBuildContext.cliIsLink();
+
     if (AngularBuildContext.cliIsGlobal ||
-        AngularBuildContext.angularBuildIsLink ||
+        isCliIsLink ||
         appConfig.platformTarget === 'node' ||
         (appConfig._nodeResolveFields &&
             appConfig._nodeResolveFields.length > 0 &&
@@ -138,8 +142,8 @@ export function getAngularFixPlugins(angularBuildContext: AngularBuildContext<Ap
     return angularFixPlugins;
 }
 
-function createAotPlugin(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>,
-    options: Partial<AngularCompilerPluginOptions>): Plugin {
+async function createAotPlugin(angularBuildContext: AngularBuildContext<AppProjectConfigInternal>,
+    options: Partial<AngularCompilerPluginOptions>): Promise<Plugin> {
     const appConfig = angularBuildContext.projectConfig;
 
     if (!appConfig._projectRoot) {
@@ -182,8 +186,10 @@ function createAotPlugin(angularBuildContext: AngularBuildContext<AppProjectConf
         ...options
     };
 
+    const ngToolsPath = await resolveLoaderPath('@ngtools/webpack');
+
     // tslint:disable-next-line:non-literal-require
-    const AngularCompilerPlugin = require(resolveLoaderPath('@ngtools/webpack')).AngularCompilerPlugin;
+    const AngularCompilerPlugin = require(ngToolsPath).AngularCompilerPlugin;
 
     return new AngularCompilerPlugin(pluginOptions);
 }
