@@ -1,0 +1,20 @@
+{
+  "$schema": "./../../schemas/schema.json#",
+  "libs": [{
+    "root": ".",
+    "outputPath": "dist",
+    "libraryName": "hello-world",
+    "banner": "banner.txt",
+    "tsTranspilations": true,
+    "envOverrides": {
+      "prod": {
+        "copy": [
+          "LICENSE",
+          "README.md"
+        ],
+        "bundles": true,
+        "packageJsonCopy": true
+      }
+    }
+  }]
+}
