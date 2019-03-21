@@ -7,19 +7,19 @@
 
 [![Gitter](https://badges.gitter.im/DagonMetric/angular-build.svg)](https://gitter.im/DagonMetric/angular-build?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Another [Angular](https://github.com/angular/angular) build tool and [Angular Architect](https://github.com/angular/angular-cli) builder plugin for building [Angular](https://github.com/angular/angular) application and library projects.
+Another Angular build tool and [Angular Architect](https://github.com/angular/angular-cli) builder plugin for building [Angular](https://angular.io/) application and library projects.
 
 ## Prerequisites / Supported Angular Versions
 
 * [Node.js](https://nodejs.org/en/download/) requirement:  >= v10.9
 * [Angular](https://angular.io) supported: >= v7.0.0 or >= v8.0.0-beta.0
-* [Angular CLI](https://www.npmjs.com/package/@angular/cli) supported: >= v8.0.0-beta.7
+* [Angular Cli](https://www.npmjs.com/package/@angular/cli) supported: >= v8.0.0-beta.7
 
 ## Features
 
 * Build support for both library projects (internally with [rollup](https://rollupjs.org)) and app projects (internally with [webpack](https://webpack.js.org)).
 * This npm package can be consumed by [angular cli](https://cli.angular.io), [webpack cLI](https://www.npmjs.com/package/webpack-cli), or built-in cli.
-* Flexable configurations with Extendable config options.
+* Flexable configuration with extendable config options.
 
 ### Library Project Building / Packaging Features
 
