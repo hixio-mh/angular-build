@@ -5,10 +5,10 @@ import * as path from 'path';
 
 import { pathExists } from 'fs-extra';
 
-import { AngularBuildConfig, ProjectConfigBase } from '../models';
+import { AngularBuildConfig, LibProjectConfigBase, ProjectConfigBase } from '../models';
 import { InternalError, InvalidConfigError } from '../models/errors';
 import { AngularBuildConfigInternal, AppProjectConfigInternal, LibProjectConfigInternal, ProjectConfigInternal } from '../models/internals';
-import { formatValidationError, readJson, validateSchema } from '../utils';
+import { findUp, formatValidationError, normalizeRelativePath, readJson, validateSchema } from '../utils';
 
 export function applyProjectConfigWithEnvironment(
     projectConfig: AppProjectConfigInternal | LibProjectConfigInternal,
@@ -109,10 +109,46 @@ export async function applyProjectConfigExtends<TConfig extends ProjectConfigBas
                     projectConfig._configPath}.`);
             }
 
-            const config = await readJson(builtInConfigPath);
+            let config = await readJson(builtInConfigPath);
 
             (config as ProjectConfigInternal<TConfig>)._projectType = projectConfig._projectType;
             (config as ProjectConfigInternal<TConfig>)._configPath = builtInConfigPath;
+
+            if (projectConfig._projectType === 'lib' && projectConfig._configPath && projectConfig.root) {
+                const configRootPath = path.dirname(projectConfig._configPath);
+                const projectRootPath = path.resolve(path.dirname(projectConfig._configPath), projectConfig.root);
+
+                const newProdOptions: LibProjectConfigBase = {};
+
+                const bannerFilePath = await findUp(['banner.txt'], projectRootPath, configRootPath);
+                if (bannerFilePath) {
+                    newProdOptions.banner = normalizeRelativePath(path.relative(projectRootPath, bannerFilePath));
+                }
+
+                const readmeFilePath = await findUp(['README.md'], projectRootPath, configRootPath);
+                const licenseFilePath = await findUp(['LICENSE', 'LICENSE.txt'], projectRootPath, configRootPath);
+
+                if (readmeFilePath || licenseFilePath) {
+                    newProdOptions.copy = [];
+                    if (readmeFilePath) {
+                        newProdOptions.copy.push(normalizeRelativePath(path.relative(projectRootPath, readmeFilePath)));
+                    }
+                    if (licenseFilePath) {
+                        newProdOptions.copy.push(normalizeRelativePath(path.relative(projectRootPath, licenseFilePath)));
+                    }
+                }
+
+                const newConfig = {
+                    envOverrides: {
+                        prod: {
+                            bundles: true,
+                            ...newProdOptions
+                        }
+                    }
+                };
+
+                config = { ...config, ...newConfig };
+            }
 
             const extendLevel: number = (projectConfig as any)._extendLevel || 0;
             config._extendLevel = extendLevel + 1;

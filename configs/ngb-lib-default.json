@@ -1,17 +1,11 @@
 {
   "$schema": "../schemas/lib-project-config-schema.json#",
   "root": "src",
-  "outputPath": "dist",
+  "outputPath": "dist/packages",
   "tsTranspilations": true,
   "packageJsonCopy": true,
   "envOverrides": {
     "prod": {
-      "banner": "../banner.txt",
-      "copy": [
-        "../../LICENSE",
-        "../LICENSE",
-        "README.md"
-      ],
       "bundles": true
     }
   }
