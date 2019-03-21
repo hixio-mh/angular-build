@@ -12,13 +12,13 @@ Another Angular build tool and [Angular Architect](https://github.com/angular/an
 ## Prerequisites / Supported Angular Versions
 
 * [Node.js](https://nodejs.org/en/download/) requirement:  >= v10.9
-* [Angular](https://angular.io) supported: >= v7.0.0 or >= v8.0.0-beta.0
+* [Angular](https://angular.io) supported: >= >= v8.0.0-beta.0
 * [Angular Cli](https://www.npmjs.com/package/@angular/cli) supported: >= v8.0.0-beta.7
 
 ## Features
 
 * Build support for both library projects (internally with [rollup](https://rollupjs.org)) and app projects (internally with [webpack](https://webpack.js.org)).
-* This npm package can be consumed by [angular cli](https://cli.angular.io), [webpack cLI](https://www.npmjs.com/package/webpack-cli), or built-in cli.
+* This npm package can be consumed by [Angular Cli](https://cli.angular.io), [Webpack Cli](https://www.npmjs.com/package/webpack-cli), or built-in cli.
 * Flexable configuration with extendable config options.
 
 ### Library Project Building / Packaging Features
