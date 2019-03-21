@@ -126,8 +126,12 @@ async function initTsTranspilationsInternal(libConfig: LibProjectConfigInternal)
             tsTranspilationInternals.push(tsTranspilation);
         }
     } else if (libConfig.tsTranspilations) {
-        const tsConfigPath = libConfig.tsConfig && libConfig._tsConfigPath ?
-            libConfig._tsConfigPath : await detectTsConfigPathForLib(workspaceRoot, projectRoot);
+        let tsConfigPath: string | null = null;
+        if (libConfig.tsConfig && libConfig._tsConfigPath) {
+            tsConfigPath = libConfig._tsConfigPath;
+        } else {
+            tsConfigPath = await detectTsConfigPathForLib(workspaceRoot, projectRoot);
+        }
 
         if (!tsConfigPath) {
             throw new InvalidConfigError(
@@ -211,8 +215,8 @@ function initBundleOptionsInternal(libConfig: LibProjectConfigInternal): void {
 async function detectTsConfigPathForLib(workspaceRoot: string, projectRoot: string): Promise<string | null> {
     return findUp([
         'tsconfig-build.json',
-        'tsconfig.lib.json',
         'tsconfig.build.json',
+        'tsconfig.lib.json',
         'tsconfig-lib.json',
         'tsconfig.json'
     ], projectRoot, workspaceRoot);
