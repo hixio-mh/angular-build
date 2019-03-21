@@ -78,20 +78,26 @@ function _cliGlobal() {
 // main
 let _workspaceRoot = process.cwd();
 const _args = process.argv.slice(2);
-if (_args.length >= 2 && _args[0] === 'build') {
+
+if (_args.length >= 2 && _args[0] && _args[0].toLocaleLowerCase() === 'build') {
     const argv = require('yargs')
         .option('config', {
             alias: 'c',
             type: 'string'
         })
+        .option('global', {
+            alias: 'g',
+            type: 'boolean'
+        })
         .argv;
 
-    if (argv.config) {
+    if (argv.config && !argv.global) {
         let configPath = argv.config;
         configPath = path.isAbsolute(configPath) ? path.resolve(configPath) : path.resolve(process.cwd(), configPath);
         _workspaceRoot = path.dirname(configPath);
     }
 }
+
 resolve('@dagonmetric/angular-build', {
     basedir: _workspaceRoot
 }, (error, projectLocalCli) => {
@@ -99,6 +105,21 @@ resolve('@dagonmetric/angular-build', {
         _cliGlobal();
 
         return;
+    }
+
+    if (_args.length >= 3 && _args[0] && _args[0].toLowerCase() === 'build') {
+        const argv = require('yargs')
+            .option('global', {
+                alias: 'g',
+                type: 'boolean'
+            })
+            .argv;
+
+        if (argv.global) {
+            _cliGlobal();
+
+            return;
+        }
     }
 
     let cliIsLink = false;
