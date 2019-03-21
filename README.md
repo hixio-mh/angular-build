@@ -34,7 +34,8 @@ Some of [ng-packagr](https://github.com/ng-packagr/ng-packagr) features are incl
 * Automatic copying and entry point processing of package.json file to output directory.
 * Can copy assets (README.md, LICENSE, etc.) to output directory.
 * Can replace individual package.json version, name, description, etc with root package.json one or command argument.
-* Can replace version placeholder in typescript file with package.json version or command argument.
+* Can replace version placeholder in typescript file.
+* Can replace version, package name placeholders in banner file.
 
 ### App Project Building / Packaging Features
 
