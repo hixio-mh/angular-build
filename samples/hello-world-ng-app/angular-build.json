@@ -1,0 +1,42 @@
+{
+  "$schema": "./../../schemas/schema.json#",
+  "apps": [{
+    "root": "src",
+    "outputPath": "dist",
+    "entry": "main.ts",
+    "polyfills": [
+      "polyfills.ts"
+    ],
+    "tsConfig": "tsconfig.json",
+    "copy": [
+      "assets/**/*",
+      "favicon.ico"
+    ],
+    "styles": ["styles.scss"],
+    "vendors": [
+      "@angular/common",
+      "@angular/compiler",
+      "@angular/core",
+      "@angular/platform-browser",
+      "@angular/platform-browser-dynamic",
+      "@angular/router",
+      "zone.js/dist/zone"
+    ],
+    "publicPath": "/",
+    "htmlInject": {
+      "resourceHints": true,
+      "index": "index.html"
+    },
+    "envOverrides": {
+      "refdll": {
+        "referenceDll": true
+      },
+      "prod": {
+        "fileReplacements": [{
+          "replace": "./environments/environment.ts",
+          "with": "./environments/environment.prod.ts"
+        }]
+      }
+    }
+  }]
+}
