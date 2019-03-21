@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/lib-project-config-schema.json#",
   "root": "src",
-  "outputPath": "dist/packages",
+  "outputPath": "dist",
   "tsTranspilations": true,
   "packageJsonCopy": true,
   "envOverrides": {
