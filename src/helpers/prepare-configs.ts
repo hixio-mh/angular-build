@@ -142,6 +142,7 @@ export async function applyProjectConfigExtends<TConfig extends ProjectConfigBas
                     envOverrides: {
                         prod: {
                             bundles: true,
+                            packageJsonCopy: true,
                             ...newProdOptions
                         }
                     }
