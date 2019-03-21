@@ -1,2 +1,2 @@
-hello-world-ng-lib-build-test
+hello-world-ng-lib
 =====================
