@@ -14,9 +14,9 @@ const realpathPromise = util.promisify(fs.realpath);
 const existsPromise = util.promisify(fs.exists);
 
 const resolvePromise = (id, opts) => {
-    return new Promise((res, rej) => {
+    return new Promise((res) => {
         resolve(id, opts, (error, resolvedPath) => {
-            error ? rej('') : res(resolvedPath);
+            error ? res(null) : res(resolvedPath);
         });
     });
 };
