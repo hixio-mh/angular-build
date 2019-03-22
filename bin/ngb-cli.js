@@ -6,11 +6,49 @@ const startTime = Date.now();
 
 const fs = require('fs');
 const path = require('path');
+const util = require('util');
+
 const resolve = require('resolve');
 
-const exitImmediate = process.argv.indexOf('--exit-immediate') > -1 || process.argv.indexOf('--exitImmediate') > -1;
+const realpathPromise = util.promisify(fs.realpath);
+const existsPromise = util.promisify(fs.exists);
 
-function _exit(code) {
+const resolvePromise = (id, opts) => {
+    return new Promise((res, rej) => {
+        resolve(id, opts, (error, resolvedPath) => {
+            error ? rej('') : res(resolvedPath);
+        });
+    });
+};
+
+// main
+let _workspaceRoot = process.cwd();
+const _args = process.argv.slice(2);
+let _argv;
+
+if (_args.length >= 2 && _args[0] && _args[0].toLocaleLowerCase() === 'build') {
+    _argv = require('yargs')
+        .option('config', {
+            alias: 'c',
+            type: 'string'
+        })
+        .option('global', {
+            alias: 'g',
+            type: 'boolean'
+        })
+        .option('exit-immediate', {
+            type: 'boolean'
+        })
+        .argv;
+
+    if (_argv.config && !_argv.global) {
+        let configPath = _argv.config;
+        configPath = path.isAbsolute(configPath) ? path.resolve(configPath) : path.resolve(process.cwd(), configPath);
+        _workspaceRoot = path.dirname(configPath);
+    }
+}
+
+function exit(code) {
     if (process.platform === 'win32' && process.stdout.bufferSize) {
         process.stdout.once('drain', function () {
             process.exit(code);
@@ -22,132 +60,119 @@ function _exit(code) {
     process.exit(code);
 }
 
-function _invokeCli(cli, cliOptions) {
-    if ('default' in cli) {
-        cli = cli.default;
-    }
-
-    cli(cliOptions)
-        .then((exitCode) => {
-            process.exitCode = typeof exitCode === 'number' ? exitCode : 0;
-
-            if (exitImmediate) {
-                _exit(process.exitCode);
-            }
-        })
-        .catch(err => {
-            process.exitCode = -1;
-            console.error(`${err.stack || err.message}`);
-            _exit(process.exitCode);
-        });
-}
-
-function _cliGlobal() {
-    let cliRootPath = path.resolve(__dirname, '..');
-    if (!fs.existsSync(path.resolve(cliRootPath, 'node_modules'))) {
-        cliRootPath = path.dirname(cliRootPath);
-    }
-
-    const packageJson = require(path.resolve(cliRootPath, './package.json'));
-    const cliVersion = packageJson['version'];
-
-    const updateNotifier = require('update-notifier');
-    updateNotifier({
-        pkg: packageJson
-    }).notify({
-        defer: false
+async function main() {
+    const localCli = await resolvePromise('@dagonmetric/angular-build', {
+        basedir: _workspaceRoot
     });
 
-    let cli;
-    if (fs.existsSync(path.resolve(__dirname, '../src/cli/index.js'))) {
-        cli = require('../src/cli');
+    let cliIsGlobal = true;
+    let cliIsLink = false;
+    let tempCliPath;
+    let packageJsonPath = '';
+
+    if (localCli) {
+        const localCliRealPath = await realpathPromise(localCli);
+        if (localCliRealPath !== localCli) {
+            cliIsLink = true;
+        }
+        tempCliPath = path.dirname(localCli);
+
+        if (!cliIsLink && _argv && _argv.global) {
+            let tempGlobalCliRootPath = path.resolve(__dirname, '..');
+            let p1 = '';
+            let p2 = '';
+
+            if (await existsPromise(path.resolve(tempCliPath, './package.json')) &&
+                await existsPromise(path.resolve(tempCliPath, 'node_modules'))) {
+                p1 = path.resolve(tempCliPath, './package.json');
+            } else if (await existsPromise(path.resolve(tempCliPath, '..', './package.json'))) {
+                p1 = path.resolve(tempCliPath, '..', './package.json');
+            }
+
+            if (await existsPromise(path.resolve(tempGlobalCliRootPath, './package.json')) &&
+                await existsPromise(path.resolve(tempGlobalCliRootPath, 'node_modules'))) {
+                p2 = path.resolve(tempGlobalCliRootPath, './package.json');
+            } else if (await existsPromise(path.resolve(tempGlobalCliRootPath, '..', './package.json'))) {
+                p2 = path.resolve(tempGlobalCliRootPath, '..', './package.json');
+            }
+
+            if (p2 && p2 !== p1) {
+                tempCliPath = tempGlobalCliRootPath;
+                packageJsonPath = p2;
+                cliIsGlobal = true;
+            } else {
+                packageJsonPath = p1;
+                cliIsGlobal = false;
+            }
+        } else {
+            cliIsGlobal = false;
+        }
+
     } else {
-        cli = require('../dist/src/cli');
+        tempCliPath = path.resolve(__dirname, '..');
+        cliIsGlobal = true;
     }
 
-    const cliOptions = {
-        cliVersion: cliVersion,
-        cliIsGlobal: true,
-        cliRootPath: cliRootPath,
-        startTime: startTime
-    };
-
-    _invokeCli(cli, cliOptions);
-}
-
-// main
-let _workspaceRoot = process.cwd();
-const _args = process.argv.slice(2);
-
-if (_args.length >= 2 && _args[0] && _args[0].toLocaleLowerCase() === 'build') {
-    const argv = require('yargs')
-        .option('config', {
-            alias: 'c',
-            type: 'string'
-        })
-        .option('global', {
-            alias: 'g',
-            type: 'boolean'
-        })
-        .argv;
-
-    if (argv.config && !argv.global) {
-        let configPath = argv.config;
-        configPath = path.isAbsolute(configPath) ? path.resolve(configPath) : path.resolve(process.cwd(), configPath);
-        _workspaceRoot = path.dirname(configPath);
+    if (!packageJsonPath && await existsPromise(path.resolve(tempCliPath, './package.json')) &&
+        await existsPromise(path.resolve(tempCliPath, 'node_modules'))) {
+        packageJsonPath = path.resolve(tempCliPath, './package.json');
+    } else if (!packageJsonPath && await existsPromise(path.resolve(tempCliPath, '..', './package.json'))) {
+        packageJsonPath = path.resolve(tempCliPath, '..', './package.json');
     }
-}
 
-resolve('@dagonmetric/angular-build', {
-    basedir: _workspaceRoot
-}, (error, projectLocalCli) => {
-    if (error) {
-        _cliGlobal();
+    if (!packageJsonPath) {
+        console.error('Could not detect package.json file path.');
+        process.exitCode = -1;
 
         return;
     }
 
-    if (_args.length >= 3 && _args[0] && _args[0].toLowerCase() === 'build') {
-        const argv = require('yargs')
-            .option('global', {
-                alias: 'g',
-                type: 'boolean'
-            })
-            .argv;
+    const packageJson = require(packageJsonPath);
+    const cliVersion = packageJson['version'];
+    let cli;
 
-        if (argv.global) {
-            _cliGlobal();
+    if (localCli) {
+        const localCliPath = path.resolve(path.dirname(localCli), './cli');
+        cli = require(localCliPath);
+    } else {
+        const updateNotifier = require('update-notifier');
+        updateNotifier({
+            pkg: packageJson
+        }).notify({
+            defer: false
+        });
 
-            return;
+        if (await existsPromise(path.resolve(__dirname, '../src/cli/index.js'))) {
+            cli = require('../src/cli');
+        } else {
+            cli = require('../dist/src/cli');
         }
     }
 
-    let cliIsLink = false;
-    const projectLocalCliRealPath = fs.realpathSync(projectLocalCli);
-    if (projectLocalCliRealPath !== projectLocalCli) {
-        cliIsLink = true;
-    }
-
-    const cliPath = path.dirname(projectLocalCli);
-    let packageJsonPath = path.resolve(cliPath, './package.json');
-    if ((!fs.existsSync(packageJsonPath) || !fs.existsSync(path.resolve(cliPath, 'node_modules'))) &&
-        fs.existsSync(path.resolve(cliPath, '..', './package.json'))) {
-        packageJsonPath = path.resolve(cliPath, '..', './package.json');
-    }
-
-    const packageJson = require(packageJsonPath);
-    const cliVersion = packageJson['version'];
-
-    const localCliPath = path.resolve(cliPath, './cli');
-    const cli = require(localCliPath);
-
     const cliOptions = {
         cliVersion: cliVersion,
-        cliIsGlobal: false,
+        cliIsGlobal: cliIsGlobal,
         cliIsLink: cliIsLink,
         cliRootPath: path.dirname(packageJsonPath),
         startTime: startTime
     };
 
-    _invokeCli(cli, cliOptions);
-});
+    if ('default' in cli) {
+        cli = cli.default;
+    }
+
+    try {
+        const exitCode = await cli(cliOptions);
+
+        process.exitCode = typeof exitCode === 'number' ? exitCode : 0;
+        if (_argv && _argv.exitImmediate) {
+            exit(process.exitCode);
+        }
+    } catch (err) {
+        process.exitCode = -1;
+        console.error(`${err.stack || err.message || err}`);
+        exit(process.exitCode);
+    }
+}
+
+main();
