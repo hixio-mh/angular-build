@@ -17,14 +17,17 @@ install:
         iex '"//registry.npmjs.org/:_authToken=$env:npm_auth_token`n" | out-file "$env:userprofile\.npmrc" -Encoding ASCII'
         iex "npm whoami"
       }
-  - yarn install --frozen-lockfile --network-timeout=500000
+  # - yarn install --frozen-lockfile --network-timeout=500000
+  - npm install
 build_script:
-  - yarn run build
-  - yarn run test
+  - npm run build
+  - npm run test
 test: "off"
 cache:
-  - node_modules -> yarn.lock
-  - "%LOCALAPPDATA%\\Yarn"
+  # - node_modules -> yarn.lock
+  # - "%LOCALAPPDATA%\\Yarn"
+  - node_modules -> package.json
+  - '%APPDATA%\npm-cache'
 deploy_script:
   - ps: |
       if ($env:npm_auth_token)
