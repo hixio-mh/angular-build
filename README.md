@@ -9,6 +9,8 @@
 
 Another Angular build tool and [Angular Architect](https://github.com/angular/angular-cli) builder plugin for building [Angular](https://angular.io/) application and library projects.
 
+[WIP]
+
 ## Prerequisites / Supported Angular Versions
 
 * [Node.js](https://nodejs.org/en/download/) requirement:  >= v10.9
