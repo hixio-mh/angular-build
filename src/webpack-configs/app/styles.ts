@@ -103,20 +103,19 @@ export async function
         autoprefixer()
     ];
 
-    let dartSass: {} | undefined;
+    let sassImplementation: {} | undefined;
+    let fiber: {} | undefined;
     try {
         // tslint:disable-next-line:no-implicit-dependencies
-        dartSass = require('sass');
-    } catch (e1) {
-        // Do nothing
-    }
+        sassImplementation = require('node-sass');
+    } catch {
+        // tslint:disable-next-line: no-implicit-dependencies
+        sassImplementation = require('sass');
 
-    let fiber: {} | undefined;
-    if (dartSass) {
         try {
             // tslint:disable-next-line:no-implicit-dependencies
             fiber = require('fibers');
-        } catch (e2) {
+        } catch {
             // Do nothing
         }
     }
@@ -129,7 +128,7 @@ export async function
                 {
                     loader: sassLoader,
                     options: {
-                        implementation: dartSass,
+                        implementation: sassImplementation,
                         fiber,
                         // bootstrap-sass requires a minimum precision of 8
                         precision: 8,
