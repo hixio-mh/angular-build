@@ -25,7 +25,7 @@ Another tool for building and packaging [Angular](https://angular.io/) applicati
 * This npm package can be consumed by [Angular Cli](https://cli.angular.io), [Webpack Cli](https://www.npmjs.com/package/webpack-cli), or built-in cli.
 * Flexable configuration with extendable config options.
 
-### Library Project Building / Packaging Features
+### Library Project Build / Packaging Features
 
 Some of [ng-packagr](https://github.com/ng-packagr/ng-packagr) features are included plus
 
@@ -41,7 +41,7 @@ Some of [ng-packagr](https://github.com/ng-packagr/ng-packagr) features are incl
 * Can replace version placeholder in typescript file.
 * Can replace version, package name placeholders in banner file.
 
-### App Project Building / Packaging Features
+### Application Project Build Features
 
 Most of [@angular-devkit/build-angular](https://www.npmjs.com/package/@angular-devkit/build-angular) options are supported plus
 
