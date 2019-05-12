@@ -25,7 +25,7 @@ Please fill in the *entire* template below.
 ## Environment
 
 <!-- - OS: -->
-<!-- - Angular Build Version: -->
+<!-- - @dagonmetric/angular-build version: -->
 
 ## Additional context
 
