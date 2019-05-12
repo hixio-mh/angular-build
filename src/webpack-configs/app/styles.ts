@@ -99,7 +99,7 @@ export async function
             loader,
             filename: `[name]${extractedAssetsHashFormat}.[ext]`
         }),
-        autoprefixer({ grid: true })
+        autoprefixer()
     ];
 
     let dartSass: {} | undefined;
