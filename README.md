@@ -3,19 +3,21 @@
 [![npm (scoped)](https://img.shields.io/npm/v/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
 [![npm](https://img.shields.io/npm/dm/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
 
-# Another Angular Build Tool
+# Angular Build & Packaging Tool
 
 [![Gitter](https://badges.gitter.im/DagonMetric/angular-build.svg)](https://gitter.im/DagonMetric/angular-build?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Another Angular build tool and [Angular Architect](https://github.com/angular/angular-cli) builder plugin for building [Angular](https://angular.io/) application and library projects.
+Tool for building and packaging [Angular](https://angular.io/) application and library projects.
 
 [WIP]
 
-## Prerequisites / Supported Angular Versions
+## Prerequisites
 
 * [Node.js](https://nodejs.org/en/download/) requirement:  >= v10.9
-* [Angular](https://angular.io) supported: >= >= v8.0.0-beta.0
-* [Angular Cli](https://www.npmjs.com/package/@angular/cli) supported: >= v8.0.0-beta.7
+
+## Supported Angular Versions
+
+* [Angular](https://angular.io) supported: >= v8.0.0-beta.0
 
 ## Features
 
