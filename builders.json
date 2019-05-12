@@ -1,12 +1,12 @@
 {
   "builders": {
     "app": {
-      "class": "./src/architect/app",
+      "implementation": "./src/architect/app",
       "schema": "./schemas/app-builder-options-schema.json",
       "description": "Build app project."
     },
     "lib": {
-      "class": "./src/architect/lib",
+      "implementation": "./src/architect/lib",
       "schema": "./schemas/lib-builder-options-schema.json",
       "description": "Build lib project."
     }

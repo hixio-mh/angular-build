@@ -1,4 +1,4 @@
-import { WebpackLoggingCallback } from '@angular-devkit/build-webpack/src/webpack/index2';
+import { WebpackLoggingCallback } from '@angular-devkit/build-webpack';
 import { logging } from '@angular-devkit/core';
 
 import { statsErrorsToString, statsToString, statsWarningsToString } from './webpack-stats';

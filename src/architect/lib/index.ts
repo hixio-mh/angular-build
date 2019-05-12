@@ -1,5 +1,5 @@
-import { BuilderContext, BuilderOutput, createBuilder } from '@angular-devkit/architect/src/index2';
-import { runWebpack } from '@angular-devkit/build-webpack/src/webpack/index2';
+import { BuilderContext, BuilderOutput, createBuilder } from '@angular-devkit/architect';
+import { runWebpack } from '@angular-devkit/build-webpack';
 import { json } from '@angular-devkit/core';
 import { NodeJsSyncHost } from '@angular-devkit/core/node';
 

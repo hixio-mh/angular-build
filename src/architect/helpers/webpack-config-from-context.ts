@@ -1,7 +1,7 @@
 import { Stats } from 'fs';
 import * as path from 'path';
 
-import { BuilderContext } from '@angular-devkit/architect/src/index2';
+import { BuilderContext } from '@angular-devkit/architect';
 import { experimental, getSystemPath, json, normalize, resolve, schema, virtualFs } from '@angular-devkit/core';
 
 import { Configuration } from 'webpack';

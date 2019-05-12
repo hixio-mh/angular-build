@@ -1,5 +1,5 @@
-import { BuilderContext, BuilderOutput, createBuilder } from '@angular-devkit/architect/src/index2';
-import { runWebpack } from '@angular-devkit/build-webpack/src/webpack/index2';
+import { BuilderContext, BuilderOutput, createBuilder } from '@angular-devkit/architect';
+import { runWebpack } from '@angular-devkit/build-webpack';
 import { json } from '@angular-devkit/core';
 import { NodeJsSyncHost } from '@angular-devkit/core/node';
 
@@ -11,7 +11,10 @@ import { createWebpackLoggingCallback, getWebpackConfigFromContext } from '../he
 import { AppBuilderOptions } from '../models';
 export type AppBuilderSchema = json.JsonObject & AppBuilderOptions;
 
-export function buildApp(options: AppBuilderSchema, context: BuilderContext): Observable<BuilderOutput> {
+export function buildApp(
+    options: AppBuilderSchema,
+    context: BuilderContext
+): Observable<BuilderOutput> {
     const startTime = Date.now();
     const host = new NodeJsSyncHost();
 
@@ -34,4 +37,4 @@ export function buildApp(options: AppBuilderSchema, context: BuilderContext): Ob
 }
 
 // tslint:disable-next-line: no-default-export
-export default createBuilder<json.JsonObject & AppBuilderSchema>(buildApp);
+export default createBuilder<AppBuilderSchema>(buildApp);
