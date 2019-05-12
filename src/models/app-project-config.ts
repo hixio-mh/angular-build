@@ -327,6 +327,10 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      * Path to ngsw-config.json.
      */
     ngswConfigPath?: string;
+    /**
+     * The path where style resources will be placed, relative to outputPath.
+     */
+    resourcesOutputPath?: string;
 }
 
 export interface AppEnvOverridesOptions {

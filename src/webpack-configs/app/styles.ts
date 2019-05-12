@@ -96,6 +96,7 @@ export async function
         PostcssCliResources({
             baseHref,
             deployUrl,
+            resourcesOutputPath: appConfig.resourcesOutputPath,
             loader,
             filename: `[name]${extractedAssetsHashFormat}.[ext]`
         }),
