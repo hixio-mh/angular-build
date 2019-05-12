@@ -7,9 +7,7 @@
 
 [![Gitter](https://badges.gitter.im/DagonMetric/angular-build.svg)](https://gitter.im/DagonMetric/angular-build?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Another tool for building and packaging [Angular](https://angular.io/) applications and library projects.
-
-[WIP]
+Another build and packaging tool for [Angular](https://angular.io/) applications and library projects.
 
 ## Prerequisites
 
