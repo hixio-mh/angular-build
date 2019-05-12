@@ -17,7 +17,7 @@ Tool for building and packaging [Angular](https://angular.io/) application and l
 
 ## Supported Angular Versions
 
-* [Angular](https://angular.io) supported: >= v8.0.0-beta.0
+* >= v8.0.0-beta.0
 
 ## Features
 
