@@ -7,7 +7,7 @@
 
 [![Gitter](https://badges.gitter.im/DagonMetric/angular-build.svg)](https://gitter.im/DagonMetric/angular-build?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Another tool for building and packaging [Angular](https://angular.io/) application and library projects.
+Another tool for building and packaging [Angular](https://angular.io/) applications and library projects.
 
 [WIP]
 
@@ -99,9 +99,13 @@ See [typescript model](https://github.com/DagonMetric/angular-build/blob/master/
 ngb build
 ```
 
-### Library project demos with angular-build cli
+### Some projects and demos with angular-build cli
 
-[hello-world-ng-lib](https://github.com/DagonMetric/angular-build/tree/master/samples/hello-world-ng-lib) - Angular library project demo included in this repo.
+* [hello-world-ng-lib](https://github.com/DagonMetric/angular-build/tree/master/samples/hello-world-ng-lib) - Angular library project demo included in this repo.
+
+* [ng-transliterate](https://github.com/DagonMetric/ng-transliterate) - Transliteration modules for Angular using angular-build
+
+* [ng-config](https://github.com/DagonMetric/ng-config) - Configuration service modules for Angular using angular-build
 
 ## Building App Projects with Built-in Cli
 
@@ -165,8 +169,6 @@ ngb build
 
 ### App project demos with angular-build cli
 
-[angular-aspnet-core-starter](https://github.com/mmzliveid/angular-aspnet-core-starter) - Angular ASP.Net Core MVC sample project using @dagonmetric/angular-build cli tool.
-
 [hello-world-ng-app](https://github.com/DagonMetric/angular-build/tree/master/samples/hello-world-ng-app) - Angular app project demo included in this repo.
 
 ## Build with Angular Cli
@@ -222,14 +224,10 @@ See [AppBuilderOptions](https://github.com/DagonMetric/angular-build/blob/master
 ng run myapp1:build
 ```
 
-### App project demos with angular Cli Integration
-
-[angular-build-architect-builder-sample](https://github.com/mmzliveid/angular-build-architect-builder-sample) - Angular starter project with @dagonmetric/angular-build architect builder.
-
 ## Feedback and Contributing
 
-Check out the [Contributing](CONTRIBUTING.md) page to see the best places to log issues and start discussions.
+Check out the [Contributing](https://github.com/DagonMetric/angular-build/blob/master/CONTRIBUTING.md) page to see the best places to log issues and start discussions.
 
 ## License
 
-This repository is licensed with the [MIT](LICENSE) license.
+This repository is licensed with the [MIT](https://github.com/DagonMetric/angular-build/blob/master/LICENSE) license.
