@@ -183,6 +183,7 @@ async function createAotPlugin(angularBuildContext: AngularBuildContext<AppProje
         forkTypeChecker: appConfig.forkTypeChecker !== false,
         // tslint:disable-next-line:no-require-imports
         contextElementDependencyConstructor: require('webpack/lib/dependencies/ContextElementDependency'),
+        directTemplateLoading: true,
         ...options
     };
 
