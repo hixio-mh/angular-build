@@ -49,7 +49,7 @@
           "builder": "./dist:lib",
           "options": {
             "extends": "ngb:lib-default",
-            "outputPath": "samples/hello-world-ng-lib/dist",
+            "outputPath": "samples/hello-world-ng-lib/dist"
           },
           "configurations": {
             "production": {
@@ -67,7 +67,7 @@
           "builder": "./dist:lib",
           "options": {
             "extends": "file:samples/hello-world-ng-lib/angular-build.json:lib:hello-world",
-            "outputPath": "samples/hello-world-ng-lib/dist",
+            "outputPath": "samples/hello-world-ng-lib/dist"
           },
           "configurations": {
             "production": {
