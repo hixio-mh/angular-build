@@ -14,13 +14,15 @@ export default createBuilder<LibBuilderSchema>((options, context) => {
     return from(getWebpackRunOptions(options, context))
         .pipe(
             switchMap(runOptions => {
+                const startTime = runOptions.startTime;
+
                 if (runOptions.webpackConfig == null) {
                     context.logger.info('Build skipping by configuration...');
 
                     return of({ success: true });
                 }
 
-                return runWebpack(runOptions.webpackConfig, runOptions.buildOptions, context.logger);
+                return runWebpack(runOptions.webpackConfig, runOptions.buildOptions, context.logger, startTime);
             })
         );
 });

@@ -23,6 +23,7 @@ export interface WebpackRunOptions {
     workspace: experimental.workspace.Workspace;
     webpackConfig: Configuration | null;
     buildOptions: BuildOptions;
+    startTime: number;
 }
 
 // tslint:disable-next-line: max-func-body-length
@@ -86,7 +87,8 @@ export async function getWebpackRunOptions(builderSchema: json.JsonObject, conte
         return {
             workspace: workspace,
             buildOptions: buildOptions,
-            webpackConfig: null
+            webpackConfig: null,
+            startTime: startTime
         };
     }
 
@@ -95,6 +97,7 @@ export async function getWebpackRunOptions(builderSchema: json.JsonObject, conte
     return {
         workspace: workspace,
         buildOptions: buildOptions,
-        webpackConfig: webpackConfig
+        webpackConfig: webpackConfig,
+        startTime: startTime
     };
 }

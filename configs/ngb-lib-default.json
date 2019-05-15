@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/lib-project-config-schema.json#",
+  "$schema": "../dist/src/schemas/lib-project-config-schema.json#",
   "root": "src",
   "outputPath": "dist",
   "tsTranspilations": true,

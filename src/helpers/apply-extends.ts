@@ -90,7 +90,7 @@ export async function getBaseProjectConfigForBuiltInExtends<TConfig extends Proj
         throw new InvalidConfigError(projectTypeMisMatchErrMsg);
     }
 
-    const buildInConfigsRootPath = '../../configs';
+    const buildInConfigsRootPath = path.resolve(__dirname, '../../configs');
     const builtInConfigPath = path.resolve(buildInConfigsRootPath, `ngb-${builtInConfigFileName}.json`);
 
     if (!await pathExists(builtInConfigPath)) {

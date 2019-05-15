@@ -1,6 +1,7 @@
 {
-  "$schema": "./../../schemas/schema.json#",
+  "$schema": "./../../dist/src/schemas/schema.json#",
   "libs": [{
+    "name": "hello-world",
     "root": ".",
     "outputPath": "dist",
     "libraryName": "hello-world",

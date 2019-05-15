@@ -5,11 +5,11 @@ import { Observable } from 'rxjs';
 import * as webpack from 'webpack';
 
 import { BuildOptions } from '../../models';
-import { InvalidConfigError, TypescriptCompileError, UnsupportedStyleExtError } from '../../models/errors';
 
 export function runWebpack(wpConfig: webpack.Configuration,
     buildOptions: BuildOptions,
-    logger: logging.LoggerApi): Observable<BuilderOutput> {
+    logger: logging.LoggerApi,
+    startTime: number): Observable<BuilderOutput> {
     const statsOptions = wpConfig.stats;
     const watch = buildOptions.watch;
     const watchOptions = wpConfig.watchOptions || buildOptions.watchOptions || {};
@@ -27,8 +27,7 @@ export function runWebpack(wpConfig: webpack.Configuration,
             const hasErrors = stats.hasErrors();
 
             if (hasErrors) {
-                logger.error(stats.toString('errors-only'));
-                obs.error();
+                obs.error(new Error(stats.toString('errors-only')));
 
                 return;
             }
@@ -40,8 +39,11 @@ export function runWebpack(wpConfig: webpack.Configuration,
                 }
             }
 
+            const duration = Date.now() - startTime;
+            logger.info(`Build completed in [${duration}ms]\n`);
+
             obs.next({
-                success: !hasErrors
+                success: true
             } as unknown as BuilderOutput);
 
             if (!watch) {
@@ -63,16 +65,9 @@ export function runWebpack(wpConfig: webpack.Configuration,
                 webpackCompiler.run(callback);
             }
         } catch (err) {
-            // TODO: To review
             if (err) {
-                if (err instanceof InvalidConfigError ||
-                    err instanceof TypescriptCompileError ||
-                    err instanceof UnsupportedStyleExtError) {
-                    logger.error(`\n${err.message.trim()}\n`);
-                } else {
-                    // tslint:disable-next-line: no-unsafe-any
-                    logger.error(`\nAn error occurred during the build:\n${err.stack || err}`);
-                }
+                // tslint:disable-next-line: no-unsafe-any
+                logger.error(`\nAn error occurred during the build:\n${err.stack || err}`);
             }
 
             throw err;

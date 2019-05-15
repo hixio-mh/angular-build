@@ -52,7 +52,16 @@
     "build:sample-app-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-app/angular-build.json --env.prod --env.aot",
     "build:sample-lib": "node -r source-map-support/register dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --verbose",
     "build:sample-lib-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --env.prod --verbose",
-    "build:ng:hello-world": "ng build hello-world --verbose"
+
+    "build:ng:hello-world": "ng build hello-world --verbose",
+    "build:ng:hello-world:prod": "ng build hello-world --verbose -c=production",
+
+    "build:ng:hello-world-project-extends": "ng build hello-world-project-extends --verbose",
+    "build:ng:hello-world-project-extends:prod": "ng build hello-world-project-extends --verbose -c=production",
+    "build:ng:hello-world-builtin-extends": "ng build hello-world-builtin-extends --verbose",
+    "build:ng:hello-world-builtin-extends:prod": "ng build hello-world-builtin-extends --verbose -c=production",
+    "build:ng:hello-world-file-extends": "ng build hello-world-file-extends --verbose",
+    "build:ng:hello-world-file-extends:prod": "ng build hello-world-file-extends --verbose -c=production"
   },
   "dependencies": {
     "@angular-devkit/architect": "^0.800.0-rc.3",

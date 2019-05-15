@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/app-project-config-schema.json#",
+  "$schema": "../dist/src/schemas/app-project-config-schema.json#",
   "platformTarget": "web",
   "root": "src",
   "outputPath": "dist",
