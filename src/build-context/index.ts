@@ -328,10 +328,10 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
 
         if (projectConfig._projectType === 'lib') {
             AngularBuildContext._libCount = AngularBuildContext._libCount + 1;
-            await initLibConfig(this._projectConfig as LibProjectConfigInternal);
+            await initLibConfig(projectConfig as LibProjectConfigInternal);
         } else {
             AngularBuildContext._appCount = AngularBuildContext._appCount + 1;
-            await initAppConfig(this._projectConfig as AppProjectConfigInternal, this._buildOptions);
+            await initAppConfig(projectConfig as AppProjectConfigInternal, this._buildOptions);
         }
 
         this._projectConfig = projectConfig;

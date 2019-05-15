@@ -38,6 +38,7 @@
   "typings": "dist/src/index.d.ts",
   "builders": "dist/src/architect/builders.json",
   "scripts": {
+    "ng": "ng",
     "clean": "rimraf -- dist schemas",
     "lint": "node node_modules/tslint/bin/tslint -t verbose -p tsconfig.json -c tslint.json",
     "tsc": "node node_modules/typescript/bin/tsc -p tsconfig.json",
@@ -51,7 +52,7 @@
     "build:sample-app-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-app/angular-build.json --env.prod --env.aot",
     "build:sample-lib": "node -r source-map-support/register dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --verbose",
     "build:sample-lib-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --env.prod --verbose",
-    "build:sample-lib:ng": "node -r source-map-support/register ng build"
+    "build:ng:hello-world": "ng build hello-world"
   },
   "dependencies": {
     "@angular-devkit/architect": "^0.800.0-rc.3",
