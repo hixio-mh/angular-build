@@ -35,7 +35,7 @@ fs.copySync(path.resolve(rootDir, 'LICENSE'), path.resolve(destDir, 'LICENSE'));
 
 const builderJsonRelativePath = 'src/architect/builders.json';
 const buildersJsonOutputPath = path.resolve(destDir, builderJsonRelativePath);
-fs.ensureDirSync(buildersJsonOutputPath);
+fs.ensureDirSync(path.dirname(buildersJsonOutputPath));
 fs.copySync(path.resolve(rootDir, builderJsonRelativePath), buildersJsonOutputPath);
 
 fs.copySync(path.resolve(rootDir, 'bin/ngb'), path.resolve(destDir, 'bin/ngb'));
