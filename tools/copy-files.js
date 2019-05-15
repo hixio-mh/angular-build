@@ -15,7 +15,6 @@ const packageJson = require('../package.json');
 packageJson.main = 'src/index.js';
 packageJson.typings = 'src/index.d.ts';
 packageJson.builders = 'src/architect/builders.json';
-packageJson.schemas = 'src/schemas';
 
 if (packageJson.devDependencies) {
     if (packageJson.peerDependencies) {

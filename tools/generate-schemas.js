@@ -26,7 +26,7 @@ function _generateSchema(input, typeSymbol, output) {
 }
 
 function generateSchemas() {
-    const defaultSchemaOutDir = path.resolve(__dirname, '../dist/schemas');
+    const defaultSchemaOutDir = path.resolve(__dirname, '../dist/src/schemas');
     const builderSchemaOutDir = path.resolve(__dirname, '../dist/src/architect/schemas');
 
     const tsConfigInput = path.resolve(__dirname, './tsconfig-schema.json');
