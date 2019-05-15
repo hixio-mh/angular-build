@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { pathExists } from 'fs-extra';
@@ -18,7 +15,7 @@ export async function parseScriptStyleEntries(extraEntries: string | (string | G
     }
 
     const entries = Array.isArray(extraEntries) ? extraEntries : [extraEntries];
-    const clonedEntries = entries.map((entry: any) =>
+    const clonedEntries = entries.map(entry =>
         typeof entry === 'object' ? { ...entry } : entry
     );
 

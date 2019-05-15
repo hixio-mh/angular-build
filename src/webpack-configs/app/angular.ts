@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { AngularCompilerPluginOptions, PLATFORM } from '@ngtools/webpack';
@@ -84,10 +81,10 @@ export async function getAppAngularWebpackConfigPartial(angularBuildContext: Ang
         aotPlugin
     ];
 
-    const isCliIsLink = await AngularBuildContext.cliIsLink();
+    const angularBuildIsLink = await AngularBuildContext.checkAngularBuildIsLink();
 
     if (AngularBuildContext.cliIsGlobal ||
-        isCliIsLink ||
+        angularBuildIsLink ||
         appConfig.platformTarget === 'node' ||
         (appConfig._nodeResolveFields &&
             appConfig._nodeResolveFields.length > 0 &&
@@ -181,17 +178,21 @@ async function createAotPlugin(angularBuildContext: AngularBuildContext<AppProje
         additionalLazyModules,
         nameLazyFiles: appConfig.namedChunks,
         forkTypeChecker: appConfig.forkTypeChecker !== false,
-        // tslint:disable-next-line:no-require-imports
+
+        // tslint:disable-next-line: no-require-imports no-unsafe-any
         contextElementDependencyConstructor: require('webpack/lib/dependencies/ContextElementDependency'),
+
         directTemplateLoading: true,
         ...options
     };
 
     const ngToolsPath = await resolveLoaderPath('@ngtools/webpack');
 
-    // tslint:disable-next-line:non-literal-require
+
+    // tslint:disable-next-line: non-literal-require no-unsafe-any
     const AngularCompilerPlugin = require(ngToolsPath).AngularCompilerPlugin;
 
+    // tslint:disable-next-line: no-unsafe-any
     return new AngularCompilerPlugin(pluginOptions);
 }
 

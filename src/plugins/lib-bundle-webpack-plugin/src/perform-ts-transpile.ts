@@ -112,7 +112,7 @@ async function afterTsTranspileTask(angularBuildContext: AngularBuildContext<Lib
     const flatModuleOutFile =
         tsTranspilation._angularCompilerOptions &&
             tsTranspilation._angularCompilerOptions.flatModuleOutFile
-            ? tsTranspilation._angularCompilerOptions.flatModuleOutFile
+            ? tsTranspilation._angularCompilerOptions.flatModuleOutFile as string
             : '';
     const projectVersion = libConfig._projectVersion;
 

@@ -55,8 +55,7 @@ export class CleanWebpackPlugin {
             this._isPersistedOutputFileSystem = false;
         }
 
-        // tslint:disable-next-line:no-any
-        compiler.hooks.beforeRun.tapAsync(this.name, (_: any, cb: (err?: Error) => void) => {
+        compiler.hooks.beforeRun.tapAsync(this.name, (_, cb: (err?: Error) => void) => {
             const startTime = Date.now();
 
             if (this._beforeRunCleaned || !this._options.beforeBuild) {
@@ -110,8 +109,8 @@ export class CleanWebpackPlugin {
                 })
                 .catch(cb);
         });
-        // tslint:disable-next-line:no-any
-        compiler.hooks.afterEmit.tapAsync(this.name, (_: any, cb: (err?: Error) => void) => {
+
+        compiler.hooks.afterEmit.tapAsync(this.name, (_, cb: (err?: Error) => void) => {
             const startTime = Date.now();
 
             if (this._afterEmitCleaned || !this._options.afterEmit) {

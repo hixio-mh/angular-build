@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { ScriptTarget } from 'typescript';
@@ -97,8 +94,8 @@ export async function initAppConfig(appConfig: AppProjectConfigInternal, buildOp
     }
 
     // output hashing
-    if (typeof (appConfig.outputHashing as any) === 'string') {
-        const outputHashing = (appConfig.outputHashing as any) as string;
+    if (typeof (appConfig.outputHashing as unknown) === 'string') {
+        const outputHashing = (appConfig.outputHashing as unknown) as string;
         if (outputHashing === 'all') {
             const objConfig = {
                 bundles: true,

@@ -1,10 +1,5 @@
 // Ref: https://github.com/angular/angular-cli
 
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-// tslint:disable:no-var-requires
-// tslint:disable:no-require-imports
-
 import * as path from 'path';
 
 import * as autoprefixer from 'autoprefixer';
@@ -21,8 +16,9 @@ import { outputHashFormat, resolveLoaderPath } from '../../helpers';
 import { InternalError } from '../../models/errors';
 import { AppProjectConfigInternal } from '../../models/internals';
 
-// tslint:disable-next-line:variable-name
+// tslint:disable-next-line: no-var-requires no-require-imports variable-name
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+// tslint:disable-next-line: no-var-requires no-require-imports
 const postcssImports = require('postcss-import');
 
 // tslint:disable:max-func-body-length
@@ -76,10 +72,12 @@ export async function
     const styleLoader = await resolveLoaderPath('style-loader');
 
     const postcssPluginCreator = (loader: loaderWebpack.LoaderContext) => [
+        // tslint:disable-next-line: no-unsafe-any
         postcssImports({
             resolve: (url: string) => url.startsWith('~') ? url.substr(1) : url,
             load: async (filename: string) => {
                 return new Promise<string>((resolve, reject) => {
+                    // tslint:disable-next-line: no-unsafe-any
                     loader.fs.readFile(filename, (err: Error, data: Buffer) => {
                         if (err) {
                             reject(err);
@@ -106,14 +104,14 @@ export async function
     let sassImplementation: {} | undefined;
     let fiber: {} | undefined;
     try {
-        // tslint:disable-next-line:no-implicit-dependencies
+        // tslint:disable-next-line:no-implicit-dependencies no-require-imports no-unsafe-any
         sassImplementation = require('node-sass');
     } catch {
-        // tslint:disable-next-line: no-implicit-dependencies
+        // tslint:disable-next-line:no-implicit-dependencies no-require-imports no-unsafe-any
         sassImplementation = require('sass');
 
         try {
-            // tslint:disable-next-line:no-implicit-dependencies
+            // tslint:disable-next-line:no-implicit-dependencies no-require-imports no-unsafe-any
             fiber = require('fibers');
         } catch {
             // Do nothing
@@ -197,9 +195,8 @@ export async function
                 test,
                 use: [
                     // TODO: to review for appConfig.platformTarget === 'node'
-                    extractCss
-                        ? MiniCssExtractPlugin.loader
-                        : styleLoader,
+                    // tslint:disable-next-line: no-unsafe-any
+                    extractCss ? MiniCssExtractPlugin.loader : styleLoader,
                     RawCssLoader,
                     {
                         loader: postcssLoader,
@@ -217,6 +214,7 @@ export async function
         if (extractCss) {
             // extract global css from js files into own css file
             plugins.push(
+                // tslint:disable-next-line: no-unsafe-any
                 new MiniCssExtractPlugin({
                     filename: `[name]${extractedCssHashFormat}.css`
                 }));

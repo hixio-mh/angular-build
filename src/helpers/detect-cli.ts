@@ -1,3 +1,7 @@
+export function isFromBuiltInCli(): boolean {
+    return process.argv.length >= 2 && /(\\|\/)?ngb$/i.test(process.argv[1]);
+}
+
 export function isFromWebpackCli(): boolean {
     return process.argv.length >= 2 && /(\\|\/)?webpack(\.js)?$/i.test(process.argv[1]);
 }

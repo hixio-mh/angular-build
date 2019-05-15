@@ -11,3 +11,4 @@ export * from './package-entrypoints';
 export * from './polyfill-dll-parsed-entry';
 export * from './project-config-internal';
 export * from './ts-transpilation-options-internal';
+export * from './virtual-fs-host';

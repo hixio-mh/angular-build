@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as webpack from 'webpack';
 
 import { Logger, LogLevelString } from '../../../utils';
@@ -35,7 +32,7 @@ export class DynamicDllWebpackPlugin {
     }
 
     private async checkAndBundleDll(compiler: webpack.Compiler): Promise<void> {
-        const manifestFilesExists = await this.checkManifestFiles((compiler as any).inputFileSystem);
+        const manifestFilesExists = await this.checkManifestFiles(compiler.inputFileSystem);
         if (manifestFilesExists) {
             this._logger.debug('Found manifest file');
 
@@ -76,21 +73,20 @@ export class DynamicDllWebpackPlugin {
         }
     }
 
-    private async checkManifestFiles(inputFileSystem: any): Promise<boolean> {
+    private async checkManifestFiles(inputFileSystem: webpack.InputFileSystem): Promise<boolean> {
         this._logger.debug('Checking dll manifest file');
         const tasks = this._options.manifests.map(async (manifest) => {
             return new Promise<boolean>((resolve) => {
-                return inputFileSystem.stat(manifest.file,
-                    (err: Error, stats: any) => {
+                inputFileSystem.stat(manifest.file,
+                    (err, stats) => {
                         if (err) {
                             resolve(false);
 
                             return;
                         }
 
+                        // tslint:disable-next-line: no-unsafe-any
                         resolve(stats.isFile());
-
-                        return;
                     });
             });
         });

@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as webpack from 'webpack';
 
 import { Logger, LogLevelString } from '../../../utils';
@@ -10,6 +7,11 @@ export interface SuppressEntryChunksWebpackPluginOptions {
     exclude?: string[];
     supressPattern?: RegExp;
     logLevel?: LogLevelString;
+}
+
+export interface WebpackChunk {
+    name: string;
+    files: string[];
 }
 
 export class SuppressEntryChunksWebpackPlugin {
@@ -32,26 +34,27 @@ export class SuppressEntryChunksWebpackPlugin {
     }
 
     apply(compiler: webpack.Compiler): void {
-        compiler.hooks.compilation.tap(this.name, (compilation: any) => {
+        compiler.hooks.compilation.tap(this.name, (compilation: webpack.compilation.Compilation) => {
             compilation.hooks.afterSeal.tap(this.name, (): void => {
                 if (!this._options.chunks || !this._options.supressPattern || !compilation.chunks) {
                     return;
                 }
 
-                compilation.chunks.filter((chunk: any) => this._options.chunks &&
+                // tslint:disable-next-line: no-any
+                compilation.chunks.filter((chunk: WebpackChunk) => this._options.chunks &&
                     this._options.chunks.includes(chunk.name) &&
                     (!this._options.exclude || !this._options.exclude.includes(chunk.name)))
-                    .forEach((chunk: any) => {
+                    .forEach((chunk: WebpackChunk) => {
                         const newFiles: string[] = [];
                         let deleted = false;
                         chunk.files.forEach((file: string) => {
                             if (this._options.supressPattern &&
                                 file.match(this._options.supressPattern) &&
-                                compilation.assets[file]) {
+                                (compilation.assets as { [key: string]: string })[file]) {
                                 this._logger.debug(`Deleting compilation asset - ${file}`);
 
                                 // tslint:disable-next-line: no-dynamic-delete
-                                delete compilation.assets[file];
+                                delete (compilation.assets as { [key: string]: string })[file];
                                 deleted = true;
                             } else {
                                 newFiles.push(file);

@@ -1,13 +1,17 @@
 import { AngularBuildConfigInternal } from './angular-build-config-internal';
 
+import { LoggerBase } from '../../utils';
+
 export interface BuildContextStaticOptions {
+    startTime: number;
+    logger: LoggerBase;
+
     workspaceRoot: string;
-    filteredConfigNames?: string[];
-    startTime?: number;
     angularBuildConfig?: AngularBuildConfigInternal;
+
+    angularBuildVersion?: string;
     fromBuiltInCli?: boolean;
-    cliRootPath?: string;
-    cliVersion?: string;
     cliIsGlobal?: boolean;
+    cliRootPath?: string;
     cliIsLink?: boolean;
 }

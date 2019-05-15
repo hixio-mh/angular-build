@@ -5,7 +5,6 @@ import { Configuration, DllReferencePlugin, Plugin } from 'webpack';
 import { DynamicDllWebpackPlugin } from '../../plugins/dynamic-dll-webpack-plugin';
 
 import { AngularBuildContext } from '../../build-context';
-import { applyProjectConfigWithEnvironment } from '../../helpers';
 import { InternalError } from '../../models/errors';
 import { AppProjectConfigInternal } from '../../models/internals';
 
@@ -33,20 +32,24 @@ export async function getAppReferenceDllWebpackConfigPartial(angularBuildContext
 
     const dllEnvironment = { ...angularBuildContext.buildOptions.environment };
     dllEnvironment.dll = true;
-
     if (dllEnvironment.aot) {
         dllEnvironment.aot = false;
     }
 
-    const dllProjectConfig =
-        JSON.parse(JSON.stringify(angularBuildContext.projectConfigWithoutEnvApplied)) as AppProjectConfigInternal;
-    applyProjectConfigWithEnvironment(dllProjectConfig, dllEnvironment);
-    dllProjectConfig._isDll = true;
+    const dllProjectConfigRaw =
+        JSON.parse(JSON.stringify(angularBuildContext.projectConfigRaw)) as AppProjectConfigInternal;
 
     const dllBuildOptions = { ...angularBuildContext.buildOptions };
     dllBuildOptions.environment = dllEnvironment;
 
-    if (!dllProjectConfig.vendors || !dllProjectConfig.vendors.length) {
+    const dllAngularBuildContext = new AngularBuildContext({
+        projectConfigRaw: dllProjectConfigRaw,
+        buildOptions: dllBuildOptions,
+        host: angularBuildContext.host,
+    });
+    await dllAngularBuildContext.init();
+
+    if (!dllAngularBuildContext.projectConfig.vendors || !dllAngularBuildContext.projectConfig.vendors.length) {
         return {};
     }
 
@@ -61,15 +64,6 @@ export async function getAppReferenceDllWebpackConfigPartial(angularBuildContext
         }
     );
 
-    const dllAngularBuildContext = new AngularBuildContext({
-        workspaceRoot: AngularBuildContext.workspaceRoot,
-        host: angularBuildContext.host,
-        projectConfigWithoutEnvApplied: angularBuildContext.projectConfigWithoutEnvApplied,
-        projectConfig: dllProjectConfig,
-        buildOptions: dllBuildOptions
-    });
-    await dllAngularBuildContext.init();
-
     // dynamic dll
     plugins.push(new DynamicDllWebpackPlugin({
         manifests: manifests,
@@ -77,7 +71,7 @@ export async function getAppReferenceDllWebpackConfigPartial(angularBuildContext
         logLevel: logLevel
     }));
 
-    let sourceType = dllProjectConfig.libraryTarget;
+    let sourceType = dllAngularBuildContext.projectConfig.libraryTarget;
     if (!sourceType && appConfig.platformTarget === 'node') {
         sourceType = 'commonjs2';
     }

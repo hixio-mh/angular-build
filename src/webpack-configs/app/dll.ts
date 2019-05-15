@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { Configuration, DllPlugin, IgnorePlugin, Plugin, RuleSetRule } from 'webpack';
@@ -45,7 +42,7 @@ export async function getAppDllWebpackConfig(angularBuildContext: AngularBuildCo
 
     const mergedConfig = webpackMerge(...configs);
     if (!mergedConfig.entry || (typeof mergedConfig.entry === 'object' && !Object.keys(mergedConfig.entry).length)) {
-        mergedConfig.entry = (() => ({})) as any;
+        mergedConfig.entry = (() => ({}));
     }
 
     return mergedConfig;

@@ -1,37 +1,29 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { pathExists } from 'fs-extra';
-
-import { NodeJsSyncHost } from '@angular-devkit/core/node';
 import { Configuration } from 'webpack';
 
 import { AngularBuildContext } from '../build-context';
-import {
-    applyProjectConfigExtends,
-    applyProjectConfigWithEnvironment,
-    normalizeEnvironment
-} from '../helpers';
-import { AngularBuildConfig } from '../models';
-import { InternalError, InvalidConfigError } from '../models/errors';
+import { applyProjectConfigExtends, normalizeEnvironment } from '../helpers';
+import { AngularBuildConfig, JsonObject } from '../models';
+import { InvalidConfigError } from '../models/errors';
 import {
     AngularBuildConfigInternal,
     AppProjectConfigInternal,
     BuildCommandOptions,
-    BuildContextStaticOptions,
     BuildOptionsInternal,
     LibProjectConfigInternal
-
 } from '../models/internals';
-import { formatValidationError, readJson, validateSchema } from '../utils';
+import { formatValidationError, Logger, readJson, validateSchema } from '../utils';
 
 import { getAppWebpackConfig } from './app';
 import { getLibWebpackConfig } from './lib';
 
 // tslint:disable:max-func-body-length
-export async function getWebpackConfigFromAngularBuildConfig(configPath: string, env?: any, argv?: any): Promise<Configuration[]> {
+export async function getWebpackConfigFromAngularBuildConfig(
+    configPath: string,
+    env?: string | { [key: string]: boolean | string } | null,
+    argv?: BuildCommandOptions | JsonObject | null): Promise<Configuration[]> {
     let startTime = Date.now();
     if (!configPath || !configPath.length) {
         throw new InvalidConfigError("The 'configPath' is required.");
@@ -46,57 +38,60 @@ export async function getWebpackConfigFromAngularBuildConfig(configPath: string,
     }
 
     let buildOptions: BuildOptionsInternal = { environment: {} };
-    const buildCommandOptions = argv && typeof argv === 'object' ? argv as BuildCommandOptions : {};
+    const buildCommandOptions = argv && typeof argv === 'object' ? argv : {};
 
     if (env) {
-        buildOptions.environment = normalizeEnvironment(env, buildCommandOptions.prod);
+        buildOptions.environment = normalizeEnvironment(env, buildCommandOptions.prod as boolean);
     }
 
-    const fromBuiltInCli = buildCommandOptions._fromBuiltInCli;
-    const cliRootPath = fromBuiltInCli && buildCommandOptions._cliRootPath ? buildCommandOptions._cliRootPath : undefined;
+    const fromBuiltInCli = (buildCommandOptions as BuildCommandOptions)._fromBuiltInCli;
+    const cliRootPath = fromBuiltInCli && buildCommandOptions._cliRootPath ?
+        (buildCommandOptions as BuildCommandOptions)._cliRootPath : undefined;
     const cliIsGlobal = fromBuiltInCli && buildCommandOptions._cliIsGlobal ? true : false;
     const cliIsLink = fromBuiltInCli && buildCommandOptions._cliIsLink ? true : false;
-    const cliVersion = fromBuiltInCli && buildCommandOptions._cliVersion ? buildCommandOptions._cliVersion : undefined;
+    const cliVersion = fromBuiltInCli && buildCommandOptions._cliVersion ?
+        (buildCommandOptions as BuildCommandOptions)._cliVersion : undefined;
     const verbose = buildCommandOptions.verbose;
 
     if (verbose) {
         buildOptions.logLevel = 'debug';
     }
 
-    buildOptions.watch = (buildCommandOptions.watch || (buildCommandOptions as any).w) ? true : false;
+    buildOptions.watch = (buildCommandOptions.watch || (buildCommandOptions as JsonObject).w) ? true : false;
     buildOptions.progress = buildCommandOptions.progress ? true : false;
 
     const filteredConfigNames: string[] = [];
 
     if (fromBuiltInCli) {
-        buildOptions.beep = buildCommandOptions.beep;
+        buildOptions.beep = typeof buildCommandOptions.beep === 'boolean' ? buildCommandOptions.beep : false;
 
-        if (buildCommandOptions._startTime) {
+        if (buildCommandOptions._startTime && typeof buildCommandOptions._startTime === 'number') {
             startTime = buildCommandOptions._startTime;
         }
 
-        buildOptions.cleanOutDir = buildCommandOptions.clean || (buildCommandOptions as any).cleanOutDirs ||
-            (buildCommandOptions as any).cleanOutputPath || (buildCommandOptions as any).deleteOutputPath
+        buildOptions.cleanOutDir = buildCommandOptions.clean ||
+            (buildCommandOptions as JsonObject).cleanOutDirs ||
+            (buildCommandOptions as JsonObject).cleanOutputPath || (buildCommandOptions as JsonObject).deleteOutputPath
             ? true
             : false;
-        if (buildCommandOptions.filter && buildCommandOptions.filter.length) {
-            filteredConfigNames.push(...prepareFilterNames(buildCommandOptions.filter));
+        if (buildCommandOptions.filter && Array.isArray(buildCommandOptions.filter) && buildCommandOptions.filter.length) {
+            filteredConfigNames.push(...prepareFilterNames(buildCommandOptions.filter as string[]));
         }
     } else {
-        if (((buildCommandOptions as any).configName || (buildCommandOptions as any)['config-name'])) {
-            filteredConfigNames.push(((buildCommandOptions as any).configName || (buildCommandOptions as any)['config-name']));
+        if (((buildCommandOptions as JsonObject).configName || (buildCommandOptions as JsonObject)['config-name'])) {
+            filteredConfigNames.push((((buildCommandOptions as JsonObject).configName || (buildCommandOptions as JsonObject)['config-name']) as string));
         }
 
         if (!env && process.env.WEBPACK_ENV) {
-            const rawEnvStr = process.env.WEBPACK_ENV as any;
-            const rawEnv: any = typeof rawEnvStr === 'string'
-                ? JSON.parse(rawEnvStr)
-                : rawEnvStr;
-            buildOptions.environment = { ...buildOptions.environment, ...normalizeEnvironment(rawEnv, buildCommandOptions.prod) };
+            const rawEnvStr = process.env.WEBPACK_ENV;
+            const rawEnv = typeof rawEnvStr === 'string'
+                ? JSON.parse(rawEnvStr) as JsonObject
+                : rawEnvStr as JsonObject;
+            buildOptions.environment = { ...buildOptions.environment, ...normalizeEnvironment(rawEnv, buildCommandOptions.prod as boolean) };
         }
 
-        if ((buildCommandOptions as any).mode) {
-            if ((buildCommandOptions as any).mode === 'production') {
+        if ((buildCommandOptions as JsonObject).mode) {
+            if ((buildCommandOptions as JsonObject).mode === 'production') {
                 buildOptions.environment.prod = true;
                 buildOptions.environment.production = true;
 
@@ -106,7 +101,7 @@ export async function getWebpackConfigFromAngularBuildConfig(configPath: string,
                 if (buildOptions.environment.development) {
                     buildOptions.environment.development = false;
                 }
-            } else if ((buildCommandOptions as any).mode === 'development') {
+            } else if ((buildCommandOptions as JsonObject).mode === 'development') {
                 buildOptions.environment.dev = true;
                 buildOptions.environment.development = true;
 
@@ -121,7 +116,7 @@ export async function getWebpackConfigFromAngularBuildConfig(configPath: string,
 
         if (buildOptions.environment.buildOptions) {
             if (typeof buildOptions.environment.buildOptions === 'object') {
-                buildOptions = { ...buildOptions, ...((buildOptions as any).environment.buildOptions) };
+                buildOptions = { ...buildOptions, ...(buildOptions.environment.buildOptions as JsonObject) };
             }
 
             delete buildOptions.environment.buildOptions;
@@ -133,34 +128,19 @@ export async function getWebpackConfigFromAngularBuildConfig(configPath: string,
     try {
         angularBuildConfig = await readJson(configPath) as AngularBuildConfigInternal;
     } catch (jsonErr) {
+        // tslint:disable-next-line: no-unsafe-any
         throw new InvalidConfigError(`Invalid configuration, error: ${jsonErr.message || jsonErr}.`);
     }
 
-    // Validate schema
-    const schemaFileName = 'schema.json';
-    let schemaPath = '';
-    if (await pathExists(path.resolve(__dirname, `../schemas/${schemaFileName}`))) {
-        schemaPath = `../schemas/${schemaFileName}`;
-    } else if (await pathExists(path.resolve(__dirname, `../../schemas/${schemaFileName}`))) {
-        schemaPath = `../../schemas/${schemaFileName}`;
-    }
+    const angularBuildConfigSchema = await AngularBuildContext.getAngularBuildConfigSchema();
 
-    if (!schemaPath) {
-        throw new InternalError("The angular-build schema file doesn't exist.");
-    }
-
-    // tslint:disable-next-line:non-literal-require
-    const schema = require(schemaPath);
-    if (schema.$schema) {
-        delete schema.$schema;
-    }
     if (angularBuildConfig.$schema) {
         delete angularBuildConfig.$schema;
     }
 
-    const errors = validateSchema(schema, angularBuildConfig);
+    const errors = validateSchema(angularBuildConfigSchema, angularBuildConfig);
     if (errors.length) {
-        const errMsg = errors.map(err => formatValidationError(schema, err)).join('\n');
+        const errMsg = errors.map(err => formatValidationError(angularBuildConfigSchema, err)).join('\n');
         throw new InvalidConfigError(
             `Invalid configuration.\n\n${
             errMsg}`);
@@ -168,7 +148,7 @@ export async function getWebpackConfigFromAngularBuildConfig(configPath: string,
 
     // Set angular build defaults
     const angularBuildConfigInternal = angularBuildConfig as AngularBuildConfigInternal;
-    angularBuildConfigInternal._schema = schema;
+    angularBuildConfigInternal._schema = angularBuildConfigSchema;
     angularBuildConfigInternal._configPath = configPath;
     angularBuildConfigInternal.libs = angularBuildConfigInternal.libs || [];
     angularBuildConfigInternal.apps = angularBuildConfigInternal.apps || [];
@@ -192,19 +172,23 @@ export async function getWebpackConfigFromAngularBuildConfig(configPath: string,
         throw new InvalidConfigError('No app or lib project is available.');
     }
 
-    const staticBuildContextOptions: BuildContextStaticOptions = {
-        workspaceRoot: path.dirname(configPath),
-        filteredConfigNames: filteredConfigNames,
-        startTime: startTime,
-        fromBuiltInCli: fromBuiltInCli,
-        angularBuildConfig: angularBuildConfigInternal,
-        cliRootPath: cliRootPath,
-        cliVersion: cliVersion,
-        cliIsGlobal: cliIsGlobal,
-        cliIsLink: cliIsLink
-    };
+    const logger = new Logger({
 
-    return getWebpackConfigsInternal(angularBuildConfigInternal, buildOptions, staticBuildContextOptions);
+    });
+
+    AngularBuildContext.init({
+        startTime: startTime,
+        logger: logger,
+        workspaceRoot: path.dirname(configPath),
+        angularBuildConfig: angularBuildConfigInternal,
+        fromBuiltInCli: fromBuiltInCli,
+        cliRootPath: cliRootPath,
+        cliIsGlobal: cliIsGlobal,
+        cliIsLink: cliIsLink,
+        angularBuildVersion: cliVersion
+    });
+
+    return getWebpackConfigsInternal(angularBuildConfigInternal, buildOptions, filteredConfigNames);
 }
 
 function prepareFilterNames(filter: string | string[]): string[] {
@@ -226,53 +210,41 @@ function prepareFilterNames(filter: string | string[]): string[] {
     return filterNames;
 }
 
-async function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuildConfigInternal,
+async function getWebpackConfigsInternal(
+    angularBuildConfigInternal: AngularBuildConfigInternal,
     buildOptions: BuildOptionsInternal,
-    staticBuildContextOptions: BuildContextStaticOptions): Promise<Configuration[]> {
-
+    filteredConfigNames: string[]): Promise<Configuration[]> {
     const webpackConfigs: Configuration[] = [];
-
-    const workspaceRoot = staticBuildContextOptions.workspaceRoot;
-    const filterNames = staticBuildContextOptions.filteredConfigNames || [];
+    const workspaceRoot = AngularBuildContext.workspaceRoot;
 
     if (angularBuildConfigInternal.libs.length > 0) {
         let filteredLibConfigs = angularBuildConfigInternal.libs
             .filter(projectConfig =>
-                (filterNames.length === 0 ||
-                    (filterNames.length > 0 &&
-                        (filterNames.includes('libs') ||
-                            (projectConfig.name && filterNames.includes(projectConfig.name))))));
+                (filteredConfigNames.length === 0 ||
+                    (filteredConfigNames.length > 0 &&
+                        (filteredConfigNames.includes('libs') ||
+                            (projectConfig.name && filteredConfigNames.includes(projectConfig.name))))));
 
-        if (filterNames.length &&
-            filterNames.filter(configName => configName === 'apps').length === filterNames.length) {
+        if (filteredConfigNames.length &&
+            filteredConfigNames.filter(configName => configName === 'apps').length === filteredConfigNames.length) {
             filteredLibConfigs = [];
         }
 
         if (filteredLibConfigs.length > 0) {
             for (const filteredLibConfig of filteredLibConfigs) {
-                const libConfig = JSON.parse(JSON.stringify(filteredLibConfig)) as LibProjectConfigInternal;
-
-                // extends
-                await applyProjectConfigExtends(libConfig, angularBuildConfigInternal.libs);
-
-                const clonedLibConfig = JSON.parse(JSON.stringify(libConfig)) as LibProjectConfigInternal;
-
-                // apply env
-                applyProjectConfigWithEnvironment(clonedLibConfig, buildOptions.environment);
-
-                if (clonedLibConfig.skip) {
-                    continue;
-                }
+                // cloned
+                const libConfigRaw = JSON.parse(JSON.stringify(filteredLibConfig)) as LibProjectConfigInternal;
+                await applyProjectConfigExtends(libConfigRaw, angularBuildConfigInternal.libs, workspaceRoot);
 
                 const angularBuildContext = new AngularBuildContext({
-                    projectConfigWithoutEnvApplied: libConfig,
-                    projectConfig: clonedLibConfig,
-                    buildOptions: buildOptions,
-                    workspaceRoot: workspaceRoot,
-                    host: new NodeJsSyncHost(),
-                    ...staticBuildContextOptions
+                    projectConfigRaw: libConfigRaw,
+                    buildOptions: buildOptions
                 });
                 await angularBuildContext.init();
+
+                if (angularBuildContext.projectConfig.skip) {
+                    continue;
+                }
 
                 const wpConfig = await getLibWebpackConfig(angularBuildContext) as (Configuration | null);
                 if (wpConfig) {
@@ -285,39 +257,25 @@ async function getWebpackConfigsInternal(angularBuildConfigInternal: AngularBuil
     if (angularBuildConfigInternal.apps.length > 0) {
         let filteredAppConfigs = angularBuildConfigInternal.apps
             .filter(projectConfig =>
-                (filterNames.length === 0 ||
-                    (filterNames.length > 0 &&
-                        (filterNames.includes('apps') ||
-                            (projectConfig.name && filterNames.includes(projectConfig.name))))));
+                (filteredConfigNames.length === 0 ||
+                    (filteredConfigNames.length > 0 &&
+                        (filteredConfigNames.includes('apps') ||
+                            (projectConfig.name && filteredConfigNames.includes(projectConfig.name))))));
 
-        if (filterNames.length &&
-            filterNames.filter(configName => configName === 'libs').length === filterNames.length) {
+        if (filteredConfigNames.length &&
+            filteredConfigNames.filter(configName => configName === 'libs').length === filteredConfigNames.length) {
             filteredAppConfigs = [];
         }
 
         if (filteredAppConfigs.length > 0) {
             for (const filteredAppConfig of filteredAppConfigs) {
-                const appConfig = JSON.parse(JSON.stringify(filteredAppConfig)) as AppProjectConfigInternal;
-
-                // extends
-                await applyProjectConfigExtends(appConfig, angularBuildConfigInternal.apps);
-
-                const clonedAppConfig = JSON.parse(JSON.stringify(appConfig)) as AppProjectConfigInternal;
-
-                // apply env
-                applyProjectConfigWithEnvironment(clonedAppConfig, buildOptions.environment);
-
-                if (clonedAppConfig.skip) {
-                    continue;
-                }
+                const appConfigRaw = JSON.parse(JSON.stringify(filteredAppConfig)) as AppProjectConfigInternal;
+                await applyProjectConfigExtends(appConfigRaw, angularBuildConfigInternal.apps, workspaceRoot);
 
                 const angularBuildContext = new AngularBuildContext({
-                    projectConfigWithoutEnvApplied: appConfig,
-                    projectConfig: clonedAppConfig,
-                    buildOptions: buildOptions,
-                    workspaceRoot: workspaceRoot,
-                    host: new NodeJsSyncHost(),
-                    ...staticBuildContextOptions
+                    projectConfigRaw: appConfigRaw,
+                    buildOptions: buildOptions
+                    // host: new NodeJsSyncHost()
                 });
                 await angularBuildContext.init();
 

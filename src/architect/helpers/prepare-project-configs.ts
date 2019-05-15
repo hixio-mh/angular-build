@@ -1,80 +1,42 @@
-// tslint:disable: no-any
-
 import * as path from 'path';
 
-import { normalizeEnvironment } from '../../helpers';
-import { BuildOptions } from '../../models';
-import { BuildOptionsInternal } from '../../models/internals';
+import { AppProjectConfigInternal, LibProjectConfigInternal } from '../../models/internals';
 
-import { AppBuilderOptions, AssetPatternObjectCompat, BuildOptionsCompat, LibBuilderOptions } from '../models';
+import { JsonObject } from '../../models';
 
-export function getBuildOptionsFromBuilderOptions(options: BuildOptions & BuildOptionsCompat): BuildOptionsInternal {
-    const buildOptions: BuildOptionsInternal = { environment: {} };
+import { AppBuilderOptions, AssetPatternObjectCompat, LibBuilderOptions } from '../models';
 
-    if (options.environment) {
-        const env = normalizeEnvironment(options.environment);
-        buildOptions.environment = env;
-        delete options.environment;
-    }
 
-    if (options.filter) {
-        buildOptions.filter = options.filter;
-        delete options.filter;
-    }
+export function toAppConfigInternal(workspaceRoot: string, options: AppBuilderOptions): AppProjectConfigInternal {
+    applyAppBuilderOptionsCompat(options);
 
-    if (options.verbose != null) {
-        if (options.verbose) {
-            buildOptions.logLevel = 'debug';
-        }
-        delete options.verbose;
-    }
+    const appConfig: AppProjectConfigInternal = {
+        _index: 0,
+        _projectType: 'app',
+        _configPath: path.resolve(workspaceRoot, 'angular.json'),
+        ...options
+    };
 
-    if (options.logLevel) {
-        buildOptions.logLevel = options.logLevel;
-        delete options.logLevel;
-    }
+    // Delete empty
+    deleteEmpty(appConfig);
 
-    if (options.progress != null) {
-        if (options.progress) {
-            buildOptions.progress = true;
-        }
-        delete options.progress;
-    }
+    return appConfig;
+}
 
-    if (options.poll != null) {
-        buildOptions.watchOptions = {
-            poll: options.poll
-        };
-        delete options.poll;
-    }
+export function toLibConfigInternal(workspaceRoot: string, options: LibBuilderOptions): LibProjectConfigInternal {
+    applyLibBuilderOptionsCompat(options);
 
-    if (options.cleanOutDir != null) {
-        if (options.cleanOutDir) {
-            buildOptions.cleanOutDir = true;
-        }
-        delete options.cleanOutDir;
-    }
+    const libConfig: LibProjectConfigInternal = {
+        _index: 0,
+        _projectType: 'lib',
+        _configPath: path.resolve(workspaceRoot, 'angular.json'),
+        ...options
+    };
 
-    if (options.watch != null) {
-        if (options.watch) {
-            buildOptions.watch = true;
-        }
-        delete options.watch;
-    }
+    // Delete empty
+    deleteEmpty(libConfig);
 
-    if (options.watchOptions) {
-        buildOptions.watchOptions = { ...options.watchOptions };
-        delete options.watchOptions;
-    }
-
-    if (options.beep != null) {
-        if (options.beep) {
-            buildOptions.beep = true;
-        }
-        delete options.beep;
-    }
-
-    return buildOptions;
+    return libConfig;
 }
 
 // tslint:disable-next-line: max-func-body-length
@@ -143,7 +105,8 @@ export function applyAppBuilderOptionsCompat(appConfig: AppBuilderOptions): void
         appConfig.nodeModulesAsExternals = true;
         const externals = [
             /^@angular/,
-            (_: any, request: any, callback: (error?: any, result?: any) => void) => {
+            // tslint:disable-next-line: no-any
+            (_: any, request: string, callback: (error?: Error | null, result?: string) => void) => {
                 // Absolute & Relative paths are not externals
                 // tslint:disable-next-line: no-unsafe-any
                 if (request.match(/^\.{0,2}\//)) {
@@ -170,11 +133,14 @@ export function applyAppBuilderOptionsCompat(appConfig: AppBuilderOptions): void
             }
         ];
         if (!appConfig.externals) {
+            // tslint:disable-next-line: no-any
             appConfig.externals = externals as any;
         } else {
             if (Array.isArray(appConfig.externals)) {
+                // tslint:disable-next-line: no-any
                 appConfig.externals = [...(appConfig.externals as any[]), ...externals];
             } else {
+                // tslint:disable-next-line: no-any
                 appConfig.externals = [appConfig.externals as any, ...externals];
             }
         }
@@ -227,4 +193,39 @@ export function applyLibBuilderOptionsCompat(libConfig: LibBuilderOptions): void
     if (libConfig.bundleDependencies && libConfig.bundleDependencies === 'all') {
         libConfig.nodeModulesAsExternals = false;
     }
+}
+
+// tslint:disable-next-line: no-any
+function isDefaultObject(obj: { [key: string]: any }): boolean {
+    let hasData = false;
+    /* tslint:disable:no-unsafe-any */
+    Object.keys(obj)
+        .forEach(key => {
+            if (obj[key] && Array.isArray(obj[key]) && obj[key].length === 0) {
+                // do nothing
+            } else if (obj[key] && typeof obj[key] === 'object' && Object.keys(obj[key]).length === 0) {
+                // do nothing
+            } else {
+                hasData = true;
+            }
+        });
+    /* tslint:enable:no-unsafe-any */
+
+    return !hasData;
+}
+
+function deleteEmpty(projectConfig: AppProjectConfigInternal | LibProjectConfigInternal): void {
+    Object.keys(projectConfig)
+        .forEach(key => {
+            const configAny = projectConfig as unknown as JsonObject;
+            const configValue = configAny[key];
+            if (configValue && Array.isArray(configValue) && configValue.length === 0) {
+                // tslint:disable-next-line: no-dynamic-delete
+                delete configAny[key];
+            } else if (configValue && typeof configValue === 'object' &&
+                (Object.keys(configValue).length === 0 || isDefaultObject(configValue))) {
+                // tslint:disable-next-line: no-dynamic-delete
+                delete configAny[key];
+            }
+        });
 }

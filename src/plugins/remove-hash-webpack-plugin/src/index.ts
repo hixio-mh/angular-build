@@ -1,6 +1,3 @@
- // tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as webpack from 'webpack';
 
 export interface RemoveHashWebpackPluginOptions {
@@ -13,7 +10,7 @@ export class RemoveHashWebpacklugin {
     constructor(private readonly options: RemoveHashWebpackPluginOptions) { }
 
     apply(compiler: webpack.Compiler): void {
-        compiler.hooks.compilation.tap('remove-hash-webpack-plugin', (compilation: any) => {
+        compiler.hooks.compilation.tap('remove-hash-webpack-plugin', (compilation: webpack.compilation.Compilation) => {
             const mainTemplate = compilation.mainTemplate as webpack.compilation.MainTemplate & {
                 hooks: webpack.compilation.CompilationHooks;
             };

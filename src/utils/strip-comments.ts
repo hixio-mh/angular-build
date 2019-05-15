@@ -1,5 +1,3 @@
-// tslint:disable:no-unsafe-any
-
 export function stripComments(content: string): string {
     /**
      * First capturing group matches double quoted string
@@ -11,7 +9,7 @@ export function stripComments(content: string): string {
         /("(?:[^\\\"]*(?:\\.)?)*")|('(?:[^\\\']*(?:\\.)?)*')|(\/\*(?:\r?\n|.)*?\*\/)|(\/{2,}.*?(?:(?:\r?\n)|$))/g;
     // tslint:disable-next-line:no-unnecessary-local-variable
     const result = content.replace(regexp,
-        (match, _0, _1, m3, m4) => {
+        (match, _0, _1, m3: string, m4: string) => {
             // Only one of m1, m2, m3, m4 matches
             if (m3) {
                 // A block comment. Replace with nothing

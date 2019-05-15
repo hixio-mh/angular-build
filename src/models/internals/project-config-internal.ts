@@ -1,5 +1,6 @@
 import { ParsedCommandLine } from 'typescript';
 
+import { JsonObject } from '../json-object';
 import { ProjectConfig, ProjectConfigBase } from '../project-config';
 
 import { BuildOptionsInternal } from './build-options-internal';
@@ -20,10 +21,8 @@ export interface ProjectConfigInternal<TConfig extends ProjectConfigBase> extend
     _bannerText?: string;
     _packageConfigPath?: string;
     _rootPackageConfigPath?: string;
-    // tslint:disable-next-line:no-any
-    _packageJson?: { [key: string]: any };
-    // tslint:disable-next-line:no-any
-    _rootPackageJson?: { [key: string]: any };
+    _packageJson?: JsonObject;
+    _rootPackageJson?: JsonObject;
 
     _projectName?: string;
     _packageNameWithoutScope?: string;
@@ -37,9 +36,7 @@ export interface ProjectConfigInternal<TConfig extends ProjectConfigBase> extend
     _isPackagePrivate?: boolean;
 
     _tsConfigPath?: string;
-    // tslint:disable-next-line:no-any
-    _tsConfigJson?: { [key: string]: any };
+    _tsConfigJson?: JsonObject;
     _tsCompilerConfig?: ParsedCommandLine;
-    // tslint:disable-next-line:no-any
-    _angularCompilerOptions?: { [key: string]: any };
+    _angularCompilerOptions?: JsonObject;
 }

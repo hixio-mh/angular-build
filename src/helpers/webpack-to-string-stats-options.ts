@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import { Stats } from 'webpack';
 
 // const verbose = process.argv.indexOf('--verbose') > -1;
@@ -66,7 +63,7 @@ export function getWebpackToStringStatsOptions(verbose?: boolean, options?: Stat
                 performance: false
             } as Stats.ToStringOptionsObject;
         } else {
-            const pn: any = options;
+            const pn = options;
 
             // tslint:disable-next-line:no-object-literal-type-assertion
             return {

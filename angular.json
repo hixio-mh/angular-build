@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "modules",
+  "projects": {
+    "hello-world": {
+      "root": "./samples/hello-world-ng-lib",
+      "projectType": "library",
+      "architect": {
+        "build": {
+          "builder": "./dist:lib",
+          "options": {
+            "outputPath": "samples/hello-world-ng-lib/dist",
+            "libraryName": "hello-world",
+            "banner": "banner.txt",
+            "tsTranspilations": true
+          }
+        }
+      }
+    }
+  }
+}

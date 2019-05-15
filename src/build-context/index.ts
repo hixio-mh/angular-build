@@ -2,115 +2,222 @@ import * as path from 'path';
 
 import { pathExists, readFile, realpath } from 'fs-extra';
 
-import { virtualFs } from '@angular-devkit/core';
-
+import { JsonObject } from '../models';
 import {
     AngularBuildConfigInternal,
     AppProjectConfigInternal,
     BuildContextInstanceOptions,
     BuildContextStaticOptions,
     BuildOptionsInternal,
+    Host,
     LibProjectConfigInternal
 } from '../models/internals';
 
-import { initAppConfig, initLibConfig, validateOutputPath } from '../helpers';
+import {
+    applyProjectConfigWithEnvironment,
+    initAppConfig,
+    initLibConfig,
+    isFromBuiltInCli,
+    validateOutputPath
+} from '../helpers';
 import { InternalError, InvalidConfigError } from '../models/errors';
-import { findUp, isSamePaths, Logger, LoggerBase, readJson } from '../utils';
+import { findUp, isSamePaths, LoggerBase, readJson } from '../utils';
 
 const versionPlaceholderRegex = new RegExp('0.0.0-PLACEHOLDER', 'i');
 
 export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibProjectConfigInternal> {
+    // static read/write members
     static get startTime(): number {
+        if (!AngularBuildContext._optionsSet) {
+            throw new InternalError("Please call 'AngularBuildContext.init()' static method first.");
+        }
+
         return AngularBuildContext._startTime;
     }
 
-    static get angularBuildConfig(): AngularBuildConfigInternal | null {
-        if (!AngularBuildContext._instantiated) {
-            throw new InternalError('AngularBuildContext has not been instantiated.');
-        }
-
-        return AngularBuildContext._angularBuildConfig;
-    }
-
     static get logger(): LoggerBase {
-        if (!AngularBuildContext._instantiated || AngularBuildContext._logger == null) {
-            throw new InternalError('AngularBuildContext has not been instantiated.');
+        if (!AngularBuildContext._optionsSet) {
+            throw new InternalError("Please call 'AngularBuildContext.init()' static method first.");
         }
 
         return AngularBuildContext._logger;
     }
 
-    static get fromBuiltInCli(): boolean {
-        if (!AngularBuildContext._instantiated) {
-            throw new InternalError('AngularBuildContext has not been instantiated.');
-        }
-
-        if (AngularBuildContext._fromBuiltInCli) {
-            return true;
-        }
-
-        return false;
-    }
-
-    static get cliRootPath(): string | null {
-        if (!AngularBuildContext._instantiated) {
-            throw new InternalError('AngularBuildContext has not been instantiated.');
-        }
-
-        return AngularBuildContext._cliRootPath;
-    }
-
     static get workspaceRoot(): string {
-        if (!AngularBuildContext._instantiated) {
-            throw new InternalError('AngularBuildContext has not been instantiated.');
+        if (!AngularBuildContext._optionsSet) {
+            throw new InternalError("Please call 'AngularBuildContext.init()' static method first.");
         }
 
         return AngularBuildContext._workspaceRoot;
     }
 
-    static get cliIsGlobal(): boolean | null {
-        if (!AngularBuildContext._instantiated) {
-            throw new InternalError('AngularBuildContext has not been instantiated.');
+    static get angularBuildConfig(): AngularBuildConfigInternal | null | undefined {
+        if (!AngularBuildContext._optionsSet) {
+            throw new InternalError("Please call 'AngularBuildContext.init()' static method first.");
+        }
+
+        return AngularBuildContext._angularBuildConfig;
+    }
+
+    static get fromBuiltInCli(): boolean {
+        if (!AngularBuildContext._optionsSet) {
+            throw new InternalError("Please call 'AngularBuildContext.init()' static method first.");
+        }
+
+        return AngularBuildContext._fromBuiltInCli;
+    }
+
+    static get cliIsGlobal(): boolean {
+        if (!AngularBuildContext._optionsSet) {
+            throw new InternalError("Please call 'AngularBuildContext.init()' static method first.");
         }
 
         return AngularBuildContext._cliIsGlobal;
     }
 
-    static async cliIsLink(): Promise<boolean> {
-        if (!AngularBuildContext._instantiated) {
-            throw new InternalError('AngularBuildContext has not been instantiated.');
+    // TODO: to review
+    static get cliRootPath(): string | null | undefined {
+        if (AngularBuildContext._cliRootPath != null) {
+            return AngularBuildContext._cliRootPath;
         }
 
-        if (AngularBuildContext._cliIsLink != null) {
-            return AngularBuildContext._cliIsLink;
+        if (!AngularBuildContext._optionsSet) {
+            throw new InternalError("Please call 'AngularBuildContext.init()' static method first.");
         }
 
-        const nodeModulesPath = await AngularBuildContext.getNodeModulesPath();
-
-        if (!AngularBuildContext.cliIsGlobal && nodeModulesPath) {
-            const p1 = path.resolve(nodeModulesPath, '@dagonmetric/angular-build');
-            const isExists = await pathExists(p1);
-            const rp = await realpath(p1);
-
-            if (isExists && !isSamePaths(p1, rp)) {
-                AngularBuildContext._cliIsLink = true;
-
-                return AngularBuildContext._cliIsLink;
-            }
-        }
-
-        AngularBuildContext._cliIsLink = false;
-
-        return AngularBuildContext._cliIsLink;
+        return AngularBuildContext._cliRootPath;
     }
 
-    static async getNodeModulesPath(): Promise<string | null> {
-        if (!AngularBuildContext._instantiated) {
-            throw new InternalError('AngularBuildContext has not been instantiated.');
+    static async getAngularBuildVersion(): Promise<string> {
+        if (AngularBuildContext._angularBuildVersion != null) {
+            return AngularBuildContext._angularBuildVersion;
         }
 
+        const packageJsonPath = path.resolve(__dirname, '../../package.json');
+        const packageJson = await readJson(packageJsonPath) as { version: string };
+
+        return packageJson.version;
+    }
+
+    // TODO: to review
+    static async checkAngularBuildIsLink(): Promise<boolean> {
+        if (AngularBuildContext._angularBuildIsLink != null) {
+            return AngularBuildContext._angularBuildIsLink;
+        }
+
+        if (!AngularBuildContext._optionsSet) {
+            throw new InternalError("Please call 'AngularBuildContext.init()' static method first.");
+        }
+
+        if (AngularBuildContext.cliIsGlobal) {
+            AngularBuildContext._angularBuildIsLink = false;
+
+            return AngularBuildContext._angularBuildIsLink;
+        }
+
+        const packageJsonPath = path.resolve(__dirname, '../../package.json');
+
+        // const p1 = path.resolve(nodeModulesPath, '@dagonmetric/angular-build');
+        const isExists = await pathExists(packageJsonPath);
+        const rp = await realpath(packageJsonPath);
+
+        if (isExists && !isSamePaths(packageJsonPath, rp)) {
+            AngularBuildContext._angularBuildIsLink = true;
+        } else {
+            AngularBuildContext._angularBuildIsLink = false;
+        }
+
+        return AngularBuildContext._angularBuildIsLink;
+    }
+
+    static async getAngularBuildConfigSchema(): Promise<JsonObject> {
+        if (AngularBuildContext._angularBuildConfigSchema) {
+            return AngularBuildContext._angularBuildConfigSchema;
+        }
+
+        const schemaRootPath = path.resolve(__dirname, '../schemas');
+
+        const schema = (await readJson(path.resolve(schemaRootPath, 'schema.json'))) as JsonObject;
+
+        if (schema.$schema) {
+            delete schema.$schema;
+        }
+
+        AngularBuildContext._angularBuildConfigSchema = schema;
+
+        return AngularBuildContext._angularBuildConfigSchema;
+    }
+
+    static async getAppProjectConfigSchema(): Promise<JsonObject> {
+        if (AngularBuildContext._appProjectConfigSchema) {
+            return AngularBuildContext._appProjectConfigSchema;
+        }
+
+        const schemaRootPath = path.resolve(__dirname, '../schemas');
+
+        const schema = (await readJson(path.resolve(schemaRootPath, 'app-project-config-schema.json'))) as JsonObject;
+
+        if (schema.$schema) {
+            delete schema.$schema;
+        }
+
+        AngularBuildContext._appProjectConfigSchema = schema;
+
+        return AngularBuildContext._appProjectConfigSchema;
+    }
+
+    static async getLibProjectConfigSchema(): Promise<JsonObject> {
+        if (AngularBuildContext._libProjectConfigSchema) {
+            return AngularBuildContext._libProjectConfigSchema;
+        }
+
+        const schemaRootPath = path.resolve(__dirname, '../schemas');
+
+        const schema = (await readJson(path.resolve(schemaRootPath, 'app-project-config-schema.json'))) as JsonObject;
+
+        if (schema.$schema) {
+            delete schema.$schema;
+        }
+
+        AngularBuildContext._libProjectConfigSchema = schema;
+
+        return AngularBuildContext._libProjectConfigSchema;
+    }
+
+    static init(options: BuildContextStaticOptions): void {
+        if (AngularBuildContext._optionsSet) {
+            return;
+        }
+
+        AngularBuildContext._startTime = options.startTime;
+        AngularBuildContext._workspaceRoot = options.workspaceRoot;
+        AngularBuildContext._angularBuildConfig = options.angularBuildConfig;
+
+        AngularBuildContext._fromBuiltInCli = options.fromBuiltInCli != null ? options.fromBuiltInCli : isFromBuiltInCli();
+        if (options.cliIsGlobal != null) {
+            AngularBuildContext._cliIsGlobal = AngularBuildContext._fromBuiltInCli && options.cliIsGlobal ? true : false;
+        }
+        if (options.angularBuildVersion) {
+            AngularBuildContext._angularBuildVersion = options.angularBuildVersion;
+        }
+        if (options.cliRootPath) {
+            AngularBuildContext._cliRootPath = options.cliRootPath;
+        }
+        if (options.cliIsLink != null) {
+            AngularBuildContext._angularBuildIsLink = options.cliIsLink;
+        }
+
+        AngularBuildContext._optionsSet = true;
+    }
+
+    // static readonly members
+    static async getNodeModulesPath(): Promise<string | null> {
         if (AngularBuildContext._nodeModulesPath != null) {
             return AngularBuildContext._nodeModulesPath;
+        }
+
+        if (AngularBuildContext.workspaceRoot == null) {
+            throw new InternalError("Please call 'AngularBuildContext.init()' static method first.");
         }
 
         const foundNodeModulesPath = await findUp('node_modules',
@@ -126,42 +233,6 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         return AngularBuildContext._nodeModulesPath;
     }
 
-    static async getAngularBuildVersion(): Promise<string> {
-        if (!AngularBuildContext._instantiated) {
-            throw new InternalError('AngularBuildContext has not been instantiated.');
-        }
-
-        if (AngularBuildContext._angularBuildVersion) {
-            return AngularBuildContext._angularBuildVersion;
-        }
-
-        let packageJsonPath = '';
-        const nodeModulesPath = await AngularBuildContext.getNodeModulesPath();
-        if (nodeModulesPath) {
-            const tempPath =
-                path.resolve(nodeModulesPath, '@dagonmetric/angular-build/package.json');
-            const isExists = await pathExists(tempPath);
-            if (isExists) {
-                packageJsonPath = tempPath;
-            }
-        }
-
-        if (!packageJsonPath &&
-            AngularBuildContext.cliRootPath &&
-            await pathExists(path.resolve(AngularBuildContext.cliRootPath, 'package.json'))) {
-            packageJsonPath = path.resolve(AngularBuildContext.cliRootPath, 'package.json');
-        }
-
-        if (packageJsonPath) {
-            const pkgJson = await readJson(packageJsonPath) as { version: string };
-            AngularBuildContext._angularBuildVersion = pkgJson.version;
-
-            return AngularBuildContext._angularBuildVersion;
-        } else {
-            throw new InternalError('Could not detect @dagonmetric/angular-build version.');
-        }
-    }
-
     static get libCount(): number {
         return AngularBuildContext._libCount;
     }
@@ -175,16 +246,16 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         return this._buildOptions;
     }
 
-    get host(): virtualFs.Host | undefined {
+    get host(): Host | undefined {
         return this._host;
     }
 
-    get projectConfigWithoutEnvApplied(): TConfig {
-        return this._projectConfigWithoutEnvApplied;
+    get projectConfigRaw(): TConfig {
+        return this._projectConfigRaw;
     }
 
     get projectConfig(): TConfig {
-        if (!this._initialized) {
+        if (!this._initialized || !this._projectConfig) {
             throw new InternalError('Please call init() method first.');
         }
 
@@ -192,104 +263,70 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
     }
 
     // Static private fields
-    private static _instantiated = false;
+    private static readonly _logger: LoggerBase;
+    private static _startTime = Date.now();
     private static _appCount = 0;
     private static _libCount = 0;
-    private static _startTime = Date.now();
     private static _workspaceRoot: string;
-    private static _nodeModulesPath: string | null = null;
-    private static _angularBuildVersion: string | null = null;
-    private static _cliIsGlobal: boolean | null = null;
-    private static _cliIsLink: boolean | null = null;
+    private static _fromBuiltInCli: boolean;
+    private static _cliIsGlobal: boolean;
+    private static _angularBuildConfig: AngularBuildConfigInternal | null | undefined = null;
+    private static _optionsSet = false;
+
+    private static _angularBuildVersion: string;
+    private static _angularBuildIsLink: boolean;
     private static _cliRootPath: string | null = null;
-    private static _fromBuiltInCli: boolean | null;
-    private static _logger: LoggerBase | null = null;
-    private static _angularBuildConfig: AngularBuildConfigInternal | null = null;
+
+    private static _nodeModulesPath: string | null = null;
+
+    private static _angularBuildConfigSchema: JsonObject | null = null;
+    private static _appProjectConfigSchema: JsonObject | null = null;
+    private static _libProjectConfigSchema: JsonObject | null = null;
 
     // Instance private fields
-    private _initialized = false;
-    private readonly _projectConfigWithoutEnvApplied: TConfig;
-    private readonly _projectConfig: TConfig;
-    private readonly _host?: virtualFs.Host;
+    private readonly _projectConfigRaw: TConfig;
+    private readonly _host?: Host;
     private readonly _buildOptions: BuildOptionsInternal;
+    private _initialized = false;
+    private _projectConfig: TConfig | undefined;
 
-
-    constructor(options: BuildContextStaticOptions & BuildContextInstanceOptions<TConfig>) {
-        if (!options.workspaceRoot && !AngularBuildContext._workspaceRoot) {
-            throw new InternalError("The 'options.workspaceRoot' is required.");
-        }
-
-        if (options.workspaceRoot && !AngularBuildContext._workspaceRoot) {
-            AngularBuildContext._workspaceRoot = options.workspaceRoot;
-        }
-
-        if (options.startTime && !AngularBuildContext._startTime) {
-            AngularBuildContext._startTime = options.startTime;
-        }
-
-        if (options.fromBuiltInCli != null && AngularBuildContext._fromBuiltInCli == null) {
-            AngularBuildContext._fromBuiltInCli = options.fromBuiltInCli;
-        }
-
-        if (options.angularBuildConfig && !AngularBuildContext._angularBuildConfig) {
-            AngularBuildContext._angularBuildConfig = options.angularBuildConfig;
-        }
-
-        if (options.cliRootPath && !AngularBuildContext._cliRootPath) {
-            AngularBuildContext._cliRootPath = options.cliRootPath;
-        }
-
-        if (options.cliVersion && !AngularBuildContext._angularBuildVersion) {
-            AngularBuildContext._angularBuildVersion = options.cliVersion;
-        }
-
-        if (options.cliIsGlobal != null && AngularBuildContext._cliIsGlobal == null) {
-            AngularBuildContext._cliIsGlobal = options.fromBuiltInCli && options.cliIsGlobal ? true : false;
-        }
-
-        if (options.cliIsLink != null && AngularBuildContext._cliIsLink == null) {
-            AngularBuildContext._cliIsLink = options.fromBuiltInCli && options.cliIsLink ? true : false;
-        }
-
-        AngularBuildContext._logger = new Logger({
-            name: '',
-            logLevel: options.buildOptions.logLevel || 'info',
-            debugPrefix: 'DEBUG:',
-            warnPrefix: 'WARNING:'
-        });
-
+    constructor(options: BuildContextInstanceOptions<TConfig>) {
         this._host = options.host;
         this._buildOptions = options.buildOptions;
-        this._projectConfigWithoutEnvApplied = options.projectConfigWithoutEnvApplied;
-        this._projectConfig = options.projectConfig;
-
-        AngularBuildContext._instantiated = true;
+        this._projectConfigRaw = options.projectConfigRaw;
     }
 
     async init(): Promise<void> {
-        if (this._projectConfig.root && path.isAbsolute(this._projectConfig.root)) {
+        // clone
+        const projectConfig = JSON.parse(JSON.stringify(this.projectConfigRaw)) as TConfig;
+
+        // apply env
+        applyProjectConfigWithEnvironment(projectConfig, this.buildOptions.environment);
+
+
+        if (projectConfig.root && path.isAbsolute(projectConfig.root)) {
             throw new InvalidConfigError(
-                `The 'projects[${this._projectConfig.name || this._projectConfig._index}].root' must be relative path.`);
+                `The 'projects[${projectConfig.name || projectConfig._index}].root' must be relative path.`);
         }
 
-        this._projectConfig._workspaceRoot = AngularBuildContext.workspaceRoot;
-        this._projectConfig._nodeModulesPath = await AngularBuildContext.getNodeModulesPath();
-        this._projectConfig._projectRoot = path.resolve(AngularBuildContext.workspaceRoot, this._projectConfig.root || '');
-        if (this._projectConfig.outputPath) {
-            this._projectConfig._outputPath = path.resolve(AngularBuildContext.workspaceRoot, this._projectConfig.outputPath);
+        projectConfig._workspaceRoot = AngularBuildContext.workspaceRoot;
+        projectConfig._nodeModulesPath = await AngularBuildContext.getNodeModulesPath();
+        projectConfig._projectRoot = path.resolve(AngularBuildContext.workspaceRoot, projectConfig.root || '');
+        if (projectConfig.outputPath) {
+            projectConfig._outputPath = path.resolve(AngularBuildContext.workspaceRoot, projectConfig.outputPath);
         }
-        this._projectConfig._rptCacheDirectory = path.resolve(this._projectConfig._projectRoot, './.rpt-cache/');
+        projectConfig._rptCacheDirectory = path.resolve(projectConfig._projectRoot, './.rpt-cache/');
 
         // Read package.json files
-        await this.initPackageJsons();
+        await this.initPackageJsons(projectConfig);
 
         // Validation
-        validateOutputPath(AngularBuildContext.workspaceRoot, this._projectConfig);
+        validateOutputPath(AngularBuildContext.workspaceRoot, projectConfig);
 
         // Init banner
-        await this.initBannerText();
+        await this.initBannerText(projectConfig);
 
-        if (this._projectConfig._projectType === 'lib') {
+        if (projectConfig._projectType === 'lib') {
             AngularBuildContext._libCount = AngularBuildContext._libCount + 1;
             await initLibConfig(this._projectConfig as LibProjectConfigInternal);
         } else {
@@ -297,120 +334,122 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             await initAppConfig(this._projectConfig as AppProjectConfigInternal, this._buildOptions);
         }
 
+        this._projectConfig = projectConfig;
+
         this._initialized = true;
     }
 
-    private async initPackageJsons(): Promise<void> {
-        const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, this._projectConfig.root || '');
+    private async initPackageJsons(projectConfig: TConfig): Promise<void> {
+        const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, projectConfig.root || '');
 
-        if (!this._projectConfig._packageConfigPath) {
+        if (!projectConfig._packageConfigPath) {
             const foundPath = await findUp('package.json', projectRoot, AngularBuildContext.workspaceRoot);
             if (foundPath) {
-                this._projectConfig._packageConfigPath = foundPath;
+                projectConfig._packageConfigPath = foundPath;
                 if (foundPath === path.resolve(AngularBuildContext.workspaceRoot, 'package.json')) {
-                    this._projectConfig._rootPackageConfigPath = foundPath;
+                    projectConfig._rootPackageConfigPath = foundPath;
                 }
             }
         }
 
-        if (!this._projectConfig._rootPackageConfigPath) {
+        if (!projectConfig._rootPackageConfigPath) {
             const rootPkgConfigPath = path.resolve(AngularBuildContext.workspaceRoot, 'package.json');
             if (await pathExists(rootPkgConfigPath)) {
-                this._projectConfig._rootPackageConfigPath = rootPkgConfigPath;
+                projectConfig._rootPackageConfigPath = rootPkgConfigPath;
             }
         }
 
-        if (this._projectConfig._packageConfigPath) {
+        if (projectConfig._packageConfigPath) {
             // tslint:disable-next-line: no-unsafe-any
-            this._projectConfig._packageJson = await readJson(this._projectConfig._packageConfigPath);
-        } else if (this._projectConfig._projectType === 'lib') {
+            projectConfig._packageJson = await readJson(projectConfig._packageConfigPath);
+        } else if (projectConfig._projectType === 'lib') {
             throw new InvalidConfigError('Could not detect package.json file.');
         }
 
-        if (this._projectConfig._rootPackageConfigPath) {
-            if (this._projectConfig._rootPackageConfigPath === this._projectConfig._packageConfigPath &&
-                this._projectConfig._packageJson) {
-                this._projectConfig._rootPackageJson = this._projectConfig._packageJson;
+        if (projectConfig._rootPackageConfigPath) {
+            if (projectConfig._rootPackageConfigPath === projectConfig._packageConfigPath &&
+                projectConfig._packageJson) {
+                projectConfig._rootPackageJson = projectConfig._packageJson;
             } else {
                 // tslint:disable-next-line: no-unsafe-any
-                this._projectConfig._rootPackageJson = await readJson(this._projectConfig._rootPackageConfigPath);
+                projectConfig._rootPackageJson = await readJson(projectConfig._rootPackageConfigPath);
             }
         }
 
-        if (this._projectConfig._packageJson && this._projectConfig._packageJson.name) {
-            this._projectConfig._projectName = this._projectConfig._packageJson.name as string;
+        if (projectConfig._packageJson && projectConfig._packageJson.name) {
+            projectConfig._projectName = projectConfig._packageJson.name as string;
         }
 
-        if (!this._projectConfig._packageJson ||
-            !this._projectConfig._packageJson.version ||
-            this._projectConfig._packageJson.version === '0.0.0' ||
-            versionPlaceholderRegex.test(this._projectConfig._packageJson.version as string)) {
-            if (this._projectConfig._rootPackageJson &&
-                this._projectConfig._rootPackageJson.version) {
-                this._projectConfig._projectVersion = this._projectConfig._rootPackageJson.version as string;
+        if (!projectConfig._packageJson ||
+            !projectConfig._packageJson.version ||
+            projectConfig._packageJson.version === '0.0.0' ||
+            versionPlaceholderRegex.test(projectConfig._packageJson.version as string)) {
+            if (projectConfig._rootPackageJson &&
+                projectConfig._rootPackageJson.version) {
+                projectConfig._projectVersion = projectConfig._rootPackageJson.version as string;
             }
         } else {
-            this._projectConfig._projectVersion = this._projectConfig._packageJson.version as string;
+            projectConfig._projectVersion = projectConfig._packageJson.version as string;
         }
 
-        if (this._projectConfig._packageJson && this._projectConfig._packageJson.author) {
-            this._projectConfig._projectAuthor = this._projectConfig._packageJson.author as string;
-        } else if (this._projectConfig._rootPackageJson && this._projectConfig._rootPackageJson.author) {
-            this._projectConfig._projectAuthor = this._projectConfig._rootPackageJson.author as string;
+        if (projectConfig._packageJson && projectConfig._packageJson.author) {
+            projectConfig._projectAuthor = projectConfig._packageJson.author as string;
+        } else if (projectConfig._rootPackageJson && projectConfig._rootPackageJson.author) {
+            projectConfig._projectAuthor = projectConfig._rootPackageJson.author as string;
         }
 
-        if (this._projectConfig._packageJson && this._projectConfig._packageJson.homePage) {
-            this._projectConfig._projectHomePage = this._projectConfig._packageJson.homePage as string;
-        } else if (this._projectConfig._rootPackageJson && this._projectConfig._rootPackageJson.homePage) {
-            this._projectConfig._projectHomePage = this._projectConfig._rootPackageJson.homePage as string;
+        if (projectConfig._packageJson && projectConfig._packageJson.homePage) {
+            projectConfig._projectHomePage = projectConfig._packageJson.homePage as string;
+        } else if (projectConfig._rootPackageJson && projectConfig._rootPackageJson.homePage) {
+            projectConfig._projectHomePage = projectConfig._rootPackageJson.homePage as string;
         }
 
-        if (this._projectConfig._projectName &&
-            this._projectConfig._projectName.indexOf('/') > -1 &&
-            this._projectConfig._projectName.startsWith('@')) {
-            const nameParts = this._projectConfig._projectName.split('/');
-            this._projectConfig._packageScope = nameParts[0];
+        if (projectConfig._projectName &&
+            projectConfig._projectName.indexOf('/') > -1 &&
+            projectConfig._projectName.startsWith('@')) {
+            const nameParts = projectConfig._projectName.split('/');
+            projectConfig._packageScope = nameParts[0];
         }
 
-        if (this._projectConfig._projectName && this._projectConfig._packageScope) {
-            const startIndex = this._projectConfig._projectName.indexOf('/') + 1;
-            this._projectConfig._packageNameWithoutScope =
-                this._projectConfig._projectName.substr(startIndex);
+        if (projectConfig._projectName && projectConfig._packageScope) {
+            const startIndex = projectConfig._projectName.indexOf('/') + 1;
+            projectConfig._packageNameWithoutScope =
+                projectConfig._projectName.substr(startIndex);
         } else {
-            this._projectConfig._packageNameWithoutScope = this._projectConfig._projectName;
+            projectConfig._packageNameWithoutScope = projectConfig._projectName;
         }
 
-        if (this._projectConfig._packageJson && this._projectConfig._packageJson.private) {
-            this._projectConfig._isPackagePrivate = true;
+        if (projectConfig._packageJson && projectConfig._packageJson.private) {
+            projectConfig._isPackagePrivate = true;
         }
     }
 
-    private replaceTokensForBanner(input: string): string {
+    private replaceTokensForBanner(projectConfig: TConfig, input: string): string {
         let str = input.replace(/[\$|\[]CURRENT[_\-]?YEAR[\$|\]]/gim, (new Date())
             .getFullYear()
             .toString());
 
-        if (this._projectConfig._projectName) {
-            const name = this._projectConfig._projectName;
+        if (projectConfig._projectName) {
+            const name = projectConfig._projectName;
             str = str
                 .replace(/[\$|\[](APP|APPLICATION|PROJECT|PACKAGE)[_\-]?NAME[\$|\]]/gim,
                     name);
         }
 
-        if (this._projectConfig._packageNameWithoutScope) {
-            const name = this._projectConfig._packageNameWithoutScope;
+        if (projectConfig._packageNameWithoutScope) {
+            const name = projectConfig._packageNameWithoutScope;
             str = str.replace(/[\$|\[]PACKAGE[_\-]?NAME[_\-]?NAME[_\-]?NO[_\-]?SCOPE[\$|\]]/gim,
                 name);
         }
 
-        if (this._projectConfig._projectVersion) {
+        if (projectConfig._projectVersion) {
             str = str.replace(/[\$|\[](PACKAGE|APP|APPLICATION|PROJECT)?[_\-]?VERSION[\$|\]]/gim,
-                this._projectConfig._projectVersion);
-            str = str.replace(versionPlaceholderRegex, this._projectConfig._projectVersion);
+                projectConfig._projectVersion);
+            str = str.replace(versionPlaceholderRegex, projectConfig._projectVersion);
         }
 
-        if (this._projectConfig._packageScope) {
-            str = str.replace(/[\$|\[]PACKAGE[_\-]?SCOPE[\$|\]]/gim, this._projectConfig._packageScope);
+        if (projectConfig._packageScope) {
+            str = str.replace(/[\$|\[]PACKAGE[_\-]?SCOPE[\$|\]]/gim, projectConfig._packageScope);
         }
 
         return str;
@@ -441,13 +480,13 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         return banner;
     }
 
-    private async initBannerText(): Promise<void> {
-        if (!this._projectConfig.banner) {
+    private async initBannerText(projectConfig: TConfig): Promise<void> {
+        if (!projectConfig.banner) {
             return;
         }
 
-        const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, this._projectConfig.root || '');
-        let tempBannerText = this._projectConfig.banner;
+        const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, projectConfig.root || '');
+        let tempBannerText = projectConfig.banner;
 
         // read banner
         if (/\.txt$/i.test(tempBannerText)) {
@@ -458,14 +497,14 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
                 throw new InvalidConfigError(
                     `The banner text file: ${path.resolve(projectRoot, tempBannerText)
                     } doesn't exist, please correct value in 'projects[${
-                    this._projectConfig.name || this._projectConfig._index}].banner'.`);
+                    projectConfig.name || projectConfig._index}].banner'.`);
             }
         }
 
         if (tempBannerText) {
             tempBannerText = this.addCommentToBanner(tempBannerText);
-            tempBannerText = this.replaceTokensForBanner(tempBannerText);
-            this._projectConfig._bannerText = tempBannerText;
+            tempBannerText = this.replaceTokensForBanner(projectConfig, tempBannerText);
+            projectConfig._bannerText = tempBannerText;
         }
     }
 }

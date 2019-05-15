@@ -69,6 +69,6 @@ Usage:
                 })
         ,
         // tslint:disable-next-line:no-any
-        handler: (null as any)
+        handler: (null as unknown as any)
     };
 }

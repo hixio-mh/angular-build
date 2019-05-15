@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as webpack from 'webpack';
 
 import { AngularBuildContext } from '../../../build-context';
@@ -15,7 +12,8 @@ export class AngularBuildContextWebpackPlugin<TConfig extends AppProjectConfigIn
     constructor(private readonly _angularBuildContext: AngularBuildContext<TConfig>) { }
 
     apply(compiler: webpack.Compiler): void {
-        (compiler as any)._angularBuildContext = this._angularBuildContext;
+        // tslint:disable-next-line: no-any
+        (compiler as unknown as any)._angularBuildContext = this._angularBuildContext;
         const count = AngularBuildContext.libCount + AngularBuildContext.appCount;
         const projectConfig = this._angularBuildContext.projectConfig;
 

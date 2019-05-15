@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { Configuration, Plugin } from 'webpack';
@@ -56,7 +53,7 @@ export async function getAppWebpackConfig(angularBuildContext: AngularBuildConte
     if (!mergedConfig.entry || (typeof mergedConfig.entry === 'object' && !Object.keys(mergedConfig.entry).length)) {
         mergedConfig.entry = isFromWebpackDevServer()
             ? [] as string[]
-            : (() => ({})) as any;
+            : (() => ({}));
     }
 
     return mergedConfig;

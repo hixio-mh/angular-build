@@ -1,13 +1,6 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-// tslint:disable:no-var-requires
-// tslint:disable:no-require-imports
-
 import * as path from 'path';
 
-import { resolve } from '@angular-devkit/core/node';
-
-// import * as resolve from 'resolve';
+import { pathExists } from 'fs-extra';
 import {
     BannerPlugin,
     Configuration,
@@ -36,8 +29,9 @@ import { BundleAnalyzerOptions } from '../../models';
 import { InternalError } from '../../models/errors';
 import { AppProjectConfigInternal } from '../../models/internals';
 
-// tslint:disable:variable-name
+// tslint:disable-next-line: no-var-requires no-require-imports no-unsafe-any
 const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlugin;
+// tslint:disable-next-line: no-var-requires no-require-imports no-unsafe-any variable-name
 const TerserPlugin = require('terser-webpack-plugin');
 
 // tslint:disable:max-func-body-length
@@ -168,7 +162,7 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
     }
 
     // source-maps
-    let devtool = appConfig.sourceMapDevTool as any;
+    let devtool = appConfig.sourceMapDevTool;
     if (devtool == null && appConfig.sourceMap) {
         if (isWebpackDevServer) {
             devtool = 'eval';
@@ -181,26 +175,21 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
 
     // Load rxjs path aliases.
     // https://github.com/ReactiveX/rxjs/blob/master/doc/lettable-operators.md#build-and-treeshaking
-    let alias: any = {};
-    if (!isDll) {
+    let alias: { [key: string]: string } = {};
+    if (!isDll && nodeModulesPath) {
         try {
-            const rxjsPathMappingImportModuleName =
+            const rxjsPathMappingModuleName =
                 appConfig._supportES2015
                     ? 'rxjs/_esm2015/path-mapping'
                     : 'rxjs/_esm5/path-mapping';
+            const rxjsPathMappingPath = path.resolve(nodeModulesPath, rxjsPathMappingModuleName);
 
-            const rxjsMappingPath = resolve(rxjsPathMappingImportModuleName,
-                {
-                    basedir: nodeModulesPath || AngularBuildContext.workspaceRoot,
-                    checkGlobal: false,
-                    checkLocal: true
-                },
-            );
-
-            // tslint:disable-next-line:non-literal-require
-            const pathMapping = require(rxjsMappingPath);
-            alias = pathMapping();
+            if (await pathExists(rxjsPathMappingPath)) {
+                const pathMapping = (await import(rxjsPathMappingPath)) as Function;
+                alias = pathMapping() as { [key: string]: string };
+            }
         } catch (e) {
+            // tslint:disable-next-line: no-unsafe-any
             logger.warn(`Failed rxjs path alias. ${e.message}`);
         }
     }
@@ -240,6 +229,7 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
 
     // extractLicenses
     if (appConfig.extractLicenses) {
+        // tslint:disable-next-line: no-unsafe-any
         plugins.push(new LicenseWebpackPlugin({
             stats: {
                 warnings: verbose,
@@ -385,7 +375,7 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
         resolveLoader: {
             modules: loaderModulePaths
         },
-        externals: appConfig.platformTarget === 'node' ? appConfig.externals as any : undefined,
+        externals: appConfig.platformTarget === 'node' ? appConfig.externals : undefined,
         context: projectRoot,
         output: {
             // futureEmitAssets: true,
@@ -411,6 +401,7 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
                     // component styles retain their original file name
                     test: (file) => /\.(?:css|scss|sass|less|styl)$/.test(file),
                 }),
+                // tslint:disable-next-line: no-unsafe-any
                 new TerserPlugin({
                     sourceMap: appConfig.sourceMap,
                     parallel: true,

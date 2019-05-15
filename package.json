@@ -36,7 +36,7 @@
   "experimental": true,
   "main": "dist/src/index.js",
   "typings": "dist/src/index.d.ts",
-  "builders": "dist/builders.json",
+  "builders": "dist/src/architect/builders.json",
   "scripts": {
     "clean": "rimraf -- dist schemas",
     "lint": "node node_modules/tslint/bin/tslint -t verbose -p tsconfig.json -c tslint.json",
@@ -47,10 +47,11 @@
     "test": "npm run build:samples",
     "build": "npm run clean && npm run tsc && npm run generate-schemas && npm run copy-files && npm run ngb:version",
     "build:samples": "npm run build:sample-app-prod && npm run build:sample-lib-prod",
-    "build:sample-app": "node -r source-map-support/register dist/bin/ngb build --config=samples/hello-world-ng-app/angular-build.json --disable-telemetry",
-    "build:sample-app-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-app/angular-build.json --disable-telemetry --env.prod --env.aot",
-    "build:sample-lib": "node -r source-map-support/register dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --verbose --disable-telemetry",
-    "build:sample-lib-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --env.prod --verbose --disable-telemetry"
+    "build:sample-app": "node -r source-map-support/register dist/bin/ngb build --config=samples/hello-world-ng-app/angular-build.json",
+    "build:sample-app-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-app/angular-build.json --env.prod --env.aot",
+    "build:sample-lib": "node -r source-map-support/register dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --verbose",
+    "build:sample-lib-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --env.prod --verbose",
+    "build:sample-lib:ng": "node -r source-map-support/register ng build"
   },
   "dependencies": {
     "@angular-devkit/architect": "^0.800.0-rc.3",
@@ -109,6 +110,7 @@
     "yargs": "^13.2.2"
   },
   "devDependencies": {
+    "@angular/cli": "^8.0.0-rc.3",
     "@angular/common": "^8.0.0-rc.3",
     "@angular/compiler": "^8.0.0-rc.3",
     "@angular/compiler-cli": "^8.0.0-rc.3",
@@ -142,6 +144,7 @@
     "tslint-microsoft-contrib": "^6.1.1",
     "typescript-json-schema": "^0.37.0",
     "typescript-tslint-plugin": "^0.3.1",
+    "webpack-dev-server": "^3.3.1",
     "zone.js": "~0.9.1"
   }
 }

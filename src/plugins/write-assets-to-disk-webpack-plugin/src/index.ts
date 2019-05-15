@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { ensureDir, writeFile } from 'fs-extra';
@@ -43,7 +40,7 @@ export class WriteAssetsToDiskWebpackPlugin {
             outputPath = compiler.options.output.path;
         }
 
-        compiler.hooks.afterEmit.tapPromise(this.name, async (compilation: any) => {
+        compiler.hooks.afterEmit.tapPromise(this.name, async (compilation: webpack.compilation.Compilation) => {
             if (this._persistedOutputFileSystemNames.includes(compiler.outputFileSystem.constructor.name)) {
                 return;
             }
@@ -66,8 +63,8 @@ export class WriteAssetsToDiskWebpackPlugin {
         });
     }
 
-    private async writeAssets(outputPath: string, compilation: any): Promise<void> {
-        await Promise.all(Object.keys(compilation.assets).map(async (assetName: any) => {
+    private async writeAssets(outputPath: string, compilation: webpack.compilation.Compilation): Promise<void> {
+        await Promise.all(Object.keys(compilation.assets as { [key: string]: string }).map(async assetName => {
             // check the ignore list
             let shouldIgnore = false;
             const ignores = this._options.exclude || [];
@@ -84,7 +81,9 @@ export class WriteAssetsToDiskWebpackPlugin {
                 return;
             }
 
+            // tslint:disable-next-line: no-unsafe-any
             const asset = compilation.assets[assetName];
+            // tslint:disable-next-line: no-unsafe-any
             const assetSource = Array.isArray(asset.source()) ? asset.source().join('\n') : asset.source();
 
             this._logger.debug(`Writing ${assetName} to disk`);
@@ -96,13 +95,13 @@ export class WriteAssetsToDiskWebpackPlugin {
 
     }
 
-    private async writeMemoryEmittedFiles(outputPath: string, emittedPaths: string[], compiler: any):
+    private async writeMemoryEmittedFiles(outputPath: string, emittedPaths: string[], compiler: webpack.Compiler):
         Promise<void> {
         await Promise.all(emittedPaths.map(async (targetPath: string) => {
             const content = await new Promise((resolve, reject) => {
                 // TODO: to review
                 compiler.inputFileSystem.readFile(targetPath,
-                    (err: Error, data: Buffer) => {
+                    (err, data: Buffer) => {
                         if (err) {
                             reject(err);
 

@@ -1,5 +1,6 @@
 import * as yargs from 'yargs';
 
+import { JsonObject } from '../models';
 import { colorize } from '../utils/colorize';
 
 import { getBuildCommandModule } from './build/build-command-module';
@@ -65,7 +66,7 @@ export default async function (cliOptions: CliOptions): Promise<number> {
 
     const yargsInstance = initYargs(cliOptions.cliVersion, args);
     const command = yargsInstance.argv._[0] ? yargsInstance.argv._[0].toLowerCase() : undefined;
-    const commandOptions = yargsInstance.argv;
+    const commandOptions = yargsInstance.argv as JsonObject;
 
     if (command === 'build') {
         displayAngularBuildVersion(cliOptions);

@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import { Configuration, Plugin } from 'webpack';
 
 import { AngularBuildContextWebpackPlugin } from '../../plugins/angular-build-context-webpack-plugin';
@@ -78,7 +75,7 @@ export async function getLibWebpackConfig(angularBuildContext: AngularBuildConte
     // tslint:disable-next-line:no-unnecessary-local-variable
     const webpackConfig: Configuration = {
         name: libConfig.name,
-        entry: (() => ({})) as any,
+        entry: (() => ({})),
         output: {
             path: outputPath,
             filename: '[name].js'

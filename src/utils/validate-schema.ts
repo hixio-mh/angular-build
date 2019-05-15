@@ -15,7 +15,10 @@ const ajv = new Ajv({
 
 require('ajv-keywords')(ajv, ['instanceof']);
 
-export function validateSchema(schema: Object, data: any): Ajv.ErrorObject[] {
+export interface JsonObject {
+    [key: string]: any;
+}
+export function validateSchema(schema: JsonObject, data: JsonObject): Ajv.ErrorObject[] {
     if (Array.isArray(data)) {
         const errors = data.map((opts: any) => validateObject(schema, opts));
         errors.forEach((list, idx) => {
@@ -71,7 +74,7 @@ function filterErrors(errors: Ajv.ErrorObject[]): Ajv.ErrorObject[] {
 }
 
 //// Ref: from webpack
-export function formatValidationError(sourceSchema: Object, err: Ajv.ErrorObject): any {
+export function formatValidationError(sourceSchema: Object, err: Ajv.ErrorObject): string {
     const dataPath = `configuration${err.dataPath}`;
     if (err.keyword === 'additionalProperties') {
         return `${dataPath} has an unknown property '${(err.params as any).additionalProperty

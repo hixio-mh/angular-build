@@ -27,7 +27,7 @@ export async function minifyFile(inputPath: string,
                 ? {
                     // filename: outputFileName,
                     // tslint:disable-next-line:no-any
-                    content: sourceMapContent as any,
+                    content: sourceMapContent as unknown as any,
                     url: `${outputFileName}.map`
                 }
                 : false,

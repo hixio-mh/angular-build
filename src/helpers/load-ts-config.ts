@@ -1,10 +1,8 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import * as ts from 'typescript';
 
+import { JsonObject } from '../models';
 import { InvalidConfigError } from '../models/errors';
 import { AppProjectConfigInternal, LibProjectConfigInternal } from '../models/internals';
 import { formatTsDiagnostics } from '../utils';
@@ -12,9 +10,9 @@ import { formatTsDiagnostics } from '../utils';
 export function loadTsConfig(tsConfigPath: string,
     config: {
         _tsConfigPath?: string;
-        _tsConfigJson?: any;
+        _tsConfigJson?: JsonObject;
         _tsCompilerConfig?: ts.ParsedCommandLine;
-        _angularCompilerOptions?: any;
+        _angularCompilerOptions?: JsonObject;
     },
     projectConfig: AppProjectConfigInternal | LibProjectConfigInternal): void {
     config._tsConfigPath = tsConfigPath;
@@ -37,8 +35,9 @@ export function loadTsConfig(tsConfigPath: string,
             }
 
             // _tsConfigJson
-            config._tsConfigJson = jsonConfigFile.config;
+            config._tsConfigJson = jsonConfigFile.config as JsonObject;
             if (sameAsProjectTsConfig && !projectConfig._tsConfigJson) {
+                // tslint:disable-next-line: no-unsafe-any
                 projectConfig._tsConfigJson = config._tsConfigJson;
             }
 
@@ -56,7 +55,7 @@ export function loadTsConfig(tsConfigPath: string,
 
             // _angularCompilerOptions
             config._angularCompilerOptions =
-                config._tsConfigJson.angularCompilerOptions;
+                config._tsConfigJson.angularCompilerOptions as JsonObject;
             if (sameAsProjectTsConfig && config._angularCompilerOptions && !projectConfig._angularCompilerOptions) {
                 projectConfig._angularCompilerOptions = config._angularCompilerOptions;
             }

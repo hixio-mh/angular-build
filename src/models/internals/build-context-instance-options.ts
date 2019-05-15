@@ -1,12 +1,10 @@
-import { virtualFs } from '@angular-devkit/core';
-
 import { AppProjectConfigInternal } from './app-project-config-internal';
 import { BuildOptionsInternal } from './build-options-internal';
 import { LibProjectConfigInternal } from './lib-project-config-internal';
+import { Host } from './virtual-fs-host';
 
 export interface BuildContextInstanceOptions<TConfig extends AppProjectConfigInternal | LibProjectConfigInternal> {
-    projectConfigWithoutEnvApplied: TConfig;
-    projectConfig: TConfig;
+    projectConfigRaw: TConfig;
     buildOptions: BuildOptionsInternal;
-    host?: virtualFs.Host;
+    host?: Host;
 }

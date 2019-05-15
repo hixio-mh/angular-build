@@ -1,8 +1,6 @@
 // Ref: https://github.com/webpack-contrib/webpack-bundle-analyzer
 // Wrapper for webpack-contrib/webpack-bundle-analyzer
 
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
 // tslint:disable:no-var-requires
 // tslint:disable:no-require-imports
 
@@ -82,14 +80,14 @@ export class BundleAnalyzerWebpackPlugin {
             setImmediate(() => {
                 this.generateStatsFile(statsJson, compiler, outputPath)
                     .then(async () => this.generateStaticReport(statsJson, compiler, outputPath))
-                    .catch((err) => {
+                    .catch((err: Error) => {
                         this._logger.error(`${err.message || err}`);
                     });
             });
         });
     }
 
-    private async generateStatsFile(stats: any, compiler: webpack.Compiler, outputPath?: string): Promise<void> {
+    private async generateStatsFile(stats: webpack.Stats.ToJsonOutput, compiler: webpack.Compiler, outputPath?: string): Promise<void> {
         if (!this._options.generateStatsFile || !outputPath || outputPath === '/' || !path.isAbsolute(outputPath)) {
             return;
         }
@@ -138,7 +136,7 @@ export class BundleAnalyzerWebpackPlugin {
         }
     }
 
-    private async generateStaticReport(stats: any, compiler: webpack.Compiler, outputPath?: string): Promise<void> {
+    private async generateStaticReport(stats: webpack.Stats.ToJsonOutput, compiler: webpack.Compiler, outputPath?: string): Promise<void> {
         if (!outputPath || outputPath === '/' || !path.isAbsolute(outputPath)) {
             return;
         }
@@ -148,6 +146,7 @@ export class BundleAnalyzerWebpackPlugin {
             return;
         }
 
+        // tslint:disable-next-line: no-unsafe-any
         const reportHtml = await new Promise((resolve, reject) => ejs.renderFile(
             `${webpackBundleAnalyzerRoot}/views/viewer.ejs`,
             {
@@ -233,7 +232,7 @@ export class BundleAnalyzerWebpackPlugin {
                 }
                 spawn.sync(command, args, { stdio: 'inherit' });
             } catch (err) {
-                this._logger.error(`${err.message || err}`);
+                this._logger.error(`${(err as Error).message || err}`);
             }
         }
     }
@@ -242,13 +241,19 @@ export class BundleAnalyzerWebpackPlugin {
         return readFileSync(`${webpackBundleAnalyzerRoot}/public/${filename}`, 'utf8');
     }
 
+    // tslint:disable-next-line: no-any
     private getChartData(...args: any[]): any | null {
+        // tslint:disable-next-line: no-any
         let chartData: any;
         const logger = this._logger;
         try {
+            // tslint:disable-next-line: no-unsafe-any
             chartData = analyzer.getViewerData(...args, { logger });
         } catch (err) {
-            this._logger.error(`Couldn't analyze webpack bundle, Error: ${err.message || err}`);
+            if (err) {
+                this._logger.error(`Couldn't analyze webpack bundle, Error: ${(err as Error).message || err}`);
+            }
+
             chartData = null;
         }
 

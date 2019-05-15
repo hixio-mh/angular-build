@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { copy } from 'fs-extra';
@@ -27,7 +24,7 @@ export class CopyWebpackPlugin {
     private readonly _persistedOutputFileSystemNames = ['NodeOutputFileSystem'];
     private readonly _fileDependencies: string[] = [];
     private readonly _contextDependencies: string[] = [];
-    private readonly _cachedFiles: { [key: string]: any } = {};
+    private readonly _cachedFiles: { [key: string]: { [key: string]: boolean } } = {};
     private _newWrittenCount = 0;
 
     get name(): string {
@@ -60,7 +57,7 @@ export class CopyWebpackPlugin {
             outputPath = compiler.options.output.path;
         }
 
-        const emitFn = (compilation: any, cb: (err?: Error) => void) => {
+        const emitFn = (compilation: webpack.compilation.Compilation, cb: (err?: Error) => void) => {
             const startTime = Date.now();
             this._newWrittenCount = 0;
 
@@ -99,7 +96,7 @@ export class CopyWebpackPlugin {
 
                     return;
                 })
-                .catch(err => {
+                .catch((err: Error) => {
                     this._newWrittenCount = 0;
 
                     cb(err);
@@ -113,7 +110,7 @@ export class CopyWebpackPlugin {
 
     private async writeFile(processedAssets: ProcessedAssetsResult[],
         compiler: webpack.Compiler,
-        compilation: any,
+        compilation: webpack.compilation.Compilation,
         outputPath: string):
         Promise<void> {
         await Promise.all(processedAssets.map(async (processedAsset) => {
@@ -162,7 +159,9 @@ export class CopyWebpackPlugin {
                 this._logger.debug(`Emitting ${processedAsset.relativeTo} to disk`);
                 await copy(processedAsset.absoluteFrom, absoluteTo);
 
+                // tslint:disable-next-line: no-unsafe-any
                 if (!compilation.assets[processedAsset.relativeTo]) {
+                    // tslint:disable-next-line: no-unsafe-any
                     compilation.assets[processedAsset.relativeTo] = {
                         size(): number {
                             return processedAsset.content.length;
@@ -174,6 +173,7 @@ export class CopyWebpackPlugin {
                 }
 
                 ++this._newWrittenCount;
+                // tslint:disable-next-line: no-unsafe-any
             } else if (!compilation.assets[processedAsset.relativeTo]) {
                 this._logger.debug(
                     `Emitting ${processedAsset.relativeTo}${compiler.outputFileSystem.constructor.name ===
@@ -182,6 +182,7 @@ export class CopyWebpackPlugin {
                         ? ' to memory'
                         : ''}`);
 
+                // tslint:disable-next-line: no-unsafe-any
                 compilation.assets[processedAsset.relativeTo] = {
                     size(): number {
                         return processedAsset.content.length;

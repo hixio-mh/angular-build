@@ -85,7 +85,7 @@ export async function initTsTranspilationOptions(tsConfigPath: string,
         const flatModuleOutFile =
             tsTranspilation._angularCompilerOptions &&
                 tsTranspilation._angularCompilerOptions.flatModuleOutFile
-                ? tsTranspilation._angularCompilerOptions.flatModuleOutFile
+                ? tsTranspilation._angularCompilerOptions.flatModuleOutFile as string
                 : null;
 
         if (flatModuleOutFile) {

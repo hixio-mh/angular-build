@@ -6,144 +6,143 @@ import { colorize } from './colorize';
 
 export enum LogLevel {
     None = 0,
-    Error = 1,
-    Warn = 2,
-    Info = 4,
-    Debug = 8
+    Fatal = 1,
+    Error = 2,
+    Warn = 4,
+    Info = 8,
+    Debug = 16
 }
 
-export type LogLevelString = 'debug' | 'info' | 'warn' | 'error' | 'none';
+export type LogLevelString = 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'none';
 
 export interface LoggerOptions {
-    logLevel?: LogLevelString;
+    logLevel?: LogLevel | LogLevelString;
     name?: string;
     debugPrefix?: string;
     infoPrefix?: string;
     warnPrefix?: string;
     errorPrefix?: string;
+    fatalPrefix?: string;
     color?: boolean;
 }
 
 export interface LoggerBase {
+    log(level: LogLevel | LogLevelString, message: string, optionalParams?: any): void;
     debug(message: string, optionalParams?: any): void;
     info(message: string, optionalParams?: any): void;
     warn(message: string, optionalParams?: any): void;
     error(message: string, optionalParams?: any): void;
+    fatal(message: string, optionalParams?: any): void;
 }
 
 export class Logger implements LoggerBase {
     readonly loggerOptions: LoggerOptions;
     private _minLogLevel: LogLevel = LogLevel.Info;
 
-    set logLevel(logLevel: LogLevelString) {
-        switch (logLevel) {
-            case 'debug':
-                this._minLogLevel = LogLevel.Debug;
-                break;
-            case 'info':
-                this._minLogLevel = LogLevel.Info;
-                break;
-            case 'warn':
-                this._minLogLevel = LogLevel.Warn;
-                break;
-            case 'error':
-                this._minLogLevel = LogLevel.Error;
-                break;
-            case 'none':
-                this._minLogLevel = LogLevel.None;
-                break;
-            default:
-        }
+    set minLogLevel(minLogLevel: LogLevel | LogLevelString) {
+        this._minLogLevel = typeof minLogLevel === 'string' ? this.toLogLevel(minLogLevel) : minLogLevel;
     }
 
     constructor(loggerOptions: LoggerOptions) {
         this.loggerOptions = loggerOptions || {};
-        if (this.loggerOptions.logLevel) {
-            this.logLevel = this.loggerOptions.logLevel;
+        if (this.loggerOptions.logLevel != null) {
+            this._minLogLevel = typeof this.loggerOptions.logLevel === 'string' ?
+                this.toLogLevel(this.loggerOptions.logLevel) :
+                this.loggerOptions.logLevel;
+        }
+    }
+
+    log(level: LogLevel | LogLevelString, message: string, optionalParams?: any): void {
+        const logLevel = typeof level === 'string' ? this.toLogLevel(level) : level;
+
+        if (this._minLogLevel < logLevel || !message) {
+            return;
+        }
+
+        const prefix = this.getPrefix(logLevel);
+
+        let logMsg = `${prefix}${message.trimLeft()}`;
+
+        if (this.loggerOptions.color !== false && logLevel === LogLevel.Warn) {
+            logMsg = colorize(logMsg, 'yellow');
+        } else if (this.loggerOptions.color !== false && (logLevel === LogLevel.Error || logLevel === LogLevel.Fatal)) {
+            logMsg = colorize(logMsg, 'red');
+        }
+
+
+        if (optionalParams) {
+            if (logLevel === LogLevel.Warn) {
+                console.warn(logMsg, optionalParams);
+            } else {
+                console.log(logMsg, optionalParams);
+            }
+
+        } else {
+            if (logLevel === LogLevel.Warn) {
+                console.warn(logMsg);
+            } else {
+                console.log(logMsg);
+            }
         }
     }
 
     debug(message: string, optionalParams?: any): void {
-        if (this._minLogLevel < LogLevel.Debug || !message) {
-            return;
-        }
-
-        const prefix =
-            // tslint:disable-next-line:prefer-template
-            `${this.loggerOptions.name ? this.loggerOptions.name + ' ' : ''}${
-            this.loggerOptions.debugPrefix
-                // tslint:disable-next-line:prefer-template
-                ? this.loggerOptions.debugPrefix + ' '
-                : ''}`;
-        if (optionalParams) {
-            console.log(`${prefix}${message}`, optionalParams);
-        } else {
-            console.log(`${prefix}${message}`);
-        }
+        this.log(LogLevel.Debug, message, optionalParams);
     }
 
     info(message: string, optionalParams?: any): void {
-        if (this._minLogLevel < LogLevel.Info || !message) {
-            return;
-        }
-
-        const prefix =
-            // tslint:disable-next-line:prefer-template
-            `${this.loggerOptions.name ? this.loggerOptions.name + ' ' : ''}${
-            this.loggerOptions.infoPrefix
-                // tslint:disable-next-line:prefer-template
-                ? this.loggerOptions.infoPrefix + ' '
-                : ''}`;
-        if (optionalParams) {
-            console.log(`${prefix}${message}`, optionalParams);
-        } else {
-            console.log(`${prefix}${message}`);
-        }
+        this.log(LogLevel.Info, message, optionalParams);
     }
 
     warn(message: string, optionalParams?: any): void {
-        if (this._minLogLevel < LogLevel.Warn || !message) {
-            return;
-        }
-
-        const prefix =
-            // tslint:disable-next-line:prefer-template
-            `${this.loggerOptions.name ? this.loggerOptions.name + ' ' : ''}${
-            this.loggerOptions.warnPrefix
-                // tslint:disable-next-line:prefer-template
-                ? this.loggerOptions.warnPrefix + ' '
-                : ''}`;
-        const logMsg = this.loggerOptions.color !== false
-            ? colorize(`${prefix}${message}`, 'yellow')
-            : `${prefix}${message.trimLeft()}`;
-
-        if (optionalParams) {
-            console.warn(logMsg, optionalParams);
-        } else {
-            console.warn(logMsg);
-        }
+        this.log(LogLevel.Warn, message, optionalParams);
     }
 
     error(message: string, optionalParams?: any): void {
-        if (this._minLogLevel < LogLevel.Error || !message) {
-            return;
+        this.log(LogLevel.Error, message, optionalParams);
+    }
+
+    fatal(message: string, optionalParams?: any): void {
+        this.log(LogLevel.Fatal, message, optionalParams);
+    }
+
+    private toLogLevel(logLevelString: LogLevelString): LogLevel {
+        switch (logLevelString) {
+            case 'debug':
+                return LogLevel.Debug;
+            case 'info':
+                return LogLevel.Info;
+            case 'warn':
+                return LogLevel.Warn;
+            case 'error':
+                return LogLevel.Error;
+            case 'fatal':
+                return LogLevel.Fatal;
+            case 'none':
+                return LogLevel.None;
+            default:
+                return LogLevel.None;
+        }
+    }
+
+    private getPrefix(logLevel: LogLevel): string {
+        let prefix = '';
+        if (this.loggerOptions.name) {
+            prefix += `${this.loggerOptions.name} `;
         }
 
-        const prefix =
-            // tslint:disable-next-line:prefer-template
-            `${this.loggerOptions.name ? this.loggerOptions.name + ' ' : ''}${
-            this.loggerOptions.errorPrefix
-                // tslint:disable-next-line:prefer-template
-                ? this.loggerOptions.errorPrefix + ' '
-                : ''}`;
-        const logMsg = this.loggerOptions.color !== false
-            ? colorize(`${prefix}${message}`, 'red')
-            : `${prefix}${message.trimLeft()}`;
-
-        if (optionalParams) {
-            console.error(logMsg, optionalParams);
-        } else {
-            console.error(logMsg);
+        if (logLevel === LogLevel.Debug && this.loggerOptions.debugPrefix) {
+            prefix += `${this.loggerOptions.debugPrefix} `;
+        } else if (logLevel === LogLevel.Info && this.loggerOptions.infoPrefix) {
+            prefix += `${this.loggerOptions.infoPrefix} `;
+        } else if (logLevel === LogLevel.Warn && this.loggerOptions.warnPrefix) {
+            prefix += `${this.loggerOptions.warnPrefix} `;
+        } else if (logLevel === LogLevel.Error && this.loggerOptions.errorPrefix) {
+            prefix += `${this.loggerOptions.errorPrefix} `;
+        } else if (logLevel === LogLevel.Fatal && (this.loggerOptions.fatalPrefix || this.loggerOptions.errorPrefix)) {
+            prefix += `${this.loggerOptions.fatalPrefix || this.loggerOptions.errorPrefix} `;
         }
+
+        return prefix;
     }
 }

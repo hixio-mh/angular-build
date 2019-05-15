@@ -1,5 +1,6 @@
 import { ParsedCommandLine, ScriptTarget } from 'typescript';
 
+import { JsonObject } from '../json-object';
 import { LibBundleOptions } from '../lib-project-config';
 
 export interface LibBundleOptionsInternal extends LibBundleOptions {
@@ -8,7 +9,7 @@ export interface LibBundleOptionsInternal extends LibBundleOptions {
     _outputFilePath: string;
 
     _tsConfigPath?: string;
-    _tsConfigJson?: { [key: string]: string | boolean | {} };
+    _tsConfigJson?: JsonObject;
     _tsCompilerConfig?: ParsedCommandLine;
 
     _sourceScriptTarget?: ScriptTarget;

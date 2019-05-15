@@ -1,3 +1,5 @@
+export * from './apply-env-overrides';
+export * from './apply-extends';
 export * from './detect-cli';
 export * from './get-ecma-version-from-script-target';
 export * from './get-custom-webpack-config';
@@ -12,7 +14,6 @@ export * from './output-hash-format';
 export * from './parse-polyfill-dll-entries';
 export * from './parse-script-style-entries';
 export * from './prepare-clean-options';
-export * from './prepare-configs';
 export * from './resolve-loader-path';
 export * from './run-webpack';
 export * from './to-ts-script-target';

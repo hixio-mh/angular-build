@@ -1,6 +1,3 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { Configuration, Options, Plugin, RuleSetRule } from 'webpack';
@@ -233,7 +230,7 @@ export async function getAppBrowserWebpackConfigPartial(angularBuildContext: Ang
                 dllEnvironment.aot = false;
             }
             const dllProjectConfig =
-                JSON.parse(JSON.stringify(angularBuildContext.projectConfigWithoutEnvApplied)) as
+                JSON.parse(JSON.stringify(angularBuildContext.projectConfigRaw)) as
                 AppProjectConfigInternal;
 
             applyProjectConfigWithEnvironment(dllProjectConfig, dllEnvironment);
@@ -337,8 +334,10 @@ export async function getAppBrowserWebpackConfigPartial(angularBuildContext: Ang
                             name: vendorChunkName,
                             chunks: 'initial',
                             enforce: true,
+                            // tslint:disable-next-line: no-any
                             test: (mod: any, chunks: { name: string }[]) => {
-                                const moduleName = mod.nameForCondition ? mod.nameForCondition() : '';
+                                // tslint:disable-next-line: no-unsafe-any
+                                const moduleName = mod.nameForCondition ? mod.nameForCondition() as string : '';
 
                                 return /[\\/]node_modules[\\/]/.test(moduleName) &&
                                     !chunks.some(
@@ -346,7 +345,7 @@ export async function getAppBrowserWebpackConfigPartial(angularBuildContext: Ang
                             },
                         }
                         : false,
-                } as any
+                }
             }
         };
     }

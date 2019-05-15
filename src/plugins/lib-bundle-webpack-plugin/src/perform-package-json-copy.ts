@@ -1,10 +1,9 @@
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { writeFile } from 'fs-extra';
 
 import { AngularBuildContext } from '../../../build-context';
+import { JsonObject } from '../../../models';
 import { InvalidConfigError } from '../../../models/errors';
 import { LibProjectConfigInternal } from '../../../models/internals';
 
@@ -32,8 +31,7 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
 
     // merge config
     const rootPackageJson = libConfig._rootPackageJson || {};
-    // tslint:disable-next-line:no-any
-    const packageJson: any = {
+    const packageJson: JsonObject = {
         ...JSON.parse(JSON.stringify(libConfig._packageJson)),
         ...(libConfig._packageEntryPoints || {})
     };
@@ -86,12 +84,17 @@ export async function performPackageJsonCopy(angularBuildContext: AngularBuildCo
             packageJson.version = libConfig._projectVersion;
         }
         if (packageJson.peerDependencies) {
-            Object.keys(packageJson.peerDependencies).forEach(key => {
-                if (versionPlaceholderRegex.test(packageJson.peerDependencies[key])) {
-                    packageJson.peerDependencies[key] =
-                        packageJson.peerDependencies[key].replace(versionPlaceholderRegex, libConfig._projectVersion);
+            const peerDependencies = packageJson.peerDependencies as JsonObject;
+            const peerKeys = Object.keys(peerDependencies);
+            for (const key of peerKeys) {
+                const peerPkgVer = peerDependencies[key] as string;
+                if (versionPlaceholderRegex.test(peerPkgVer)) {
+                    peerDependencies[key] = peerPkgVer.replace(versionPlaceholderRegex, libConfig._projectVersion);
                 }
-            });
+            }
+
+            packageJson.peerDependencies = peerDependencies;
+
         }
     }
 

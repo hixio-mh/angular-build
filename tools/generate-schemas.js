@@ -26,16 +26,20 @@ function _generateSchema(input, typeSymbol, output) {
 }
 
 function generateSchemas() {
-    const schemaOutDir = path.resolve(__dirname, '../schemas');
+    const defaultSchemaOutDir = path.resolve(__dirname, '../dist/schemas');
+    const builderSchemaOutDir = path.resolve(__dirname, '../dist/src/architect/schemas');
+
     const tsConfigInput = path.resolve(__dirname, './tsconfig-schema.json');
 
-    fs.ensureDirSync(schemaOutDir);
+    fs.ensureDirSync(defaultSchemaOutDir);
+    fs.ensureDirSync(builderSchemaOutDir);
 
-    _generateSchema(tsConfigInput, 'AngularBuildConfig', path.resolve(schemaOutDir, 'schema.json'));
-    _generateSchema(tsConfigInput, 'AppBuilderOptions', path.resolve(schemaOutDir, 'app-builder-options-schema.json'));
-    _generateSchema(tsConfigInput, 'AppProjectConfig', path.resolve(schemaOutDir, 'app-project-config-schema.json'));
-    _generateSchema(tsConfigInput, 'LibBuilderOptions', path.resolve(schemaOutDir, 'lib-builder-options-schema.json'));
-    _generateSchema(tsConfigInput, 'LibProjectConfig', path.resolve(schemaOutDir, 'lib-project-config-schema.json'));
+    _generateSchema(tsConfigInput, 'AngularBuildConfig', path.resolve(defaultSchemaOutDir, 'schema.json'));
+    _generateSchema(tsConfigInput, 'AppProjectConfig', path.resolve(defaultSchemaOutDir, 'app-project-config-schema.json'));
+    _generateSchema(tsConfigInput, 'LibProjectConfig', path.resolve(defaultSchemaOutDir, 'lib-project-config-schema.json'));
+
+    _generateSchema(tsConfigInput, 'AppBuilderOptions', path.resolve(builderSchemaOutDir, 'app-builder-options-schema.json'));
+    _generateSchema(tsConfigInput, 'LibBuilderOptions', path.resolve(builderSchemaOutDir, 'lib-builder-options-schema.json'));
 }
 
 if (process.argv.length >= 2 && process.argv[1] === path.resolve(__filename)) {

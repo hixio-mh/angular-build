@@ -1,5 +1,3 @@
-// tslint:disable:no-unsafe-any
-
 import * as path from 'path';
 
 import { ScriptTarget } from 'typescript';
@@ -41,6 +39,7 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
 
     // externals
     if (currentBundle.externals == null && libConfig.externals) {
+        // tslint:disable-next-line: no-unsafe-any
         currentBundle.externals = JSON.parse(JSON.stringify(libConfig.externals));
     }
 

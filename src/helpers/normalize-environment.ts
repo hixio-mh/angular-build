@@ -1,8 +1,7 @@
-// tslint:disable:no-any
-// tslint:disable:no-unsafe-any
+import { JsonObject } from '../models';
 
 // tslint:disable:max-func-body-length
-export function normalizeEnvironment(rawEnvironment: any, prod?: boolean): { [key: string]: boolean | string } {
+export function normalizeEnvironment(rawEnvironment: string | JsonObject | null, prod?: boolean): { [key: string]: boolean | string } {
     let environment: { [key: string]: boolean | string } = {};
     if (!rawEnvironment) {
         return environment;
@@ -11,19 +10,19 @@ export function normalizeEnvironment(rawEnvironment: any, prod?: boolean): { [ke
     if (typeof rawEnvironment === 'string') {
         environment[rawEnvironment] = true;
     } else if (typeof rawEnvironment === 'object') {
-        environment = { ...rawEnvironment };
+        environment = { ...(rawEnvironment as { [key: string]: boolean | string }) };
     }
 
     const normalizedEnv: { [key: string]: boolean | string } = {};
     Object.keys(environment).forEach((key: string) => {
         const normalizedKey = normalizeEnvName(key);
         normalizedEnv[normalizedKey] = environment[key];
-        if (typeof (normalizedEnv as any)[normalizedKey] === 'string' &&
-            ((normalizedEnv as any)[normalizedKey] as string).toLowerCase() === 'true') {
-            (normalizedEnv as any)[normalizedKey] = true;
-        } else if (typeof (normalizedEnv as any)[normalizedKey] === 'string' &&
-            ((normalizedEnv as any)[normalizedKey] as string).toLowerCase() === 'false') {
-            (normalizedEnv as any)[normalizedKey] = false;
+        if (typeof normalizedEnv[normalizedKey] === 'string' &&
+            (normalizedEnv[normalizedKey] as string).toLowerCase() === 'true') {
+            normalizedEnv[normalizedKey] = true;
+        } else if (typeof normalizedEnv[normalizedKey] === 'string' &&
+            (normalizedEnv[normalizedKey] as string).toLowerCase() === 'false') {
+            normalizedEnv[normalizedKey] = false;
         }
     });
 
@@ -55,19 +54,19 @@ export function normalizeEnvironment(rawEnvironment: any, prod?: boolean): { [ke
     if (environment.prod != null) {
         if (environment.prod) {
             environment.prod = true;
-            (environment as any).production = true;
+            environment.production = true;
         } else {
             delete environment.prod;
-            if (typeof (environment as any).production != null) {
-                delete (environment as any).production;
+            if (typeof environment.production != null) {
+                delete environment.production;
             }
         }
-    } else if ((environment as any).production != null) {
-        if ((environment as any).production) {
+    } else if (environment.production != null) {
+        if (environment.production) {
             environment.prod = true;
-            (environment as any).production = true;
+            environment.production = true;
         } else {
-            delete (environment as any).production;
+            delete environment.production;
             if (environment.prod != null) {
                 delete environment.prod;
             }
@@ -76,8 +75,8 @@ export function normalizeEnvironment(rawEnvironment: any, prod?: boolean): { [ke
         if (environment.prod != null) {
             delete environment.prod;
         }
-        if ((environment as any).production != null) {
-            delete (environment as any).production;
+        if (environment.production != null) {
+            delete environment.production;
         }
     }
 
@@ -86,30 +85,30 @@ export function normalizeEnvironment(rawEnvironment: any, prod?: boolean): { [ke
         if (environment.dev != null) {
             delete environment.dev;
         }
-        if ((environment as any).development != null) {
-            delete (environment as any).development;
+        if (environment.development != null) {
+            delete environment.development;
         }
     } else {
         if (environment.dev == null &&
-            (environment as any).development == null) {
+            environment.development == null) {
             environment.dev = true;
-            (environment as any).development = true;
+            environment.development = true;
         } else if (environment.dev != null) {
             if (environment.dev) {
                 environment.dev = true;
-                (environment as any).development = true;
+                environment.development = true;
             } else {
                 delete environment.dev;
-                if ((environment as any).development != null) {
-                    delete (environment as any).development;
+                if (environment.development != null) {
+                    delete environment.development;
                 }
             }
-        } else if ((environment as any).development != null) {
-            if ((environment as any).development) {
+        } else if (environment.development != null) {
+            if (environment.development) {
                 environment.dev = true;
-                (environment as any).development = true;
+                environment.development = true;
             } else {
-                delete (environment as any).development;
+                delete environment.development;
                 if (environment.dev != null) {
                     delete environment.dev;
                 }
