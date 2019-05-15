@@ -40,6 +40,10 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             throw new InternalError("Please call 'AngularBuildContext.init()' static method first.");
         }
 
+        if (AngularBuildContext._logger == null) {
+            throw new InternalError('AngularBuildContext._logger is null.');
+        }
+
         return AngularBuildContext._logger;
     }
 
@@ -189,6 +193,8 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             return;
         }
 
+        AngularBuildContext._logger = options.logger;
+
         AngularBuildContext._startTime = options.startTime;
         AngularBuildContext._workspaceRoot = options.workspaceRoot;
         AngularBuildContext._angularBuildConfig = options.angularBuildConfig;
@@ -263,7 +269,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
     }
 
     // Static private fields
-    private static readonly _logger: LoggerBase;
+    private static _logger: LoggerBase | null = null;
     private static _startTime = Date.now();
     private static _appCount = 0;
     private static _libCount = 0;

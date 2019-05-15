@@ -51,6 +51,11 @@ export async function getWebpackRunOptions(builderSchema: json.JsonObject, conte
     const projectRoot = getSystemPath(resolve(workspace.root, normalize(project.root)));
     const projectType = project.projectType === 'library' ? 'lib' : 'app';
 
+    AngularBuildContext.init({
+        startTime: startTime,
+        workspaceRoot: workspaceRoot,
+        logger: context.logger
+    });
 
     const clonedBuilderOptions = JSON.parse(JSON.stringify(builderSchema)) as AppBuilderOptions | LibBuilderOptions;
 
@@ -69,12 +74,6 @@ export async function getWebpackRunOptions(builderSchema: json.JsonObject, conte
         projectConfigRaw,
         context,
         workspace);
-
-    AngularBuildContext.init({
-        startTime: startTime,
-        workspaceRoot: workspaceRoot,
-        logger: context.logger
-    });
 
     const angularBuildContext = new AngularBuildContext({
         projectConfigRaw: projectConfigRaw,

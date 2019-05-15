@@ -52,7 +52,7 @@
     "build:sample-app-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-app/angular-build.json --env.prod --env.aot",
     "build:sample-lib": "node -r source-map-support/register dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --verbose",
     "build:sample-lib-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --env.prod --verbose",
-    "build:ng:hello-world": "ng build hello-world"
+    "build:ng:hello-world": "ng build hello-world --verbose"
   },
   "dependencies": {
     "@angular-devkit/architect": "^0.800.0-rc.3",
