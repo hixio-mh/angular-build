@@ -1,0 +1,15 @@
+{
+  "$schema": "../../../dist/src/schemas/lib-project-config-schema.json#",
+  "name": "lib1",
+  "root": "./samples/libs/lib1",
+  "outputPath": "samples/libs/lib1/dist",
+  "libraryName": "lib1",
+  "tsTranspilations": true,
+  "envOverrides": {
+    "prod": {
+      "bundles": true,
+      "packageJsonCopy": true,
+      "banner": "banner.txt"
+    }
+  }
+}
