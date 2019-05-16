@@ -6,7 +6,6 @@ import { JsonObject } from '../../models';
 
 import { AppBuilderOptions, AssetPatternObjectCompat, LibBuilderOptions } from '../models';
 
-
 export function toAppConfigInternal(workspaceRoot: string, options: AppBuilderOptions): AppProjectConfigInternal {
     applyAppBuilderOptionsCompat(options);
 
@@ -24,8 +23,6 @@ export function toAppConfigInternal(workspaceRoot: string, options: AppBuilderOp
 }
 
 export function toLibConfigInternal(workspaceRoot: string, options: LibBuilderOptions): LibProjectConfigInternal {
-    applyLibBuilderOptionsCompat(options);
-
     const libConfig: LibProjectConfigInternal = {
         _index: 0,
         _projectType: 'lib',
@@ -41,17 +38,9 @@ export function toLibConfigInternal(workspaceRoot: string, options: LibBuilderOp
 
 // tslint:disable-next-line: max-func-body-length
 export function applyAppBuilderOptionsCompat(appConfig: AppBuilderOptions): void {
-    if (appConfig.target && !appConfig.platformTarget) {
-        appConfig.platformTarget = appConfig.target as ('web' | 'node');
-        delete appConfig.target;
-    }
     if (appConfig.platform && !appConfig.platformTarget) {
         appConfig.platformTarget = appConfig.platform === 'server' ? 'node' : 'web';
         delete appConfig.platform;
-    }
-    if (appConfig.outDir && !appConfig.outputPath) {
-        appConfig.outputPath = appConfig.outDir;
-        delete appConfig.outDir;
     }
     if (appConfig.main && !appConfig.entry) {
         appConfig.entry = appConfig.main;
@@ -145,53 +134,6 @@ export function applyAppBuilderOptionsCompat(appConfig: AppBuilderOptions): void
             }
         }
         delete appConfig.bundleDependencies;
-    }
-}
-
-export function applyLibBuilderOptionsCompat(libConfig: LibBuilderOptions): void {
-    if (libConfig.target && !libConfig.platformTarget) {
-        libConfig.platformTarget = libConfig.target as ('web' | 'node');
-        delete libConfig.target;
-    }
-
-    if (libConfig.platform && !libConfig.platformTarget) {
-        libConfig.platformTarget = libConfig.platform === 'server' ? 'node' : 'web';
-        delete libConfig.platform;
-    }
-
-    if (libConfig.outDir && !libConfig.outputPath) {
-        libConfig.outputPath = libConfig.outDir;
-        delete libConfig.outDir;
-    }
-
-    if (libConfig.assets &&
-        Array.isArray(libConfig.assets) &&
-        (!libConfig.copy || (Array.isArray(libConfig.copy) && !libConfig.copy.length))) {
-        libConfig.copy = libConfig.assets.map(assetEntry => {
-            if (typeof assetEntry === 'string') {
-                return assetEntry;
-            }
-
-            return {
-                from: path.join(assetEntry.input, assetEntry.glob || ''),
-                to: assetEntry.output,
-                exclude: assetEntry.ignore
-            };
-        });
-        delete libConfig.assets;
-    }
-
-    if (libConfig.deleteOutputPath && !libConfig.clean) {
-        libConfig.clean = {
-            beforeBuild: {
-                cleanOutDir: true
-            }
-        };
-        delete libConfig.deleteOutputPath;
-    }
-
-    if (libConfig.bundleDependencies && libConfig.bundleDependencies === 'all') {
-        libConfig.nodeModulesAsExternals = false;
     }
 }
 
