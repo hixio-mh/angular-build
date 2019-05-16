@@ -40,6 +40,7 @@
           },
           "configurations": {
             "production": {
+              "environment": "prod",
               "bundles": true,
               "packageJsonCopy": true
             }
@@ -47,32 +48,33 @@
         }
       }
     },
-    "hello-world-project-extends": {
-      "root": "./samples/hello-world-ng-lib",
+    "lib1-project-extends": {
+      "root": "./samples/libs/lib1",
       "projectType": "library",
       "architect": {
         "build": {
           "builder": "./dist:lib",
           "options": {
-            "extends": "project:hello-world"
+            "extends": "project:lib1"
           },
           "configurations": {
             "production": {
-              "extends": "project:hello-world:production"
+              "environment": "prod",
+              "extends": "project:lib1:production"
             }
           }
         }
       }
     },
-    "hello-world-builtin-extends": {
-      "root": "./samples/hello-world-ng-lib",
+    "lib1-builtin-extends": {
+      "root": "./samples/libs/lib1",
       "projectType": "library",
       "architect": {
         "build": {
           "builder": "./dist:lib",
           "options": {
             "extends": "ngb:lib-default",
-            "outputPath": "samples/hello-world-ng-lib/dist"
+            "outputPath": "samples/libs/lib1/dist"
           },
           "configurations": {
             "production": {
@@ -82,19 +84,71 @@
         }
       }
     },
-    "hello-world-file-extends": {
-      "root": "./samples/hello-world-ng-lib",
+    "lib1-file-extends": {
+      "root": "./samples/libs/lib1",
       "projectType": "library",
       "architect": {
         "build": {
           "builder": "./dist:lib",
           "options": {
-            "extends": "file:samples/hello-world-ng-lib/angular-build.json:lib:hello-world",
-            "outputPath": "samples/hello-world-ng-lib/dist"
+            "extends": "file:angular-build.json:lib:lib1",
+            "outputPath": "samples/libs/lib1/dist"
           },
           "configurations": {
             "production": {
               "environment": "prod"
+            }
+          }
+        }
+      }
+    },
+    "app1": {
+      "root": "./samples/apps/app1",
+      "sourceRoot": "./samples/apps/app1/src",
+      "projectType": "application",
+      "architect": {
+        "build": {
+          "builder": "./dist:app",
+          "options": {
+            "outputPath": "./samples/apps/app1/dist",
+            "entry": "src/main.ts",
+            "polyfills": [
+              "src/polyfills.ts"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "copy": [
+              "src/assets/**/*",
+              "src/favicon.ico"
+            ],
+            "styles": [
+              "src/styles.scss"
+            ],
+            "htmlInject": {
+              "resourceHints": true,
+              "index": "src/index.html"
+            }
+          },
+          "configurations": {
+            "production": {
+              "environment": "prod",
+              "optimization": true,
+              "aot": true,
+              "extractCss": true,
+              "buildOptimizer": true,
+              "sourceMap": false,
+              "namedChunks": false,
+              "vendorChunk": false,
+              "outputHashing": {
+                "bundles": true,
+                "chunks": true,
+                "extractedAssets": true
+              },
+              "fileReplacements": [
+                {
+                  "replace": "./src/environments/environment.ts",
+                  "with": "./src/environments/environment.prod.ts"
+                }
+              ]
             }
           }
         }
