@@ -1,3 +1,5 @@
+import * as path from 'path';
+
 import { Configuration, Plugin } from 'webpack';
 
 import { AngularBuildContextWebpackPlugin } from '../../plugins/angular-build-context-webpack-plugin';
@@ -30,19 +32,29 @@ export async function getLibWebpackConfig(angularBuildContext: AngularBuildConte
     ];
 
     // clean
-    let shouldClean = (angularBuildContext.buildOptions.cleanOutDir && !libConfig._isNestedPackage) ||
-        libConfig.clean || (libConfig.clean !== false && !libConfig._isNestedPackage);
+    let shouldClean = angularBuildContext.buildOptions.cleanOutDir || libConfig.clean || libConfig.clean !== false;
     if (libConfig.clean === false) {
         shouldClean = false;
     }
     if (shouldClean) {
+        let cleanOutputPath = outputPath;
+        if (libConfig._isNestedPackage) {
+            if (!libConfig._packageNameWithoutScope) {
+                throw new InternalError("The 'libConfig._packageNameWithoutScope' is not set.");
+            }
+
+            const nestedPackageStartIndex = libConfig._packageNameWithoutScope.indexOf('/') + 1;
+            const nestedPackageSuffix = libConfig._packageNameWithoutScope.substr(nestedPackageStartIndex);
+            cleanOutputPath = path.resolve(cleanOutputPath, nestedPackageSuffix);
+        }
+
         const cleanOptions = prepareCleanOptions(libConfig);
         const cacheDirs: string[] = [];
 
         plugins.push(new CleanWebpackPlugin({
             ...cleanOptions,
             workspaceRoot: AngularBuildContext.workspaceRoot,
-            outputPath: outputPath,
+            outputPath: cleanOutputPath,
             cacheDirectries: cacheDirs,
             host: angularBuildContext.host,
             logLevel: logLevel
