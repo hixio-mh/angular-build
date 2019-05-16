@@ -3,7 +3,7 @@ import * as path from 'path';
 import { pathExists } from 'fs-extra';
 
 import { AngularBuildContext } from '../build-context';
-import { AngularBuildConfig, LibProjectConfigBase, ProjectConfigBase } from '../models';
+import { AngularBuildConfig, JsonObject, LibProjectConfigBase, ProjectConfigBase } from '../models';
 import { InvalidConfigError } from '../models/errors';
 import {
     AngularBuildConfigInternal,
@@ -167,8 +167,8 @@ export async function getBaseProjectConfigForFileExtends<TConfig extends Project
     }
 
     const extendsFilePath = path.isAbsolute(parts[1]) ? path.resolve(parts[1]) : path.resolve(path.dirname(projectConfig._configPath), parts[1]);
-    const projectType = parts.length >= 3 ? parts[2] : '';
-    const projectName = parts.length === 4 ? parts[3] : '';
+    const projectType = parts.length >= 3 ? parts[2] : null;
+    const projectName = parts.length === 4 ? parts[3] : null;
 
 
     if (!await pathExists(extendsFilePath)) {
@@ -176,26 +176,26 @@ export async function getBaseProjectConfigForFileExtends<TConfig extends Project
     }
 
     // tslint:disable-next-line: no-any
-    let config: { [key: string]: any } | null = null;
+    let config: JsonObject | null = null;
 
     try {
         // tslint:disable-next-line: no-any
         config = (await readJson(extendsFilePath)) as { [key: string]: any };
 
     } catch (jsonErr2) {
-        throw new InvalidConfigError(`${errPrefix}, error in reading extend file: ${path.relative(workspaceRoot, extendsFilePath)},extend name: ${extendsName}${errSuffix}`);
+        throw new InvalidConfigError(`Error in reading extend file: ${path.relative(workspaceRoot, extendsFilePath)}, extends name: ${extendsName}${errSuffix}`);
     }
 
     if (!config) {
-        throw new InvalidConfigError(`${errPrefix}, error in reading extend file: ${path.relative(workspaceRoot, extendsFilePath)},extend name: ${extendsName}${errSuffix}`);
+        throw new InvalidConfigError(`Error in reading extend file: ${path.relative(workspaceRoot, extendsFilePath)}, extends name: ${extendsName}${errSuffix}`);
     }
 
-    if (projectName) {
+    if (projectName && projectType) {
         if (projectType !== projectConfig._projectType) {
             throw new InvalidConfigError(projectTypeMisMatchErrMsg);
         }
 
-        const angularBuildConfig = config as AngularBuildConfig;
+        const angularBuildConfig = config as unknown as AngularBuildConfig;
 
         if (projectConfig._configPath !== extendsFilePath) {
             if (angularBuildConfig.$schema) {
@@ -219,25 +219,14 @@ export async function getBaseProjectConfigForFileExtends<TConfig extends Project
 
         // extends
         if (projectConfig._projectType === 'lib') {
-            for (let i = 0; i < angularBuildConfigInternal.libs.length; i++) {
-                const libConfig = angularBuildConfigInternal.libs[i];
-
-                libConfig._index = i;
-                libConfig._projectType = 'lib';
-                libConfig._configPath = extendsFilePath;
-
+            for (const libConfig of angularBuildConfigInternal.libs) {
                 if (libConfig.name === projectName) {
                     baseProjectConfig = libConfig;
                     break;
                 }
             }
         } else {
-            for (let i = 0; i < angularBuildConfigInternal.apps.length; i++) {
-                const appConfig = angularBuildConfigInternal.apps[i];
-                appConfig._index = i;
-                appConfig._projectType = 'app';
-                appConfig._configPath = extendsFilePath;
-
+            for (const appConfig of angularBuildConfigInternal.apps) {
                 if (appConfig.name === projectName) {
                     baseProjectConfig = appConfig;
                     break;
@@ -256,9 +245,12 @@ export async function getBaseProjectConfigForFileExtends<TConfig extends Project
                 errMsg}`);
         }
 
-        baseProjectConfig = config as (AppProjectConfigInternal | LibProjectConfigInternal);
+        baseProjectConfig = config as unknown as (AppProjectConfigInternal | LibProjectConfigInternal);
+    }
+
+    if (baseProjectConfig) {
+        baseProjectConfig._configPath = extendsFilePath;
         baseProjectConfig._projectType = projectConfig._projectType;
-        baseProjectConfig._configPath = projectConfig._configPath;
     }
 
     return baseProjectConfig;
