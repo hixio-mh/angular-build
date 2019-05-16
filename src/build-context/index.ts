@@ -177,7 +177,7 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
 
         const schemaRootPath = path.resolve(__dirname, '../schemas');
 
-        const schema = (await readJson(path.resolve(schemaRootPath, 'app-project-config-schema.json'))) as JsonObject;
+        const schema = (await readJson(path.resolve(schemaRootPath, 'lib-project-config-schema.json'))) as JsonObject;
 
         if (schema.$schema) {
             delete schema.$schema;
