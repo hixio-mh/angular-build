@@ -32,7 +32,7 @@ export async function getLibWebpackConfig(angularBuildContext: AngularBuildConte
     ];
 
     // clean
-    let shouldClean = angularBuildContext.buildOptions.cleanOutDir || libConfig.clean || libConfig.clean !== false;
+    let shouldClean = libConfig.clean || libConfig.clean !== false;
     if (libConfig.clean === false) {
         shouldClean = false;
     }

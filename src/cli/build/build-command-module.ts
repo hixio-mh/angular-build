@@ -37,12 +37,6 @@ Usage:
                     type: 'array',
                     array: true
                 })
-            .option('clean',
-                {
-                    describe: 'Clean output directory before build.',
-                    type: 'boolean',
-                    boolean: true
-                })
             .option('progress',
                 {
                     describe: 'Display compilation progress in percentage.',

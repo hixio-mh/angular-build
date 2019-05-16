@@ -69,11 +69,6 @@ export async function getWebpackConfigFromAngularBuildConfig(
             startTime = buildCommandOptions._startTime;
         }
 
-        buildOptions.cleanOutDir = buildCommandOptions.clean ||
-            (buildCommandOptions as JsonObject).cleanOutDirs ||
-            (buildCommandOptions as JsonObject).cleanOutputPath || (buildCommandOptions as JsonObject).deleteOutputPath
-            ? true
-            : false;
         if (buildCommandOptions.filter && Array.isArray(buildCommandOptions.filter) && buildCommandOptions.filter.length) {
             filteredConfigNames.push(...prepareFilterNames(buildCommandOptions.filter as string[]));
         }
