@@ -1,6 +1,14 @@
-import { ProjectConfigCompat } from './project-config-compat';
-
 // tslint:disable: no-reserved-keywords
+
+/**
+ * @additionalProperties false
+ */
+export interface AssetPatternObjectCompat {
+    glob?: string;
+    input: string;
+    output: string;
+    ignore?: string[];
+}
 
 /**
  * @additionalProperties false
@@ -44,7 +52,7 @@ export interface Budget {
     error?: string;
 }
 
-export interface AppConfigCompat extends ProjectConfigCompat {
+export interface AppConfigCompat {
     /**
      * @angular-devkit/build_angular compatibility, use 'entry' instead.
      */
@@ -54,18 +62,41 @@ export interface AppConfigCompat extends ProjectConfigCompat {
      */
     index?: string;
     /**
-     * @angular-devkit/build_angular compatibility, use 'sourceMapDevTool' instead.
-     */
-    evalSourceMap?: boolean;
-    /**
      * @angular-devkit/build_angular compatibility, use 'publicPath' instead.
      */
     deployUrl?: string;
     /**
+     * @angular-devkit/build_angular compatibility, use 'copy' instead.
+     */
+    assets?: (AssetPatternObjectCompat | string)[] | boolean;
+    /**
+     * @angular-devkit/build_angular compatibility, use --clean instead.
+     */
+    deleteOutputPath?: boolean;
+    /**
+     * @angular-devkit/build_angular compatibility, use 'sourceMapDevTool' instead.
+     */
+    evalSourceMap?: boolean;
+    /**
      * @angular-devkit/build_angular compatibility, use 'bundleAnalyzer.generateStatsFile' instead.
      */
     statsJson?: boolean;
-
+    /**
+     * @angular-devkit/build_angular compatibility, use 'watchOptions.poll' instead.
+     */
+    poll?: number;
+    /**
+     * @angular-devkit/build_angular compatibility, use 'platformTarget' instead.
+     */
+    platform?: 'browser' | 'server';
+    /**
+     * @angular-devkit/build_angular compatibility, use 'nodeModulesAsExternals' instead.
+     */
+    bundleDependencies?: 'none' | 'all';
+    /**
+     * @angular-devkit/build_angular compatibility, not supported.
+     */
+    preserveSymlinks?: boolean;
     /**
      * @angular-devkit/build_angular compatibility, not supported.
      */
@@ -89,17 +120,17 @@ export interface AppConfigCompat extends ProjectConfigCompat {
     /**
      * @angular-devkit/build_angular compatibility, not supported.
      */
-    verbose?: boolean;
+    profile?: boolean;
     /**
      * @angular-devkit/build_angular compatibility, not supported.
      */
-    progress?: boolean;
+    es5BrowserSupport?: boolean;
     /**
      * @angular-devkit/build_angular compatibility, not supported.
      */
-    watch?: boolean;
+    rebaseRootRelativeCssUrls?: boolean;
     /**
      * @angular-devkit/build_angular compatibility, not supported.
      */
-    poll?: number;
+    webWorkerTsConfig?: boolean;
 }
