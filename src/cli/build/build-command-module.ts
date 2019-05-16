@@ -33,7 +33,7 @@ Usage:
                 })
             .option('filter',
                 {
-                    describe: 'Filter config by name(s).',
+                    describe: 'Filter project config by name(s).',
                     type: 'array',
                     array: true
                 })
