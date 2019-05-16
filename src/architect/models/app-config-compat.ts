@@ -70,7 +70,7 @@ export interface AppConfigCompat {
      */
     assets?: (AssetPatternObjectCompat | string)[] | boolean;
     /**
-     * @angular-devkit/build_angular compatibility, use --clean instead.
+     * @angular-devkit/build_angular compatibility, use clean options instead.
      */
     deleteOutputPath?: boolean;
     /**
