@@ -53,8 +53,10 @@
     "build:sample-lib": "node -r source-map-support/register dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --verbose",
     "build:sample-lib-prod": "node dist/bin/ngb build --config=samples/hello-world-ng-lib/angular-build.json --env.prod --verbose",
 
-    "build:ng:hello-world": "ng build hello-world --verbose",
-    "build:ng:hello-world:prod": "ng build hello-world --verbose -c=production",
+    "build:ng:lib1": "ng build lib1 --verbose",
+    "build:ng:lib1:prod": "ng build lib1 --verbose -c=production",
+    "build:ng:lib1-secondary": "ng build lib1-secondary --verbose",
+    "build:ng:lib1-secondary:prod": "ng build lib1-secondary --verbose -c=production",
 
     "build:ng:hello-world-project-extends": "ng build hello-world-project-extends --verbose",
     "build:ng:hello-world-project-extends:prod": "ng build hello-world-project-extends --verbose -c=production",

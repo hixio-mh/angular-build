@@ -1,0 +1,24 @@
+{
+  "extends": "../tsconfig-build.json",
+
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "../",
+    "outDir": "../dist/lib1",
+
+    "paths": {
+      "@ngb-demo/lib1": [ "../dist/lib1" ]
+    },
+  },
+  "files": [
+    "public_api.ts"
+  ],
+  "angularCompilerOptions": {
+    "annotateForClosureCompiler": true,
+    "strictMetadataEmit": true,
+    "skipTemplateCodegen": true,
+    "fullTemplateTypeCheck": true,
+    "flatModuleOutFile": "secondary.js",
+    "flatModuleId": "@ngb-demo/lib1/secondary"
+  }
+}

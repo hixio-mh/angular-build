@@ -3,15 +3,15 @@
   "version": 1,
   "newProjectRoot": "modules",
   "projects": {
-    "hello-world": {
-      "root": "./samples/hello-world-ng-lib",
+    "lib1": {
+      "root": "./samples/libs/lib1",
       "projectType": "library",
       "architect": {
         "build": {
           "builder": "./dist:lib",
           "options": {
-            "outputPath": "samples/hello-world-ng-lib/dist",
-            "libraryName": "hello-world",
+            "outputPath": "samples/libs/lib1/dist",
+            "libraryName": "lib1",
             "tsTranspilations": true
           },
           "configurations": {
@@ -19,6 +19,29 @@
               "bundles": true,
               "packageJsonCopy": true,
               "banner": "banner.txt"
+            }
+          }
+        }
+      }
+    },
+    "lib1-secondary": {
+      "root": "./samples/libs/lib1/secondary",
+      "projectType": "library",
+      "architect": {
+        "build": {
+          "builder": "./dist:lib",
+          "options": {
+            "outputPath": "samples/libs/lib1/dist",
+            "libraryName": "lib1.secondary",
+            "tsTranspilations": true,
+            "externals": {
+              "@ngb-demo/lib1": "lib1"
+            }
+          },
+          "configurations": {
+            "production": {
+              "bundles": true,
+              "packageJsonCopy": true
             }
           }
         }

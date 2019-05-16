@@ -1,0 +1,31 @@
+{
+  "name": "@ngb-demo/lib1",
+  "version": "0.0.0-PLACEHOLDER",
+  "description": "Demo library for build test.",
+  "keywords": [
+    "angular-build",
+    "demo",
+    "config-lib"
+  ],
+  "author": "DagonMetric",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DagonMetric/angular-build.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DagonMetric/angular-build/issues"
+  },
+  "homepage": "https://github.com/DagonMetric/angular-build",
+  "engines": {
+    "node": ">=10.9.0"
+  },
+  "dependencies": {
+    "tslib": "^1.9.3"
+  },
+  "peerDependencies": {
+    "@angular/common": "^7.0.0 || ^8.0.0-beta.0",
+    "@angular/core": "^7.0.0 || ^8.0.0-beta.0",
+    "rxjs": "^6.0.0"
+  }
+}

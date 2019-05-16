@@ -39,12 +39,6 @@ export async function getLibWebpackConfig(angularBuildContext: AngularBuildConte
         const cleanOptions = prepareCleanOptions(libConfig);
         const cacheDirs: string[] = [];
 
-        if (cleanOptions.beforeBuild && cleanOptions.beforeBuild.cleanCache) {
-            if (libConfig._rptCacheDirectory) {
-                cacheDirs.push(libConfig._rptCacheDirectory);
-            }
-        }
-
         plugins.push(new CleanWebpackPlugin({
             ...cleanOptions,
             workspaceRoot: AngularBuildContext.workspaceRoot,

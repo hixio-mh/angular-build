@@ -321,7 +321,6 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         if (projectConfig.outputPath) {
             projectConfig._outputPath = path.resolve(AngularBuildContext.workspaceRoot, projectConfig.outputPath);
         }
-        projectConfig._rptCacheDirectory = path.resolve(projectConfig._projectRoot, './.rpt-cache/');
 
         // Read package.json files
         await this.initPackageJsons(projectConfig);
