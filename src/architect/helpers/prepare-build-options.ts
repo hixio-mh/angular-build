@@ -1,12 +1,9 @@
-// tslint:disable: no-any
-
 import { normalizeEnvironment } from '../../helpers';
-import { BuildOptions } from '../../models';
 import { BuildOptionsInternal } from '../../models/internals';
 
-import { BuildOptionsCompat } from '../models';
+import { AppBuilderOptions, LibBuilderOptions } from '../models';
 
-export function getBuildOptionsFromBuilderOptions(options: BuildOptions & BuildOptionsCompat): BuildOptionsInternal {
+export function getBuildOptionsFromBuilderOptions(options: AppBuilderOptions | LibBuilderOptions): BuildOptionsInternal {
     const buildOptions: BuildOptionsInternal = { environment: {} };
 
     if (options.environment) {
@@ -15,21 +12,15 @@ export function getBuildOptionsFromBuilderOptions(options: BuildOptions & BuildO
         delete options.environment;
     }
 
+    if (options.prod) {
+        buildOptions.environment = buildOptions.environment || {};
+        buildOptions.environment.prod = true;
+        delete options.prod;
+    }
+
     if (options.filter) {
         buildOptions.filter = options.filter;
         delete options.filter;
-    }
-
-    if (options.verbose != null) {
-        if (options.verbose) {
-            buildOptions.logLevel = 'debug';
-        }
-        delete options.verbose;
-    }
-
-    if (options.logLevel) {
-        buildOptions.logLevel = options.logLevel;
-        delete options.logLevel;
     }
 
     if (options.progress != null) {
@@ -39,18 +30,17 @@ export function getBuildOptionsFromBuilderOptions(options: BuildOptions & BuildO
         delete options.progress;
     }
 
-    if (options.poll != null) {
-        buildOptions.watchOptions = {
-            poll: options.poll
-        };
-        delete options.poll;
+    if (options.verbose != null) {
+        buildOptions.verbose = options.verbose;
+        if (options.verbose) {
+            buildOptions.logLevel = 'debug';
+        }
+        delete options.verbose;
     }
 
-    if (options.cleanOutDir != null) {
-        if (options.cleanOutDir) {
-            buildOptions.cleanOutDir = true;
-        }
-        delete options.cleanOutDir;
+    if (options.logLevel) {
+        buildOptions.logLevel = options.logLevel;
+        delete options.logLevel;
     }
 
     if (options.watch != null) {
@@ -70,6 +60,13 @@ export function getBuildOptionsFromBuilderOptions(options: BuildOptions & BuildO
             buildOptions.beep = true;
         }
         delete options.beep;
+    }
+
+    if ((options as AppBuilderOptions).poll != null) {
+        buildOptions.watchOptions = {
+            poll: (options as AppBuilderOptions).poll
+        };
+        delete (options as AppBuilderOptions).poll;
     }
 
     return buildOptions;
