@@ -9,21 +9,29 @@ export interface BuildOptions {
      */
     environment?: { [key: string]: boolean | string } | string;
     /**
+     * Flag to set build environment to 'production'.
+     */
+    prod?: boolean;
+    /**
      * Filter config by name(s).
      */
     filter?: string | string[];
     /**
-     * Logging level for output logging.
+     * Clean output directory before build.
      */
-    logLevel?: 'debug' | 'info' | 'warn' | 'none';
+    clean?: boolean;
     /**
      * Display compilation progress in percentage.
      */
     progress?: boolean;
     /**
-     * Clean output directory before build.
+     * Flag to set logLevel to 'debug'.
      */
-    cleanOutDir?: boolean;
+    verbose?: boolean;
+    /**
+     * Logging level for output logging.
+     */
+    logLevel?: 'debug' | 'info' | 'warn' | 'none';
     /**
      * Build with watch mode.
      */
