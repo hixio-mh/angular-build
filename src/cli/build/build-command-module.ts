@@ -55,11 +55,20 @@ Usage:
                     type: 'boolean',
                     boolean: true
                 })
+            .option('logLevel',
+                {
+                    describe: 'Logging level for output logging.',
+                    type: 'string'
+                })
             .option('watch',
                 {
                     describe: 'Build with watch mode.',
                     type: 'boolean',
                     boolean: true
+                })
+            .option('watchOptions',
+                {
+                    describe: 'Watch options.'
                 })
             .option('beep',
                 {
