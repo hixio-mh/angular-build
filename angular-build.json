@@ -1,0 +1,103 @@
+{
+  "$schema": "./dist/src/schemas/schema.json#",
+  "libs": [
+    {
+      "name": "lib1",
+      "root": "./samples/libs/lib1",
+      "outputPath": "samples/libs/lib1/dist",
+      "libraryName": "lib1",
+      "tsTranspilations": true,
+      "envOverrides": {
+        "prod": {
+          "bundles": true,
+          "packageJsonCopy": true,
+          "banner": "banner.txt"
+        }
+      }
+    },
+    {
+      "name": "lib1-secondary",
+      "root": "./samples/libs/lib1/secondary",
+      "outputPath": "samples/libs/lib1/dist",
+      "libraryName": "lib1.secondary",
+      "tsTranspilations": true,
+      "externals": {
+        "@ngb-demo/lib1": "lib1"
+      },
+      "envOverrides": {
+        "prod": {
+          "bundles": true,
+          "packageJsonCopy": true
+        }
+      }
+    },
+    {
+      "extends": "project:lib1",
+      "name": "lib1-project-extends"
+    },
+    {
+      "extends": "ngb:lib-default",
+      "name": "lib1-builtin-extends",
+      "root": "./samples/libs/lib1",
+      "outputPath": "samples/libs/lib1/dist"
+    },
+    {
+      "extends": "file:samples/libs/lib1/build-config.json",
+      "name": "lib1-file-extends",
+      "root": "./samples/libs/lib1",
+      "outputPath": "samples/libs/lib1/dist"
+    }
+  ],
+  "apps": [
+    {
+      "name": "app1",
+      "root": "./samples/apps/app1",
+      "outputPath": "./samples/apps/app1/dist",
+      "entry": "src/main.ts",
+      "polyfills": [
+        "src/polyfills.ts"
+      ],
+      "tsConfig": "tsconfig.app.json",
+      "copy": [
+        "src/assets/**/*",
+        "src/favicon.ico"
+      ],
+      "styles": [
+        "src/styles.scss"
+      ],
+      "vendors": [
+        "@angular/common",
+        "@angular/compiler",
+        "@angular/core",
+        "@angular/platform-browser",
+        "@angular/platform-browser-dynamic",
+        "@angular/router",
+        "zone.js/dist/zone"
+      ],
+      "publicPath": "/",
+      "htmlInject": {
+        "resourceHints": true,
+        "index": "src/index.html"
+      },
+      "envOverrides": {
+        "refdll": {
+          "referenceDll": true
+        },
+        "prod": {
+          "fileReplacements": [
+            {
+              "replace": "./src/environments/environment.ts",
+              "with": "./src/environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "extends": "ngb:app-browser-default",
+      "name": "app1-builtin-extends",
+      "root": "./samples/apps/app1",
+      "outputPath": "./samples/apps/app1/dist"
+    }
+  ]
+}
