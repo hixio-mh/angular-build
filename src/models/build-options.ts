@@ -17,10 +17,6 @@ export interface BuildOptions {
      */
     filter?: string | string[];
     /**
-     * Clean output directory before build.
-     */
-    clean?: boolean;
-    /**
      * Display compilation progress in percentage.
      */
     progress?: boolean;
