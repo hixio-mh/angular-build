@@ -5,7 +5,7 @@
 
 # Angular Build & Packaging Tool
 
-[![Gitter](https://badges.gitter.im/DagonMetric/angular-build.svg)](https://gitter.im/DagonMetric/angular-build?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Gitter](https://badges.gitter.im/DagonMetric/general.svg)](https://gitter.im/DagonMetric/general?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Another build and packaging tool for [Angular](https://angular.io/) applications and library projects.
 
@@ -25,8 +25,6 @@ Another build and packaging tool for [Angular](https://angular.io/) applications
 
 ### Library Project Build / Packaging Features
 
-Some of [ng-packagr](https://github.com/ng-packagr/ng-packagr) features are included plus
-
 * Can bundles library projects into either [Angular Package Format 8.0](https://docs.google.com/document/d/1CZC2rcpxffTDfRDs6p1cfbmKNLA6x5O-NtkJglDaBVs/preview) (fesm2015, fesm5, umd formats) or custom output formats.
 * Can customize ngc typescript transpilations and bundle options.
 * Supports secondary entry points such as @angular/common/http, @dagonmetric/ng-config/http-loader.
@@ -41,11 +39,10 @@ Some of [ng-packagr](https://github.com/ng-packagr/ng-packagr) features are incl
 
 ### Application Project Build Features
 
-Most of [@angular-devkit/build-angular](https://www.npmjs.com/package/@angular-devkit/build-angular) options are supported plus
-
+* Most of [@angular-devkit/build-angular](https://www.npmjs.com/package/@angular-devkit/build-angular) options are supported
 * Customizable html injection - can inject bundled scripts, links, resource hints, etc into separate ASP.Net Core MVC partial views.
 * DLL bundling support for optimizing build time.
-* Can merge built-in webpack configuration with custom webpack configuration.
+* Can merge built-in configurations with custom webpack configuration.
 
 ## Installation
 
@@ -97,13 +94,15 @@ See [typescript model](https://github.com/DagonMetric/angular-build/blob/master/
 ngb build
 ```
 
-### Some projects and demos with angular-build cli
+### Some library projects angular-build cli
 
-* [hello-world-ng-lib](https://github.com/DagonMetric/angular-build/tree/master/samples/hello-world-ng-lib) - Angular library project demo included in this repo.
+* [ng-transliterate](https://github.com/DagonMetric/ng-transliterate) - Transliteration modules for Angular with angular-build.json configuration
 
-* [ng-transliterate](https://github.com/DagonMetric/ng-transliterate) - Transliteration modules for Angular using angular-build
+* [ng-config](https://github.com/DagonMetric/ng-config) - Configuration service modules for Angular with angular-build.json configuration
 
-* [ng-config](https://github.com/DagonMetric/ng-config) - Configuration service modules for Angular using angular-build
+* [ng-caching](https://github.com/DagonMetric/ng-caching) - Cache service modules for Angular with angular-build.json configuration
+
+* [ng-logging](https://github.com/DagonMetric/ng-logging) - Logging service modules for Angular with angular-build.json configuration
 
 ## Building App Projects with Built-in Cli
 
@@ -165,13 +164,9 @@ See [typescript model](https://github.com/DagonMetric/angular-build/blob/master/
 ngb build
 ```
 
-### App project demos with angular-build cli
+## Build Integration with Angular Cli
 
-[hello-world-ng-app](https://github.com/DagonMetric/angular-build/tree/master/samples/hello-world-ng-app) - Angular app project demo included in this repo.
-
-## Build with Angular Cli
-
-1). Make sure you have [Angular Cli](https://www.npmjs.com/package/@angular/cli) version >=8.0.0-beta.7.
+1). Make sure you have [Angular Cli](https://www.npmjs.com/package/@angular/cli) version >=8.0.0-rc.0.
 
 2). Create a new ng project with
 
@@ -219,7 +214,7 @@ See [AppBuilderOptions](https://github.com/DagonMetric/angular-build/blob/master
 5). Build your app
 
 ```shell
-ng run myapp1:build
+ng build myapp1
 ```
 
 ## Feedback and Contributing
