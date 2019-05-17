@@ -80,7 +80,6 @@
   "dependencies": {
     "@angular-devkit/architect": "^0.800.0-rc.4",
     "@angular-devkit/build-optimizer": "^0.800.0-rc.4",
-    "@angular-devkit/build-webpack": "^0.800.0-rc.4",
     "@angular-devkit/core": "^8.0.0-rc.4",
     "@ngtools/webpack": "^8.0.0-rc.4",
     "ajv": "^6.10.0",
@@ -126,7 +125,6 @@
     "uglify-js": "^3.5.12",
     "update-notifier": "^3.0.0",
     "url-loader": "^1.1.2",
-    "uuid": "^3.3.2",
     "webpack": "^4.31.0",
     "webpack-bundle-analyzer": "^3.3.2",
     "webpack-merge": "^4.2.1",
@@ -160,7 +158,6 @@
     "@types/webpack-merge": "^4.1.5",
     "@types/webpack-sources": "^0.1.5",
     "@types/yargs": "^13.0.0",
-    "core-js": "^3.0.1",
     "rimraf": "^2.6.3",
     "source-map": "^0.7.3",
     "source-map-support": "^0.5.12",
