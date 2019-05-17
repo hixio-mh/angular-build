@@ -6,7 +6,6 @@ import * as crypto from 'crypto';
 import { dirname, join, normalize, Path, tags, virtualFs } from '@angular-devkit/core';
 import { NodeJsSyncHost, resolve } from '@angular-devkit/core/node';
 
-// import * as resolve from 'resolve';
 import { from, merge, Observable, of } from 'rxjs';
 import { concatMap, map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
 import * as webpack from 'webpack';
