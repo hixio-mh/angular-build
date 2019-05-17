@@ -39,7 +39,7 @@
   "builders": "dist/src/architect/builders.json",
   "scripts": {
     "ng": "ng",
-    "clean": "rimraf -- dist schemas",
+    "clean": "rimraf -- dist",
     "lint": "node node_modules/tslint/bin/tslint -t verbose -p tsconfig.json -c tslint.json",
     "tsc": "node node_modules/typescript/bin/tsc -p tsconfig.json",
     "generate-schemas": "node tools/generate-schemas.js",
