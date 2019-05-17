@@ -1,6 +1,6 @@
 {
   "name": "@dagonmetric/angular-build",
-  "version": "8.0.0-rc.2",
+  "version": "8.0.0-rc.3",
   "description": "Another build and packaging tool for Angular applications and library projects.",
   "keywords": [
     "angular-build",
