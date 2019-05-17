@@ -14,28 +14,38 @@ import { CliOptions } from '../cli-options';
 
 export async function cliBuild(cliOptions: CliOptions): Promise<number> {
     const startTime = cliOptions.startTime || Date.now();
-    const commandOptions = initCommandOptions(cliOptions, startTime);
+    let environment: string | { [key: string]: boolean | string } | null = null;
+    if (cliOptions.commandOptions && cliOptions.commandOptions.environment) {
+        environment = cliOptions.commandOptions.environment as { [key: string]: boolean | string } | string;
+        delete cliOptions.commandOptions.environment;
+    }
+    if (cliOptions.commandOptions && cliOptions.commandOptions.env) {
+        if (environment == null) {
+            environment = cliOptions.commandOptions.env as { [key: string]: boolean | string } | string;
+        }
+        delete cliOptions.commandOptions.env;
+    }
+
+    const buildCommandOptions = initBuildCommandOptions(cliOptions, startTime);
+
     const logger = new Logger({
-        logLevel: 'debug',
+        logLevel: buildCommandOptions.logLevel ? buildCommandOptions.logLevel : 'info',
         debugPrefix: 'DEBUG:',
         warnPrefix: 'WARNING:'
     });
-    const configPath = initConfigPath(commandOptions);
+
+    const configPath = initConfigPath(buildCommandOptions);
     if (!await pathExists(configPath)) {
-        // tslint:disable-next-line:prefer-template
-        logger.error(`The angular-build.json config file does not exist at ${configPath}. ` +
-            'Please use --config=<your config file> option or make sure angular-build.json is existed in current working directory.\n');
+        logger.error(`The angular-build.json config file does not exist at ${configPath}. `);
 
         return -1;
     }
 
-    const watch = commandOptions.watch ? true : false;
-    const environment =
-        commandOptions.env && typeof commandOptions.env === 'object' ? commandOptions.env : {};
+    const watch = buildCommandOptions.watch ? true : false;
 
     let webpackConfigs: webpack.Configuration[] = [];
     try {
-        webpackConfigs = await getWebpackConfigFromAngularBuildConfig(configPath, environment, commandOptions);
+        webpackConfigs = await getWebpackConfigFromAngularBuildConfig(configPath, environment, buildCommandOptions, logger);
     } catch (configErr) {
         if (configErr instanceof InvalidConfigError) {
             logger.error(`${configErr.message}\n`);
@@ -49,7 +59,7 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
     }
 
     if (webpackConfigs.length === 0) {
-        logger.error('No app or lib project is available.\n');
+        logger.error('No project is available to build.\n');
 
         return -1;
     }
@@ -81,33 +91,35 @@ export async function cliBuild(cliOptions: CliOptions): Promise<number> {
         }
     }
 
-    if (commandOptions.beep && process.stdout.isTTY) {
+    if (buildCommandOptions.beep && process.stdout.isTTY) {
         process.stdout.write('\x07');
     }
 
     return hasError ? -1 : 0;
 }
 
-function initCommandOptions(cliOptions: CliOptions, startTime: number): BuildCommandOptions {
-    const commandOptions: BuildCommandOptions =
-        cliOptions.commandOptions && typeof cliOptions.commandOptions === 'object' ? cliOptions.commandOptions : {};
-    commandOptions._fromBuiltInCli = true;
+function initBuildCommandOptions(cliOptions: CliOptions, startTime: number): BuildCommandOptions {
+    const buildCommandOptions: BuildCommandOptions =
+        cliOptions.commandOptions &&
+            typeof cliOptions.commandOptions === 'object' ?
+            cliOptions.commandOptions : {};
 
-    commandOptions._cliIsGlobal = cliOptions.cliIsGlobal;
-    commandOptions._cliIsLink = cliOptions.cliIsLink;
-    commandOptions._cliRootPath = cliOptions.cliRootPath;
-    commandOptions._cliVersion = cliOptions.cliVersion;
-    commandOptions._startTime = startTime;
+    buildCommandOptions._fromBuiltInCli = true;
+    buildCommandOptions._cliIsGlobal = cliOptions.cliIsGlobal;
+    buildCommandOptions._cliIsLink = cliOptions.cliIsLink;
+    buildCommandOptions._cliRootPath = cliOptions.cliRootPath;
+    buildCommandOptions._cliVersion = cliOptions.cliVersion;
+    buildCommandOptions._startTime = startTime;
 
-    return commandOptions;
+    return buildCommandOptions;
 }
 
-function initConfigPath(commandOptions: BuildCommandOptions): string {
+function initConfigPath(buildCommandOptions: BuildCommandOptions): string {
     let configPath = '';
-    if (commandOptions.config) {
-        configPath = path.isAbsolute(commandOptions.config)
-            ? path.resolve(commandOptions.config)
-            : path.resolve(process.cwd(), commandOptions.config);
+    if (buildCommandOptions.config) {
+        configPath = path.isAbsolute(buildCommandOptions.config)
+            ? path.resolve(buildCommandOptions.config)
+            : path.resolve(process.cwd(), buildCommandOptions.config);
     } else {
         configPath = path.resolve(process.cwd(), 'angular-build.json');
     }

@@ -41,7 +41,6 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
     const logLevel = angularBuildContext.buildOptions.logLevel;
     const verbose = angularBuildContext.buildOptions.logLevel === 'debug';
     const watch = angularBuildContext.buildOptions.watch;
-    const watchOptions = angularBuildContext.buildOptions.watchOptions;
     const appConfig = angularBuildContext.projectConfig;
 
     if (!appConfig._projectRoot) {
@@ -410,7 +409,7 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
             ]
         },
         stats: statOptions,
-        watchOptions: watchOptions
+        watchOptions: angularBuildContext.buildOptions.poll ? { poll: angularBuildContext.buildOptions.poll } : {}
     };
 
     return webpackCommonConfig;

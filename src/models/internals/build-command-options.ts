@@ -1,13 +1,7 @@
-export interface BuildCommandOptions {
+import { BuildOptions, ShortcutBuildOptions } from '../build-options';
+
+export interface BuildCommandOptions extends BuildOptions, ShortcutBuildOptions {
     config?: string;
-    env?: string | { [key: string]: string | boolean };
-    prod?: boolean;
-    filter?: string | string[];
-    clean?: boolean;
-    progress?: boolean;
-    verbose?: boolean;
-    watch?: boolean;
-    beep?: boolean;
 
     _startTime?: number;
     _fromBuiltInCli?: boolean;

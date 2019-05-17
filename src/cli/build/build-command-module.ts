@@ -27,7 +27,7 @@ Usage:
                 })
             .option('prod',
                 {
-                    describe: "Flag to set build environment to 'production'.",
+                    describe: "Shortcut flag to set build environment to 'production'.",
                     type: 'boolean',
                     boolean: true
                 })
@@ -43,16 +43,16 @@ Usage:
                     type: 'boolean',
                     boolean: true
                 })
-            .option('verbose',
-                {
-                    describe: 'Add more details to output logging.',
-                    type: 'boolean',
-                    boolean: true
-                })
             .option('logLevel',
                 {
-                    describe: 'Logging level for output logging.',
+                    describe: 'Log level for output logging.',
                     type: 'string'
+                })
+            .option('verbose',
+                {
+                    describe: "Shortcut flag to set logLevel to 'debug'.",
+                    type: 'boolean',
+                    boolean: true
                 })
             .option('watch',
                 {
@@ -60,9 +60,11 @@ Usage:
                     type: 'boolean',
                     boolean: true
                 })
-            .option('watchOptions',
+            .option('poll',
                 {
-                    describe: 'Watch options.'
+                    describe: 'Turn on file watching polling by specifying a poll interval in milliseconds.',
+                    type: 'number',
+                    number: true
                 })
             .option('beep',
                 {

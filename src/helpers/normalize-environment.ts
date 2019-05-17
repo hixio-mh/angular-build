@@ -1,32 +1,26 @@
-import { JsonObject } from '../models';
-
 // tslint:disable:max-func-body-length
-export function normalizeEnvironment(rawEnvironment: string | JsonObject | null, prod?: boolean): { [key: string]: boolean | string } {
-    let environment: { [key: string]: boolean | string } = {};
+export function normalizeEnvironment(
+    rawEnvironment: string | { [key: string]: boolean | string } | null,
+    prod?: boolean): { [key: string]: boolean | string } {
     if (!rawEnvironment) {
-        return environment;
+        return {};
     }
+
+    const environment: { [key: string]: boolean | string } = {};
 
     if (typeof rawEnvironment === 'string') {
-        environment[rawEnvironment] = true;
-    } else if (typeof rawEnvironment === 'object') {
-        environment = { ...(rawEnvironment as { [key: string]: boolean | string }) };
+        const normalizedKey = normalizeEnvName(rawEnvironment);
+        environment[normalizedKey] = true;
+    } else if (rawEnvironment && typeof rawEnvironment === 'object') {
+        Object.keys(rawEnvironment).forEach((key: string) => {
+            const normalizedKey = normalizeEnvName(key);
+            if (normalizedKey === 'prod' && !prod) {
+                environment.prod = toBoolean(rawEnvironment[key]);
+            } else {
+                environment[normalizedKey] = toBooleanOrString(rawEnvironment[key]);
+            }
+        });
     }
-
-    const normalizedEnv: { [key: string]: boolean | string } = {};
-    Object.keys(environment).forEach((key: string) => {
-        const normalizedKey = normalizeEnvName(key);
-        normalizedEnv[normalizedKey] = environment[key];
-        if (typeof normalizedEnv[normalizedKey] === 'string' &&
-            (normalizedEnv[normalizedKey] as string).toLowerCase() === 'true') {
-            normalizedEnv[normalizedKey] = true;
-        } else if (typeof normalizedEnv[normalizedKey] === 'string' &&
-            (normalizedEnv[normalizedKey] as string).toLowerCase() === 'false') {
-            normalizedEnv[normalizedKey] = false;
-        }
-    });
-
-    environment = { ...normalizedEnv };
 
     // dll
     if (environment.dll != null) {
@@ -130,13 +124,43 @@ function normalizeEnvName(envName: string): string {
             return 'dev';
         case 'dll':
             return 'dll';
-        case 'hot':
-            return 'hot';
-        case 'test':
-            return 'test';
-        case 'aot':
-            return 'aot';
         default:
             return envName;
     }
+}
+
+function toBooleanOrString(value: string | boolean | null | undefined): boolean | string {
+    if (value == null) {
+        return false;
+    }
+
+    if (typeof value === 'boolean') {
+        return value;
+    }
+
+    if (value.toLowerCase() === 'false') {
+        return false;
+    }
+
+    if (value.toLowerCase() === 'true') {
+        return true;
+    }
+
+    return value;
+}
+
+function toBoolean(value: string | boolean | null | undefined): boolean {
+    if (value == null) {
+        return false;
+    }
+
+    if (typeof value === 'boolean') {
+        return value;
+    }
+
+    if (value.toLowerCase() === 'false' || value === '0') {
+        return false;
+    }
+
+    return value ? true : false;
 }

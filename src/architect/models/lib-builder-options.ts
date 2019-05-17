@@ -1,3 +1,3 @@
-import { BuildOptions, LibProjectConfig } from '../../models';
+import { BuildOptions, LibProjectConfig, ShortcutBuildOptions } from '../../models';
 
-export interface LibBuilderOptions extends LibProjectConfig, BuildOptions { }
+export interface LibBuilderOptions extends LibProjectConfig, BuildOptions, ShortcutBuildOptions { }

@@ -2,7 +2,8 @@ import * as webpack from 'webpack';
 
 import { LoggerBase } from '../utils/logger';
 
-export async function runWebpack(wpConfig: webpack.Configuration | webpack.Configuration[],
+export async function runWebpack(
+    wpConfig: webpack.Configuration | webpack.Configuration[],
     watch: boolean,
     logger: LoggerBase): Promise<{}> {
     const firstConfig = Array.isArray(wpConfig) ? wpConfig[0] : wpConfig;

@@ -4,7 +4,7 @@ import { LoggerBase } from '../../utils';
 
 export interface BuildContextStaticOptions {
     startTime: number;
-    logger: LoggerBase;
+    logger?: LoggerBase;
 
     workspaceRoot: string;
     angularBuildConfig?: AngularBuildConfigInternal;

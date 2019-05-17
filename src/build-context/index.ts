@@ -21,7 +21,7 @@ import {
     validateOutputPath
 } from '../helpers';
 import { InternalError, InvalidConfigError } from '../models/errors';
-import { findUp, isSamePaths, LoggerBase, readJson } from '../utils';
+import { findUp, isSamePaths, Logger, LoggerBase, readJson } from '../utils';
 
 const versionPlaceholderRegex = new RegExp('0.0.0-PLACEHOLDER', 'i');
 
@@ -193,7 +193,16 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             return;
         }
 
-        AngularBuildContext._logger = options.logger;
+        if (options.logger) {
+            AngularBuildContext._logger = options.logger;
+        } else {
+            AngularBuildContext._logger = new Logger({
+                logLevel: 'info',
+                debugPrefix: 'DEBUG:',
+                warnPrefix: 'WARNING:'
+            });
+        }
+
 
         AngularBuildContext._startTime = options.startTime;
         AngularBuildContext._workspaceRoot = options.workspaceRoot;

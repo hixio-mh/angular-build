@@ -82,10 +82,6 @@ export interface AppConfigCompat {
      */
     statsJson?: boolean;
     /**
-     * @angular-devkit/build_angular compatibility, use 'watchOptions.poll' instead.
-     */
-    poll?: number;
-    /**
      * @angular-devkit/build_angular compatibility, use 'platformTarget' instead.
      */
     platform?: 'browser' | 'server';

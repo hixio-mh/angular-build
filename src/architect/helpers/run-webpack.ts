@@ -12,7 +12,7 @@ export function runWebpack(wpConfig: webpack.Configuration,
     startTime: number): Observable<BuilderOutput> {
     const statsOptions = wpConfig.stats;
     const watch = buildOptions.watch;
-    const watchOptions = wpConfig.watchOptions || buildOptions.watchOptions || {};
+    const watchOptions = wpConfig.watchOptions || {};
     const webpackCompiler = webpack(wpConfig);
     const beep = buildOptions.beep;
 
