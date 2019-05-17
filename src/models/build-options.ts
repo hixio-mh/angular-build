@@ -1,4 +1,17 @@
-import { WebpackWatchOptions } from './watch-options';
+/**
+ * @additionalProperties true
+ */
+export interface ShortcutBuildOptions {
+    /**
+     * Shortcut flag to set build environment to 'production'.
+     */
+    prod?: boolean;
+    /**
+     * Shortcut flag to set logLevel to 'debug'.
+     */
+    verbose?: boolean;
+}
+
 
 /**
  * @additionalProperties true
@@ -9,10 +22,6 @@ export interface BuildOptions {
      */
     environment?: { [key: string]: boolean | string } | string;
     /**
-     * Flag to set build environment to 'production'.
-     */
-    prod?: boolean;
-    /**
      * Filter config by name(s).
      */
     filter?: string | string[];
@@ -20,10 +29,6 @@ export interface BuildOptions {
      * Display compilation progress in percentage.
      */
     progress?: boolean;
-    /**
-     * Flag to set logLevel to 'debug'.
-     */
-    verbose?: boolean;
     /**
      * Logging level for output logging.
      */
@@ -33,9 +38,9 @@ export interface BuildOptions {
      */
     watch?: boolean;
     /**
-     * Watch options.
+     * Turn on file watching polling by passing true, or specifying a poll interval in milliseconds.
      */
-    watchOptions?: WebpackWatchOptions;
+    poll?: boolean | number;
     /**
      * Beep when build completed.
      */
