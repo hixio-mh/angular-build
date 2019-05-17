@@ -72,6 +72,11 @@ Usage:
                     type: 'boolean',
                     boolean: true
                 })
+            .option('version',
+                {
+                    describe: "Set or override library package(s) version.'.",
+                    type: 'string'
+                })
         ,
         // tslint:disable-next-line:no-any
         handler: (null as unknown as any)

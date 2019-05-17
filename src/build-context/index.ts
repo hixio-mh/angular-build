@@ -394,18 +394,21 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
             projectConfig._projectName = projectConfig._packageJson.name as string;
         }
 
-        if (!projectConfig._packageJson ||
-            !projectConfig._packageJson.version ||
-            projectConfig._packageJson.version === '0.0.0' ||
-            versionPlaceholderRegex.test(projectConfig._packageJson.version as string)) {
-            if (projectConfig._rootPackageJson &&
-                projectConfig._rootPackageJson.version) {
-                projectConfig._projectVersion = projectConfig._rootPackageJson.version as string;
-            }
+        if (this.buildOptions.version) {
+            projectConfig._projectVersion = this.buildOptions.version;
         } else {
-            projectConfig._projectVersion = projectConfig._packageJson.version as string;
+            if (!projectConfig._packageJson ||
+                !projectConfig._packageJson.version ||
+                projectConfig._packageJson.version === '0.0.0' ||
+                versionPlaceholderRegex.test(projectConfig._packageJson.version as string)) {
+                if (projectConfig._rootPackageJson &&
+                    projectConfig._rootPackageJson.version) {
+                    projectConfig._projectVersion = projectConfig._rootPackageJson.version as string;
+                }
+            } else {
+                projectConfig._projectVersion = projectConfig._packageJson.version as string;
+            }
         }
-
         if (projectConfig._packageJson && projectConfig._packageJson.author) {
             projectConfig._projectAuthor = projectConfig._packageJson.author as string;
         } else if (projectConfig._rootPackageJson && projectConfig._rootPackageJson.author) {

@@ -45,4 +45,8 @@ export interface BuildOptions {
      * Beep when build completed.
      */
     beep?: boolean;
+    /**
+     * Set or override library package(s) version.
+     */
+    version?: string;
 }
