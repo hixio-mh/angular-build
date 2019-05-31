@@ -19,7 +19,7 @@ Another build and packaging tool for [Angular](https://angular.io/) applications
 
 * Can bundles library projects into either [Angular Package Format 8.0](https://docs.google.com/document/d/1CZC2rcpxffTDfRDs6p1cfbmKNLA6x5O-NtkJglDaBVs/preview) (fesm2015, fesm5, umd formats) or custom output formats.
 * Can customize ngc typescript transpilations and bundle options.
-* Supports secondary entry points such as @angular/common/http, @dagonmetric/ng-config/http-loader.
+* Supports secondary entry points such as @angular/common/http.
 * Can inline/embed Angular resources such as templateUrl and styleUrls.
 * Supports built-in style processing of .css and .scss files.
 * Supports style preprocessor options for .scss files.
