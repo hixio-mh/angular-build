@@ -35,8 +35,6 @@ jobs:
           node_version: '12.x'
         node-10:
           node_version: '10.x'
-        node-8:
-          node_version: '8.x'
     steps:
       - task: UseNode@1
         inputs:
@@ -64,8 +62,6 @@ jobs:
           node_version: '12.x'
         node-10:
           node_version: '10.x'
-        node-8:
-          node_version: '8.x'
     steps:
       - task: UseNode@1
         inputs:
@@ -93,8 +89,6 @@ jobs:
           node_version: '12.x'
         node-10:
           node_version: '10.x'
-        node-8:
-          node_version: '8.x'
     steps:
       - task: UseNode@1
         inputs:
