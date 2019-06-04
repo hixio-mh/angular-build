@@ -1,5 +1,9 @@
 {
   "extends": [
     "config:base"
-  ]
+  ],
+  "pinVersions": false,
+  "timezone": "Asia/Yangon",
+  "packageFiles": ["package.json"],
+  "schedule": "on the last day of the month"
 }
