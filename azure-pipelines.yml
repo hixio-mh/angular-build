@@ -43,11 +43,11 @@ jobs:
         condition: and(succeeded(), ne(variables['skipPublishBuildArtifacts'], 'true'))
         displayName: 'Publish build artifacts'
       - bash: |
-          $verson=`node -p "require('./package.json').version;"`
+          export verson=`node -p "require('./package.json').version;"`
           echo "##vso[task.setvariable variable=packageVersion]$verson"
         displayName: 'Set package version variable'
 
-      - script: echo $(packageVersion)
+      - script: echo variable is $(packageVersion)
         displayName: 'Print packageVersion'
       # - task: CopyFiles@2
       #   inputs:
@@ -60,7 +60,6 @@ jobs:
           targetPath: 'release-notes/$(packageVersion)/'
         condition: and(succeeded(), ne(variables['skipPublishReleaseNotes'], 'true'))
         displayName: 'Publish release notes'
-
 
   - job: Linux
     dependsOn:
