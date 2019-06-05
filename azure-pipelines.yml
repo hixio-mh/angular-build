@@ -1,3 +1,16 @@
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - 'bin/*'
+    - 'configs/*'
+    - 'src/*'
+    - 'package.json'
+    - 'README.md'
+    - 'azure-pipelines.yml'
+
 jobs:
   - job: basic
     pool:
@@ -22,6 +35,26 @@ jobs:
       - script: |
           yarn lint
         displayName: 'Run linting'
+      - task: PublishPipelineArtifact@0
+        inputs:
+          artifactName: 'builds'
+          targetPath: 'dist'
+        displayName: 'Publish build artifacts'
+      - bash: |
+          v=`node -p "require('./dist/package.json').version;"`
+          echo '##vso[task.setvariable variable=packageVersion]$v'
+        displayName: 'Set package version variable'
+      # - task: CopyFiles@2
+      #   inputs:
+      #     SourceFolder: 'release-notes/$(packageVersion)'
+      #     Contents: '*.md'
+      #     TargetFolder: $(build.artifactstagingdirectory)/release-notes
+      - task: PublishPipelineArtifact@0
+        inputs:
+          artifactName: 'release-notes'
+          targetPath: 'release-notes/$(packageVersion)'
+        displayName: 'Publish release notes'
+
 
   - job: Linux
     dependsOn:
