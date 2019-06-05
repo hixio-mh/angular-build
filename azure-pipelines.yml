@@ -22,23 +22,25 @@ jobs:
         displayName: 'Use Node 10.9.0'
       - script: |
           yarn install --frozen-lockfile
+        condition: and(succeeded(), ne(variables['skipInstallDeps'], 'true'))
         displayName: 'Install dependencies'
       - script: |
           yarn build
+        condition: and(succeeded(), ne(variables['skipBuild'], 'true'))
         displayName: "Run build"
       - script: |
           yarn build:samples
-        displayName: 'Run build samples'
-      - script: |
-          yarn build:samples
+        condition: and(succeeded(), ne(variables['skipBuildSamples'], 'true'))
         displayName: 'Run build samples'
       - script: |
           yarn lint
+        condition: and(succeeded(), ne(variables['skipLint'], 'true'))
         displayName: 'Run linting'
       - task: PublishPipelineArtifact@0
         inputs:
           artifactName: 'builds'
           targetPath: 'dist'
+        condition: and(succeeded(), ne(variables['skipPublishBuildArtifacts'], 'true'))
         displayName: 'Publish build artifacts'
       - bash: |
           $verson=`node -p "require('./dist/package.json').version;"`
@@ -56,12 +58,14 @@ jobs:
         inputs:
           artifactName: 'release-notes'
           targetPath: 'release-notes/$(packageVersion)/'
+        condition: and(succeeded(), ne(variables['skipPublishReleaseNotes'], 'true'))
         displayName: 'Publish release notes'
 
 
   - job: Linux
     dependsOn:
       - basic
+    condition: and(succeeded(), ne(variables['skipLinuxJob'], 'true'))
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -86,9 +90,10 @@ jobs:
           yarn build:samples
         displayName: 'Run build samples'
 
-  - job: macOS
+  - job: MacOS
     dependsOn:
       - basic
+    condition: and(succeeded(), ne(variables['skipMacOSJob'], 'true'))
     pool:
       vmImage: 'macOS-latest'
     strategy:
@@ -116,6 +121,7 @@ jobs:
   - job: Windows
     dependsOn:
       - basic
+    condition: and(succeeded(), ne(variables['skipWindowsJob'], 'true'))
     pool:
       vmImage: 'windows-latest'
     strategy:
