@@ -22,11 +22,9 @@ jobs:
         displayName: 'Use Node 10.9.0'
       - script: |
           yarn install --frozen-lockfile
-        condition: and(succeeded(), ne(variables['skipInstallDeps'], 'true'))
         displayName: 'Install dependencies'
       - script: |
           yarn build
-        condition: and(succeeded(), ne(variables['skipBuild'], 'true'))
         displayName: "Run build"
       - script: |
           yarn build:samples
@@ -36,26 +34,19 @@ jobs:
           yarn lint
         condition: and(succeeded(), ne(variables['skipLint'], 'true'))
         displayName: 'Run linting'
+      - bash: |
+          verson=`node -p "require('./dist/package.json').version;"`
+          echo "##vso[task.setvariable variable=packageVersion]$verson"
+        displayName: 'Set package version variable'
       - task: PublishPipelineArtifact@0
         inputs:
           artifactName: 'builds'
           targetPath: 'dist'
-        condition: and(succeeded(), ne(variables['skipPublishBuildArtifacts'], 'true'))
         displayName: 'Publish build artifacts'
-      - bash: |
-          verson=`node -p "require('./package.json').version;"`
-          echo "##vso[task.setvariable variable=packageVersion]$verson"
-        displayName: 'Set package version variable'
-      # - task: CopyFiles@2
-      #   inputs:
-      #     SourceFolder: 'release-notes/$(packageVersion)'
-      #     Contents: '*.md'
-      #     TargetFolder: $(build.artifactstagingdirectory)/release-notes
       - task: PublishPipelineArtifact@0
         inputs:
           artifactName: 'release-notes'
           targetPath: 'release-notes/$(packageVersion)/'
-        condition: and(succeeded(), ne(variables['skipPublishReleaseNotes'], 'true'))
         displayName: 'Publish release notes'
 
   - job: Linux
