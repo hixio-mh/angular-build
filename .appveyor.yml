@@ -1,6 +1,16 @@
 version: '{build}'
 image: 'Visual Studio 2017'
 clone_depth: 1
+only_commits:
+  files:
+    - bin/*
+    - configs/*
+    - src/*
+    - package.json
+    - .appveyor.yml
+skip_commits:
+  files:
+    - '**/*.md'
 environment:
   nodejs_version: "10"
 install:
