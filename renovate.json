@@ -2,8 +2,71 @@
   "extends": [
     "config:base"
   ],
-  "pinVersions": false,
   "timezone": "Asia/Yangon",
+  "schedule": [
+    "after 11pm every weekday",
+    "before 6am every weekday",
+    "after 11pm every weekend",
+    "before 6am every weekend"
+  ],
   "packageFiles": ["package.json"],
-  "schedule": "on the last day of the month"
+  "rangeStrategy": "replace",
+  "packageRules": [
+    {
+      "packageNames": [
+        "@ngtools\/webpack"
+      ],
+      "packagePatterns": [
+        "^@angular-devkit\/.*"
+      ],
+      "groupName": "angular-devkit",
+      "rangeStrategy": "replace"
+    },
+    {
+      "packagePatterns": [
+        "^@angular\/.*"
+      ],
+      "groupName": "angular",
+      "rangeStrategy": "replace"
+    },
+    {
+      "packagePatterns": [
+        "^@types\/.*"
+      ],
+      "excludePackageNames": ["@types/node"],
+      "groupName": "types",
+      "rangeStrategy": "replace"
+    },
+    {
+      "packageNames": ["@types/node"],
+      "schedule": "on the last day of the month"
+    },
+    {
+      "packageNames": [
+        "loader-utils",
+        "mini-css-extract-plugin"
+      ],
+      "packagePatterns": [
+        "*-loader$",
+        "*-webpack-plugin$",
+        "^webpack-*"
+      ],
+      "groupName": "webpack-tools",
+      "rangeStrategy": "replace"
+    },
+    {
+      "packageNames": [
+        "builtins"
+      ],
+      "packagePatterns": [
+        "^rollup-plugin-*"
+      ],
+      "groupName": "rollup-tools",
+      "rangeStrategy": "replace"
+    },
+    {
+      "packageNames": ["typescript"],
+      "updateTypes": "patch"
+    }
+  ]
 }
