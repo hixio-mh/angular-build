@@ -51,6 +51,7 @@ jobs:
         inputs:
           artifactName: 'release-notes'
           targetPath: 'release-notes/$(packageVersion)/'
+        condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'refs/tags/'))
         displayName: 'Publish release notes'
 
   - job: Linux
