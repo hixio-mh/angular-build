@@ -11,6 +11,9 @@ trigger:
     - 'package.json'
     - 'README.md'
     - 'azure-pipelines.yml'
+  tags:
+    include:
+    - v*
 
 jobs:
   - job: basic
