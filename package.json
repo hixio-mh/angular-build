@@ -44,7 +44,7 @@
     "tslint": "tslint",
     "lint": "tslint -t verbose -p tsconfig.json -c tslint.json",
     "build": "rimraf -- dist && tsc && node tools/generate-schemas.js && node tools/copy-files.js && node dist/bin/ngb --version",
-    "build:samples": "./dist/bin/ngb build --filter=lib1 --filter=lib1-secondary --filter=app1 --verbose && ng build lib1 --verbose -c=production && ng build lib1-secondary --verbose -c=production && ng build app1 --verbose -c=production",
+    "build:samples": "node ./dist/bin/ngb build --filter=lib1 --filter=lib1-secondary --filter=app1 --verbose && ng build lib1 --verbose -c=production && ng build lib1-secondary --verbose -c=production && ng build app1 --verbose -c=production",
     "build:lib1": "node -r source-map-support/register ./dist/bin/ngb build --filter=lib1 --verbose",
     "build:lib1:prod": "node -r source-map-support/register ./dist/bin/ngb build --filter=lib1 --verbose --env.prod",
     "build:lib1-secondary": "node -r source-map-support/register ./dist/bin/ngb build --filter=lib1-secondary --verbose",
