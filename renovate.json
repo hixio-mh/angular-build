@@ -67,6 +67,10 @@
     {
       "packageNames": ["typescript"],
       "updateTypes": "patch"
+    },
+    {
+      "packageNames": ["rxjs"],
+      "updateTypes": "patch"
     }
   ]
 }
