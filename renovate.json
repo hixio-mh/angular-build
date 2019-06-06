@@ -47,9 +47,9 @@
         "mini-css-extract-plugin"
       ],
       "packagePatterns": [
-        "*-loader$",
-        "*-webpack-plugin$",
-        "^webpack-*"
+        ".*-loader$",
+        ".*-webpack-plugin$",
+        "^webpack-.*"
       ],
       "groupName": "webpack-tools",
       "rangeStrategy": "replace"
