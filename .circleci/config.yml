@@ -5,6 +5,11 @@ var_2: &cache_key v2.1-angular-build-{{ .Branch }}-{{ checksum "yarn.lock" }}-no
 
 jobs:
   build:
+    filters:
+        branches:
+          only: master
+        tags:
+          only: /v(?:0|[1-9]\d*)(\.(?:0|[1-9]\d*))?(\.(?:0|[1-9]\d*))?(?:-[\da-z-]+(?:\.[\da-z-]+)*)?(?:\+[\da-z-]+(?:\.[\da-z-]+)*)?/
     working_directory: ~/angular-build
     docker:
       - image: *docker_image
