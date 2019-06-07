@@ -1,5 +1,5 @@
 [![Build Status](https://dev.azure.com/DagonMetric/angular-build/_apis/build/status/DagonMetric.angular-build?branchName=master)](https://dev.azure.com/DagonMetric/angular-build/_build/latest?definitionId=3&branchName=master)
-[![Build status](https://ci.appveyor.com/api/projects/status/195c2h2orc2q2rur?svg=true)](https://ci.appveyor.com/project/admindagonmetriccom/angular-build)
+[![Build status](https://ci.appveyor.com/api/projects/status/195c2h2orc2q2rur/branch/master?svg=true)](https://ci.appveyor.com/project/admindagonmetriccom/angular-build/branch/master)
 [![npm (scoped)](https://img.shields.io/npm/v/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
 [![Dependency Status](https://david-dm.org/DagonMetric/angular-build.svg)](https://david-dm.org/DagonMetric/angular-build)
 [![npm](https://img.shields.io/npm/dm/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
