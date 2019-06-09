@@ -1,20 +1,3 @@
-trigger:
-  branches:
-    include:
-    - master
-    - releases/*
-  paths:
-    include:
-    - 'bin/*'
-    - 'configs/*'
-    - 'src/*'
-    - 'package.json'
-    - 'README.md'
-    - 'azure-pipelines.yml'
-  tags:
-    include:
-    - v*
-
 jobs:
   - job: basic
     pool:
