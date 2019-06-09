@@ -73,10 +73,10 @@
     "build:ng:app1:prod": "ng build app1 --verbose -c=production"
   },
   "dependencies": {
-    "@angular-devkit/architect": "^0.800.1",
-    "@angular-devkit/build-optimizer": "^0.800.1",
-    "@angular-devkit/core": "^8.0.1",
-    "@ngtools/webpack": "^8.0.1",
+    "@angular-devkit/architect": "^0.800.2",
+    "@angular-devkit/build-optimizer": "^0.800.2",
+    "@angular-devkit/core": "^8.0.2",
+    "@ngtools/webpack": "^8.0.2",
     "ajv": "^6.10.0",
     "ajv-keywords": "^3.4.0",
     "autoprefixer": "^9.6.0",
@@ -104,7 +104,7 @@
     "postcss-url": "^8.0.0",
     "raw-loader": "~1.0.0",
     "resolve": "^1.11.1",
-    "rollup": "^1.14.2",
+    "rollup": "^1.14.4",
     "rollup-plugin-commonjs": "^10.0.0",
     "rollup-plugin-node-resolve": "^5.0.1",
     "rxjs": "~6.4.0",
@@ -127,7 +127,7 @@
     "yargs": "^13.2.4"
   },
   "devDependencies": {
-    "@angular/cli": "^8.0.1",
+    "@angular/cli": "^8.0.2",
     "@angular/common": "^8.0.0",
     "@angular/compiler": "^8.0.0",
     "@angular/compiler-cli": "^8.0.0",
@@ -143,7 +143,7 @@
     "@types/html-minifier": "^3.5.3",
     "@types/loader-utils": "^1.1.3",
     "@types/minimatch": "^3.0.3",
-    "@types/node": "^12.0.5",
+    "@types/node": "^12.0.7",
     "@types/node-sass": "^4.11.0",
     "@types/parse5": "^5.0.0",
     "@types/resolve": "^0.0.8",
@@ -160,7 +160,7 @@
     "tslint-microsoft-contrib": "^6.2.0",
     "typescript-json-schema": "^0.38.3",
     "typescript-tslint-plugin": "^0.4.0",
-    "webpack-dev-server": "^3.6.0",
+    "webpack-dev-server": "^3.7.1",
     "zone.js": "^0.9.1"
   }
 }
