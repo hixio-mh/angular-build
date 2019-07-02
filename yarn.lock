@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-"@angular-devkit/architect@0.800.3", "@angular-devkit/architect@^0.800.3":
+"@angular-devkit/architect@0.800.3":
   version "0.800.3"
   resolved "https://registry.yarnpkg.com/@angular-devkit/architect/-/architect-0.800.3.tgz#01264e5cd6495d724f8754c8bcfd8c35e33fed3c"
   integrity sha512-SikMkzkBPtiRdaFIXB0+0NZUBI3bU7XfQRof/uHp9Xc+U1K3ORAtGGOIJtLdkk7RsWqePu5CiRX8XczgFKq5eA==
@@ -10,14 +10,22 @@
     "@angular-devkit/core" "8.0.3"
     rxjs "6.4.0"
 
-"@angular-devkit/build-optimizer@^0.800.3":
-  version "0.800.3"
-  resolved "https://registry.yarnpkg.com/@angular-devkit/build-optimizer/-/build-optimizer-0.800.3.tgz#c7d17d35e501ab8f5bb31005d2c51928d8664555"
-  integrity sha512-e2PVGuoh5h/yz9TWogyLYgflmT9QnK4WgY9dcL60vOmjzEJ2zk7EjbrPuiD1/pJKb7Chw4uCdlVyjdlwEwHJHQ==
+"@angular-devkit/architect@^0.801.0":
+  version "0.801.0"
+  resolved "https://registry.yarnpkg.com/@angular-devkit/architect/-/architect-0.801.0.tgz#c21b1288d7aa4042656a4efbc98be146f7d9f430"
+  integrity sha512-3EQtRfa5IL2aVWPLr17QNwCoh+0URuQd4t2cEPw0eqfNNSQxjNKcA8AUvpXU+YNvstZ46lSzbM9q/RekJGeA1A==
+  dependencies:
+    "@angular-devkit/core" "8.1.0"
+    rxjs "6.4.0"
+
+"@angular-devkit/build-optimizer@^0.801.0":
+  version "0.801.0"
+  resolved "https://registry.yarnpkg.com/@angular-devkit/build-optimizer/-/build-optimizer-0.801.0.tgz#8243efea9121986c20f8b4a797e367ace7e21428"
+  integrity sha512-ggL0oaA7TwZYbuMPI+OOY/BgE3Oyhy+UNQVrS8PFkiZewJ2hLGc+fBoXWITya5T/ybd0BMUtOYNfAZJcmUNdfQ==
   dependencies:
     loader-utils "1.2.3"
     source-map "0.5.6"
-    typescript "3.4.4"
+    typescript "3.4.5"
     webpack-sources "1.3.0"
 
 "@angular-devkit/core@8.0.3", "@angular-devkit/core@^8.0.3":
@@ -28,6 +36,17 @@
     ajv "6.10.0"
     fast-json-stable-stringify "2.0.0"
     magic-string "0.25.2"
+    rxjs "6.4.0"
+    source-map "0.7.3"
+
+"@angular-devkit/core@8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@angular-devkit/core/-/core-8.1.0.tgz#eb91d2f620ae75533c301e549249ae2287f6e2f6"
+  integrity sha512-Xdtkrs62WMMR1BnSfpBvwjapRYalvArewAi7NXo0QxIFWPhQGbgSqT5PJMie4V3vHHNMbcC9cPzjKGjwwF8FHw==
+  dependencies:
+    ajv "6.10.0"
+    fast-json-stable-stringify "2.0.0"
+    magic-string "0.25.3"
     rxjs "6.4.0"
     source-map "0.7.3"
 
@@ -3876,6 +3895,13 @@ magic-string@0.25.2, magic-string@^0.25.0, magic-string@^0.25.2:
   dependencies:
     sourcemap-codec "^1.4.4"
 
+magic-string@0.25.3:
+  version "0.25.3"
+  resolved "https://registry.yarnpkg.com/magic-string/-/magic-string-0.25.3.tgz#34b8d2a2c7fec9d9bdf9929a3fd81d271ef35be9"
+  integrity sha512-6QK0OpF/phMz0Q2AxILkX2mFhi7m+WMwTRg0LQKq/WBB0cDP4rYH3Wp4/d3OTXlrPLVJT/RFqj8tFeAR4nk8AA==
+  dependencies:
+    sourcemap-codec "^1.4.4"
+
 make-dir@^1.0.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/make-dir/-/make-dir-1.3.0.tgz#79c1033b80515bd6d24ec9933e860ca75ee27f0c"
@@ -6863,20 +6889,15 @@ typescript-tslint-plugin@^0.5.2:
     mock-require "^3.0.2"
     vscode-languageserver "^5.1.0"
 
-typescript@3.4.4:
-  version "3.4.4"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.4.4.tgz#aac4a08abecab8091a75f10842ffa0631818f785"
-  integrity sha512-xt5RsIRCEaf6+j9AyOBgvVuAec0i92rgCaS3S+UVf5Z/vF2Hvtsw08wtUTJqp4djwznoAgjSxeCcU4r+CcDBJA==
+typescript@3.4.5, typescript@~3.4.5:
+  version "3.4.5"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.4.5.tgz#2d2618d10bb566572b8d7aad5180d84257d70a99"
+  integrity sha512-YycBxUb49UUhdNMU5aJ7z5Ej2XGmaIBL0x34vZ82fn3hGvD+bgrMrVDpatgz2f7YxUMJxMkbWxJZeAvDxVe7Vw==
 
 typescript@^3.5.1:
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.5.2.tgz#a09e1dc69bc9551cadf17dba10ee42cf55e5d56c"
   integrity sha512-7KxJovlYhTX5RaRbUdkAXN1KUZ8PwWlTzQdHV6xNqvuFOs7+WBo10TQUqT19Q/Jz2hk5v9TQDIhyLhhJY4p5AA==
-
-typescript@~3.4.5:
-  version "3.4.5"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.4.5.tgz#2d2618d10bb566572b8d7aad5180d84257d70a99"
-  integrity sha512-YycBxUb49UUhdNMU5aJ7z5Ej2XGmaIBL0x34vZ82fn3hGvD+bgrMrVDpatgz2f7YxUMJxMkbWxJZeAvDxVe7Vw==
 
 uglify-js@^3.5.1, uglify-js@^3.6.0:
   version "3.6.0"
