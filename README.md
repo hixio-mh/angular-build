@@ -14,7 +14,7 @@ Another build and packaging tool for [Angular](https://angular.io/) applications
 
 * Build support for both library projects (internally with [rollup](https://rollupjs.org)) and app projects (internally with [webpack](https://webpack.js.org)).
 * This npm package can be consumed by [Angular Cli](https://cli.angular.io), [Webpack Cli](https://www.npmjs.com/package/webpack-cli), or built-in cli.
-* Flexable configuration with extendable config options.
+* Flexable JSON configuration with extendable config options.
 
 ### Library Project Build / Packaging Features
 
@@ -25,7 +25,7 @@ Another build and packaging tool for [Angular](https://angular.io/) applications
 * Supports built-in style processing of .css and .scss files.
 * Supports style preprocessor options for .scss files.
 * Automatic copying and entry point processing of package.json file to output directory.
-* Can copy assets (README.md, LICENSE, etc.) to output directory.
+* Can copy assets (README, LICENSE, etc.) to output directory.
 * Can replace individual package.json version, name, description, etc with root package.json one or command argument.
 * Can replace version placeholder in typescript file.
 * Can replace version, package name placeholders in banner file.
@@ -33,13 +33,41 @@ Another build and packaging tool for [Angular](https://angular.io/) applications
 ### Application Project Build Features
 
 * Most of [@angular-devkit/build-angular](https://www.npmjs.com/package/@angular-devkit/build-angular) options are supported
-* Customizable html injection - can inject bundled scripts, links, resource hints, etc into separate ASP.Net Core MVC partial views.
+* Customizable html injection - can inject bundled scripts, links, resource hints, etc into separate files or partial views.
 * DLL bundling support for optimizing build time.
 * Can merge built-in configurations with custom webpack configuration.
 
 ## Getting Started
 
-* See [Wiki](https://github.com/DagonMetric/angular-build/wiki) for getting started guides.
+### Prerequisites
+
+* [Node.js](https://nodejs.org/en/download/) requirement:  >= v10.9
+
+### Supported Angular Versions
+
+* Angular v8.0.0 or greater
+
+### Installation
+
+To install the angular-build to your workspace root:
+
+npm
+
+```bash
+npm install -D @dagonmetric/angular-build
+```
+
+or yarn
+
+```bash
+yarn add -D @dagonmetric/angular-build
+```
+
+### Guides
+
+* [Building and Packaging Library Projects](https://github.com/DagonMetric/angular-build/wiki/Building-and-Packaging-Angular-Library-Projects)
+
+* [Building Application Projects](https://github.com/DagonMetric/angular-build/wiki/Building-Angular-Application-Projects)
 
 ## Feedback and Contributing
 
