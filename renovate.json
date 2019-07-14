@@ -4,42 +4,36 @@
   ],
   "timezone": "Asia/Yangon",
   "schedule": [
-    "after 11pm every weekday",
-    "before 6am every weekday",
-    "after 11pm every weekend",
-    "before 6am every weekend"
+    "after 11pm and before 6am every weekday",
+    "after 11pm and before 6am every weekend"
   ],
   "packageFiles": ["package.json"],
-  "rangeStrategy": "replace",
+  "automerge": true,
+  "major": {
+    "automerge": false
+  },
+  "rangeStrategy": "bump",
   "packageRules": [
     {
       "packageNames": [
-        "@ngtools\/webpack"
+        "@ngtools/webpack"
       ],
       "packagePatterns": [
         "^@angular-devkit\/.*"
       ],
-      "groupName": "angular-devkit",
-      "rangeStrategy": "replace"
+      "groupName": "angular-devkit"
     },
     {
       "packagePatterns": [
         "^@angular\/.*"
       ],
-      "groupName": "angular",
-      "rangeStrategy": "replace"
+      "groupName": "angular"
     },
     {
       "packagePatterns": [
         "^@types\/.*"
       ],
-      "excludePackageNames": ["@types/node"],
-      "groupName": "types",
-      "rangeStrategy": "replace"
-    },
-    {
-      "packageNames": ["@types/node"],
-      "schedule": "on the last day of the month"
+      "groupName": "types"
     },
     {
       "packageNames": [
@@ -51,8 +45,8 @@
         ".*-webpack-plugin$",
         "^webpack-.*"
       ],
-      "groupName": "webpack-tools",
-      "rangeStrategy": "replace"
+      "excludePackageNames": ["raw-loader"],
+      "groupName": "webpack-tools"
     },
     {
       "packageNames": [
@@ -61,16 +55,26 @@
       "packagePatterns": [
         "^rollup-plugin-*"
       ],
-      "groupName": "rollup-tools",
-      "rangeStrategy": "replace"
+      "groupName": "rollup-tools"
+    },
+
+    {
+      "packageNames": ["raw-loader"],
+      "allowedVersions": "<=1.0.0",
+      "updateTypes": ["patch"],
+      "automerge": false
     },
     {
       "packageNames": ["typescript"],
-      "updateTypes": "patch"
+      "allowedVersions": "<=3.4.5",
+      "updateTypes": ["patch"],
+      "automerge": false
     },
     {
       "packageNames": ["rxjs"],
-      "updateTypes": "patch"
+      "allowedVersions": "<=6.4.0",
+      "updateTypes": ["patch"],
+      "automerge": false
     }
   ]
 }
