@@ -19,7 +19,7 @@ install:
 build_script:
   - yarn build
   - yarn build:samples
-test: "off"
+test: off
 cache:
   - node_modules -> yarn.lock
   - "%LOCALAPPDATA%\\Yarn"
