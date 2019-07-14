@@ -61,19 +61,16 @@
     {
       "packageNames": ["raw-loader"],
       "allowedVersions": "<=1.0.0",
-      "updateTypes": ["patch"],
       "automerge": false
     },
     {
       "packageNames": ["typescript"],
       "allowedVersions": "<=3.4.5",
-      "updateTypes": ["patch"],
       "automerge": false
     },
     {
       "packageNames": ["rxjs"],
       "allowedVersions": "<=6.4.0",
-      "updateTypes": ["patch"],
       "automerge": false
     }
   ]
