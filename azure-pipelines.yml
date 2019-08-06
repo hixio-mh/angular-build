@@ -37,7 +37,7 @@ jobs:
         condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'refs/tags/'))
         displayName: 'Publish release notes'
 
-  - job: Linux
+  - job: linux
     dependsOn:
       - basic
     condition: and(succeeded(), ne(variables['skipLinuxJob'], 'true'))
@@ -62,7 +62,7 @@ jobs:
           yarn build:samples
         displayName: 'Run build samples'
 
-  - job: MacOS
+  - job: macOS
     dependsOn:
       - basic
     condition: and(succeeded(), ne(variables['skipMacOSJob'], 'true'))
@@ -89,7 +89,7 @@ jobs:
           yarn build:samples
         displayName: 'Run build samples'
 
-  - job: Windows
+  - job: windows
     dependsOn:
       - basic
     condition: and(succeeded(), ne(variables['skipWindowsJob'], 'true'))
