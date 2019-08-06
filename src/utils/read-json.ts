@@ -6,7 +6,7 @@ import { readFile } from 'fs';
 import { stripComments } from './strip-comments';
 
 export async function readJson(filePath: string): Promise<any> {
-    const content = await new Promise((resolve, reject) => {
+    const content: Buffer = await new Promise((resolve, reject) => {
         readFile(filePath,
             (err, buffer) => {
                 if (err) {
