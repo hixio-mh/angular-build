@@ -57,20 +57,20 @@
       ],
       "groupName": "rollup-tools"
     },
-
     {
       "packageNames": ["raw-loader"],
-      "allowedVersions": "<=1.0.0",
       "automerge": false
     },
     {
       "packageNames": ["typescript"],
-      "allowedVersions": "<=3.4.5",
+      "automerge": false
+    },
+    {
+      "packageNames": ["tsickle"],
       "automerge": false
     },
     {
       "packageNames": ["rxjs"],
-      "allowedVersions": "<=6.4.0",
       "automerge": false
     }
   ]
