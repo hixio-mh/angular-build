@@ -187,10 +187,10 @@
   resolved "https://registry.yarnpkg.com/@types/anymatch/-/anymatch-1.3.1.tgz#336badc1beecb9dacc38bea2cf32adf627a8421a"
   integrity sha512-/+CRPXpBDpo2RK9C68N3b2cOvO0Cf5B9aPijHsoDQTHivnGSObdOF2BRQOYjojWTDy6nQvMjmqRXIxH55VjxxA==
 
-"@types/autoprefixer@^9.5.0":
-  version "9.5.0"
-  resolved "https://registry.yarnpkg.com/@types/autoprefixer/-/autoprefixer-9.5.0.tgz#aaf489be1bda03650717ef9cb01b8fc4d5eb1ad4"
-  integrity sha512-V5p6QSFDMlsNUOfRgCSbXcolHNkYgW0VsxBWg2RzZ3ckOSGvkmyCxj7cEkEM3GAJmepItITHhvHSXC0bLkrT9g==
+"@types/autoprefixer@^9.6.0":
+  version "9.6.0"
+  resolved "https://registry.yarnpkg.com/@types/autoprefixer/-/autoprefixer-9.6.0.tgz#d6ef2e078c8fa9adc7959fd2ce34da8e8948a860"
+  integrity sha512-s3BKeDVsopGusucdXnyw/Pc2BsvheGcQwszag+MapJWnU36xHJ4h4wEuct6Btm8Cg1Je5Is2jn+twHlXJBorkQ==
   dependencies:
     "@types/browserslist" "*"
     postcss "7.x.x"
@@ -279,10 +279,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.6.9.tgz#ffeee23afdc19ab16e979338e7b536fdebbbaeaf"
   integrity sha512-+YB9FtyxXGyD54p8rXwWaN1EWEyar5L58GlGWgtH2I9rGmLGBQcw63+0jw+ujqVavNuO47S1ByAjm9zdHMnskw==
 
-"@types/node@^12.7.1":
-  version "12.7.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.1.tgz#3b5c3a26393c19b400844ac422bd0f631a94d69d"
-  integrity sha512-aK9jxMypeSrhiYofWWBf/T7O+KwaiAHzM4sveCdWPn71lzUSMimRnKzhXDKfKwV1kWoBo2P1aGgaIYGLf9/ljw==
+"@types/node@^12.7.2":
+  version "12.7.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.2.tgz#c4e63af5e8823ce9cc3f0b34f7b998c2171f0c44"
+  integrity sha512-dyYO+f6ihZEtNPDcWNR1fkoTDf3zAK3lAABDze3mz6POyIercH0lEUawUFXlG8xaQZmm1yEBON/4TsYv/laDYg==
 
 "@types/parse5@^5.0.2":
   version "5.0.2"
