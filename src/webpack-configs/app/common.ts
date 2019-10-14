@@ -131,6 +131,7 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
             outputPath: outputPath,
             cacheDirectries: cacheDirs,
             forceCleanToDisk: isDll,
+            // tslint:disable-next-line: no-unsafe-any
             host: angularBuildContext.host,
             logLevel: logLevel
         }));
