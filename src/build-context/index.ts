@@ -9,7 +9,6 @@ import {
     BuildContextInstanceOptions,
     BuildContextStaticOptions,
     BuildOptionsInternal,
-    Host,
     LibProjectConfigInternal
 } from '../models/internals';
 
@@ -261,7 +260,8 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
         return this._buildOptions;
     }
 
-    get host(): Host | undefined {
+    // tslint:disable-next-line: no-any no-unsafe-any
+    get host(): any {
         return this._host;
     }
 
@@ -300,7 +300,8 @@ export class AngularBuildContext<TConfig extends AppProjectConfigInternal | LibP
 
     // Instance private fields
     private readonly _projectConfigRaw: TConfig;
-    private readonly _host?: Host;
+    // tslint:disable-next-line: no-any
+    private readonly _host?: any;
     private readonly _buildOptions: BuildOptionsInternal;
     private _initialized = false;
     private _projectConfig: TConfig | undefined;
