@@ -6,11 +6,11 @@
  * found in the LICENSE file at https://angular.io/license
  */
 
- // tslint:disable:no-default-export
+// tslint:disable:no-default-export
 
 export default function (content: string, map: object): string {
-  const stringifiedContent = JSON.stringify(content);
-  const stringifiedMap = map && JSON.stringify(map);
+    const stringifiedContent = JSON.stringify(content);
+    const stringifiedMap = map ? JSON.stringify(map) : "''";
 
-  return `module.exports = [[module.id, ${stringifiedContent}, '', ${stringifiedMap}]]`;
+    return `module.exports = [[module.id, ${stringifiedContent}, '', ${stringifiedMap}]]`;
 }
