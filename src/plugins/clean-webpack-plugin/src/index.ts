@@ -5,8 +5,6 @@ import * as denodeify from 'denodeify';
 import { pathExists, remove, stat } from 'fs-extra';
 import * as glob from 'glob';
 import * as minimatch from 'minimatch';
-import { concat, of } from 'rxjs';
-import { concatMap, last } from 'rxjs/operators';
 import { Compiler } from 'webpack';
 
 import { AfterEmitCleanOptions, BeforeBuildCleanOptions, CleanOptions } from '../../../models';
@@ -267,27 +265,19 @@ export class CleanWebpackPlugin {
                 } else if (this._options.host) {
                     const host = this._options.host;
                     const resolvedPath = normalize(excludePath);
-                    await host.exists(resolvedPath).pipe(
-                        concatMap(exists => {
-                            if (exists) {
-                                return host.isDirectory(resolvedPath).pipe(concatMap(isDir => {
-                                    if (isDir) {
-                                        if (!existedDirsToExclude.includes(excludePath)) {
-                                            existedDirsToExclude.push(excludePath);
-                                        }
-                                    } else {
-                                        if (!existedFilesToExclude.includes(excludePath)) {
-                                            existedFilesToExclude.push(excludePath);
-                                        }
-                                    }
-
-                                    return of(null);
-                                }));
-                            } else {
-                                return of(null);
+                    const exists = await host.exists(resolvedPath).toPromise();
+                    if (exists) {
+                        const isDir = await host.isDirectory(resolvedPath).toPromise();
+                        if (isDir) {
+                            if (!existedDirsToExclude.includes(excludePath)) {
+                                existedDirsToExclude.push(excludePath);
                             }
-                        }),
-                    ).toPromise();
+                        } else {
+                            if (!existedFilesToExclude.includes(excludePath)) {
+                                existedFilesToExclude.push(excludePath);
+                            }
+                        }
+                    }
                 }
             }));
         }
@@ -485,17 +475,12 @@ export class CleanWebpackPlugin {
                 const resolvedPath = normalize(pathToClean);
 
                 try {
-                    await host.exists(resolvedPath).pipe(
-                        concatMap(exists => {
-                            if (exists) {
-                                this._logger.debug(`Deleting ${relToWorkspace}`);
+                    const exists = await host.exists(resolvedPath).toPromise();
+                    if (exists) {
+                        this._logger.debug(`Deleting ${relToWorkspace}`);
 
-                                return concat(host.delete(resolvedPath), of(null)).pipe(last());
-                            } else {
-                                return of(null);
-                            }
-                        }),
-                    ).toPromise();
+                        await host.delete(resolvedPath).toPromise();
+                    }
                 } catch (deleteError) {
                     if (this._isPersistedOutputFileSystem || this._options.forceCleanToDisk) {
                         retryDelete = true;
