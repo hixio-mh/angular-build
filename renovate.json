@@ -58,10 +58,6 @@
       "groupName": "rollup-tools"
     },
     {
-      "packageNames": ["raw-loader"],
-      "automerge": false
-    },
-    {
       "packageNames": ["typescript"],
       "automerge": false
     },
