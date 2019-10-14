@@ -157,8 +157,13 @@ export async function getAppBrowserWebpackConfigPartial(angularBuildContext: Ang
 
     // service worker
     if (appConfig.serviceWorker) {
+        if (!angularBuildContext.host) {
+            throw new InternalError("The 'angularBuildContext.host' is not set.");
+        }
+
         plugins.push(
             new ServiceWorkerWebpackPlugin({
+                // tslint:disable-next-line: no-unsafe-any
                 host: angularBuildContext.host,
                 workspaceRoot: AngularBuildContext.workspaceRoot,
                 projectRoot: projectRoot,
