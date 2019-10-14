@@ -3,11 +3,8 @@
 
 import * as crypto from 'crypto';
 
-import { dirname, join, normalize, Path, tags, virtualFs } from '@angular-devkit/core';
-import { NodeJsSyncHost, resolve } from '@angular-devkit/core/node';
+import { dirname, join, normalize, Path, relative, tags, virtualFs } from '@angular-devkit/core';
 
-import { from, merge, Observable, of } from 'rxjs';
-import { concatMap, map, mergeMap, reduce, switchMap, toArray } from 'rxjs/operators';
 import * as webpack from 'webpack';
 
 import { InternalError } from '../../../models/errors';
@@ -16,62 +13,54 @@ import { InternalError } from '../../../models/errors';
 class CliFilesystem {
     constructor(private readonly _host: virtualFs.Host, private readonly _base: string) { }
 
-    async list(p: string): Promise<string[]> {
-        const recursiveList = (p1: Path): Observable<Path> => this._host.list(p1).pipe(
-            // Emit each fragment individually.
-            // tslint:disable-next-line:no-unnecessary-callback-wrapper
-            concatMap(fragments => from(fragments)),
-            // Join the path with fragment.
-            map(fragment => join(p1, fragment)),
-            // Emit directory content paths instead of the directory path.
-            mergeMap(p2 => this._host.isDirectory(p2).pipe(
-                concatMap(isDir => isDir ? recursiveList(p2) : of(p2))
-            )
-            )
-        );
-
-        return recursiveList(this.res(p)).pipe(
-            map(p2 => p2.replace(this._base, '')),
-            toArray(),
-        ).toPromise().then(x => x, () => []);
+    async list(path: string): Promise<string[]> {
+        return this._recursiveList(this.resolve(path), []).catch(() => []);
     }
 
     async read(path: string): Promise<string> {
-        return this._host.read(this.res(path))
-            .toPromise()
-            .then(content => virtualFs.fileBufferToString(content));
+        return virtualFs.fileBufferToString(await this.readIntoBuffer(path));
     }
 
     async hash(path: string): Promise<string> {
         const sha1 = crypto.createHash('sha1');
+        sha1.update(Buffer.from(await this.readIntoBuffer(path)));
 
-        return this.read(path)
-            .then(content => sha1.update(content))
-            .then(() => sha1.digest('hex'));
+        return sha1.digest('hex');
     }
 
     async write(path: string, content: string): Promise<void> {
-        return this._host.write(this.res(path), virtualFs.stringToFileBuffer(content))
+        return this._host.write(this.resolve(path), virtualFs.stringToFileBuffer(content))
             .toPromise();
     }
 
-    private res(p: string): Path {
+    private async readIntoBuffer(path: string): Promise<ArrayBuffer> {
+        return this._host.read(this.resolve(path)).toPromise();
+    }
+
+    private resolve(p: string): Path {
         return join(normalize(this._base), p);
+    }
+
+
+    private async _recursiveList(path: Path, items: string[]): Promise<string[]> {
+        const fragments = await this._host.list(path).toPromise();
+
+        for (const fragment of fragments) {
+            const item = join(path, fragment);
+
+            if (await this._host.isDirectory(item).toPromise()) {
+                await this._recursiveList(item, items);
+            } else {
+                items.push(`/${relative(normalize(this._base), item)}`);
+            }
+        }
+
+        return items;
     }
 }
 
-export function resolveProjectModule(root: string, moduleName: string): string {
-    return resolve(moduleName,
-        {
-            basedir: root,
-            checkGlobal: false,
-            checkLocal: true
-        },
-    );
-}
-
 export interface ServiceWorkerWebpackPluginOptions {
-    host?: virtualFs.Host;
+    host: virtualFs.Host;
     workspaceRoot: string;
     projectRoot: string;
     outputPath: string;
@@ -91,7 +80,7 @@ export class ServiceWorkerWebpackPlugin {
             throw new InternalError(`[${this.name}] The 'options' can't be null or empty.`);
         }
 
-        this._host = this._options.host || new NodeJsSyncHost();
+        this._host = this._options.host;
     }
 
     apply(compiler: webpack.Compiler): void {
@@ -114,73 +103,50 @@ export class ServiceWorkerWebpackPlugin {
         baseHref: string,
         ngswConfigPath?: string
     ): Promise<void> {
-        // Path to the worker script itself.
         const distPath = normalize(outputPath);
+
         const workerPath = normalize(
-            resolveProjectModule(workspaceRoot, '@angular/service-worker/ngsw-worker.js'),
+            require.resolve('@angular/service-worker/ngsw-worker.js', { paths: [workspaceRoot] }),
         );
 
-        const swConfigPath = resolveProjectModule(
-            workspaceRoot,
-            '@angular/service-worker/config'
+        const swConfigPath = require.resolve(
+            '@angular/service-worker/config',
+            { paths: [workspaceRoot] },
         );
 
-        const safetyPath = join(dirname(workerPath), 'safety-worker.js');
         const configPath = ngswConfigPath as Path || join(normalize(projectRoot), 'ngsw-config.json');
 
-        return host.exists(configPath).pipe(
-            switchMap(exists => {
-                if (!exists) {
-                    throw new Error(tags.oneLine`
-          Error: Expected to find an ngsw-config.json configuration
-          file in the ${projectRoot} folder. Either provide one or disable Service Worker
-          in your angular.json configuration file.`,
-                    );
-                }
+        const configExists = await host.exists(configPath).toPromise();
+        if (!configExists) {
+            throw new Error(tags.oneLine`
+  Error: Expected to find an ngsw-config.json configuration
+  file in the ${projectRoot} folder. Either provide one or disable Service Worker
+  in your angular.json configuration file.`,
+            );
+        }
 
-                return host.read(configPath);
-            }),
-            map(content => JSON.parse(virtualFs.fileBufferToString(content))),
-            switchMap(configJson => {
-                // tslint:disable-next-line:non-literal-require
-                const Generator = require(swConfigPath).Generator;
-                const gen = new Generator(new CliFilesystem(host, outputPath), baseHref);
+        // Read the configuration file
+        const config = JSON.parse(virtualFs.fileBufferToString(await host.read(configPath).toPromise()));
 
-                return gen.process(configJson);
-            }),
-            switchMap(output => {
-                const manifest = JSON.stringify(output, null, 2);
+        // tslint:disable-next-line: non-literal-require variable-name
+        const GeneratorConstructor = require(swConfigPath).Generator;
+        const generator = new GeneratorConstructor(new CliFilesystem(host, outputPath), baseHref);
 
-                return host.read(workerPath).pipe(
-                    switchMap(workerCode => {
-                        return merge(
-                            host.write(join(distPath, 'ngsw.json'), virtualFs.stringToFileBuffer(manifest)),
-                            host.write(join(distPath, 'ngsw-worker.js'), workerCode),
-                        );
-                    }),
-                );
-            }),
-            switchMap(() => host.exists(safetyPath)),
-            // If @angular/service-worker has the safety script, copy it into two locations.
-            switchMap(exists => {
-                if (!exists) {
-                    return of<void>(undefined);
-                }
+        const output = await generator.process(config);
 
-                return host.read(safetyPath).pipe(
-                    switchMap(safetyCode => {
-                        return merge(
-                            host.write(join(distPath, 'worker-basic.min.js'), safetyCode),
-                            host.write(join(distPath, 'safety-worker.js'), safetyCode),
-                        );
-                    }),
-                );
-            }),
+        const manifest = JSON.stringify(output, null, 2);
+        await host.write(join(distPath, 'ngsw.json'), virtualFs.stringToFileBuffer(manifest)).toPromise();
 
-            // Remove all elements, reduce them to a single emit.
-            reduce(() => {
-                // Do nothing
-            }),
-        ).toPromise();
+        const workerCode = await host.read(workerPath).toPromise();
+        await host.write(join(distPath, 'ngsw-worker.js'), workerCode).toPromise();
+
+        const safetyPath = join(dirname(workerPath), 'safety-worker.js');
+
+        if (await host.exists(safetyPath).toPromise()) {
+            const safetyCode = await host.read(safetyPath).toPromise();
+
+            await host.write(join(distPath, 'worker-basic.min.js'), safetyCode).toPromise();
+            await host.write(join(distPath, 'safety-worker.js'), safetyCode).toPromise();
+        }
     }
 }
