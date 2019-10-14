@@ -56,6 +56,7 @@ export async function getLibWebpackConfig(angularBuildContext: AngularBuildConte
             workspaceRoot: AngularBuildContext.workspaceRoot,
             outputPath: cleanOutputPath,
             cacheDirectries: cacheDirs,
+            // tslint:disable-next-line: no-unsafe-any
             host: angularBuildContext.host,
             logLevel: logLevel
         }));
