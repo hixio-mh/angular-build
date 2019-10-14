@@ -74,7 +74,7 @@ export async function
     const postcssPluginCreator = (loader: loaderWebpack.LoaderContext) => [
         // tslint:disable-next-line: no-unsafe-any
         postcssImports({
-            resolve: (url: string) => url.startsWith('~') ? url.substr(1) : url,
+            resolve: (url: string) => (url.startsWith('~') ? url.substr(1) : url),
             load: async (filename: string) => {
                 return new Promise<string>((resolve, reject) => {
                     // tslint:disable-next-line: no-unsafe-any
@@ -102,20 +102,12 @@ export async function
     ];
 
     let sassImplementation: {} | undefined;
-    let fiber: {} | undefined;
     try {
         // tslint:disable-next-line:no-implicit-dependencies no-require-imports no-unsafe-any
         sassImplementation = require('node-sass');
     } catch {
         // tslint:disable-next-line:no-implicit-dependencies no-require-imports no-unsafe-any
         sassImplementation = require('sass');
-
-        try {
-            // tslint:disable-next-line:no-implicit-dependencies no-require-imports no-unsafe-any
-            fiber = require('fibers');
-        } catch {
-            // Do nothing
-        }
     }
 
     const baseRules: RuleSetRule[] = [
@@ -127,11 +119,12 @@ export async function
                     loader: sassLoader,
                     options: {
                         implementation: sassImplementation,
-                        fiber,
-                        // bootstrap-sass requires a minimum precision of 8
-                        precision: 8,
-                        includePaths,
-                        sourceMap: cssSourceMap
+                        sourceMap: cssSourceMap,
+                        sassOptions: {
+                            // bootstrap-sass requires a minimum precision of 8
+                            precision: 8,
+                            includePaths,
+                        }
                     }
                 }
             ]
