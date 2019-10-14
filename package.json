@@ -2,6 +2,16 @@
   "name": "@dagonmetric/angular-build",
   "version": "8.0.6",
   "description": "Angular build & packaging tool, bundle library projects into Angular package format (fesm2015, fesm5, umd formats) and build application projects with more customizable options.",
+  "author": "DagonMetric",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DagonMetric/angular-build.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DagonMetric/angular-build/issues"
+  },
+  "homepage": "https://github.com/DagonMetric/angular-build",
   "keywords": [
     "angular-cli",
     "angular",
@@ -19,19 +29,9 @@
     "html-injection",
     "build-tools"
   ],
-  "author": "DagonMetric",
-  "license": "MIT",
   "engines": {
     "node": ">=10.9.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/DagonMetric/angular-build.git"
-  },
-  "bugs": {
-    "url": "https://github.com/DagonMetric/angular-build/issues"
-  },
-  "homepage": "https://github.com/DagonMetric/angular-build",
   "bin": {
     "ngb": "./bin/ngb"
   },
