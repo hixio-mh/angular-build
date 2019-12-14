@@ -2,7 +2,6 @@
 
 [![Build Status](https://dev.azure.com/DagonMetric/angular-build/_apis/build/status/DagonMetric.angular-build?branchName=master)](https://dev.azure.com/DagonMetric/angular-build/_build/latest?definitionId=3&branchName=master)
 [![CircleCI](https://circleci.com/gh/DagonMetric/angular-build/tree/master.svg?style=svg)](https://circleci.com/gh/DagonMetric/angular-build/tree/master)
-[![Build Status](https://travis-ci.org/DagonMetric/angular-build.svg?branch=master)](https://travis-ci.org/DagonMetric/angular-build)
 [![npm (scoped)](https://img.shields.io/npm/v/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
 [![npm](https://img.shields.io/npm/dm/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
 [![Gitter](https://badges.gitter.im/DagonMetric/general.svg)](https://gitter.im/DagonMetric/general?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
