@@ -1,5 +1,6 @@
 # Angular Build & Packaging Tool
 
+[![Build Status](https://github.com/DagonMetric/angular-build/workflows/Build/badge.svg)](https://github.com/DagonMetric/angular-build/actions)
 [![Build Status](https://dev.azure.com/DagonMetric/angular-build/_apis/build/status/DagonMetric.angular-build?branchName=master)](https://dev.azure.com/DagonMetric/angular-build/_build/latest?definitionId=3&branchName=master)
 [![CircleCI](https://circleci.com/gh/DagonMetric/angular-build/tree/master.svg?style=svg)](https://circleci.com/gh/DagonMetric/angular-build/tree/master)
 [![npm (scoped)](https://img.shields.io/npm/v/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
