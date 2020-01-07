@@ -117,7 +117,7 @@
     "supports-color": "^7.1.0",
     "terser-webpack-plugin": "^2.3.1",
     "ts-loader": "^6.2.1",
-    "tsickle": "^0.37.1",
+    "tsickle": "^0.38.0",
     "typescript": "~3.5.3",
     "uglify-js": "^3.7.3",
     "update-notifier": "^4.0.0",
