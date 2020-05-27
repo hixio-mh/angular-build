@@ -15,7 +15,7 @@ export interface TsTranspilationOptions {
     /**
      * Override script target for this transpilation.
      */
-    target?: 'es5' | 'es2015' | 'es2016' | 'es2017' | 'es2018' | 'esnext';
+    target?: 'es5' | 'es2015' | 'es2016' | 'es2017' | 'es2018' | 'es2019' | 'es2020' | 'esnext';
     /**
      * Override declaration option for this transpilation.
      */
