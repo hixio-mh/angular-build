@@ -363,7 +363,7 @@ bin/Microsoft.NodejsTools.WebRole.dll
 tmp/
 
 # package lock files
-package-lock.json
+# package-lock.json
 # yarn.lock
 
 # dist
