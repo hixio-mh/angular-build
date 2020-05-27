@@ -78,6 +78,12 @@ yarn add -D @dagonmetric/angular-build
 
 * [ng-log](https://github.com/DagonMetric/ng-log) - Logging service for Angular
 
+## Special Thanks
+
+Thanks to [JetBrains](https://www.jetbrains.com/?from=angular-build) for supporting us free open source licenses.
+
+[![JetBrains](https://user-images.githubusercontent.com/45749065/83002810-7c746300-a033-11ea-95be-938164dad724.png)](https://www.jetbrains.com/?from=angular-build)
+
 ## Feedback and Contributing
 
 Check out the [Contributing](https://github.com/DagonMetric/angular-build/blob/master/CONTRIBUTING.md) page to see the best places to log issues and start discussions.
