@@ -7,7 +7,7 @@
 [![npm](https://img.shields.io/npm/dm/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
 [![Gitter](https://badges.gitter.im/DagonMetric/general.svg)](https://gitter.im/DagonMetric/general?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Another build and packaging tool for [Angular](https://angular.io/) applications and library projects.
+Another build and packaging tool for [Angular](https://angular.io/) applications and library projects. It also supports bundling and packaging of pure typescript library projects (Non-Angular).
 
 ## Features
 
@@ -17,7 +17,7 @@ Another build and packaging tool for [Angular](https://angular.io/) applications
 
 ### Library Project Build / Packaging Features
 
-* Can bundles library projects into either [Angular Package Format 8.0](https://docs.google.com/document/d/1CZC2rcpxffTDfRDs6p1cfbmKNLA6x5O-NtkJglDaBVs/preview) (fesm2015, fesm5, umd formats) or custom output formats.
+* Can bundles library projects into either [Angular Package Format (APF) v10.0](https://docs.google.com/document/d/1CZC2rcpxffTDfRDs6p1cfbmKNLA6x5O-NtkJglDaBVs/preview) (fesm2015, fesm5, umd formats) or custom output formats.
 * Can customize ngc typescript transpilations and bundle options.
 * Supports secondary entry points such as @angular/common/http.
 * Can inline/embed Angular resources such as templateUrl and styleUrls.
@@ -28,6 +28,7 @@ Another build and packaging tool for [Angular](https://angular.io/) applications
 * Can replace individual package.json version, name, description, etc with root package.json one or command argument.
 * Can replace version placeholder in typescript file.
 * Can replace version, package name placeholders in banner file.
+* Supports bundling and packaging of non-angular typescript library projects
 
 ### Application Project Build Features
 
@@ -70,13 +71,17 @@ yarn add -D @dagonmetric/angular-build
 
 ## Some projects with Angular Build configuration
 
-* [ng-translit](https://github.com/DagonMetric/ng-translit) - Transliterate service for Angular
+* [ng-log](https://github.com/DagonMetric/ng-log) - Logging service for Angular
 
 * [ng-config](https://github.com/DagonMetric/ng-config) - Configuration service for Angular
 
 * [ng-cache](https://github.com/DagonMetric/ng-cache) - Caching service for Angular
 
-* [ng-log](https://github.com/DagonMetric/ng-log) - Logging service for Angular
+* [ng-translit](https://github.com/DagonMetric/ng-translit) - Transliterate service for Angular
+
+* [ng-zawgyi-detector](https://github.com/myanmartools/ng-zawgyi-detector) - Zawgyi-One and standard Myanmar Unicode detector library for Angular
+
+* [zawgyi-unicode-translit-rules](https://github.com/myanmartools/zawgyi-unicode-translit-rules) - (Non-Angular project) Zawgyi Unicode transliterate / convert regular expression rules in JavaScript and JSON formats
 
 ## Special Thanks
 
