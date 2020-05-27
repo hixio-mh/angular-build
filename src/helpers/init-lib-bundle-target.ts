@@ -227,9 +227,11 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
         if (currentBundle.libraryTarget === 'esm' && scriptTarget === ScriptTarget.ES2015) {
             packageEntryPoints.fesm2015 = normalizeRelativePath(path.relative(packageJsonOutDir,
                 bundleOutFilePath));
+            packageEntryPoints.es2015 = packageEntryPoints.fesm2015;
         } else if (currentBundle.libraryTarget === 'esm' && scriptTarget === ScriptTarget.ES5) {
             packageEntryPoints.fesm5 = normalizeRelativePath(path.relative(packageJsonOutDir,
                 bundleOutFilePath));
+            packageEntryPoints.module = packageEntryPoints.fesm5;
         } else if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs') {
             packageEntryPoints.main = normalizeRelativePath(path.relative(packageJsonOutDir,
                 bundleOutFilePath));
