@@ -113,9 +113,10 @@ export async function initTsTranspilationOptions(tsConfigPath: string,
             compilerOptions.module === ModuleKind.ESNext) &&
             (tsTranspilation.target === 'es2015' ||
                 (!tsTranspilation.target && compilerOptions.target === ScriptTarget.ES2015))) {
-            packageEntryPoints.esm2015 = normalizeRelativePath(path.relative(packageJsonOutDir,
+            packageEntryPoints.es2015 = normalizeRelativePath(path.relative(packageJsonOutDir,
                 entryFileAbs));
-            packageEntryPoints.es2015 = packageEntryPoints.esm2015;
+            // It is deprecated as of v9, might be removed in the future.
+            packageEntryPoints.esm2015 = packageEntryPoints.es2015;
         } else if ((compilerOptions.module === ModuleKind.ES2015 ||
             compilerOptions.module === ModuleKind.ESNext) &&
             (tsTranspilation.target === 'es5' ||
