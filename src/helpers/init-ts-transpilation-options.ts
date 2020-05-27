@@ -113,18 +113,16 @@ export async function initTsTranspilationOptions(tsConfigPath: string,
             compilerOptions.module === ModuleKind.ESNext) &&
             (tsTranspilation.target === 'es2015' ||
                 (!tsTranspilation.target && compilerOptions.target === ScriptTarget.ES2015))) {
-            packageEntryPoints.es2015 = normalizeRelativePath(path.relative(packageJsonOutDir,
-                entryFileAbs));
             packageEntryPoints.esm2015 = normalizeRelativePath(path.relative(packageJsonOutDir,
                 entryFileAbs));
+            packageEntryPoints.es2015 = packageEntryPoints.esm2015;
         } else if ((compilerOptions.module === ModuleKind.ES2015 ||
             compilerOptions.module === ModuleKind.ESNext) &&
             (tsTranspilation.target === 'es5' ||
                 (!tsTranspilation.target && compilerOptions.target === ScriptTarget.ES5))) {
             packageEntryPoints.esm5 = normalizeRelativePath(path.relative(packageJsonOutDir,
                 entryFileAbs));
-            packageEntryPoints.module = normalizeRelativePath(path.relative(packageJsonOutDir,
-                entryFileAbs));
+            packageEntryPoints.module = packageEntryPoints.esm5;
         } else if (compilerOptions.module === ModuleKind.UMD ||
             compilerOptions.module === ModuleKind.CommonJS) {
             packageEntryPoints.main = normalizeRelativePath(path.relative(packageJsonOutDir,
