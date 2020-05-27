@@ -1,6 +1,6 @@
 {
   "name": "@dagonmetric/angular-build",
-  "version": "8.1.1",
+  "version": "9.0.0",
   "description": "Angular build & packaging tool, bundle library projects into Angular package format (fesm2015, fesm5, umd formats) and build application projects with more customizable options.",
   "author": "DagonMetric",
   "license": "MIT",
