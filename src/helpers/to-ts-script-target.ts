@@ -20,6 +20,12 @@ export function toTsScriptTarget(target: string): ScriptTarget | undefined {
         case 'ES2018':
         case 'es2018':
             return ScriptTarget.ES2018;
+        case 'ES2019':
+        case 'es2019':
+            return ScriptTarget.ES2019;
+        case 'ES2020':
+        case 'es2020':
+            return ScriptTarget.ES2020;
         case 'ESNext':
         case 'esnext':
             return ScriptTarget.ESNext;
