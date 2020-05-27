@@ -1,7 +1,7 @@
 version: 2.1
 
 var_1: &docker_image circleci/node:lts-browsers
-var_2: &cache_key v2.1-angular-build-{{ .Branch }}-{{ checksum "yarn.lock" }}-node-lts
+var_2: &cache_key v2.1-angular-build-{{ .Branch }}-{{ checksum "package-lock.json" }}-node-lts
 
 jobs:
   build:
@@ -14,15 +14,14 @@ jobs:
           key: *cache_key
       - run:
           name: Install dependencies
-          command: yarn install --frozen-lockfile --non-interactive
+          command: npm ci
       - save_cache:
           key: *cache_key
           paths:
-            - ~/.cache/yarn
             - node_modules
       - run:
           name: Run build
-          command: yarn build
+          command: npm run build
       - run:
           name: Run build samples
-          command: yarn build:samples
+          command: npm run build:samples

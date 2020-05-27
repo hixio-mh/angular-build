@@ -8,17 +8,17 @@ jobs:
           version: '12.x'
         displayName: 'Use Node 12.x'
       - script: |
-          yarn install --frozen-lockfile
+          npm ci
         displayName: 'Install dependencies'
       - script: |
-          yarn build
+          npm run build
         displayName: "Run build"
       - script: |
-          yarn build:samples
+          npm run build:samples
         condition: and(succeeded(), ne(variables['skipBuildSamples'], 'true'))
         displayName: 'Run build samples'
       - script: |
-          yarn lint
+          npm run lint
         condition: and(succeeded(), ne(variables['skipLint'], 'true'))
         displayName: 'Run linting'
       - bash: |
@@ -49,13 +49,13 @@ jobs:
           version: '12.x'
         displayName: 'Use Node 12.x'
       - script: |
-          yarn install --frozen-lockfile
+          npm ci
         displayName: 'Install dependencies'
       - script: |
-          yarn build
+          npm run build
         displayName: 'Run build'
       - script: |
-          yarn build:samples
+          npm run build:samples
         displayName: 'Run build samples'
 
   - job: windows
@@ -70,11 +70,11 @@ jobs:
           version: '12.x'
         displayName: 'Use Node 12.x'
       - script: |
-          yarn install --frozen-lockfile
+          npm ci
         displayName: 'Install dependencies'
       - script: |
-          yarn build
+          npm run build
         displayName: 'Run build'
       - script: |
-          yarn build:samples
+          npm run build:samples
         displayName: 'Run build samples'
