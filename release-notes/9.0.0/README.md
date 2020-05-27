@@ -1,5 +1,6 @@
 ## Changes
 
+* Update and adjust entry points to Angular Package Format v10.0
 * Update package dependencies
 
 npm packages are available on:
