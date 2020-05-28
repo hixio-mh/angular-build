@@ -1,6 +1,6 @@
 {
   "extends": [
-    "tslint-microsoft-contrib"
+    "tslint-microsoft-contrib/recommended"
   ],
   "rulesDirectory": [
     "node_modules/tslint-microsoft-contrib"
@@ -99,7 +99,6 @@
     "no-trailing-whitespace": true,
     "no-unnecessary-initializer": true,
     "no-unused-expression": true,
-    "no-use-before-declare": true,
     "no-var-keyword": true,
     "object-literal-sort-keys": false,
     "one-line": [
