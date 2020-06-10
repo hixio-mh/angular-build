@@ -1,7 +1,7 @@
 # Angular Build & Packaging Tool
 
-[![Build Status](https://github.com/DagonMetric/angular-build/workflows/Build/badge.svg)](https://github.com/DagonMetric/angular-build/actions)
-[![Build Status](https://dev.azure.com/DagonMetric/angular-build/_apis/build/status/DagonMetric.angular-build?branchName=master)](https://dev.azure.com/DagonMetric/angular-build/_build/latest?definitionId=3&branchName=master)
+[![GitHub Actions Status](https://github.com/DagonMetric/angular-build/workflows/Build/badge.svg)](https://github.com/DagonMetric/angular-build/actions)
+[![Azure Pipelines Status](https://dev.azure.com/DagonMetric/angular-build/_apis/build/status/DagonMetric.angular-build?branchName=master)](https://dev.azure.com/DagonMetric/angular-build/_build?definitionId=3)
 [![npm (scoped)](https://img.shields.io/npm/v/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
 [![npm](https://img.shields.io/npm/dm/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
 [![Gitter](https://badges.gitter.im/DagonMetric/general.svg)](https://gitter.im/DagonMetric/general?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
@@ -44,7 +44,7 @@ Another build and packaging tool for [Angular](https://angular.io/) applications
 
 ### Supported Angular Versions
 
-* Angular v8.0.0 or greater
+* Angular v9.0.0 or greater
 
 ### Installation
 
@@ -70,9 +70,9 @@ yarn add -D @dagonmetric/angular-build
 
 ## Some projects with Angular Build configuration
 
-* [ng-log](https://github.com/DagonMetric/ng-log) - Logging service for Angular
+* [ng-config](https://github.com/DagonMetric/ng-config) - Configuration and options service for Angular
 
-* [ng-config](https://github.com/DagonMetric/ng-config) - Configuration service for Angular
+* [ng-log](https://github.com/DagonMetric/ng-log) - Vendor-agnostic logging, analytics and telemetry service abstractions and some implementations for Angular
 
 * [ng-cache](https://github.com/DagonMetric/ng-cache) - Caching service for Angular
 
