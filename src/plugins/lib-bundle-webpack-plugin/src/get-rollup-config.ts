@@ -2,6 +2,9 @@
 // tslint:disable:no-require-imports
 import * as rollup from 'rollup';
 
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+
 import { AngularBuildContext } from '../../../build-context';
 import { ExternalsEntry } from '../../../models';
 import { LibBundleOptionsInternal, LibProjectConfigInternal } from '../../../models/internals';
@@ -127,8 +130,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
 
     // if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || isTsEntry || includeCommonJsModules) {
     if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || includeCommonJsModules) {
-        const rollupNodeResolve = require('rollup-plugin-node-resolve');
-        plugins.push(rollupNodeResolve());
+        plugins.push(resolve());
 
         // if (isTsEntry) {
         //     const projectRoot = path.resolve(AngularBuildContext.workspaceRoot, libConfig._projectRoot || '');
@@ -154,8 +156,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
         // }
 
         if (includeCommonJsModules) {
-            const rollupCommonjs = require('rollup-plugin-commonjs');
-            plugins.push(rollupCommonjs({
+            plugins.push(commonjs({
                 // extensions: isTsEntry ? ['.js', '.ts', '.tsx'] : ['.js'],
                 extensions: ['.js'],
                 // If false then skip sourceMap generation for CommonJS modules
