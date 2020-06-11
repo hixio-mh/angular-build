@@ -51,7 +51,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     }
 
     // externals
-    const includeCommonJsModules = currentBundle.nodeModulesAsExternals !== false ? false : true;
+    const includeCommonJsModules = currentBundle.includeCommonJsModules;
     const rawExternals: ExternalsEntry[] = [];
     const rollupExternalMap = {
         externals: [] as string[],

@@ -43,10 +43,10 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
         currentBundle.externals = JSON.parse(JSON.stringify(libConfig.externals));
     }
 
-    // nodeModulesAsExternals
-    if (currentBundle.nodeModulesAsExternals == null &&
-        libConfig.nodeModulesAsExternals != null) {
-        currentBundle.nodeModulesAsExternals = libConfig.nodeModulesAsExternals;
+    // includeCommonJsModules
+    if (currentBundle.includeCommonJsModules == null &&
+        libConfig.includeCommonJsModules != null) {
+        currentBundle.includeCommonJsModules = libConfig.includeCommonJsModules;
     }
 
     // includeDefaultAngularAndRxJsGlobals

@@ -59,9 +59,9 @@ export interface LibBundleOptions {
      */
     externals?: ExternalsEntry | ExternalsEntry[];
     /**
-     * If true, node_modules packages are not included in bundle.
+     * If true, commonjs modules are converted to ES6 and included in bundle.
      */
-    nodeModulesAsExternals?: boolean;
+    includeCommonJsModules?: boolean;
     /**
      * If true, predefined Angular and rxjs globals are added.
      */
@@ -93,9 +93,9 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
      */
     externals?: ExternalsEntry | ExternalsEntry[];
     /**
-     * If true, node_modules packages are not included in bundle.
+     * If true, commonjs modules are converted to ES6 and included in bundle.
      */
-    nodeModulesAsExternals?: boolean;
+    includeCommonJsModules?: boolean;
     /**
      * If true, predefined Angular and rxjs globals are added.
      */
