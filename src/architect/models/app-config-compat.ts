@@ -86,10 +86,6 @@ export interface AppConfigCompat {
      */
     platform?: 'browser' | 'server';
     /**
-     * @angular-devkit/build_angular compatibility, use 'nodeModulesAsExternals' instead.
-     */
-    bundleDependencies?: 'none' | 'all';
-    /**
      * @angular-devkit/build_angular compatibility, not supported.
      */
     preserveSymlinks?: boolean;
