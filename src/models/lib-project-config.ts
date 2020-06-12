@@ -85,10 +85,6 @@ export interface LibBundleOptions {
      */
     includeCommonJs?: boolean | CommonJsOptions;
     /**
-     * If true, predefined Angular and rxjs globals are added.
-     */
-    includeDefaultAngularAndRxJsGlobals?: boolean;
-    /**
      * If true, minify file will be generated.
      */
     minify?: boolean;
@@ -118,10 +114,6 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
      * If true or options object, commonjs modules are converted to ES6 and included in bundle.
      */
     includeCommonJs?: boolean | CommonJsOptions;
-    /**
-     * If true, predefined Angular and rxjs globals are added.
-     */
-    includeDefaultAngularAndRxJsGlobals?: boolean;
     /**
      * Bundle target options.
      */

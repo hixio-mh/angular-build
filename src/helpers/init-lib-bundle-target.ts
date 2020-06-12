@@ -49,12 +49,6 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
         currentBundle.includeCommonJs = libConfig.includeCommonJs;
     }
 
-    // includeDefaultAngularAndRxJsGlobals
-    if (currentBundle.includeDefaultAngularAndRxJsGlobals == null &&
-        libConfig.includeDefaultAngularAndRxJsGlobals != null) {
-        currentBundle.includeDefaultAngularAndRxJsGlobals = libConfig.includeDefaultAngularAndRxJsGlobals;
-    }
-
     if (currentBundle.entryRoot === 'prevBundleOutput') {
         let foundBundleTarget: LibBundleOptionsInternal | undefined;
         if (i > 0) {
