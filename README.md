@@ -6,11 +6,12 @@
 [![npm](https://img.shields.io/npm/dm/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
 [![Gitter](https://badges.gitter.im/DagonMetric/general.svg)](https://gitter.im/DagonMetric/general?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Another build and packaging tool for [Angular](https://angular.io/) applications and library projects. It also supports bundling and packaging of pure typescript library projects (Non-Angular).
+Another bundling and npm packaging helper tool for Typescript & Angular library projects. It also supports for bundling of Angular application projects.
 
 ## Features
 
-* Build support for both library projects (internally with [rollup](https://rollupjs.org)) and app projects (internally with [webpack](https://webpack.js.org)).
+* Bundling and npm packaging of Angular & Typescript library projects (internally with [rollup](https://rollupjs.org)).
+* Bundling of Angular application projects (internally with [webpack](https://webpack.js.org)).
 * This npm package can be consumed by [Angular Cli](https://cli.angular.io), [Webpack Cli](https://www.npmjs.com/package/webpack-cli), or built-in cli.
 * Flexable JSON configuration with extendable config options.
 
@@ -27,12 +28,12 @@ Another build and packaging tool for [Angular](https://angular.io/) applications
 * Can replace individual package.json version, name, description, etc with root package.json one or command argument.
 * Can replace version placeholder in typescript file.
 * Can replace version, package name placeholders in banner file.
-* Supports bundling and packaging of non-angular typescript library projects
+* Supports bundling and packaging of (Non-Angular) Typescript library projects.
 
 ### Application Project Build Features
 
 * Most of [@angular-devkit/build-angular](https://www.npmjs.com/package/@angular-devkit/build-angular) options are supported
-* Customizable html injection - can inject bundled scripts, links, resource hints, etc into separate files or partial views.
+* Customizable html injection - can inject bundled scripts, links, resource hints, etc into separate files or partial view files.
 * DLL bundling support for optimizing build time.
 * Can merge built-in configurations with custom webpack configuration.
 
@@ -68,7 +69,7 @@ yarn add -D @dagonmetric/angular-build
 
 * [Building Application Projects](https://github.com/DagonMetric/angular-build/wiki/Building-Angular-Application-Projects)
 
-## Some projects with Angular Build configuration
+## Some Projects with `angular-build`
 
 * [ng-config](https://github.com/DagonMetric/ng-config) - Configuration and options service for Angular
 
@@ -90,7 +91,7 @@ Thanks to [JetBrains](https://www.jetbrains.com/?from=angular-build) for support
 
 ## Feedback and Contributing
 
-Check out the [Contributing](https://github.com/DagonMetric/angular-build/blob/master/CONTRIBUTING.md) page to see the best places to log issues and start discussions.
+Check out the [Contributing](https://github.com/DagonMetric/angular-build/blob/master/CONTRIBUTING.md) page.
 
 ## License
 
