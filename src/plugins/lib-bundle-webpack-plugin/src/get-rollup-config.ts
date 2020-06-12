@@ -51,7 +51,6 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     }
 
     // externals
-    const includeCommonJsModules = currentBundle.includeCommonJsModules;
     const rawExternals: ExternalsEntry[] = [];
     const rollupExternalMap = {
         externals: [] as string[],
@@ -60,7 +59,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
 
     if (typeof currentBundle.externals !== 'boolean' && !currentBundle.externals) {
         if (currentBundle.includeDefaultAngularAndRxJsGlobals ||
-            (currentBundle.includeDefaultAngularAndRxJsGlobals !== false && !includeCommonJsModules)) {
+            (currentBundle.includeDefaultAngularAndRxJsGlobals !== false && !currentBundle.includeCommonJsModules)) {
             if (currentBundle.libraryTarget === 'esm') {
                 rawExternals.push({
                     tslib: 'tslib'
@@ -128,8 +127,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     // plugins
     const plugins: rollup.Plugin[] = [];
 
-    // if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || isTsEntry || includeCommonJsModules) {
-    if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || includeCommonJsModules) {
+    if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || currentBundle.includeCommonJsModules) {
         plugins.push(resolve());
 
         // if (isTsEntry) {
@@ -155,7 +153,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
         //     }));
         // }
 
-        if (includeCommonJsModules) {
+        if (currentBundle.includeCommonJsModules) {
             plugins.push(commonjs({
                 // extensions: isTsEntry ? ['.js', '.ts', '.tsx'] : ['.js'],
                 extensions: ['.js'],
