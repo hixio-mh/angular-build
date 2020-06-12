@@ -90,51 +90,6 @@ export function applyAppBuilderOptionsCompat(appConfig: AppBuilderOptions): void
         };
         delete appConfig.statsJson;
     }
-    if (appConfig.bundleDependencies && appConfig.bundleDependencies === 'none') {
-        appConfig.nodeModulesAsExternals = true;
-        const externals = [
-            /^@angular/,
-            // tslint:disable-next-line: no-any
-            (_: any, request: string, callback: (error?: Error | null, result?: string) => void) => {
-                // Absolute & Relative paths are not externals
-                // tslint:disable-next-line: no-unsafe-any
-                if (request.match(/^\.{0,2}\//)) {
-                    callback();
-
-                    return;
-                }
-
-                try {
-                    // Attempt to resolve the module via Node
-                    // tslint:disable-next-line: no-unsafe-any
-                    const e = require.resolve(request);
-                    if (/node_modules/.test(e)) {
-                        // It's a node_module
-                        callback(null, request);
-                    } else {
-                        // It's a system thing (.ie util, fs...)
-                        callback();
-                    }
-                } catch (e) {
-                    // Node couldn't find it, so it must be user-aliased
-                    callback();
-                }
-            }
-        ];
-        if (!appConfig.externals) {
-            // tslint:disable-next-line: no-any
-            appConfig.externals = externals as any;
-        } else {
-            if (Array.isArray(appConfig.externals)) {
-                // tslint:disable-next-line: no-any
-                appConfig.externals = [...(appConfig.externals as any[]), ...externals];
-            } else {
-                // tslint:disable-next-line: no-any
-                appConfig.externals = [appConfig.externals as any, ...externals];
-            }
-        }
-        delete appConfig.bundleDependencies;
-    }
 }
 
 // tslint:disable-next-line: no-any
