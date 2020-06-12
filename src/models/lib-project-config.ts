@@ -3,6 +3,28 @@ import { ExternalsEntry, ProjectConfig, ProjectConfigBase } from './project-conf
 /**
  * @additionalProperties false
  */
+export interface CommonJsOptions {
+    /**
+     * Some modules contain dynamic require calls, or require modules that contain circular dependencies, which are not handled well by static imports. Including those modules as dynamicRequireTargets will simulate a CommonJS (NodeJS-like) environment for them with support for dynamic and circular dependencies.
+     */
+    dynamicRequireTargets?: string[];
+    /**
+     * A minimatch pattern, or array of patterns, which specifies the files in the build the plugin should ignore. By default non-CommonJS modules are ignored.
+     */
+    exclude?: string[];
+    /**
+     * A minimatch pattern, or array of patterns, which specifies the files in the build the plugin should operate on. By default CommonJS modules are targeted.
+     */
+    include?: string[];
+    /**
+     * If true, uses of global won't be dealt with by this plugin.
+     */
+    ignoreGlobal?: boolean;
+}
+
+/**
+ * @additionalProperties false
+ */
 export interface TsTranspilationOptions {
     /**
      * Typescript configuration file for this transpilation.
@@ -59,9 +81,9 @@ export interface LibBundleOptions {
      */
     externals?: ExternalsEntry | ExternalsEntry[];
     /**
-     * If true, commonjs modules are converted to ES6 and included in bundle.
+     * If true or options object, commonjs modules are converted to ES6 and included in bundle.
      */
-    includeCommonJsModules?: boolean;
+    includeCommonJs?: boolean | CommonJsOptions;
     /**
      * If true, predefined Angular and rxjs globals are added.
      */
@@ -93,9 +115,9 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
      */
     externals?: ExternalsEntry | ExternalsEntry[];
     /**
-     * If true, commonjs modules are converted to ES6 and included in bundle.
+     * If true or options object, commonjs modules are converted to ES6 and included in bundle.
      */
-    includeCommonJsModules?: boolean;
+    includeCommonJs?: boolean | CommonJsOptions;
     /**
      * If true, predefined Angular and rxjs globals are added.
      */

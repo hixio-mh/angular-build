@@ -59,7 +59,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
 
     if (typeof currentBundle.externals !== 'boolean' && !currentBundle.externals) {
         if (currentBundle.includeDefaultAngularAndRxJsGlobals ||
-            (currentBundle.includeDefaultAngularAndRxJsGlobals !== false && !currentBundle.includeCommonJsModules)) {
+            (currentBundle.includeDefaultAngularAndRxJsGlobals !== false && !currentBundle.includeCommonJs)) {
             if (currentBundle.libraryTarget === 'esm') {
                 rawExternals.push({
                     tslib: 'tslib'
@@ -127,7 +127,7 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     // plugins
     const plugins: rollup.Plugin[] = [];
 
-    if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || currentBundle.includeCommonJsModules) {
+    if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || currentBundle.includeCommonJs) {
         plugins.push(resolve());
 
         // if (isTsEntry) {
@@ -153,13 +153,20 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
         //     }));
         // }
 
-        if (currentBundle.includeCommonJsModules) {
-            plugins.push(commonjs({
-                // extensions: isTsEntry ? ['.js', '.ts', '.tsx'] : ['.js'],
+        if (currentBundle.includeCommonJs) {
+            let commonjsOption = {
                 extensions: ['.js'],
-                // If false then skip sourceMap generation for CommonJS modules
-                sourceMap: libConfig.sourceMap, // Default: true
-            }));
+                sourceMap: libConfig.sourceMap,
+            };
+
+            if (typeof currentBundle.includeCommonJs === 'object') {
+                commonjsOption = {
+                    ...currentBundle.includeCommonJs,
+                    ...commonjsOption,
+                };
+            }
+
+            plugins.push(commonjs(commonjsOption));
         }
     }
 
