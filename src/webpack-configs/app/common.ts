@@ -356,6 +356,53 @@ export async function getAppCommonWebpackConfigPartial(angularBuildContext: Angu
         ...(appConfig.platformTarget === 'node' ? { mangle: false } : {})
     };
 
+    // Externals
+    if (appConfig.platformTarget === 'node' &&
+        (appConfig.bundleDependencies == null || appConfig.bundleDependencies === false || appConfig.bundleDependencies === 'none')) {
+        const externals = [
+            /^@angular/,
+            // tslint:disable-next-line: no-any
+            (_: any, request: string, callback: (error?: Error | null, result?: string) => void) => {
+                // Absolute & Relative paths are not externals
+                // tslint:disable-next-line: no-unsafe-any
+                if (request.match(/^\.{0,2}\//)) {
+                    callback();
+
+                    return;
+                }
+
+                try {
+                    // Attempt to resolve the module via Node
+                    // tslint:disable-next-line: no-unsafe-any
+                    const e = require.resolve(request);
+                    if (/node_modules/.test(e)) {
+                        // It's a node_module
+                        callback(null, request);
+                    } else {
+                        // It's a system thing (.ie util, fs...)
+                        callback();
+                    }
+                } catch (e) {
+                    // Node couldn't find it, so it must be user-aliased
+                    callback();
+                }
+            }
+        ];
+
+        if (!appConfig.externals) {
+            // tslint:disable-next-line: no-any
+            appConfig.externals = externals as any;
+        } else {
+            if (Array.isArray(appConfig.externals)) {
+                // tslint:disable-next-line: no-any
+                appConfig.externals = [...(appConfig.externals as any[]), ...externals];
+            } else {
+                // tslint:disable-next-line: no-any
+                appConfig.externals = [appConfig.externals as any, ...externals];
+            }
+        }
+    }
+
     // webpack config
     // tslint:disable-next-line:no-unnecessary-local-variable
     const webpackCommonConfig: Configuration = {
