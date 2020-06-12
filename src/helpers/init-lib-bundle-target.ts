@@ -43,6 +43,18 @@ export function initLibBundleTarget(bundles: LibBundleOptionsInternal[],
         currentBundle.externals = JSON.parse(JSON.stringify(libConfig.externals));
     }
 
+    // dependenciesAsExternals
+    if (currentBundle.dependenciesAsExternals == null &&
+        libConfig.dependenciesAsExternals != null) {
+        currentBundle.dependenciesAsExternals = libConfig.dependenciesAsExternals;
+    }
+
+    // peerDependenciesAsExternals
+    if (currentBundle.peerDependenciesAsExternals == null &&
+        libConfig.peerDependenciesAsExternals != null) {
+        currentBundle.peerDependenciesAsExternals = libConfig.peerDependenciesAsExternals;
+    }
+
     // includeCommonJs
     if (currentBundle.includeCommonJs == null &&
         libConfig.includeCommonJs != null) {

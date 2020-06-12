@@ -81,6 +81,14 @@ export interface LibBundleOptions {
      */
     externals?: ExternalsEntry | ExternalsEntry[];
     /**
+     * If true, the bundle system will automatically mark 'dependencies' in package.json to be externals. Default is 'true'.
+     */
+    dependenciesAsExternals?: boolean;
+    /**
+     * If true, the bundle system will automatically mark 'peerDependencies' in package.json to be externals. Default is 'true'.
+     */
+    peerDependenciesAsExternals?: boolean;
+    /**
      * If true or options object, commonjs modules are converted to ES6 and included in bundle.
      */
     includeCommonJs?: boolean | CommonJsOptions;
@@ -114,6 +122,14 @@ export interface LibProjectConfigBase extends ProjectConfigBase {
      * If true or options object, commonjs modules are converted to ES6 and included in bundle.
      */
     includeCommonJs?: boolean | CommonJsOptions;
+    /**
+     * If true, the bundle system will automatically mark 'dependencies' in package.json to be externals. Default is 'true'.
+     */
+    dependenciesAsExternals?: boolean;
+    /**
+     * If true, the bundle system will automatically mark 'peerDependencies' in package.json to be externals. Default is 'true'.
+     */
+    peerDependenciesAsExternals?: boolean;
     /**
      * Bundle target options.
      */
