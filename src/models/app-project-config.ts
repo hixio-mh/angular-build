@@ -308,9 +308,9 @@ export interface AppProjectConfigBase extends ProjectConfigBase {
      */
     concatenateModules?: boolean;
     /**
-     * If true, node_modules packages are not included in bundle.
+     * If 'true' or 'all', node_modules packages dependencies are included in the bundle.
      */
-    nodeModulesAsExternals?: boolean;
+    bundleDependencies?: 'none' | 'all' | boolean;
     /**
      * Extract all licenses in a separate file.
      */
