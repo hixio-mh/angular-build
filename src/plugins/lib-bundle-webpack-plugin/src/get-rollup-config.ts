@@ -7,17 +7,24 @@ import resolve from '@rollup/plugin-node-resolve';
 
 import { AngularBuildContext } from '../../../build-context';
 import { ExternalsEntry } from '../../../models';
-import { LibBundleOptionsInternal, LibProjectConfigInternal } from '../../../models/internals';
+import {
+    LibBundleOptionsInternal,
+    LibProjectConfigInternal,
+} from '../../../models/internals';
 
-import { getAngularGlobals } from './angular-globals';
-import { getRxJsGlobals } from './rxjs-globals';
+import { getRollupPredefinedGlobalsMap } from './rollup-predefined-globals-map';
+
+const dashCaseToCamelCase = (str: string) =>
+    str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 
 // tslint:disable-next-line:max-func-body-length
-export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProjectConfigInternal>,
-    currentBundle: LibBundleOptionsInternal): {
-        inputOptions: rollup.InputOptions;
-        outputOptions: rollup.OutputOptions;
-    } {
+export function getRollupConfig(
+    angularBuildContext: AngularBuildContext<LibProjectConfigInternal>,
+    currentBundle: LibBundleOptionsInternal
+): {
+    inputOptions: rollup.InputOptions;
+    outputOptions: rollup.OutputOptions;
+} {
     const logger = AngularBuildContext.logger;
     const libConfig = angularBuildContext.projectConfig;
 
@@ -30,14 +37,11 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
                 .split('/')
                 .join('.');
         } else {
-            moduleName = libConfig._projectName
-                .split('/')
-                .join('.');
+            moduleName = libConfig._projectName.split('/').join('.');
         }
-        moduleName = moduleName
-            .replace(/-([a-z])/g, (_, g1) => {
-                return g1 ? g1.toUpperCase() : '';
-            });
+        moduleName = moduleName.replace(/-([a-z])/g, (_, g1) => {
+            return g1 ? g1.toUpperCase() : '';
+        });
     }
 
     let amdId: {} | undefined;
@@ -50,65 +54,18 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
         currentBundle.libraryTarget = 'esm';
     }
 
-    // externals
-    const rawExternals: ExternalsEntry[] = [];
+    // externals & globals
     const rollupExternalMap = {
         externals: [] as string[],
-        globals: {}
+        globals: {},
     };
 
-    if (typeof currentBundle.externals !== 'boolean' && !currentBundle.externals) {
-        if (currentBundle.includeDefaultAngularAndRxJsGlobals ||
-            (currentBundle.includeDefaultAngularAndRxJsGlobals !== false && !currentBundle.includeCommonJs)) {
-            if (currentBundle.libraryTarget === 'esm') {
-                rawExternals.push({
-                    tslib: 'tslib'
-                });
-            }
-
-            rawExternals.push({
-                ...getAngularGlobals(),
-                ...getRxJsGlobals()
-            });
-        }
-    } else {
-        let noExternals = false;
-        if (!currentBundle.externals ||
-            (Array.isArray(currentBundle.externals) && !currentBundle.externals.length) ||
-            (typeof currentBundle.externals === 'object' && !Object.keys(currentBundle.externals).length)) {
-            noExternals = true;
-        }
-
-        if (noExternals) {
-            if (currentBundle.includeDefaultAngularAndRxJsGlobals !== false) {
-                if (currentBundle.libraryTarget === 'esm') {
-                    rawExternals.push({
-                        tslib: 'tslib'
-                    });
-                }
-                rawExternals.push({
-                    ...getAngularGlobals(),
-                    ...getRxJsGlobals()
-                });
-            }
+    const rawExternals: ExternalsEntry[] = [];
+    if (currentBundle.externals) {
+        if (Array.isArray(currentBundle.externals)) {
+            rawExternals.push(...currentBundle.externals);
         } else {
-            if (currentBundle.includeDefaultAngularAndRxJsGlobals !== false) {
-                if (currentBundle.libraryTarget === 'esm') {
-                    rawExternals.push({
-                        tslib: 'tslib'
-                    });
-                }
-                rawExternals.push({
-                    ...getAngularGlobals(),
-                    ...getRxJsGlobals()
-                });
-
-                if (Array.isArray(currentBundle.externals)) {
-                    rawExternals.push(...currentBundle.externals);
-                } else {
-                    rawExternals.push(currentBundle.externals);
-                }
-            }
+            rawExternals.push(currentBundle.externals);
         }
     }
 
@@ -121,13 +78,63 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     const externals = rollupExternalMap.externals || [];
     if (libConfig.platformTarget === 'node') {
         const getBuiltins = require('builtins');
-        externals.push(...getBuiltins());
+        const builtinExternals = getBuiltins() as string[];
+        builtinExternals
+            .filter((e) => !externals.includes(e))
+            .forEach((e) => {
+                externals.push(e);
+            });
+    }
+
+    if (
+        currentBundle.dependenciesAsExternals !== false &&
+        libConfig._packageJson &&
+        libConfig._packageJson.dependencies
+    ) {
+        Object.keys(libConfig._packageJson.dependencies)
+            .filter((e) => !externals.includes(e))
+            .forEach((e) => {
+                externals.push(e);
+            });
+    }
+
+    if (
+        currentBundle.peerDependenciesAsExternals !== false &&
+        libConfig._packageJson &&
+        libConfig._packageJson.peerDependencies
+    ) {
+        Object.keys(libConfig._packageJson.peerDependencies)
+            .filter((e) => !externals.includes(e))
+            .forEach((e) => {
+                externals.push(e);
+            });
+    }
+
+    let globals: { [key: string]: string } = rollupExternalMap.globals || {};
+    for (const key of externals) {
+        if (globals[key] == null) {
+            const foundMap = getRollupPredefinedGlobalsMap(key);
+            if (foundMap) {
+                globals = { ...globals, ...foundMap };
+            } else {
+                let normalizedValue = key
+                    .replace(/@angular\//, 'ng.')
+                    .replace(/@dagonmetric\//, '')
+                    .replace(/\//g, '.');
+                normalizedValue = dashCaseToCamelCase(normalizedValue);
+                globals[key] = normalizedValue;
+            }
+        }
     }
 
     // plugins
     const plugins: rollup.Plugin[] = [];
 
-    if (currentBundle.libraryTarget === 'umd' || currentBundle.libraryTarget === 'cjs' || currentBundle.includeCommonJs) {
+    if (
+        currentBundle.libraryTarget === 'umd' ||
+        currentBundle.libraryTarget === 'cjs' ||
+        currentBundle.includeCommonJs
+    ) {
         plugins.push(resolve());
 
         // if (isTsEntry) {
@@ -181,7 +188,11 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
     const inputOptions: rollup.InputOptions = {
         input: currentBundle._entryFilePath,
         // preserveSymlinks: preserveSymlinks,
-        external: externals,
+        external: (id: string): boolean => {
+            return externals.some(
+                (dep) => id === dep || id.startsWith(`${dep}/`)
+            );
+        },
         plugins: plugins,
         onwarn(warning: string | rollup.RollupWarning): void {
             if (typeof warning === 'string') {
@@ -197,29 +208,30 @@ export function getRollupConfig(angularBuildContext: AngularBuildContext<LibProj
             }
 
             logger.warn(warning.message);
-        }
+        },
     };
 
     const outputOptions: rollup.OutputOptions = {
         name: moduleName,
         amd: amdId,
         format: currentBundle.libraryTarget,
-        globals: rollupExternalMap.globals,
-        // suitable if you're exporting more than one thing
+        globals,
         exports: 'named',
         banner: libConfig._bannerText,
         file: currentBundle._outputFilePath,
-        sourcemap: libConfig.sourceMap
+        sourcemap: libConfig.sourceMap,
     };
 
     return {
         inputOptions: inputOptions,
-        outputOptions: outputOptions
+        outputOptions: outputOptions,
     };
 }
 
-function mapToRollupGlobalsAndExternals(external: ExternalsEntry,
-    mapResult: { externals: string[]; globals: { [key: string]: string } }): void {
+function mapToRollupGlobalsAndExternals(
+    external: ExternalsEntry,
+    mapResult: { externals: string[]; globals: { [key: string]: string } }
+): void {
     if (!external) {
         return;
     }
@@ -229,25 +241,29 @@ function mapToRollupGlobalsAndExternals(external: ExternalsEntry,
             mapResult.externals.push(external);
         }
     } else if (typeof external === 'object') {
-        Object.keys(external)
-            .forEach((k: string) => {
-                const tempValue = external[k];
-                if (typeof tempValue === 'string') {
-                    mapResult.globals[k] = tempValue;
-                    if (!mapResult.externals.includes(k)) {
-                        mapResult.externals.push(k);
-                    }
-                } else if (typeof tempValue === 'object' && Object.keys(tempValue).length) {
-                    const selectedKey = tempValue.root ? tempValue.root : Object.keys(tempValue)[0];
-                    mapResult.globals[k] = tempValue[selectedKey];
-                    if (!mapResult.externals.includes(k)) {
-                        mapResult.externals.push(k);
-                    }
-                } else {
-                    if (!mapResult.externals.includes(k)) {
-                        mapResult.externals.push(k);
-                    }
+        Object.keys(external).forEach((k: string) => {
+            const tempValue = external[k];
+            if (typeof tempValue === 'string') {
+                mapResult.globals[k] = tempValue;
+                if (!mapResult.externals.includes(k)) {
+                    mapResult.externals.push(k);
                 }
-            });
+            } else if (
+                typeof tempValue === 'object' &&
+                Object.keys(tempValue).length
+            ) {
+                const selectedKey = tempValue.root
+                    ? tempValue.root
+                    : Object.keys(tempValue)[0];
+                mapResult.globals[k] = tempValue[selectedKey];
+                if (!mapResult.externals.includes(k)) {
+                    mapResult.externals.push(k);
+                }
+            } else {
+                if (!mapResult.externals.includes(k)) {
+                    mapResult.externals.push(k);
+                }
+            }
+        });
     }
 }
