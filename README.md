@@ -2,9 +2,10 @@
 
 [![GitHub Actions Status](https://github.com/DagonMetric/angular-build/workflows/Build/badge.svg)](https://github.com/DagonMetric/angular-build/actions)
 [![Azure Pipelines Status](https://dev.azure.com/DagonMetric/angular-build/_apis/build/status/DagonMetric.angular-build?branchName=master)](https://dev.azure.com/DagonMetric/angular-build/_build?definitionId=3)
-[![npm (scoped)](https://img.shields.io/npm/v/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
-[![npm](https://img.shields.io/npm/dm/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
+[![npm version](https://badge.fury.io/js/%40dagonmetric%2Fangular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
+[![npm downloads](https://img.shields.io/npm/dm/@dagonmetric/angular-build.svg)](https://www.npmjs.com/package/@dagonmetric/angular-build)
 [![Gitter](https://badges.gitter.im/DagonMetric/general.svg)](https://gitter.im/DagonMetric/general?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 
 Another bundling and npm packaging helper tool for Typescript & Angular library projects. It also supports for bundling of Angular application projects.
 
