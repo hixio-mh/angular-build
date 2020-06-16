@@ -1,6 +1,6 @@
 {
   "name": "@dagonmetric/angular-build",
-  "version": "9.1.0",
+  "version": "9.1.1",
   "description": "Another bundling and npm packaging helper tool for Typescript & Angular library projects. It also supports for bundling of Angular application projects.",
   "author": "DagonMetric",
   "license": "MIT",
