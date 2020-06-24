@@ -66,5 +66,6 @@
       "packageNames": ["rxjs"],
       "automerge": false
     }
-  ]
+  ],
+  "suppressNotifications": ["prIgnoreNotification", "prEditNotification", "onboardingClose"]
 }
