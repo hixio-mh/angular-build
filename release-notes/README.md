@@ -2,6 +2,7 @@
 
 | Date (UTC) | Version |  |  |
 | :-- | :-- | :--: | :-- |
+| 2020-06-25 | 10.0.0 | [release notes](10.0.0/README.md)/[npm](https://www.npmjs.com/package/@dagonmetric/angular-build/v/10.0.0) | - |
 | 2020-06-16 | 9.1.1 | [release notes](9.1.1/README.md)/[npm](https://www.npmjs.com/package/@dagonmetric/angular-build/v/9.1.1) | - |
 | 2020-06-12 | 9.1.0 | [release notes](9.1.0/README.md)/[npm](https://www.npmjs.com/package/@dagonmetric/angular-build/v/9.1.0) | - |
 | 2020-06-10 | 9.0.2 | [release notes](9.0.2/README.md)/[npm](https://www.npmjs.com/package/@dagonmetric/angular-build/v/9.0.2) | - |
