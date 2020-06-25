@@ -77,8 +77,8 @@
   "dependencies": {
     "@angular-devkit/architect": "^0.901.9",
     "@angular-devkit/build-optimizer": "^0.901.9",
-    "@angular-devkit/core": "^9.1.9",
-    "@ngtools/webpack": "^9.1.9",
+    "@angular-devkit/core": "^10.0.0",
+    "@ngtools/webpack": "^10.0.0",
     "@rollup/plugin-commonjs": "^13.0.0",
     "@rollup/plugin-node-resolve": "^8.1.0",
     "ajv": "^6.12.2",
