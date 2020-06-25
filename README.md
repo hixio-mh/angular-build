@@ -46,7 +46,7 @@ Another bundling and npm packaging helper tool for Typescript & Angular library 
 
 ### Supported Angular Versions
 
-* Angular v9.0.0 or greater
+* Angular v10.0.0 or greater
 
 ### Installation
 
