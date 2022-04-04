@@ -72,7 +72,9 @@
     "build:ng:lib1-file-extends": "ng build lib1-file-extends --verbose",
     "build:ng:lib1-file-extends:prod": "ng build lib1-file-extends --verbose -c=production",
     "build:ng:app1": "ng build app1 --verbose",
-    "build:ng:app1:prod": "ng build app1 --verbose -c=production"
+    "build:ng:app1:prod": "ng build app1 --verbose -c=production",
+    "prepublish": "npm run snyk-protect",
+    "snyk-protect": "snyk-protect"
   },
   "dependencies": {
     "@angular-devkit/architect": "^0.1000.3",
@@ -126,7 +128,8 @@
     "webpack-bundle-analyzer": "^3.8.0",
     "webpack-merge": "^4.2.2",
     "webpack-sources": "^1.4.3",
-    "yargs": "^15.4.1"
+    "yargs": "^15.4.1",
+    "@snyk/protect": "latest"
   },
   "devDependencies": {
     "@angular/cli": "^10.0.3",
@@ -164,5 +167,6 @@
     "typescript-tslint-plugin": "^0.5.5",
     "webpack-dev-server": "^3.11.0",
     "zone.js": "^0.10.3"
-  }
+  },
+  "snyk": true
 }
