@@ -133,7 +133,7 @@
     "@angular/common": "^10.0.4",
     "@angular/compiler": "^10.0.4",
     "@angular/compiler-cli": "^10.0.4",
-    "@angular/core": "^10.0.4",
+    "@angular/core": "^11.0.5",
     "@angular/platform-browser": "^10.0.4",
     "@angular/platform-browser-dynamic": "^10.0.4",
     "@angular/router": "^10.0.4",
